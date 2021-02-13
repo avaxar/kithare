@@ -22,17 +22,27 @@
 extern bool SILENT_COMPILATION;
 
 namespace kh {
-	enum class TokenizeState {
-		NONE, IDENTIFIER,
-		INTEGER, FLOATING, HEX, OCTAL, BIN,
-		IN_BUF, IN_STR, 
-		IN_INLINE_COMMENT, IN_MULTIPLE_LINE_COMMENT
-	};
+    enum class TokenizeState {
+        NONE, IDENTIFIER,
+        INTEGER, FLOATING, HEX, OCTAL, BIN,
+        IN_BUF, IN_STR, 
+        IN_INLINE_COMMENT, IN_MULTIPLE_LINE_COMMENT
+    };
 
-	std::vector<kh::Token> lex(kh::String& source, const kh::String& file_name);
+    std::vector<kh::Token> lex(kh::String&, const kh::String&);
 
-	inline bool isDec(const uint32 chr) { return '0' <= chr && chr <= '9'; }
-	inline bool isBin(const uint32 chr) { return chr == '0' || chr == '1'; }
-	inline bool isOct(const uint32 chr) { return '0' <= chr && chr <= '7'; }
-	inline bool isHex(const uint32 chr) { return ('0' <= chr && chr <= '9') || ('a' <= chr && chr <= 'f') || ('A' <= chr && chr <= 'F'); }
+    inline bool isDec(const uint32 chr) {
+        return '0' <= chr && chr <= '9';
+    }
+    inline bool isBin(const uint32 chr) {
+        return chr == '0' || chr == '1';
+    }
+    inline bool isOct(const uint32 chr) {
+        return '0' <= chr && chr <= '7';
+    }
+    inline bool isHex(const uint32 chr) {
+        return (('0' <= chr && chr <= '9') ||
+                ('a' <= chr && chr <= 'f') ||
+                ('A' <= chr && chr <= 'F'));
+    }
 }
