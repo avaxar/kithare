@@ -1,9 +1,13 @@
 #include "utility/utf8.hpp"
 
 
-std::string kh::encodeUtf8(const kh::String& str) {
+std::string kh::encodeUtf8(const kh::String& str, bool& success) {
 	uint8* encoded_str = kh::_encodeToUTF8((uint32*)(&str[0]), -1);
-	if (encoded_str == nullptr) return std::string();
+	if (encoded_str == nullptr) {
+		success = false;
+		return std::string();
+	}
+	else success = true;
 
 	std::string estr((char*)encoded_str);
 
@@ -11,14 +15,28 @@ std::string kh::encodeUtf8(const kh::String& str) {
 	return estr;
 }
 
-kh::String kh::decodeUtf8(const std::string& utf8_str) {
+kh::String kh::decodeUtf8(const std::string& utf8_str, bool& success) {
 	uint32* decoded_str = kh::_decodeFromUtf8((uint8*)(&utf8_str[0]), -1);
-	if (decoded_str == nullptr) return kh::String();
+	if (decoded_str == nullptr) {
+		success = false;
+		return kh::String();
+	}
+	else success = true;
 
 	kh::String str(decoded_str);
 
 	delete decoded_str;
 	return str;
+}
+
+std::string kh::encodeUtf8(const kh::String& str) {
+	bool dummy;
+	return kh::encodeUtf8(str, dummy);
+}
+
+kh::String kh::decodeUtf8(const std::string& utf8_str) {
+	bool dummy;
+	return kh::decodeUtf8(utf8_str, dummy);
 }
 
 int64 kh::_getRealSizeUtf8(const uint8* src, const int64 size) {

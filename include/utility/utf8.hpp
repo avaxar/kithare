@@ -6,16 +6,19 @@
 #define _SAFE_INC_I                                             \
 	i++;                                                        \
 	if ((i >= size && size != -1) || (size == -1 && !src[i])) { \
-		free(ret);                                             \
+		free(ret);                                              \
 		return NULL; /* Unicode error */                        \
 	}                                                           \
 	if (src[i] < 0x80 || src[i] >= 0xC0) {                      \
-		free(ret);                                             \
+		free(ret);                                              \
 		return NULL; /* Unicode error */                        \
 	}
 
 
 namespace kh {
+	std::string encodeUtf8(const kh::String& str, bool& success);
+	kh::String decodeUtf8(const std::string& utf8_str, bool& success);
+
 	std::string encodeUtf8(const kh::String& str);
 	kh::String decodeUtf8(const std::string& utf8_str);
 
