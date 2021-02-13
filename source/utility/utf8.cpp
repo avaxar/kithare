@@ -3,6 +3,8 @@
 
 std::string kh::encodeUtf8(const kh::String& str) {
 	uint8* encoded_str = kh::_encodeToUTF8((uint32*)(&str[0]), -1);
+	if (encoded_str == nullptr) return std::string();
+
 	std::string estr((char*)encoded_str);
 
 	delete encoded_str;
@@ -11,6 +13,8 @@ std::string kh::encodeUtf8(const kh::String& str) {
 
 kh::String kh::decodeUtf8(const std::string& utf8_str) {
 	uint32* decoded_str = kh::_decodeFromUtf8((uint8*)(&utf8_str[0]), -1);
+	if (decoded_str == nullptr) return kh::String();
+
 	kh::String str(decoded_str);
 
 	delete decoded_str;
