@@ -1,0 +1,23 @@
+# Couple of IDEs' temporary/cache directory
+*~
+*.swp
+.vscode/
+.vs/
+
+# Visual Studio solution files and build directory
+*.sln
+*.vcxproj
+*.filters
+*.user
+x??
+Debug
+Release
+
+# Dynamic libraries that were used
+*.so
+*.dll
+
+# Executable/compiler generated files
+*.exe
+*.out
+*.wasm
