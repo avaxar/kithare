@@ -33,5 +33,7 @@ namespace kh {
         PARENTHESES_OPEN, PARENTHESES_CLOSE,
         CURLY_OPEN, CURLY_CLOSE,
         SQUARE_OPEN, SQUARE_CLOSE,
+        
+        TEMPLATE_OPEN, TEMPLATE_CLOSE
     };
 }

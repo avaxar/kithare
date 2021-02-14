@@ -52,7 +52,7 @@ int main(const int argc, char* argv[])
 
     kh::String example_code = kh::toString(
         L"int main() {"
-        L"    List(int) list = $ someFunction();"
+        L"    List[<int>] list = someFunction();"
         L"    int a_number = list[0] * (list[1] + list[2]);"
         L"    print(a_number);"
         L"}"

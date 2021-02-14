@@ -511,6 +511,13 @@ std::vector<kh::Token> kh::lex(kh::String& source, const kh::String& file_name) 
                         value.operator_type = kh::Operator::BIT_RSHIFT;
                         i++; char_line++;
                     }
+                    else if (chAt(i + 1) == ']') {
+                        value.symbol_type = kh::Symbol::TEMPLATE_CLOSE;
+                        i++; char_line++;
+
+                        tokens.emplace_back(kh::TokenType::SYMBOL, value, char_line, line_n);
+                        continue;
+                    }
 
                     tokens.emplace_back(kh::TokenType::OPERATOR, value, char_line, line_n);
                 } break;
@@ -632,12 +639,22 @@ std::vector<kh::Token> kh::lex(kh::String& source, const kh::String& file_name) 
 
                 case '[': {
                     kh::TokenValue value;
+
+                    if (chAt(i + 1) == '<') {
+                        value.symbol_type = kh::Symbol::TEMPLATE_OPEN;
+                        i++; char_line++;
+
+                        tokens.emplace_back(kh::TokenType::SYMBOL, value, char_line, line_n);
+                        continue;
+                    }
+
                     value.symbol_type = kh::Symbol::SQUARE_OPEN;
                     tokens.emplace_back(kh::TokenType::SYMBOL, value, char_line, line_n);
                 } break;
 
                 case ']': {
                     kh::TokenValue value;
+
                     value.symbol_type = kh::Symbol::SQUARE_CLOSE;
                     tokens.emplace_back(kh::TokenType::SYMBOL, value, char_line, line_n);
                 } break;

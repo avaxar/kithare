@@ -133,6 +133,11 @@ kh::String kh::repr(const kh::Token& token) {
             str += kh::toString(L"["); break;
         case kh::Symbol::SQUARE_CLOSE:
             str += kh::toString(L"]"); break;
+
+        case kh::Symbol::TEMPLATE_OPEN:
+            str += kh::toString(L"[<"); break;
+        case kh::Symbol::TEMPLATE_CLOSE:
+            str += kh::toString(L">]"); break;
         }
 
         str += kh::toString(L"'");
