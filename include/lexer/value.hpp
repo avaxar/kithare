@@ -6,20 +6,20 @@
 
 
 namespace kh {
-	struct TokenValue {
-		union {
-			kh::Operator operator_type;
-			kh::Symbol symbol_type;
+    struct TokenValue {
+        union {
+            kh::Operator operator_type;
+            kh::Symbol symbol_type;
 
-			uint64 integer;
-			double floating;
-			double imaginary;
+            uint64 integer;
+            double floating;
+            double imaginary;
 
-			uint32 character;
-		};
+            uint32 character;
+        };
 
-		kh::String identifier_name;
-		kh::String string;
-		std::vector<uint8> buffer;
-	};
+        kh::String identifier_name;
+        kh::String string;
+        std::vector<uint8> buffer;
+    };
 }
