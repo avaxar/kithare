@@ -22,7 +22,9 @@ namespace kh {
         AND, OR, NOT,
 
         ASSIGN, SIZEOF, SCOPE,
-        TERNARY_IF, TERNARY_ELSE
+        TERNARY_IF, TERNARY_ELSE,
+
+        STACK_INST
     };
 
     enum class Symbol {

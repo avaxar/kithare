@@ -100,6 +100,9 @@ kh::String kh::repr(const kh::Token& token) {
         case kh::Operator::TERNARY_ELSE:
             str += kh::toString(L":"); break;
 
+        case kh::Operator::STACK_INST:
+            str += kh::toString(L"$"); break;
+
         default:
             str += kh::toString(L"UNKNOWN");
         }

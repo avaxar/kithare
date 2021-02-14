@@ -51,19 +51,11 @@ int main(const int argc, char* argv[])
     #endif
 
     kh::String example_code = kh::toString(
-        L"int main() {                                \n"
-        L"    // Single line comment                  \n"
-        L"    char character_test = 'i';              \n"
-        L"    for int i = 0, i < 1000, i++ {          \n"
-        L"        /*                                  \n"
-        L"            Multiple line comment           \n"
-        L"        */                                  \n" 
-        L"        if i % 2 == 0 {                     \n"
-        L"            print(\"This number is even\"); \n"
-        L"            println(i);                     \n"
-        L"        }                                   \n"
-        L"    }                                       \n"
-        L"}                                           \n"
+        L"int main() {"
+        L"    List(int) list = $ someFunction();"
+        L"    int a_number = list[0] * (list[1] + list[2]);"
+        L"    print(a_number);"
+        L"}"
     );
 
     std::vector<kh::Token> tokens = kh::lex(example_code, kh::toString(L"<string>"));

@@ -588,6 +588,12 @@ std::vector<kh::Token> kh::lex(kh::String& source, const kh::String& file_name) 
                     tokens.emplace_back(kh::TokenType::OPERATOR, value, char_line, line_n);
                 } break;
 
+                case '$': {
+                    kh::TokenValue value;
+                    value.operator_type = kh::Operator::STACK_INST;
+                    tokens.emplace_back(kh::TokenType::OPERATOR, value, char_line, line_n);
+                } break;
+
                 case ';': {
                     kh::TokenValue value;
                     value.symbol_type = kh::Symbol::SEMICOLON;
