@@ -772,6 +772,17 @@ std::vector<kh::Token> kh::lex(kh::String& source, const kh::String& file_name) 
         case kh::TokenizeState::HEX:
             if (kh::isHex(chAt(i)))
                 temp_str += chAt(i);
+            else if (chAt(i) == 'u' || chAt(i) == 'U') {
+                kh::TokenValue value;
+                value.imaginary = std::stoull(kh::fromStringW(temp_str), nullptr, 16);
+                tokens.emplace_back(
+                    kh::TokenType::UNSIGNED_INTEGER,
+                    value,
+                    char_line,
+                    line_n
+                );
+                state = kh::TokenizeState::NONE;
+            }
             else if (chAt(i) == 'i' || chAt(i) == 'I') {
                 kh::TokenValue value;
                 value.imaginary = std::stoull(kh::fromStringW(temp_str), nullptr, 16);
@@ -802,6 +813,17 @@ std::vector<kh::Token> kh::lex(kh::String& source, const kh::String& file_name) 
         case kh::TokenizeState::OCTAL:
             if (kh::isOct(chAt(i)))
                 temp_str += chAt(i);
+            else if (chAt(i) == 'u' || chAt(i) == 'U') {
+                kh::TokenValue value;
+                value.imaginary = std::stoull(kh::fromStringW(temp_str), nullptr, 8);
+                tokens.emplace_back(
+                    kh::TokenType::UNSIGNED_INTEGER,
+                    value,
+                    char_line,
+                    line_n
+                );
+                state = kh::TokenizeState::NONE;
+            }
             else if (chAt(i) == 'i' || chAt(i) == 'I') {
                 kh::TokenValue value;
                 value.imaginary = std::stoull(kh::fromStringW(temp_str), nullptr, 8);
