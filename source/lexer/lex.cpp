@@ -479,6 +479,10 @@ std::vector<kh::Token> kh::lex(kh::String& source, const kh::String& file_name) 
                         value.operator_type = kh::Operator::EQUAL;
                         i++; char_line++;
                     }
+                    else if (chAt(i + 1) == '>') {
+                        value.operator_type = kh::Operator::SCOPE;
+                        i++; char_line++;
+                    }
 
                     tokens.emplace_back(kh::TokenType::OPERATOR, value, char_line, line_n);
                 } break;
@@ -572,7 +576,7 @@ std::vector<kh::Token> kh::lex(kh::String& source, const kh::String& file_name) 
 
                 case '.': {
                     kh::TokenValue value;
-                    value.operator_type = kh::Operator::SCOPE;
+                    value.operator_type = kh::Operator::MEMBER_SCOPE;
 
                     if (kh::isDec(chAt(i + 1))) {
                         state = kh::TokenizeState::FLOATING;

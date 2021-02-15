@@ -9,6 +9,7 @@
 *.vcxproj
 *.filters
 *.user
+bin
 x??
 Debug
 Release

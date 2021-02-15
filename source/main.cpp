@@ -12,7 +12,7 @@ int executeArgs(const std::vector<kh::String>& args) {
         std::wcerr << 
             "Kithare: More arguments are required!\n"
             "  (./)kithare -c <source file> [-s SILENT_EXECUTION] [-s SILENCE_COMPILATION] [-o <output bytecode path>]\n"
-            "  (./)kithare -r <bytecode file> ...\n";
+            "  (./)kithare -r <bytecode file> ... {Optional arguments}\n";
         return 1;
     }
 
@@ -51,11 +51,11 @@ int main(const int argc, char* argv[])
     #endif
 
     kh::String example_code = kh::toString(
-        L"int main() {"
-        L"    List[<int>] list = someFunction();"
-        L"    int a_number = list[0] * (list[1] + list[2]);"
-        L"    print(a_number);"
-        L"}"
+        L"int main() {                                      \n"
+        L"    List[<int>] list = someFunction();            \n"
+        L"    int a_number = list[0] * (list[1] + list[2]); \n"
+        L"    print(a_number);                              \n"
+        L"}                                                 \n"
     );
 
     std::vector<kh::Token> tokens = kh::lex(example_code, kh::toString(L"<string>"));
