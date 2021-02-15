@@ -159,6 +159,10 @@ kh::String kh::repr(const kh::Token& token) {
             str += kh::toString(std::to_wstring((int)byte)) + kh::toString(L", ");
         break;
 
+    case kh::TokenType::UNSIGNED_INTEGER:
+        str = kh::toString(L"UNSIGNED_INTEGER ") + kh::toString(std::to_wstring(token.value.unsigned_integer));
+        break;
+
     case kh::TokenType::INTEGER:
         str = kh::toString(L"INTEGER ") + kh::toString(std::to_wstring(token.value.integer));
         break;

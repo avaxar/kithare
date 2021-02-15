@@ -7,7 +7,7 @@ namespace kh {
     enum class TokenType {
         IDENTIFIER, OPERATOR, SYMBOL,
         CHARACTER, STRING, BUFFER, 
-        INTEGER, FLOATING, IMAGINARY
+        UNSIGNED_INTEGER, INTEGER, FLOATING, IMAGINARY
     };
 
     enum class Operator {

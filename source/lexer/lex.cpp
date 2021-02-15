@@ -690,6 +690,17 @@ std::vector<kh::Token> kh::lex(kh::String& source, const kh::String& file_name) 
         case kh::TokenizeState::INTEGER:
             if (kh::isDec(chAt(i)))
                 temp_str += chAt(i);
+            else if (chAt(i) == 'u' || chAt(i) == 'U') {
+                kh::TokenValue value;
+                value.unsigned_integer = std::stoull(kh::fromStringW(temp_str));
+                tokens.emplace_back(
+                    kh::TokenType::UNSIGNED_INTEGER,
+                    value,
+                    char_line,
+                    line_n
+                );
+                state = kh::TokenizeState::NONE;
+            }
             else if (chAt(i) == 'i' || chAt(i) == 'I') {
                 kh::TokenValue value;
                 value.imaginary = std::stoull(kh::fromStringW(temp_str));
@@ -707,7 +718,7 @@ std::vector<kh::Token> kh::lex(kh::String& source, const kh::String& file_name) 
             }
             else {
                 kh::TokenValue value;
-                value.integer = std::stoull(kh::fromStringW(temp_str));
+                value.integer = std::stoll(kh::fromStringW(temp_str));
                 tokens.emplace_back(
                     kh::TokenType::INTEGER,
                     value,

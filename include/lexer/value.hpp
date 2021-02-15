@@ -11,7 +11,8 @@ namespace kh {
             kh::Operator operator_type;
             kh::Symbol symbol_type;
 
-            uint64 integer;
+            uint64 unsigned_integer;
+            int64 integer;
             double floating;
             double imaginary;
 
