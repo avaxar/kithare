@@ -1,61 +1,103 @@
 import pygame
+pygame.init()
 
-
-success_init, failed_init = pygame.init()
-
-WIDTH, HEIGHT = 1025, 1025
-FACTOR = 1 / 16.0
+WIDTH, HEIGHT = 946, 946
 logo = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
-rgb = lambda r, g, b: (int(r * 255), int(g * 255), int(b * 255))
-translate = lambda x, y: (round(x * (WIDTH - 1)), round(y * (HEIGHT - 1)))
-poly = lambda points, r, g, b: pygame.draw.polygon(logo, rgb(r, g, b), [translate(x * FACTOR, y * FACTOR) for x, y in points])
+FACTOR = 1 / 16.0
 
-# A piece
-poly([
-    (2, 2),
-    (5, 2),
-    (5, 12),
-    (2, 12)
-], 1, 0, 0)
+BLUE1 = (2, 5, 190)
+BLUE2 = (20, 60, 220)
+BLUE3 = (30, 110, 255)
+BLUE4 = (45, 150, 255)
 
-# B piece
+ORANGE1 = (240, 120, 0)
+ORANGE2 = (255, 140, 0)
+
+
+def translate(c):
+    return round(c[0] * FACTOR * (WIDTH - 1)), round(c[1] * FACTOR * (HEIGHT - 1))
+
+
+def poly(points, color):
+    pygame.draw.polygon(logo, color, list(map(translate, points)))
+
+
+# A1 piece
 poly([
-    (2, 13),
-    (5, 13),
+    (2, 7),
+    (5, 7),
+    (5, 5),
+    (2, 6)
+], BLUE2)
+
+# A2 piece
+poly([
+    (2, 8),
+    (5, 8),
+    (5, 10),
+    (2, 9)
+], BLUE2)
+
+# B1 piece
+poly([
+    (2, 5),
+    (5, 4),
+    (5, 1),
+    (2, 1)
+], ORANGE1)
+
+# B2 piece
+poly([
+    (2, 10),
+    (5, 11),
     (5, 14),
     (2, 14)
-], 1, 0.25, 0.25)
+], ORANGE1)
 
-# C piece
+# C1 piece
 poly([
-    (11, 2),
-    (14, 2),
-    (11, 5),
-    (8, 5)
-], 0, 1, 0)
-
-# D piece
-poly([
-    (7, 6),
-    (10, 6),
+    (6, 7),
     (9, 7),
-    (6, 7)
-], 0.25, 1, 0.25)
+    (13, 3),
+    (9, 4)
+], BLUE3)
 
-# E piece
+# C2 piece
 poly([
-    (6, 9),
-    (9, 9),
-    (12, 12),
-    (9, 12)
-], 0, 0, 1)
+    (6, 8),
+    (9, 8),
+    (13, 12),
+    (9, 11)
+], BLUE3)
 
-# F piece
+# D1 piece
 poly([
-    (10, 13),
-    (13, 13),
-    (14, 14),
-    (11, 14)
-], 0.25, 0.25, 1)
+    (10, 3),
+    (14, 2),
+    (15, 1),
+    (12, 1)
+], ORANGE2)
+
+# D2 piece
+poly([
+    (10, 12),
+    (14, 13),
+    (15, 14),
+    (12, 14)
+], ORANGE2)
+
+# T1 piece
+poly([
+    (0, 7.5),
+    (1, 6),
+    (1, 9),
+], BLUE1)
+
+# T2 piece
+poly([
+    (10, 7.5),
+    (15, 3),
+    (15, 12),
+], BLUE4)
 
 pygame.image.save(logo, "logo.png")
