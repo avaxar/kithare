@@ -16,10 +16,14 @@ int executeArgs(const std::vector<kh::String>& args) {
         return 1;
     }
 
-    if (!(args.size() % 2)) {
-        std::wcerr << L"Kithare: More arguments are required!\n"
-            << L"  ... " << kh::fromStringW(args[args.size() - 1]) << L" < Missing argument\n";
-        return 1;
+    if (args[1] == kh::toString(L"-c")) {
+
+    }
+    else if (args[1] == kh::toString(L"-r")) {
+
+    }
+    else {
+
     }
 
     return 0;

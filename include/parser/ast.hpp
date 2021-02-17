@@ -8,10 +8,11 @@ namespace kh {
     /* AST expression types for labelling the inheritance type */
     enum class AstExpressionType {
         NOTYPE, IDENTIFIER,
-        INTEGER, UNSIGNED_INTEGER, FLOATING, COMPLEX, CHARACTER, STRING, BUFFER, TUPLE,
-        CALL, INITIATE, TEMPLATIZE, INLINE_DECLARE, DECLARE,
-        UNARY, BINARY,
-        IF, WHILE, DO_WHILE, FOR, CASE, SWITCH
+        INTEGER, UNSIGNED_INTEGER, FLOATING, COMPLEX, CHARACTER, STRING, BUFFER, TUPLE, ARRAY,
+        CALL, TEMPLATIZE, DECLARE, FUNCTION,
+        UNARY, BINARY, TERNARY,
+        IF, WHILE, DO_WHILE, FOR, CASE, DEFAULT, SWITCH,
+        IMPORT, FUNCTION, CLASS, STRUCT, ENUM
     };
 
     enum class AstUnaryOperationType {
@@ -26,7 +27,15 @@ namespace kh {
         BIT_AND, BIT_OR, BIT_LSHIFT, BIT_RSHIFT,
         EQUAL, NOT_EQUAL, LESS, MORE, LESS_EQUAL, MORE_EQUAL,
         AND, OR,
-        ASSIGN, MEMBER_SCOPE, SCOPE
+        ASSIGN, SUBSCRIPT, MEMBER_SCOPE, SCOPE
+    };
+
+    enum class Access {
+        PUBLIC, PRIVATE, PROTECTED
+    };
+
+    enum class Condition {
+        NONE, CONSTANT, REF
     };
 
     /* Base AST expression type */
@@ -142,7 +151,21 @@ namespace kh {
         }
     };
 
-    /* Function/method calls, instantiating,  */
+    class AstArray : public kh::AstExpression {
+    public:
+        std::vector<kh::AstExpression*> elements;
+
+        AstArray(std::vector<kh::AstExpression*>& _elements) :
+            elements(_elements) {
+            this->type = kh::AstExpressionType::ARRAY;
+        }
+        virtual ~AstArray() {
+            for (kh::AstExpression* element : this->elements)
+                delete element;
+        }
+    };
+
+    /* Function/method calls, templatizing, and declaring  */
 
     class AstCall : public kh::AstExpression {
     public:
@@ -155,21 +178,6 @@ namespace kh {
         }
         virtual ~AstCall() {
             delete this->function;
-            delete this->tuple;
-        }
-    };
-
-    class AstInitiate : public kh::AstExpression {
-    public:
-        kh::AstExpression* type_class;
-        kh::AstTuple* tuple;
-
-        AstInitiate(kh::AstExpression* _type_class, kh::AstTuple* _tuple) :
-            type_class(_type_class), tuple(_tuple) {
-            this->type = kh::AstExpressionType::INITIATE;
-        }
-        virtual ~AstInitiate() {
-            delete this->type_class;
             delete this->tuple;
         }
     };
@@ -189,28 +197,21 @@ namespace kh {
         }
     };
 
-    class AstInlineDeclare : public kh::AstExpression {
-        kh::AstExpression* type_class;
-        kh::String variable_name;
-        kh::AstTuple* tuple;
-
-        AstInlineDeclare(kh::AstExpression* _type_class, const kh::String& _variable_name, kh::AstTuple* _tuple) :
-            type_class(_type_class), variable_name(_variable_name), tuple(_tuple) {
-            this->type = kh::AstExpressionType::INLINE_DECLARE;
-        }
-        virtual ~AstInlineDeclare() {
-            delete this->type_class;
-            delete this->tuple;
-        }
-    };
-
     class AstDeclare : public kh::AstExpression {
+    public:
+        kh::Access access;
+        kh::Condition condition;
+        bool is_static;
+
         kh::AstExpression* type_class;
         kh::String variable_name;
         kh::AstExpression* expression;
 
-        AstDeclare(kh::AstExpression* _type_class, const kh::String& _variable_name, kh::AstExpression* _expression) :
-            type_class(_type_class), variable_name(_variable_name), expression(_expression) {
+        AstDeclare(kh::AstExpression* _type_class, const kh::String& _variable_name, kh::AstExpression* _expression,
+                const kh::Access _access, const kh::Condition _condition, const bool _is_static) :
+            type_class(_type_class), variable_name(_variable_name), expression(_expression),
+            access(_access), condition(_condition), is_static(_is_static)
+            {
             this->type = kh::AstExpressionType::DECLARE;
         }
         virtual ~AstDeclare() {
@@ -250,6 +251,24 @@ namespace kh {
         virtual ~AstBinaryOp() {
             delete this->a;
             delete this->b;
+        }
+    };
+
+    /* Ternary operator */
+    class AstTernary : public kh::AstExpression {
+    public:
+        kh::AstExpression* condition;
+        kh::AstExpression* action;
+        kh::AstExpression* otherwise;
+
+        AstTernary(kh::AstExpression* _condition, kh::AstExpression* _action, kh::AstExpression* _otherwise) :
+            condition(_condition), action(_action), otherwise(_otherwise) {
+            this->type = kh::AstExpressionType::TERNARY;
+        }
+        virtual ~AstTernary() {
+            delete this->condition;
+            delete this->action;
+            delete this->otherwise;
         }
     };
 
@@ -338,22 +357,112 @@ namespace kh {
         }
     };
 
+    class AstDefault : public kh::AstExpression {
+    public:
+        std::vector<kh::AstExpression*> body;
+
+        AstDefault(std::vector<kh::AstExpression*>& _body) :
+            body(_body) {
+            this->type = kh::AstExpressionType::DEFAULT;
+        }
+        virtual ~AstDefault() {
+            for (kh::AstExpression* expression : this->body)
+                delete expression;
+        }
+    };
+
     class AstSwitch : public kh::AstExpression {
     public:
         kh::AstExpression* expression;
+        kh::AstDefault* default;
         std::vector<kh::AstCase*> cases;
-        std::vector<kh::AstExpression*> default_body;
 
-        AstSwitch(kh::AstExpression* _expression, std::vector<kh::AstCase*>& _cases, std::vector<kh::AstExpression*> _default_body) :
-            expression(_expression), cases(_cases), default_body(_default_body) {
+        AstSwitch(kh::AstExpression* _expression, std::vector<kh::AstCase*>& _cases, kh::AstDefault* _default) :
+            expression(_expression), cases(_cases), default(_default) {
             this->type = kh::AstExpressionType::SWITCH;
         }
         virtual ~AstSwitch() {
             delete this->expression;
+            delete this->default;
             for (kh::AstCase* _case : this->cases)
                 delete _case;
-            for (kh::AstExpression* expression : this->default_body)
+        }
+    };
+
+    /* Imports, functions, classes, structs, enums */
+
+    class AstImport : public kh::AstExpression {
+    public:
+        kh::String path;
+        kh::String identifier;
+
+        AstImport(const kh::String& _path, const kh::String& _identifier) :
+            path(_path), identifier(_identifier) {
+            this->type = kh::AstExpressionType::IMPORT;
+        }
+        virtual ~AstImport() {}
+    };
+
+    class AstFunction : public kh::AstExpression {
+    public:
+        kh::AstExpression* return_type;
+        kh::String identifier;
+        kh::AstTuple* arguments;
+        std::vector<kh::AstExpression*> body;
+
+        AstFunction(kh::AstExpression* _return_type, const kh::String& _identifier, kh::AstTuple* _arguments, std::vector<kh::AstExpression*>& _body) :
+            return_type(_return_type), identifier(_identifier), arguments(_arguments), body(_body) {
+            this->type = kh::AstExpressionType::FUNCTION;
+        }
+        virtual ~AstFunction() {
+            delete this->return_type;
+            delete this->arguments;
+            for (kh::AstExpression* expression : this->body)
                 delete expression;
         }
+    };
+
+    class AstClass : public kh::AstExpression {
+    public:
+        kh::String identifier;
+        kh::AstTuple* templates;
+        std::vector<kh::AstExpression*> body;
+
+        AstClass(const kh::String& _identifier, kh::AstTuple* _templates, std::vector<kh::AstExpression*>& _body) :
+            identifier(_identifier), templates(_templates), body(_body) {
+            this->type = kh::AstExpressionType::CLASS;
+        }
+        virtual ~AstClass() {
+            delete this->templates;
+            for (kh::AstExpression* expression : this->body)
+                delete expression;
+        }
+    };
+
+    class AstStruct : public kh::AstExpression {
+    public:
+        kh::String identifier;
+        std::vector<kh::AstExpression*> body;
+
+        AstStruct(const kh::String& _identifier, std::vector<kh::AstExpression*>& _body) :
+            identifier(_identifier), body(_body) {
+            this->type = kh::AstExpressionType::STRUCT;
+        }
+        virtual ~AstStruct() {
+            for (kh::AstExpression* expression : this->body)
+                delete expression;
+        }
+    };
+
+    class AstEnum : public kh::AstExpression {
+    public:
+        kh::String identifier;
+        std::vector<kh::String> members;
+
+        AstEnum(const kh::String& _identifier, std::vector<kh::String>& _members) :
+            identifier(_identifier), members(_members) {
+            this->type = kh::AstExpressionType::ENUM;
+        }
+        virtual ~AstEnum() {}
     };
 }
