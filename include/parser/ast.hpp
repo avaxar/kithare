@@ -12,7 +12,7 @@ namespace kh {
         CALL, TEMPLATIZE, DECLARE, FUNCTION,
         UNARY, BINARY, TERNARY,
         IF, WHILE, DO_WHILE, FOR, CASE, DEFAULT, SWITCH,
-        IMPORT, INCLUDE, FUNCTION, CLASS, STRUCT, ENUM
+        IMPORT, INCLUDE, CLASS, STRUCT, ENUM
     };
 
     enum class AstUnaryOperationType {

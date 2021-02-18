@@ -2,6 +2,7 @@
 #include "utility/string.hpp"
 #include "utility/utf8.hpp"
 #include "lexer/lex.hpp"
+#include "parser/ast.hpp"
 
 
 bool SILENT_EXECUTION = false;
