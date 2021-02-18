@@ -12,7 +12,7 @@ namespace kh {
         CALL, TEMPLATIZE, DECLARE, FUNCTION,
         UNARY, BINARY, TERNARY,
         IF, WHILE, DO_WHILE, FOR, CASE, DEFAULT, SWITCH,
-        IMPORT, FUNCTION, CLASS, STRUCT, ENUM
+        IMPORT, INCLUDE, FUNCTION, CLASS, STRUCT, ENUM
     };
 
     enum class AstUnaryOperationType {
@@ -395,12 +395,24 @@ namespace kh {
     public:
         kh::String path;
         kh::String identifier;
+        bool relative;
 
-        AstImport(const kh::String& _path, const kh::String& _identifier) :
-            path(_path), identifier(_identifier) {
+        AstImport(const kh::String& _path, const kh::String& _identifier, const bool _relative) :
+            path(_path), identifier(_identifier), relative(_relative) {
             this->type = kh::AstExpressionType::IMPORT;
         }
         virtual ~AstImport() {}
+    };
+
+    class AstInclude : public kh::AstExpression {
+        kh::String path;
+        bool relative;
+
+        AstInclude(const kh::String& _path,  const bool _relative) :
+            path(_path), relative(_relative) {
+            this->type = kh::AstExpressionType::INCLUDE;
+        }
+        virtual ~AstInclude() {}
     };
 
     class AstFunction : public kh::AstExpression {
