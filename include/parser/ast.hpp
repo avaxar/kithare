@@ -16,9 +16,9 @@ namespace kh {
     };
 
     enum class AstUnaryOperationType {
-        UPOS, USUB,
+        MIN,
         BIT_NOT, NOT,
-        INCREMENT, DECREMENT, 
+        INCREMENT, DECREMENT,
         SIZEOF
     };
 
@@ -171,15 +171,20 @@ namespace kh {
     class AstCall : public kh::AstExpression {
     public:
         kh::AstExpression* function;
-        kh::AstTuple* tuple;
+        std::vector<kh::AstExpression*> arg_types;
+        std::vector<kh::String> arg_names;
+        std::vector<kh::AstExpression*> arg_defaults;
 
-        AstCall(kh::AstExpression* _function, kh::AstTuple* _tuple) :
-            function(_function), tuple(_tuple) {
+        AstCall(kh::AstExpression* _function, std::vector<kh::AstExpression*>& _arg_types, const std::vector<kh::String>& _arg_names, std::vector<kh::AstExpression*>& _arg_defaults) :
+            function(_function), arg_types(_arg_types), arg_names(_arg_names), arg_defaults(_arg_defaults) {
             this->type = kh::AstExpressionType::CALL;
         }
         virtual ~AstCall() {
             delete this->function;
-            delete this->tuple;
+            for (kh::AstExpression* arg_type : this->arg_types)
+                delete arg_type;
+            for (kh::AstExpression* arg_default : this->arg_defaults)
+                delete arg_default;
         }
     };
 
@@ -394,11 +399,11 @@ namespace kh {
 
     class AstImport : public kh::AstExpression {
     public:
-        kh::String path;
+        std::vector<kh::String> path;
         kh::String identifier;
         bool relative;
 
-        AstImport(const kh::String& _path, const kh::String& _identifier, const bool _relative) :
+        AstImport(const std::vector<kh::String>& _path, const kh::String& _identifier, const bool _relative) :
             path(_path), identifier(_identifier), relative(_relative) {
             this->type = kh::AstExpressionType::IMPORT;
         }
@@ -406,10 +411,10 @@ namespace kh {
     };
 
     class AstInclude : public kh::AstExpression {
-        kh::String path;
+        std::vector<kh::String> path;
         bool relative;
 
-        AstInclude(const kh::String& _path,  const bool _relative) :
+        AstInclude(const std::vector<kh::String>& _path,  const bool _relative) :
             path(_path), relative(_relative) {
             this->type = kh::AstExpressionType::INCLUDE;
         }
@@ -419,17 +424,19 @@ namespace kh {
     class AstFunction : public kh::AstExpression {
     public:
         kh::AstExpression* return_type;
-        kh::String identifier;
-        kh::AstTuple* arguments;
+        kh::AstTuple* templates;
+        std::vector<kh::AstDeclare*> arguments;
+        std::vector<kh::String> identifier;
         std::vector<kh::AstExpression*> body;
 
-        AstFunction(kh::AstExpression* _return_type, const kh::String& _identifier, kh::AstTuple* _arguments, std::vector<kh::AstExpression*>& _body) :
-            return_type(_return_type), identifier(_identifier), arguments(_arguments), body(_body) {
+        AstFunction(kh::AstExpression* _return_type, kh::AstTuple* _templates, std::vector<kh::AstDeclare*>& _arguments, std::vector<kh::AstExpression*>& _body, const std::vector<kh::String>& _identifier) :
+            return_type(_return_type), templates(_templates), arguments(_arguments), body(_body), identifier(_identifier) {
             this->type = kh::AstExpressionType::FUNCTION;
         }
         virtual ~AstFunction() {
             delete this->return_type;
-            delete this->arguments;
+            for (kh::AstDeclare* argument : this->arguments)
+                delete argument;
             for (kh::AstExpression* expression : this->body)
                 delete expression;
         }
