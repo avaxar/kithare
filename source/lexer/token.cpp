@@ -92,10 +92,8 @@ kh::String kh::repr(const kh::Token& token) {
             str += kh::toString(L"="); break;
         case kh::Operator::SIZEOF:
             str += kh::toString(L"#"); break;
-        case kh::Operator::MEMBER_SCOPE:
-            str += kh::toString(L"."); break;
         case kh::Operator::SCOPE:
-            str += kh::toString(L"=>"); break;
+            str += kh::toString(L"."); break;
 
         case kh::Operator::TERNARY_IF:
             str += kh::toString(L"?"); break;

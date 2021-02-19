@@ -18,7 +18,8 @@ namespace kh {
     enum class AstUnaryOperationType {
         UPOS, USUB,
         BIT_NOT, NOT,
-        INCREMENT, DECREMENT, SIZEOF
+        INCREMENT, DECREMENT, 
+        SIZEOF
     };
 
     enum class AstBinaryOperationType {
@@ -27,7 +28,7 @@ namespace kh {
         BIT_AND, BIT_OR, BIT_LSHIFT, BIT_RSHIFT,
         EQUAL, NOT_EQUAL, LESS, MORE, LESS_EQUAL, MORE_EQUAL,
         AND, OR,
-        ASSIGN, SUBSCRIPT, MEMBER_SCOPE, SCOPE
+        ASSIGN, SUBSCRIPT, SCOPE
     };
 
     enum class Access {

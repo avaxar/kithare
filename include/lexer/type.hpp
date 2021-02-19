@@ -21,7 +21,7 @@ namespace kh {
         BIT_LSHIFT, BIT_RSHIFT,
         AND, OR, NOT,
 
-        ASSIGN, SIZEOF, MEMBER_SCOPE, SCOPE,
+        ASSIGN, SIZEOF, SCOPE,
         TERNARY_IF, TERNARY_ELSE,
 
         STACK_INST
