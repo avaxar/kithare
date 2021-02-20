@@ -18,7 +18,7 @@ int executeArgs(const std::vector<kh::String>& args) {
     }
 
     if (args[1] == kh::toString(L"-c")) {
-
+        
     }
     else if (args[1] == kh::toString(L"-r")) {
 

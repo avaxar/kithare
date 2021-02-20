@@ -13,3 +13,4 @@ def tabs_to_spaces(file_ext):
 
 tabs_to_spaces("cpp")
 tabs_to_spaces("hpp")
+tabs_to_spaces("json")

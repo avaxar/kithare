@@ -375,16 +375,16 @@ namespace kh {
     class AstSwitch : public kh::AstExpression {
     public:
         kh::AstExpression* expression;
-        kh::AstDefault* default;
+        kh::AstDefault* default_case;
         std::vector<kh::AstCase*> cases;
 
-        AstSwitch(kh::AstExpression* _expression, std::vector<kh::AstCase*>& _cases, kh::AstDefault* _default) :
-            expression(_expression), cases(_cases), default(_default) {
+        AstSwitch(kh::AstExpression* _expression, std::vector<kh::AstCase*>& _cases, kh::AstDefault* _default_case) :
+            expression(_expression), cases(_cases), default_case(_default_case) {
             this->type = kh::AstExpressionType::SWITCH;
         }
         virtual ~AstSwitch() {
             delete this->expression;
-            delete this->default;
+            delete this->default_case;
             for (kh::AstCase* _case : this->cases)
                 delete _case;
         }
