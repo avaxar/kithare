@@ -1,7 +1,7 @@
 #include "lexer/lex.hpp"
 
 
-std::vector<kh::Token> kh::lex(kh::String& source, const kh::String& file_name) {
+std::vector<kh::Token> kh::lex(const kh::String& source, const kh::String& file_name) {
     std::vector<kh::Token> tokens;
     kh::TokenizeState state = kh::TokenizeState::NONE;
 
@@ -10,13 +10,13 @@ std::vector<kh::Token> kh::lex(kh::String& source, const kh::String& file_name) 
 
     size_t line_n = 1, char_line = 1;
 
-    if (source.back() != '\n')
-        source += '\n';
-
     const std::function<const uint32(const size_t)> chAt = [&](const size_t index) -> const uint32 {
-        if (index >= source.size())
+        if (index < source.size())
+            return source[index];
+        else if (index == source.size())
+            return '\n';
+        else 
             KH_RAISE_ERROR("Unexpected EOF");
-        return source[index];
     };
 
     for (size_t i = 0; i < source.size(); (i++, char_line++)) {

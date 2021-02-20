@@ -29,7 +29,7 @@ namespace kh {
         IN_INLINE_COMMENT, IN_MULTIPLE_LINE_COMMENT
     };
 
-    std::vector<kh::Token> lex(kh::String&, const kh::String&);
+    std::vector<kh::Token> lex(const kh::String& source, const kh::String& file_name);
 
     inline bool isDec(const uint32 chr) {
         return '0' <= chr && chr <= '9';

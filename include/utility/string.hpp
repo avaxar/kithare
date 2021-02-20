@@ -14,4 +14,5 @@ namespace kh {
 
     std::ostream& operator<<(std::ostream& out_stream, const kh::String& string);
     std::wostream& operator<<(std::wostream& wout_stream, const kh::String& string);
+
 }

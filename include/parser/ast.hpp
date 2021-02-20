@@ -171,20 +171,15 @@ namespace kh {
     class AstCall : public kh::AstExpression {
     public:
         kh::AstExpression* function;
-        std::vector<kh::AstExpression*> arg_types;
-        std::vector<kh::String> arg_names;
-        std::vector<kh::AstExpression*> arg_defaults;
+        kh::AstTuple* tuple;
 
-        AstCall(kh::AstExpression* _function, std::vector<kh::AstExpression*>& _arg_types, const std::vector<kh::String>& _arg_names, std::vector<kh::AstExpression*>& _arg_defaults) :
-            function(_function), arg_types(_arg_types), arg_names(_arg_names), arg_defaults(_arg_defaults) {
+        AstCall(kh::AstExpression* _function, kh::AstTuple* _tuple) :
+            function(_function), tuple(_tuple) {
             this->type = kh::AstExpressionType::CALL;
         }
         virtual ~AstCall() {
             delete this->function;
-            for (kh::AstExpression* arg_type : this->arg_types)
-                delete arg_type;
-            for (kh::AstExpression* arg_default : this->arg_defaults)
-                delete arg_default;
+            delete this->tuple;
         }
     };
 
@@ -425,18 +420,24 @@ namespace kh {
     public:
         kh::AstExpression* return_type;
         kh::AstTuple* templates;
-        std::vector<kh::AstDeclare*> arguments;
         std::vector<kh::String> identifier;
+        std::vector<kh::AstExpression*> arg_types;
+        std::vector<kh::String> arg_names;
+        std::vector<kh::AstExpression*> arg_defaults;
         std::vector<kh::AstExpression*> body;
 
-        AstFunction(kh::AstExpression* _return_type, kh::AstTuple* _templates, std::vector<kh::AstDeclare*>& _arguments, std::vector<kh::AstExpression*>& _body, const std::vector<kh::String>& _identifier) :
-            return_type(_return_type), templates(_templates), arguments(_arguments), body(_body), identifier(_identifier) {
+        AstFunction(kh::AstExpression* _return_type, kh::AstTuple* _templates, 
+            std::vector<kh::AstExpression*>& _arg_types, const std::vector<kh::String>& _arg_names, 
+            std::vector<kh::AstExpression*>& _arg_defaults, std::vector<kh::AstExpression*>& _body, const std::vector<kh::String>& _identifier) :
+            return_type(_return_type), templates(_templates), arg_types(_arg_types), arg_names(_arg_names), arg_defaults(_arg_defaults), body(_body), identifier(_identifier) {
             this->type = kh::AstExpressionType::FUNCTION;
         }
         virtual ~AstFunction() {
             delete this->return_type;
-            for (kh::AstDeclare* argument : this->arguments)
-                delete argument;
+            for (kh::AstExpression* arg_type : this->arg_types)
+                delete arg_type;
+            for (kh::AstExpression* arg_default : this->arg_defaults)
+                delete arg_default;
             for (kh::AstExpression* expression : this->body)
                 delete expression;
         }
