@@ -27,11 +27,10 @@ namespace kh {
 
 		Parser(const kh::Parser& copy) {}
 	public:
-		Parser(kh::String& source, const kh::String& file_name);
 		Parser(const kh::String& source, const kh::String& file_name);
 		Parser(const std::vector<kh::Token>& tokens, const kh::String& file_name);
 		~Parser();
-
+		
 		void parse();
 
 		inline std::vector<kh::AstExpression*> getAst() { return this->ast; }

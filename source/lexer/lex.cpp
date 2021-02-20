@@ -19,7 +19,7 @@ std::vector<kh::Token> kh::lex(const kh::String& source, const kh::String& file_
             KH_RAISE_ERROR("Unexpected EOF");
     };
 
-    for (size_t i = 0; i < source.size(); (i++, char_line++)) {
+    for (size_t i = 0; i <= source.size(); (i++, char_line++)) {
         switch (state) {
         case kh::TokenizeState::NONE:
             temp_str = kh::String();
