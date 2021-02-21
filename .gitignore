@@ -1,5 +1,3 @@
-build
-
 # Couple of IDEs' temporary/cache directory
 *~
 *.swp
@@ -11,6 +9,11 @@ build
 *.dll
 
 # Executable/compiler generated files
+/build
+/deps/SDL-MSVC/
+/deps/SDL-mingw/
+/dist
+
 *.exe
 *.out
 *.wasm
