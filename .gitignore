@@ -1,18 +1,10 @@
+build
+
 # Couple of IDEs' temporary/cache directory
 *~
 *.swp
 .vscode/
 .vs/
-
-# Visual Studio solution files and build directory
-*.sln
-*.vcxproj
-*.filters
-*.user
-bin
-x??
-Debug
-Release
 
 # Dynamic libraries that were used
 *.so
@@ -22,3 +14,5 @@ Release
 *.exe
 *.out
 *.wasm
+*.obj
+*.o

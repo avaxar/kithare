@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{eac6ae51-6f42-4235-a72c-d65683ff3e33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{1817cdb6-73cf-4680-bc51-30ee43dbbb50}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\lexer">
+      <UniqueIdentifier>{6dbde88e-6021-44a5-b172-7a6cf9e2b599}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\parser">
+      <UniqueIdentifier>{cfc3c327-d1cf-41fb-a198-262d91393ac7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\runtime">
+      <UniqueIdentifier>{890ad138-eb2f-4a3e-9a8e-aa21e705b061}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\utility">
+      <UniqueIdentifier>{b12c6bc1-cfd8-4308-b0e2-32e0641fc6a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\lexer">
+      <UniqueIdentifier>{b45d6626-ea1c-4758-83d4-a1fd2b245151}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\utility">
+      <UniqueIdentifier>{5bc88ad6-c25f-4fc9-82fd-f7140cf7d994}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\runtime">
+      <UniqueIdentifier>{acb904dd-a4f4-4864-ae54-2d42905ac7a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\parser">
+      <UniqueIdentifier>{cae33eb8-3801-4a43-ab94-c2f20ae1295f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\lexer\lex.cpp">
+      <Filter>src\lexer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\lexer\token.cpp">
+      <Filter>src\lexer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utility\string.cpp">
+      <Filter>src\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utility\utf8.cpp">
+      <Filter>src\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\runtime\environment.cpp">
+      <Filter>src\runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="src\parser\parse.cpp">
+      <Filter>src\parser</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\lexer\lex.hpp">
+      <Filter>include\lexer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\lexer\token.hpp">
+      <Filter>include\lexer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\lexer\type.hpp">
+      <Filter>include\lexer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\lexer\value.hpp">
+      <Filter>include\lexer</Filter>
+    </ClInclude>
+    <ClInclude Include="include\parser\ast.hpp">
+      <Filter>include\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="include\parser\parse.hpp">
+      <Filter>include\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="include\runtime\environment.hpp">
+      <Filter>include\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="include\runtime\function.hpp">
+      <Filter>include\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="include\runtime\instruction.hpp">
+      <Filter>include\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="include\utility\std.hpp">
+      <Filter>include\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\utility\string.hpp">
+      <Filter>include\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\utility\utf8.hpp">
+      <Filter>include\utility</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
