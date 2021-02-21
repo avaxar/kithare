@@ -31,6 +31,9 @@
     <Filter Include="include\parser">
       <UniqueIdentifier>{cae33eb8-3801-4a43-ab94-c2f20ae1295f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="resource">
+      <UniqueIdentifier>{9bc1a77b-4eb9-4aac-bd3b-153b0c60388c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -92,5 +95,18 @@
     <ClInclude Include="include\utility\utf8.hpp">
       <Filter>include\utility</Filter>
     </ClInclude>
+    <ClInclude Include="assets\resource.h">
+      <Filter>resource</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="assets\icon.ico">
+      <Filter>resource</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="assets\Kithare.rc">
+      <Filter>resource</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
