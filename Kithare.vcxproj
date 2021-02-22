@@ -124,7 +124,7 @@
       <Optimization>Disabled</Optimization>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)deps\SDL-MSVC\SDL2\include\SDL2;$(SolutionDir)deps\SDL-MSVC\SDL2\include;$(SolutionDir)deps\SDL-MSVC\SDL2_image\include;$(SolutionDir)deps\SDL-MSVC\SDL2_mixer\include;$(SolutionDir)deps\SDL-MSVC\SDL2_net\include;$(SolutionDir)deps\SDL-MSVC\SDL2_ttf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)deps\SDL-MSVC\SDL2\include;$(SolutionDir)deps\SDL-MSVC\SDL2_image\include;$(SolutionDir)deps\SDL-MSVC\SDL2_mixer\include;$(SolutionDir)deps\SDL-MSVC\SDL2_net\include;$(SolutionDir)deps\SDL-MSVC\SDL2_ttf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -146,7 +146,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)deps\SDL-MSVC\SDL2\include\SDL2;$(SolutionDir)deps\SDL-MSVC\SDL2\include;$(SolutionDir)deps\SDL-MSVC\SDL2_image\include;$(SolutionDir)deps\SDL-MSVC\SDL2_mixer\include;$(SolutionDir)deps\SDL-MSVC\SDL2_net\include;$(SolutionDir)deps\SDL-MSVC\SDL2_ttf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)deps\SDL-MSVC\SDL2\include;$(SolutionDir)deps\SDL-MSVC\SDL2_image\include;$(SolutionDir)deps\SDL-MSVC\SDL2_mixer\include;$(SolutionDir)deps\SDL-MSVC\SDL2_net\include;$(SolutionDir)deps\SDL-MSVC\SDL2_ttf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -170,7 +170,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)deps\SDL-MSVC\SDL2\include\SDL2;$(SolutionDir)deps\SDL-MSVC\SDL2\include;$(SolutionDir)deps\SDL-MSVC\SDL2_image\include;$(SolutionDir)deps\SDL-MSVC\SDL2_mixer\include;$(SolutionDir)deps\SDL-MSVC\SDL2_net\include;$(SolutionDir)deps\SDL-MSVC\SDL2_ttf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)deps\SDL-MSVC\SDL2\include;$(SolutionDir)deps\SDL-MSVC\SDL2_image\include;$(SolutionDir)deps\SDL-MSVC\SDL2_mixer\include;$(SolutionDir)deps\SDL-MSVC\SDL2_net\include;$(SolutionDir)deps\SDL-MSVC\SDL2_ttf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -191,7 +191,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)deps\SDL-MSVC\SDL2\include\SDL2;$(SolutionDir)deps\SDL-MSVC\SDL2\include;$(SolutionDir)deps\SDL-MSVC\SDL2_image\include;$(SolutionDir)deps\SDL-MSVC\SDL2_mixer\include;$(SolutionDir)deps\SDL-MSVC\SDL2_net\include;$(SolutionDir)deps\SDL-MSVC\SDL2_ttf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)deps\SDL-MSVC\SDL2\include;$(SolutionDir)deps\SDL-MSVC\SDL2_image\include;$(SolutionDir)deps\SDL-MSVC\SDL2_mixer\include;$(SolutionDir)deps\SDL-MSVC\SDL2_net\include;$(SolutionDir)deps\SDL-MSVC\SDL2_ttf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>

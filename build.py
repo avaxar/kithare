@@ -2,14 +2,14 @@
 Builder script to build Kithare.
 
 On Windows and MINGW:
-    You must have MINGW installed, and 'g++' command must be on PATH.
+    You must have MINGW (AKA MinGW-w64) installed, and 'g++' command must
+    be on PATH.
 
-    By default, this compiles for 64-bit architectures. If you want to compile for
-    32-bit architecture and have a 32-bit mingw, pass '--32' as an argument to 
-    the build script.
+    By default, this compiles for 64-bit architectures. If you want to compile
+    for 32-bit architecture, pass '-m32' as an argument to the build script.
 
-    This builder automatically installs SDL dependencies. Just run:
-    'py build.py'
+    This builder automatically installs SDL dependencies. Just run this file
+    with: 'py build.py'.
 
 On Windows and MSVC:
     Because MSVC has it's own setup for compilation, this builder has only one 
@@ -22,6 +22,12 @@ On Other OS:
     Kithare needs 'SDL2', 'SDL2_mixer', 'SDL2_image', 'SDL2_ttf' and 'SDL2_net'.
     Make sure to install 'devel' releases of those, not just runtime shared 
     libraries.
+
+Note that any arguments passed to this builder will be forwarded to the 
+compiler.
+
+This feature might fall of use for advanced users, who know what they are
+doing.
 """
 
 import glob
@@ -31,18 +37,23 @@ import os
 import platform
 import shutil
 import sys
+import tarfile
 import urllib.request as urllib
 import zipfile
-import tarfile
 
 WIN = platform.system() == "Windows"
 
-cflags = "-I include -lSDL2 -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lSDL2_net"
+DIST = "dist/kcr"
+if WIN:
+    DIST += ".exe"
+
+cflags = "-O3 -I include"
+cflags += "-lSDL2 -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lSDL2_net"
 
 if WIN:
     cflags += " -municode"
 
-# Project, version pairs
+# SDL project-version pairs, remember to keep updated
 SDL_DEPS = {
     "SDL2": "2.0.14",
     "SDL2_image": "2.0.5",
@@ -56,21 +67,28 @@ SDL_DEPS = {
 # an arbitrary line number limit, beyond which, we won't search
 INC_FILE_LINE_LIMIT = 26
 
-IS_32_BIT = "--32" in sys.argv
+IS_32_BIT = "-m32" in sys.argv
 IS_MSVC = "--msvc" in sys.argv
+
+if not IS_32_BIT:
+    IS_32_BIT = sys.maxsize == 2 ** 32 - 1
+
+ARCH = 'x86' if IS_32_BIT else 'x64'
+
+cflags += " " + " ".join(sys.argv[1:])
 
 DOWNLOAD_DIR = f"deps/SDL-{'MSVC' if IS_MSVC else 'mingw'}"
 
 if IS_MSVC:
     INC_DIR = "include"
-    LIB_DIR = f"lib/{'x86' if IS_32_BIT else 'x64'}"
+    LIB_DIR = f"lib/{ARCH}"
     DLL_DIR = LIB_DIR
     
 else:
     _BASE_DIR = "i686-w64-mingw32" if IS_32_BIT else "x86_64-w64-mingw32"
     DLL_DIR = f"{_BASE_DIR}/bin"
     LIB_DIR = f"{_BASE_DIR}/lib"
-    INC_DIR = f"{_BASE_DIR}/include"
+    INC_DIR = f"{_BASE_DIR}/include/SDL2"
 
 
 def mkdir(file):
@@ -90,7 +108,8 @@ def find_includes(file):
                 retfile = line[len("#include "):]
                 for char in ['"', '<', '>']:
                     retfile = retfile.replace(char, "")
-                retfile = os.path.join("include", os.path.normcase(retfile.strip()))
+                retfile = os.path.join("include", 
+                    os.path.normcase(retfile.strip()))
 
                 if os.path.isfile(retfile):
                     yield retfile
@@ -102,7 +121,7 @@ def find_includes(file):
 
 def should_build(file, ofile):
     """
-    Determines whether a particular file should be rebuilt or not
+    Determines whether a particular cpp file should be rebuilt
     """
     if not os.path.isfile(ofile):
         return True
@@ -121,83 +140,61 @@ def download_sdl_deps(name, version):
     """
     SDL Dependency download utility for windows
     """
-    global cflags
-
-    name_2 = name.replace("2", "")
-    suffix = "VC.zip" if IS_MSVC else "mingw.tar.gz"
-
     download_link = "https://www.libsdl.org/"
-    if name == "SDL2":
-        download_link += f"release/SDL2-devel-{version}-{suffix}"
-    else:
-        download_link += f"projects/{name_2}/release/{name}-devel-{version}-{suffix}"
+    if name != "SDL2":
+        download_link += f"projects/{name}/".replace("2", "")
 
-    renamed_path = f"{DOWNLOAD_DIR}/{name}"
+    download_link += f"release/{name}-devel-{version}-"
+    download_link += "VC.zip" if IS_MSVC else "mingw.tar.gz"
 
-    incdir = f"{renamed_path}/{INC_DIR}"
-    libdir = f"{renamed_path}/{LIB_DIR}"
-    dlldir = f"{renamed_path}/{DLL_DIR}"
+    download_path = f"{DOWNLOAD_DIR}/{name}"
 
-    cflags += f" -I {incdir} -L {libdir}"
-
-    if os.path.isdir(renamed_path):
+    if os.path.isdir(download_path):
         print(f"Skipping {name} download because it already exists")
-        return
-
-    print(f"Downloading {name} from {download_link}")
-    request = urllib.Request(
-        download_link, headers={
-            'User-Agent': 'Chrome/35.0.1916.47 Safari/537.36'
-        }
-    )
-    with urllib.urlopen(request) as download:
-        response = download.read()
-
-    print("Extracting compressed files")
-    if IS_MSVC:
-        with zipfile.ZipFile(io.BytesIO(response), 'r') as zipped:
-            zipped.extractall(DOWNLOAD_DIR)
-        
-        os.rename(f"{renamed_path}-{version}", renamed_path)
-        
-        # The headers are not correctly arranged here, so move to desired
-        # location
-        mkdir(f"{incdir}/SDL2")
-        for i in glob.iglob(f'{incdir}/*'):
-            if os.path.isfile(i):
-                shutil.move(i, f"{incdir}/SDL2/{os.path.basename(i)}")
+    
     else:
-        # Tarfile does not support bytes IO, so use temp file
-        with open("temp", "wb") as f:
-            f.write(response)
+        print(f"Downloading {name} from {download_link}")
+        request = urllib.Request(
+            download_link, headers={
+                'User-Agent': 'Chrome/35.0.1916.47 Safari/537.36'
+            }
+        )
+        with urllib.urlopen(request) as download:
+            response = download.read()
 
-        with tarfile.open("temp", 'r:gz') as tarred:
-            tarred.extractall(DOWNLOAD_DIR)
-        os.remove("temp")
-        os.rename(f"{renamed_path}-{version}", renamed_path)
+        print("Extracting compressed files")
+        if IS_MSVC:
+            with zipfile.ZipFile(io.BytesIO(response), 'r') as zipped:
+                zipped.extractall(DOWNLOAD_DIR)
 
-    # Copy all SDL DLLs to dist dir
-    for dll in glob.iglob(f"{dlldir}/*.dll"):
-        shutil.copyfile(dll, os.path.join("dist", os.path.basename(dll)))
+        else:
+            # Tarfile does not support bytes IO, so use temp file
+            try:
+                with open("temp", "wb") as f:
+                    f.write(response)
 
-    print(f"Download of {name} complete")
+                with tarfile.open("temp", 'r:gz') as tarred:
+                    tarred.extractall(DOWNLOAD_DIR)
+            finally:
+                if os.path.exists("temp"):
+                    os.remove("temp")
+        
+        os.rename(f"{download_path}-{version}", download_path)
+
+        # Copy all SDL DLLs to dist dir
+        for dll in glob.iglob(f"{download_path}/{DLL_DIR}/*.dll"):
+            shutil.copyfile(dll, os.path.join("dist", os.path.basename(dll)))
+
+        print(f"Finished downloading {name}")
+
+    return f" -I {download_path}/{INC_DIR} -L {download_path}/{LIB_DIR}"
 
 
-def compile_obj(src, output):
+def compile_gpp(src, output, flag=""):
     """
-    Used to compile a cpp file to an object file
+    Used to execute g++ commands
     """
-    cmd = f"g++ -c {src} -o {output} {cflags}"
-    print(cmd)
-    os.system(cmd)
-
-
-def compile_all(out):
-    """
-    Used to compile all object files to the final exe
-    """
-    joined = ' '.join(glob.iglob("build/**/*.o", recursive=True))
-    cmd = f"g++ {joined} -o {out} {cflags}"
+    cmd = f"g++ {flag}{src} -o {output} {cflags}"
     print(cmd)
     os.system(cmd)
 
@@ -206,27 +203,53 @@ def main():
     """
     Main code, that runs on startup
     """
-    mkdir("dist")
+    global cflags
+
+    mkdir(os.path.dirname(DIST))
     mkdir("build")
     if WIN:
         mkdir(DOWNLOAD_DIR)
         for package, ver in SDL_DEPS.items():
-            download_sdl_deps(package, ver)
+            cflags += download_sdl_deps(package, ver)
 
         if IS_MSVC:
             return
+    else:
+        for inc_dir in ["/usr/include/SDL2", "/usr/local/include/SDL2"]:
+            if os.path.isdir(inc_dir):
+                cflags += f" -I {inc_dir}"
+                break
+        pass
     
+    print()
     for file in glob.iglob("src/**/*.cpp", recursive=True):
-        ofile = file.replace("src", "build", 1) + ".o"
+        ofile = file.replace("src", "build", 1).rstrip(".cpp") + f"-{ARCH}.o"
         if should_build(file, ofile):
             mkdir(os.path.dirname(ofile))
             print("Building file:", file)
-            compile_obj(file, ofile)
+            compile_gpp(file, ofile, "-c ")
+            print()
     
-    print("Building exe")
-    compile_all("dist/kcr")
-    print("Done!")
+    if not os.path.exists(DIST):
+        print("Building exe")
+        compile_gpp(
+            " ".join(
+                glob.iglob(f"build/**/*-{ARCH}.o", recursive=True)
+            ),
+            DIST
+        )
+
+    else:
+        dist_m = os.stat(DIST).st_mtime
+        obj_files = glob.glob(f"build/**/*-{ARCH}.o", recursive=True)
+
+        for ofile in obj_files:
+            if os.stat(ofile).st_mtime > dist_m:
+                print("Building exe")
+                compile_gpp(" ".join(obj_files), DIST)
+                break
 
 
 if __name__ == "__main__":
     main()
+    print("Done!")
