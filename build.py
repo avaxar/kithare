@@ -48,7 +48,7 @@ if WIN:
     DIST += ".exe"
 
 cflags = "-O3 -I include"
-cflags += "-lSDL2 -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lSDL2_net"
+cflags += " -lSDL2 -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lSDL2_net"
 
 if WIN:
     cflags += " -municode"
@@ -85,10 +85,10 @@ if IS_MSVC:
     DLL_DIR = LIB_DIR
     
 else:
-    _BASE_DIR = "i686-w64-mingw32" if IS_32_BIT else "x86_64-w64-mingw32"
-    DLL_DIR = f"{_BASE_DIR}/bin"
-    LIB_DIR = f"{_BASE_DIR}/lib"
-    INC_DIR = f"{_BASE_DIR}/include/SDL2"
+    _GPP_ARCH = "i686" if IS_32_BIT else "x86_64"
+    DLL_DIR = f"{_GPP_ARCH}-w64-mingw32/bin"
+    LIB_DIR = f"{_GPP_ARCH}-w64-mingw32/lib"
+    INC_DIR = f"{_GPP_ARCH}-w64-mingw32/include/SDL2"
 
 
 def mkdir(file):
@@ -190,13 +190,13 @@ def download_sdl_deps(name, version):
     return f" -I {download_path}/{INC_DIR} -L {download_path}/{LIB_DIR}"
 
 
-def compile_gpp(src, output, flag=""):
+def compile_gpp(src, output, srcflag=""):
     """
     Used to execute g++ commands
     """
-    cmd = f"g++ {flag}{src} -o {output} {cflags}"
+    cmd = f"g++ -o {output} {srcflag}{src} {cflags}"
     print(cmd)
-    os.system(cmd)
+    return os.system(cmd)
 
 
 def main():
@@ -206,29 +206,36 @@ def main():
     global cflags
 
     mkdir(os.path.dirname(DIST))
-    mkdir("build")
     if WIN:
         mkdir(DOWNLOAD_DIR)
         for package, ver in SDL_DEPS.items():
             cflags += download_sdl_deps(package, ver)
 
         if IS_MSVC:
+            print("Done!")
             return
     else:
         for inc_dir in ["/usr/include/SDL2", "/usr/local/include/SDL2"]:
             if os.path.isdir(inc_dir):
                 cflags += f" -I {inc_dir}"
                 break
-        pass
     
     print()
+    mkdir("build")
+    isfailed = False
     for file in glob.iglob("src/**/*.cpp", recursive=True):
         ofile = file.replace("src", "build", 1).rstrip(".cpp") + f"-{ARCH}.o"
         if should_build(file, ofile):
             mkdir(os.path.dirname(ofile))
             print("Building file:", file)
-            compile_gpp(file, ofile, "-c ")
+            if compile_gpp(file, ofile, "-c "):
+                print("g++ command exited with an error")
+                isfailed = True
             print()
+    
+    if isfailed:
+        print("Skipped building final executable, because all files didn't build")
+        return
     
     if not os.path.exists(DIST):
         print("Building exe")
@@ -248,8 +255,8 @@ def main():
                 print("Building exe")
                 compile_gpp(" ".join(obj_files), DIST)
                 break
+    print("Done!")
 
 
 if __name__ == "__main__":
     main()
-    print("Done!")
