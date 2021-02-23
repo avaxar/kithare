@@ -95,24 +95,24 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)dist\$(PlatformTarget)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)dist\$(PlatformTarget)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)dist\MSVC-$(PlatformTarget)-$(Configuration)</OutDir>
+    <IntDir>$(SolutionDir)dist\MSVC-$(PlatformTarget)-$(Configuration)</IntDir>
     <TargetName>kcr</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)dist\$(PlatformTarget)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)dist\$(PlatformTarget)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)dist\MSVC-$(PlatformTarget)-$(Configuration)</OutDir>
+    <IntDir>$(SolutionDir)dist\MSVC-$(PlatformTarget)-$(Configuration)</IntDir>
     <TargetName>kcr</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)dist\$(PlatformTarget)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)dist\$(PlatformTarget)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)dist\MSVC-$(PlatformTarget)-$(Configuration)</OutDir>
+    <IntDir>$(SolutionDir)dist\MSVC-$(PlatformTarget)-$(Configuration)</IntDir>
     <TargetName>kcr</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)dist\$(PlatformTarget)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)dist\$(PlatformTarget)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)dist\MSVC-$(PlatformTarget)-$(Configuration)</OutDir>
+    <IntDir>$(SolutionDir)dist\MSVC-$(PlatformTarget)-$(Configuration)</IntDir>
     <TargetName>kcr</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
