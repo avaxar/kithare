@@ -4,18 +4,8 @@
 .vscode/
 .vs/
 
-# Dynamic libraries that were used
-*.so
-*.dll
-
 # Executable/compiler generated files
 /build
 /deps/SDL-MSVC/
-/deps/SDL-mingw/
+/deps/SDL-MinGW/
 /dist
-
-*.exe
-*.out
-*.wasm
-*.obj
-*.o
