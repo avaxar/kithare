@@ -12,7 +12,7 @@ On Windows and MINGW:
     with: 'py build.py'.
 
 On Windows and MSVC:
-    Because MSVC has it's own setup for compilation, this builder has only one 
+    Because MSVC has its own setup for compilation, this builder has only one 
     job in this case, that is installing SDL dependencies. Just run:
     'py build.py --msvc'
 
