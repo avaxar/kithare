@@ -5,9 +5,6 @@ On Windows and MinGW:
     You must have MinGW (AKA MinGW-w64) installed, and 'g++' command must
     be on PATH.
 
-    If you are on a 64-bit system, and want to compile for 32-bit architecture,
-    pass '-m32' as an argument to the build script.
-
     This builder automatically installs SDL dependencies. Just run this file
     with: 'py build.py'.
 
@@ -18,18 +15,22 @@ On Windows and MSVC:
 
 On Mac:
     (Unfinished as of now)
-    This assumes you have clang (clang++) installed. Also, you need to install 
+    This assumes you have Clang (clang++) installed. Also, you need to install 
     SDL dependencies on your own.
     Kithare needs 'SDL2', 'SDL2_mixer', 'SDL2_image', 'SDL2_ttf' and 'SDL2_net'.
     Make sure to install 'devel' releases of those, not just runtime shared 
     libraries.
 
 On other OS:
-    This assumes you have GCC (and G++) installed. Also, you need to install SDL
+    This assumes you have GCC (g++) installed. Also, you need to install SDL
     dependencies on your own, via your systems package manager.
     Kithare needs 'SDL2', 'SDL2_mixer', 'SDL2_image', 'SDL2_ttf' and 'SDL2_net'.
     Make sure to install 'devel' releases of those, not just runtime shared 
     libraries.
+
+If you are on a 64-bit system, and want to compile for 32-bit architecture,
+pass '-m32' as an argument to the build script (note that this might not work
+in some cases)
 
 Note that any arguments passed to this builder will be forwarded to the 
 compiler.
