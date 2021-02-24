@@ -1,3 +1,12 @@
+/*
+* This file is a part of the Kithare programming language source code.
+* The Kithare programming language is distributed under the MIT license.
+* Copyright (C) 2021 Avaxar (AvaxarXapaxa)
+* 
+* src/utility/string.cpp
+* Defines the declarations in include/string.hpp
+*/
+
 #include "utility/string.hpp"
 #include "utility/utf8.hpp"
 

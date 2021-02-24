@@ -1,3 +1,12 @@
+/*
+* This file is a part of the Kithare programming language source code.
+* The Kithare programming language is distributed under the MIT license.
+* Copyright (C) 2021 Avaxar (AvaxarXapaxa)
+* 
+* include/utility/std.hpp
+* Includes the necessary C++ STL libraries and typedefs several built-in types.
+*/
+
 #pragma once
 
 #include <stdio.h>

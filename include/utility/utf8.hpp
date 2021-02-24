@@ -1,3 +1,15 @@
+/*
+* This file is a part of the Kithare programming language source code.
+* The Kithare programming language is distributed under the MIT license.
+* Copyright (C) 2021 Avaxar (AvaxarXapaxa)
+* 
+* Extra credit:
+* Ankith (ankith26)
+* 
+* include/utility/utf8.hpp
+* Declares UTF-8 conversion functions which was some written in C by Ankith.
+*/
+
 #pragma once
 
 #include "utility/std.hpp"

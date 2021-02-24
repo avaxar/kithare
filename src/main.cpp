@@ -1,3 +1,12 @@
+/*
+* This file is a part of the Kithare programming language source code.
+* The Kithare programming language is distributed under the MIT license.
+* Copyright (C) 2021 Avaxar (AvaxarXapaxa)
+* 
+* src/main.cpp
+* The main entry point of the Kithare programming language compiler and runtime.
+*/
+
 #include "utility/std.hpp"
 #include "utility/string.hpp"
 #include "utility/utf8.hpp"
@@ -5,11 +14,18 @@
 
 
 bool SILENT_EXECUTION = false;
-bool SILENT_EXCEPTION = false;
 bool SILENT_COMPILATION = false;
 
 int executeArgs(const std::vector<kh::String>& args) {
-    std::cout << "Test!\n";
+    kh::String test_source = kh::toString(
+        "int main() {      \n"
+        "    int var = 3;  \n"
+        "}                 \n"
+    );
+    auto tokens = kh::lex(test_source, kh::toString("<TESTSOURCE>"));
+    for (auto& token : tokens)
+        std::wcout << kh::fromStringW(kh::repr(token)) << '\n';
+
     return 0;
 }
 

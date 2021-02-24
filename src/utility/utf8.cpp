@@ -1,3 +1,15 @@
+/*
+* This file is a part of the Kithare programming language source code.
+* The Kithare programming language is distributed under the MIT license.
+* Copyright (C) 2021 Avaxar (AvaxarXapaxa)
+*
+* Extra credit:
+* Ankith (ankith26)
+* 
+* src/utility/utf8.cpp
+* Defines the declarations in include/utility/utf8.hpp
+*/
+
 #include "utility/utf8.hpp"
 
 
