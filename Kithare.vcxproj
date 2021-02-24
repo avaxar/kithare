@@ -23,7 +23,6 @@
     <ClCompile Include="src\lexer\token.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\parser\parse.cpp" />
-    <ClCompile Include="src\runtime\environment.cpp" />
     <ClCompile Include="src\utility\string.cpp" />
     <ClCompile Include="src\utility\utf8.cpp" />
   </ItemGroup>
@@ -35,9 +34,6 @@
     <ClInclude Include="include\lexer\value.hpp" />
     <ClInclude Include="include\parser\ast.hpp" />
     <ClInclude Include="include\parser\parse.hpp" />
-    <ClInclude Include="include\runtime\environment.hpp" />
-    <ClInclude Include="include\runtime\function.hpp" />
-    <ClInclude Include="include\runtime\instruction.hpp" />
     <ClInclude Include="include\utility\std.hpp" />
     <ClInclude Include="include\utility\string.hpp" />
     <ClInclude Include="include\utility\utf8.hpp" />
