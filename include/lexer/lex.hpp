@@ -17,7 +17,7 @@
 #include "lexer/token.hpp"
 
 /* Helper to raise error at a file */
-#define KH_RAISE_ERROR(msg, n) throw kh::LexException(file_name, kh::toString(msg), line_n, char_line + n, i + n, chAt(i + n))
+#define KH_RAISE_ERROR(msg, n) throw kh::LexException(file_name, kh::toString(msg), line_n, char_line + n, i + n, n > 0 ? chAt(i + n) : ' ')
 
 
 namespace kh {

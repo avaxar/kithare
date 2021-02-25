@@ -27,7 +27,7 @@ std::vector<kh::Token> kh::lex(const kh::String& source, const kh::String& file_
             return '\n';
         else {
             size_t i = index;
-            KH_RAISE_ERROR("Unexpected EOF", 0);
+            KH_RAISE_ERROR("Unexpected EOF", -1);
         }
     };
 
