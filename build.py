@@ -32,6 +32,9 @@ If you are on a 64-bit system, and want to compile for 32-bit architecture,
 pass '-m32' as an argument to the build script (note that this might not work
 in some cases)
 
+If you want to compile tests, pass '--build-tests' to this builder. If you want
+to run those, pass '--run-tests' too.
+
 Note that any arguments passed to this builder will be forwarded to the 
 compiler.
 
@@ -50,6 +53,7 @@ import urllib.request as urllib
 import zipfile
 
 EXE = "kcr.exe" if platform.system() == "Windows" else "kcr"
+TEST_EXE = "test_kcr.exe" if platform.system() == "Windows" else "test_kcr"
 
 # While we recursively search for include files, we don't want to seach
 # the whole file, because that would waste a lotta time. So, we just take
@@ -64,6 +68,14 @@ SDL_DEPS = {
     "SDL2_ttf": "2.0.15",
     "SDL2_net": "2.0.1",
 }
+
+build_tests = "--build-tests" in sys.argv
+if build_tests:
+    sys.argv.remove("--build-tests")
+
+run_tests = "--run-tests" in sys.argv
+if run_tests:
+    sys.argv.remove("--run-tests")
 
 is_32_bit_req = "-m32" in sys.argv
 
@@ -121,6 +133,7 @@ def find_includes(file):
                 retfile = line[len("#include "):]
                 for char in ['"', '<', '>']:
                     retfile = retfile.replace(char, "")
+
                 retfile = os.path.join(
                     "include", 
                     os.path.normcase(retfile.strip())
@@ -223,13 +236,51 @@ def download_sdl_deps(name, version):
             f" -L {download_path}/{machine_alt}-w64-mingw32/lib"
 
 
-def compile_gpp(src, output, srcflag=""):
+def compile_gpp(src, output, srcflag="-c "):
     """
     Used to execute g++ commands
     """
     cmd = f"{cc} -o {output} {srcflag}{src} {cflags}"
     print(cmd)
     return os.system(cmd)
+
+
+def _build_exe(files, exepath):
+    print("Building exe")
+    ecode = compile_gpp(" ".join(files), exepath, "")
+    print()
+    if ecode:
+        sys.exit(ecode)
+
+
+def build_exe(builddir, distdir, testmode=False, runexe=False):
+    exepath = f"{distdir}/{TEST_EXE if testmode else EXE}"
+    objfiles = glob.glob(f"{builddir}/*.o")
+
+    if testmode:
+        # remove main in testmode, to remove 'main' redefination
+        objfiles.remove(os.path.join(builddir, "main.o"))
+    else:
+        # prune away test files if we are not in testmode
+        for i in objfiles:
+            if os.path.basename(i).startswith("test_"):
+                objfiles.remove(i)
+
+    if not os.path.exists(exepath):
+        _build_exe(objfiles, exepath)
+
+    else:
+        dist_m = os.stat(exepath).st_mtime
+        for ofile in objfiles:
+            if os.stat(ofile).st_mtime > dist_m:
+                _build_exe(objfiles, exepath)
+                break
+    
+    if runexe:
+        print("Running tests")
+        ecode = os.system(os.path.normpath(exepath))
+        if ecode:
+            sys.exit(ecode)
 
 
 def main():
@@ -271,7 +322,7 @@ def main():
         ofile = f"{builddir}/{os.path.basename(file)}".replace(".cpp", ".o")
         if should_build(file, ofile):
             print("Building file:", file)
-            if compile_gpp(file, ofile, "-c "):
+            if compile_gpp(file, ofile):
                 print("g++ command exited with an error")
                 isfailed = True
             print()
@@ -280,20 +331,26 @@ def main():
         print("Skipped building executable, because all files didn't build")
         sys.exit(1)
     
-    if not os.path.exists(f"{distdir}/{EXE}"):
-        print("Building exe")
-        compile_gpp(" ".join(glob.iglob(f"{builddir}/*.o")), f"{distdir}/{EXE}")
+    build_exe(builddir, distdir)
+    
+    # Below section is for tests
+    if build_tests:
+        isfailed = False
+        for file in glob.iglob("test/**/test_*.cpp", recursive=True):
+            ofile = f"{builddir}/{os.path.basename(file)}".replace(".cpp", ".o")
+            if should_build(file, ofile):
+                print("Building test file:", file)
+                if compile_gpp(file, ofile):
+                    print("g++ command exited with an error")
+                    isfailed = True
+                print()
+    
+        if isfailed:
+            print("Skipped building test exe, because all tests didn't build")
+            sys.exit(1)
+        
+        build_exe(builddir, distdir, testmode=True, runexe=run_tests)
 
-    else:
-        dist_m = os.stat(f"{distdir}/{EXE}").st_mtime
-        obj_files = glob.glob(f"{builddir}/*.o")
-
-        for ofile in obj_files:
-            if os.stat(ofile).st_mtime > dist_m:
-                print("Building exe")
-                if compile_gpp(" ".join(obj_files), f"{distdir}/{EXE}"):
-                    sys.exit(1)
-                break
     print("Done!")
 
 
