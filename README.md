@@ -1,6 +1,8 @@
 # Kithare
  An open source high performant interpreted statically typed programming language.
 
+###### This project is still in an unfinished state!
+
 ## Contributing
 - New Contributors are most welcome to come and help us in making Kithare better.
 - If you want to contribute a major change, it's a good idea to discuss with us
