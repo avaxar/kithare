@@ -278,7 +278,7 @@ def main():
     
     if isfailed:
         print("Skipped building executable, because all files didn't build")
-        return
+        sys.exit(1)
     
     if not os.path.exists(f"{distdir}/{EXE}"):
         print("Building exe")
@@ -291,7 +291,8 @@ def main():
         for ofile in obj_files:
             if os.stat(ofile).st_mtime > dist_m:
                 print("Building exe")
-                compile_gpp(" ".join(obj_files), f"{distdir}/{EXE}")
+                if compile_gpp(" ".join(obj_files), f"{distdir}/{EXE}"):
+                    sys.exit(1)
                 break
     print("Done!")
 
