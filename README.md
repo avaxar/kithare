@@ -11,12 +11,12 @@ immediately.
 
 ## Building
 - Have Python 3.6 or above installed
-- To create 32-bit binaries, pass in `-m32` to the arguments.
+- To create 32-bit binaries, pass in `-m32` to the arguments. (An exception for MSVC)
 
 
 ### Windows
 #### MSVC / Visual Studio
-- Make sure you have Visual Studio 2019 with C/C++ build tools and Windows 10 SDK installed
+- Make sure you have Visual Studio 2019 with C/C++ build tools and Windows 10 SDK installed.
 - Run `python3 build.py --msvc`. It'll download the dependencies such as SDL and create the build destination directory with the dependencies' DLLs copied.
 - Open the `Kithare.sln` and you can build it on Visual Studio right away!
 
