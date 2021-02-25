@@ -1,6 +1,10 @@
 name: MSBuild
 
-on: [push]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 env:
   # Path to the solution file relative to the root of the project.
@@ -24,6 +28,14 @@ jobs:
     - name: Restore NuGet packages
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: nuget restore ${{env.SOLUTION_FILE_PATH}}
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+
+    - name: Install SDL dependencies
+      run: python build.py --msvc
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
