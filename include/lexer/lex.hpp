@@ -17,15 +17,7 @@
 #include "lexer/token.hpp"
 
 /* Helper to raise error at a file */
-#define KH_RAISE_ERROR(msg) {                              \
-    if (!SILENT_COMPILATION)                               \
-        std::wcerr << msg " in \"" << file_name << "\"\n"; \
-    std::exit(1);                                          \
-    }
-
-/* Helper to raise error with more info */
-#define KH_RAISE_INFO_ERROR(msg, n) \
-    KH_RAISE_ERROR(msg " at " << line_n << ", " << char_line + n << ": '" << (wchar_t)chAt(i + n) << "'")
+#define KH_RAISE_ERROR(msg, n) throw kh::LexException(file_name, kh::toString(msg), line_n, char_line + n, i + n, chAt(i + n))
 
 
 namespace kh {
@@ -36,7 +28,20 @@ namespace kh {
         IN_INLINE_COMMENT, IN_MULTIPLE_LINE_COMMENT
     };
 
-    std::vector<kh::Token> lex(const kh::String& source, const kh::String& file_name, const bool SILENT_COMPILATION = false);
+    struct LexException {
+        LexException(const kh::String& _file_name, const kh::String& _what, const size_t _line, const size_t _character_line,
+                const size_t _index, const uint32 _character) :
+            file_name(_file_name), what(_what), line(_line), character_line(_character_line), index(_index), character(_character) {}
+
+        kh::String file_name;
+        kh::String what;
+        size_t line;
+        size_t character_line;
+        size_t index;
+        uint32 character;
+    };
+
+    std::vector<kh::Token> lex(const kh::String& source, const kh::String& file_name);
 
     inline bool isDec(const uint32 chr) {
         return '0' <= chr && chr <= '9';
