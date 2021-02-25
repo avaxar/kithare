@@ -14,9 +14,9 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Install SDL and deps
-      run: sudo apt install libsdl2-dev libjpeg-dev libwebp-dev libtiff5-dev \
-        libsdl2-image-dev libmikmod-dev libfishsound1-dev libsmpeg-dev liboggz2-dev \
-        libflac-dev libfluidsynth-dev libsdl2-mixer-dev libfreetype6-dev libsdl2-ttf-dev \
+      run: sudo apt install libsdl2-dev libjpeg-dev libwebp-dev libtiff5-dev\
+        libsdl2-image-dev libmikmod-dev libfishsound1-dev libsmpeg-dev liboggz2-dev\
+        libflac-dev libfluidsynth-dev libsdl2-mixer-dev libfreetype6-dev libsdl2-ttf-dev\
         libsdl2-net-dev -y
 
     - name: Build
