@@ -13,10 +13,7 @@
 #include "parser/parse.hpp"
 
 
-bool SILENT_EXECUTION = false;
-bool SILENT_COMPILATION = false;
-
-int executeArgs(const std::vector<kh::String>& args) {
+void executeArgs(const std::vector<kh::String>& args) {
     kh::String test_source = kh::toString(
         "int main() {      \n"
         "    int var = 3;  \n"
@@ -25,8 +22,6 @@ int executeArgs(const std::vector<kh::String>& args) {
     auto tokens = kh::lex(test_source, kh::toString("<TESTSOURCE>"));
     for (auto& token : tokens)
         std::wcout << kh::fromStringW(kh::repr(token)) << '\n';
-
-    return 0;
 }
 
 #undef main
@@ -54,7 +49,7 @@ int main(const int argc, char* argv[])
         args.push_back(kh::decodeUtf8(argv[arg]));
     #endif
 
-    int exit_code = executeArgs(args);
+    executeArgs(args);
     std::cin.get();
-    return exit_code;
+    return 0;
 }

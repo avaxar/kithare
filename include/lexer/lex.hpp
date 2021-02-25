@@ -28,8 +28,6 @@
     KH_RAISE_ERROR(msg " at " << line_n << ", " << char_line + n << ": '" << (wchar_t)chAt(i + n) << "'")
 
 
-extern bool SILENT_COMPILATION;
-
 namespace kh {
     enum class TokenizeState {
         NONE, IDENTIFIER,
@@ -38,7 +36,7 @@ namespace kh {
         IN_INLINE_COMMENT, IN_MULTIPLE_LINE_COMMENT
     };
 
-    std::vector<kh::Token> lex(const kh::String& source, const kh::String& file_name);
+    std::vector<kh::Token> lex(const kh::String& source, const kh::String& file_name, const bool SILENT_COMPILATION = false);
 
     inline bool isDec(const uint32 chr) {
         return '0' <= chr && chr <= '9';
