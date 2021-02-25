@@ -101,6 +101,8 @@ kh::String kh::repr(const kh::Token& token) {
             str += kh::toString(L"="); break;
         case kh::Operator::SIZEOF:
             str += kh::toString(L"#"); break;
+        case kh::Operator::ADDRESS:
+            str += kh::toString(L"@"); break;
         case kh::Operator::SCOPE:
             str += kh::toString(L"."); break;
 

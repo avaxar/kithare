@@ -609,6 +609,12 @@ std::vector<kh::Token> kh::lex(const kh::String& source, const kh::String& file_
                     tokens.emplace_back(kh::TokenType::OPERATOR, value, char_line, line_n);
                 } break;
 
+                case '@': {
+                    kh::TokenValue value;
+                    value.operator_type = kh::Operator::ADDRESS;
+                    tokens.emplace_back(kh::TokenType::OPERATOR, value, char_line, line_n);
+                } break;
+
                 case '.': {
                     kh::TokenValue value;
                     value.operator_type = kh::Operator::SCOPE;
