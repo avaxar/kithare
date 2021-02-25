@@ -9,22 +9,12 @@
 
 #include "test/test_string.hpp"
 
-int testFromStringToSting(void) {
+int testFromStringToSting() {
     std::string teststr = "¥£€$¢₡₢₣₤₥₦₧₨₩₪₫₭₮₯₹2je fe [32*# ";
     kh::String temp = kh::toString(teststr);
     return kh::fromString(temp) != teststr;
 }
 
-int testString(void) {
-    int fail = 0;
-
-    std::cout << "Testing 'FromString' and 'ToString': ";
-    if (testFromStringToSting()) {
-        fail++;
-        std::cout << "Failed\n";
-    }
-    else 
-        std::cout << "Passed\n";
-
-    return fail;
-}
+KH_TEST_BEGIN(String)
+    KH_TEST_WITH_FUNC(testFromStringToSting, "'FromString' and 'ToString'")
+KH_TEST_END

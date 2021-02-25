@@ -1,10 +1,24 @@
-name: MS-Build
+name: MSVC
 
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+    - 'docs/**'
+    - 'assets/**'
+    - '.gitattributes'
+    - '.gitignore'
+    - 'LICENSE'
+    - 'README.md'
   pull_request:
     branches: [ main ]
+    paths-ignore:
+    - 'docs/**'
+    - 'assets/**'
+    - '.gitattributes'
+    - '.gitignore'
+    - 'LICENSE'
+    - 'README.md'
 
 env:
   # Path to the solution file relative to the root of the project.

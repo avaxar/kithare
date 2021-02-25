@@ -1,10 +1,24 @@
-name: MinGW-Build
+name: MinGW
 
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+    - 'docs/**'
+    - 'assets/**'
+    - '.gitattributes'
+    - '.gitignore'
+    - 'LICENSE'
+    - 'README.md'
   pull_request:
     branches: [ main ]
+    paths-ignore:
+    - 'docs/**'
+    - 'assets/**'
+    - '.gitattributes'
+    - '.gitignore'
+    - 'LICENSE'
+    - 'README.md'
 
 jobs:
   build:
@@ -24,4 +38,4 @@ jobs:
         python-version: 3.9
 
     - name: Build
-      run: python build.py
+      run: python build.py --build-tests --run-tests

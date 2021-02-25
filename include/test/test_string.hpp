@@ -6,6 +6,8 @@
 * include/test/test_string.hpp
 * Header for string file tests
 */
+
+#include "test/test.hpp"
 #include "utility/string.hpp"
 
-int testString(void);
+int testString();

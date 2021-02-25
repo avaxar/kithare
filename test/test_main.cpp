@@ -28,7 +28,6 @@ int main(const int argc, char* argv[])
 
     tot_fails += testString();
 
-    std::cin.get();
-    std::cout << "Total number of failures are " << tot_fails;
+    std::cout << "Total number of failures are " << tot_fails << "\n";
     return tot_fails;
 }
