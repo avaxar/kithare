@@ -31,5 +31,12 @@ immediately.
 - Install development libraries for these: `SDL2`, `SDL2_mixer`, `SDL2_image`, `SDL2_ttf`, `SDL2_net`.
 - Run `python3 build.py`. It'll compile Kithare and put the executable in the build destination directory.
 
+### Running Tests
+#### MSVC / Visual Studio
+- TODO: @Avaxar fill this
+#### Others
+- Run `python3 build.py --build-tests` to build the unit test sources. It will generate an executable. To build and run the tests, use the command 
+`python3 build.py --build-tests --run-tests` instead.
+
 ## Community / Contact
 - [Discord server](https://discord.gg/hXvY8CzS7A)
