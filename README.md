@@ -35,7 +35,7 @@ immediately.
 
 ### Running Tests
 #### MSVC / Visual Studio
-- TODO: @Avaxar fill this
+- TODO: @Avaxar fill this.
 #### Others
 - Run `python3 build.py --build-tests` to build the unit test sources. It will generate an executable. To build and run the tests, use the command 
 `python3 build.py --build-tests --run-tests` instead.
