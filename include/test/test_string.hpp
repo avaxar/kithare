@@ -9,5 +9,7 @@
 
 #include "test/test.hpp"
 #include "utility/string.hpp"
+#include "utility/utf8.hpp"
+
 
 int testString();

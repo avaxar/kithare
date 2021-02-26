@@ -9,25 +9,24 @@
 
 #include "test/test_string.hpp"
 
-#undef main
-#undef wmain
-#ifdef _WIN32
-int wmain(const int argc, wchar_t* argv[])
-#else
-int main(const int argc, char* argv[])
-#endif
-{
-    int tot_fails = 0;
-    srand((unsigned int)time(NULL));
-    std::setlocale(LC_ALL, "en_US.utf8");
 
+int runTests() {
+    int failures = 0;
+
+    /* String tests */
+    failures += testString();
+
+    return failures;
+}
+
+#undef main
+int main() {
+    std::setlocale(LC_ALL, "en_US.utf8");
     #ifdef _WIN32
+    /* Sets up std::wcout and std::wcin on Windows */
     std::locale utf8(std::locale(), new std::codecvt_utf8_utf16<wchar_t>);
     std::wcout.imbue(utf8);
     #endif
 
-    tot_fails += testString();
-
-    std::cout << "Total number of failures are " << tot_fails << "\n";
-    return tot_fails;
+    return runTests();
 }

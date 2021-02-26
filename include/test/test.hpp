@@ -25,11 +25,9 @@
 #define KH_TEST_BEGIN(modname)                  \
     int test##modname() {                       \
         int fail = 0;                           \
-        std::cout << "> " #modname " Module\n";
+        std::cout << "> " #modname " module\n";
 
 // End a test function declare block
 #define KH_TEST_END                                             \
     std::cout << "  Failures in this module: " << fail << "\n"; \
     return fail; }
-
-

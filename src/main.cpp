@@ -38,6 +38,7 @@ int main(const int argc, char* argv[])
     std::vector<kh::String> args;
 
     #ifdef _WIN32
+    /* Sets up std::wcout and std::wcin on Windows */
     std::locale utf8(std::locale(), new std::codecvt_utf8_utf16<wchar_t>);
     std::wcout.imbue(utf8);
 
