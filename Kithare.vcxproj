@@ -37,6 +37,7 @@
     <ClInclude Include="include\utility\std.hpp" />
     <ClInclude Include="include\utility\string.hpp" />
     <ClInclude Include="include\utility\utf8.hpp" />
+    <ClInclude Include="include\utility\utils.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\icon.ico" />

@@ -80,6 +80,9 @@
     <ClInclude Include="assets\resource.h">
       <Filter>resource</Filter>
     </ClInclude>
+    <ClInclude Include="include\utility\utils.hpp">
+      <Filter>include\utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\icon.ico">

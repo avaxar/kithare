@@ -61,12 +61,12 @@ bool testLexNumeralValue() {
 		L"0xFFF 0x1  " /* Hexadecimal */
 		L"0o77 0o11  " /* Octal */
 		L"0b111 0b01 " /* Binary */
-		L"4i 2i" /* Imaginary */
+		L"4i 2i 5.6i " /* Imaginary */
 	);
 
 	try {
 		auto tokens = kh::lex(source, kh::toString(L"<test>"));
-		KH_TEST_TRUE(tokens.size() == 20);
+		KH_TEST_TRUE(tokens.size() == 21);
 
 		KH_TEST_TRUE(tokens[0].type == kh::TokenType::INTEGER);
 		KH_TEST_TRUE(tokens[0].value.integer == 0);
@@ -108,6 +108,8 @@ bool testLexNumeralValue() {
 		KH_TEST_TRUE(tokens[18].value.imaginary == 4.0);
 		KH_TEST_TRUE(tokens[19].type == kh::TokenType::IMAGINARY);
 		KH_TEST_TRUE(tokens[19].value.imaginary == 2.0);
+		KH_TEST_TRUE(tokens[20].type == kh::TokenType::IMAGINARY);
+		KH_TEST_TRUE(tokens[20].value.imaginary == 5.6);
 		return false;
 	}
 	catch (...) { return true; }

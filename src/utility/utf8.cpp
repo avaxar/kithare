@@ -10,7 +10,7 @@
 * Defines the declarations in include/utility/utf8.hpp
 */
 
-#include "utility/utf8.hpp"
+#include "utility/utils.hpp"
 
 
 std::string kh::encodeUtf8(const kh::String& str) {

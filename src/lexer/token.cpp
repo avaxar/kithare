@@ -10,16 +10,6 @@
 #include "lexer/token.hpp"
 
 
-std::ostream& kh::operator<<(std::ostream& out_stream, const kh::Token& token) {
-    out_stream << kh::repr(token);
-    return out_stream;
-}
-
-std::wostream& kh::operator<<(std::wostream& wout_stream, const kh::Token& token) {
-    wout_stream << kh::repr(token);
-    return wout_stream;
-}
-
 kh::String kh::repr(const kh::Token& token) {
     kh::String str;
 

@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "utility/std.hpp"
+#include "utility/utils.hpp"
 #include "lexer/type.hpp"
 #include "lexer/value.hpp"
 
@@ -25,8 +25,15 @@ namespace kh {
         size_t character, line;
     };
 
-    std::ostream& operator<<(std::ostream& out_stream, const kh::Token& token);
-    std::wostream& operator<<(std::wostream& wout_stream, const kh::Token& token);
-
     kh::String repr(const kh::Token& token);
+}
+
+inline std::ostream& operator<<(std::ostream& out_stream, const kh::Token& token) {
+    out_stream << kh::repr(token);
+    return out_stream;
+}
+
+inline std::wostream& operator<<(std::wostream& wout_stream, const kh::Token& token) {
+    wout_stream << kh::repr(token);
+    return wout_stream;
 }

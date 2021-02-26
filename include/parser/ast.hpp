@@ -9,8 +9,7 @@
 
 #pragma once
 
-#include "utility/std.hpp"
-#include "utility/string.hpp"
+#include "utility/utils.hpp"
 
 
 namespace kh {

@@ -7,8 +7,7 @@
 * Defines the declarations in include/string.hpp
 */
 
-#include "utility/string.hpp"
-#include "utility/utf8.hpp"
+#include "utility/utils.hpp"
 
 
 kh::String kh::toString(const std::string& str) {
@@ -34,18 +33,4 @@ std::wstring kh::fromStringW(const kh::String& str) {
         wstr += (wchar_t)chr;
 
     return wstr;
-}
-
-std::ostream& kh::operator<<(std::ostream& out_stream, const kh::String& string) {
-    out_stream << kh::encodeUtf8(string);
-    return out_stream;
-}
-
-std::wostream& kh::operator<<(std::wostream& wout_stream, const kh::String& string) {
-    std::wstring wstr;
-    for (const uint32 chr : string)
-        wstr += (wchar_t)chr;
-
-    wout_stream << wstr;
-    return wout_stream;
 }

@@ -7,9 +7,7 @@
 * The main entry point of the Kithare programming language compiler and runtime.
 */
 
-#include "utility/std.hpp"
-#include "utility/string.hpp"
-#include "utility/utf8.hpp"
+#include "utility/utils.hpp"
 #include "parser/parse.hpp"
 
 
@@ -21,7 +19,7 @@ void executeArgs(const std::vector<kh::String>& args) {
     );
     auto tokens = kh::lex(test_source, kh::toString("<TESTSOURCE>"));
     for (auto& token : tokens)
-        std::wcout << kh::fromStringW(kh::repr(token)) << '\n';
+        std::wcout << token << '\n';
 }
 
 #undef main
@@ -55,8 +53,8 @@ int main(const int argc, char* argv[])
     catch (const kh::LexException& exc) {
         std::wcout
             << "Caught a LexException!"
-            << "\nWhat: " << kh::fromStringW(exc.what)
-            << "\nFile name: " << kh::fromStringW(exc.file_name)
+            << "\nWhat: " << exc.what
+            << "\nFile name: " << exc.file_name
             << "\nIndex: " << exc.index
             << "\nAt: " << exc.character_line << ", " << exc.line << " '" << (wchar_t)exc.character << "\'\n";
         std::exit(1);

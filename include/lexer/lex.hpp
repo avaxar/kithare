@@ -9,9 +9,7 @@
 
 #pragma once
 
-#include "utility/std.hpp"
-#include "utility/string.hpp"
-
+#include "utility/utils.hpp"
 #include "lexer/type.hpp"
 #include "lexer/value.hpp"
 #include "lexer/token.hpp"
