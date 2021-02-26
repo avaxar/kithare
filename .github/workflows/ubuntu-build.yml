@@ -30,5 +30,11 @@ jobs:
     - name: Install SDL and deps
       run: sudo apt install libsdl2-dev libjpeg-dev libwebp-dev libtiff5-dev libsdl2-image-dev libmikmod-dev libfishsound1-dev libsmpeg-dev liboggz2-dev libflac-dev libfluidsynth-dev libsdl2-mixer-dev libfreetype6-dev libsdl2-ttf-dev libsdl2-net-dev -y
 
-    - name: Build
+    - name: Build source, tests and run them
       run: python3 build.py --build-tests --run-tests
+
+    - name: Upload dist
+      uses: actions/upload-artifact@v2
+      with:
+        name: dist-Ubuntu-GCC
+        path: dist/

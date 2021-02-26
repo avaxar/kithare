@@ -51,8 +51,17 @@ jobs:
     - name: Install SDL dependencies
       run: python build.py --msvc
 
-    - name: Build
+    - name: Build source and tests
       working-directory: ${{env.GITHUB_WORKSPACE}}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
+
+    - name: Run tests
+      run: python build.py --msvc --run-tests
+
+    - name: Upload dist
+      uses: actions/upload-artifact@v2
+      with:
+        name: dist-MSVC
+        path: dist/MSVC-x64-Release
