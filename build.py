@@ -283,9 +283,11 @@ def main():
     """
     global cflags
 
-    builddir = f"build/{compiler}-{machine}"
-    distdir = f"dist/{compiler}-{machine}"
-    if compiler != "MSVC":
+    if compiler == "MSVC":
+        distdir = f"dist/MSVC-x64-Release"
+    else:
+        builddir = f"build/{compiler}-{machine}"
+        distdir = f"dist/{compiler}-{machine}"
         mkdir(builddir)
         mkdir(distdir)
 
