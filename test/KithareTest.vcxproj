@@ -80,30 +80,30 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)dist\MSVC-$(PlatformTarget)-$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)build\MSVC-$(PlatformTarget)-$(Configuration)\</IntDir>
-    <TargetName>test-kcr</TargetName>
+    <TargetName>test_kcr</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)dist\MSVC-$(PlatformTarget)-$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)build\MSVC-$(PlatformTarget)-$(Configuration)\</IntDir>
-    <TargetName>test-kcr</TargetName>
+    <TargetName>test_kcr</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)dist\MSVC-$(PlatformTarget)-$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)build\MSVC-$(PlatformTarget)-$(Configuration)\</IntDir>
-    <TargetName>test-kcr</TargetName>
+    <TargetName>test_kcr</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)dist\MSVC-$(PlatformTarget)-$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)build\MSVC-$(PlatformTarget)-$(Configuration)\</IntDir>
-    <TargetName>test-kcr</TargetName>
+    <TargetName>test_kcr</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;_UNICODE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>None</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -126,7 +126,7 @@
       <PreprocessorDefinitions>UNICODE;_UNICODE</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>None</DebugInformationFormat>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)deps\SDL-MSVC\SDL2\include;$(SolutionDir)deps\SDL-MSVC\SDL2_image\include;$(SolutionDir)deps\SDL-MSVC\SDL2_mixer\include;$(SolutionDir)deps\SDL-MSVC\SDL2_net\include;$(SolutionDir)deps\SDL-MSVC\SDL2_ttf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -160,6 +160,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <PreprocessorDefinitions>UNICODE;_UNICODE</PreprocessorDefinitions>
+      <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)deps\SDL-MSVC\SDL2\lib\x64;$(SolutionDir)deps\SDL-MSVC\SDL2_image\lib\x64;$(SolutionDir)deps\SDL-MSVC\SDL2_mixer\lib\x64;$(SolutionDir)deps\SDL-MSVC\SDL2_net\lib\x64;$(SolutionDir)deps\SDL-MSVC\SDL2_ttf\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -180,6 +181,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <PreprocessorDefinitions>UNICODE;_UNICODE</PreprocessorDefinitions>
+      <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)deps\SDL-MSVC\SDL2\lib\x64;$(SolutionDir)deps\SDL-MSVC\SDL2_image\lib\x64;$(SolutionDir)deps\SDL-MSVC\SDL2_mixer\lib\x64;$(SolutionDir)deps\SDL-MSVC\SDL2_net\lib\x64;$(SolutionDir)deps\SDL-MSVC\SDL2_ttf\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
