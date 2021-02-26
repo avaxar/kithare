@@ -3,7 +3,7 @@
 ![Version](https://img.shields.io/badge/version-0.0.0-00ffaa.svg)
 
 # Kithare
- An open source easy-to-use C-like programmimg language.
+ An open source easy-to-use and cross-platform C-like programmimg language.
 
 ## Contributing
 - New Contributors are most welcome to come and help us in making Kithare better.
