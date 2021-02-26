@@ -9,6 +9,8 @@
 
 #pragma once
 
+#define _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS
+
 #include <stdio.h>
 #include <ctype.h>
 #include <cwctype>
