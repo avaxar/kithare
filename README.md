@@ -17,7 +17,6 @@ immediately.
 - Have Python 3.6 or above installed
 - To create 32-bit binaries, pass in `-m32` to the arguments. (An exception for MSVC)
 
-
 ### Windows
 #### MSVC / Visual Studio
 - Make sure you have Visual Studio 2019 with C/C++ build tools and Windows 10 SDK installed.
@@ -36,6 +35,10 @@ immediately.
 - Run `python3 build.py`. It'll compile Kithare and put the executable in the build destination directory.
 
 ### Running Tests
+- To run the tests, use the command `python3 build.py --run-tests`, note that 
+this command only runs the tests, and does nothing else. Pass `--msvc` flag too, if
+needed. For this command to work, the tests need to be built fisrt.
+
 #### MSVC / Visual Studio
 - Make sure you've successfully done the compilation above.
 - Open the solution `Kithare.sln`.
@@ -43,8 +46,8 @@ immediately.
 - You can now build it by clicking "Local Windows Debugger".
 
 #### Others
-- Run `python3 build.py --build-tests` to build the unit test sources. It will generate an executable. To build and run the tests, use the command 
-`python3 build.py --build-tests --run-tests` instead.
+- Run `python3 build.py --build-tests` to build the Kithare source AND unit test 
+sources.
 
 ## Community / Contact
 - [Discord server](https://discord.gg/hXvY8CzS7A)

@@ -60,8 +60,8 @@ jobs:
     - name: Run tests
       run: python build.py --msvc --run-tests
 
-    - name: Upload dist
-      uses: actions/upload-artifact@v2
-      with:
-        name: dist-MSVC
-        path: dist/MSVC-x64-Release
+    #- name: Upload dist
+      #uses: actions/upload-artifact@v2
+      #with:
+        #name: dist-MSVC
+        #path: dist/MSVC-x64-Release

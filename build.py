@@ -32,8 +32,9 @@ If you are on a 64-bit system, and want to compile for 32-bit architecture,
 pass '-m32' as an argument to the build script (note that this might not work
 in some cases)
 
-If you want to compile tests, pass '--build-tests' to this builder. If you want
-to run those, pass '--run-tests' too.
+If you want to compile tests to, pass '--build-tests' to this builder.
+To just run tests, do `python3 build.py --run-tests`. Note that this command is
+only going to run the tests, it does not build anything.
 
 Note that any arguments passed to this builder will be forwarded to the 
 compiler.
@@ -262,7 +263,7 @@ def build_exe(builddir, distdir, testmode=False):
         objfiles.remove(os.path.join(builddir, "main.o"))
     else:
         # prune away test files if we are not in testmode
-        for i in objfiles:
+        for i in list(objfiles):
             if os.path.basename(i).startswith("test_"):
                 objfiles.remove(i)
 
@@ -290,6 +291,9 @@ def main():
         distdir = f"dist/{compiler}-{machine}"
         mkdir(builddir)
         mkdir(distdir)
+    
+    if run_tests:
+        sys.exit(os.system(os.path.normpath(f"{distdir}/{TEST_EXE}")))
 
     # Prepare dependencies
     if platform.system() == "Windows":
@@ -308,47 +312,43 @@ def main():
                 cflags += f" -I {inc_dir}"
                 break
     
-    if compiler != "MSVC":
-        print()
+    if compiler == "MSVC":
+        return
+
+    print()
+    isfailed = False
+    for file in glob.iglob("src/**/*.cpp", recursive=True):
+        ofile = f"{builddir}/{os.path.basename(file)}".replace(".cpp", ".o")
+        if should_build(file, ofile):
+            print("Building file:", file)
+            if compile_gpp(file, ofile):
+                print("g++ command exited with an error")
+                isfailed = True
+            print()
+    
+    if isfailed:
+        print("Skipped building executable, because all files didn't build")
+        sys.exit(1)
+    
+    build_exe(builddir, distdir)
+    
+    # Below section is for tests
+    if build_tests:
         isfailed = False
-        for file in glob.iglob("src/**/*.cpp", recursive=True):
+        for file in glob.iglob("test/**/test_*.cpp", recursive=True):
             ofile = f"{builddir}/{os.path.basename(file)}".replace(".cpp", ".o")
             if should_build(file, ofile):
-                print("Building file:", file)
+                print("Building test file:", file)
                 if compile_gpp(file, ofile):
                     print("g++ command exited with an error")
                     isfailed = True
                 print()
-        
+    
         if isfailed:
-            print("Skipped building executable, because all files didn't build")
+            print("Skipped building test exe, because all tests didn't build")
             sys.exit(1)
         
-        build_exe(builddir, distdir)
-        
-        # Below section is for tests
-        if build_tests:
-            isfailed = False
-            for file in glob.iglob("test/**/test_*.cpp", recursive=True):
-                ofile = f"{builddir}/{os.path.basename(file)}".replace(".cpp", ".o")
-                if should_build(file, ofile):
-                    print("Building test file:", file)
-                    if compile_gpp(file, ofile):
-                        print("g++ command exited with an error")
-                        isfailed = True
-                    print()
-        
-            if isfailed:
-                print("Skipped building test exe, because all tests didn't build")
-                sys.exit(1)
-            
-            build_exe(builddir, distdir, testmode=True)
-    
-    if run_tests:
-        print("Running tests")
-        ecode = os.system(os.path.normpath(f"{distdir}/{TEST_EXE}"))
-        if ecode:
-            sys.exit(ecode)
+        build_exe(builddir, distdir, testmode=True)
 
     print("Done!")
 

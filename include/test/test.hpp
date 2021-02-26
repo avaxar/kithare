@@ -31,3 +31,12 @@
 #define KH_TEST_END                                             \
     std::cout << "  Failures in this module: " << fail << "\n"; \
     return fail; }
+
+// Test Equal macro
+#define KH_TEST_TRUE(exp)                                  \
+    {                                                      \
+        if (!(exp)) {                                      \
+            std::cout << "\nFailed Assertion: " #exp "\n"; \
+            return true;                                   \
+        }                                                  \
+    }

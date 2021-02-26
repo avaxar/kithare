@@ -37,11 +37,14 @@ jobs:
       with:
         python-version: 3.9
 
-    - name: Build source, tests and run them
-      run: python build.py --build-tests --run-tests
+    - name: Build source and tests
+      run: python3 build.py --build-tests
+    
+    - name: Run tests
+      run: python3 build.py --run-tests
 
-    - name: Upload dist
-      uses: actions/upload-artifact@v2
-      with:
-        name: dist-MinGW
-        path: dist/
+    #- name: Upload dist
+      #uses: actions/upload-artifact@v2
+      #with:
+        #name: dist-MinGW
+        #path: dist/

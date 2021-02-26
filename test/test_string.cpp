@@ -13,25 +13,29 @@
 bool testFromStringToString() {
     std::string teststr = u8"¥£€$¢₡₢₣₤₥₦₧₨₩₪₫₭₮₯₹2je fe [32*# ";
     kh::String temp = kh::toString(teststr);
-    return kh::fromString(temp) != teststr;
+    KH_TEST_TRUE(kh::fromString(temp) == teststr);
+    return false;
 }
 
 bool testFromStringWToString() {
     std::wstring teststr = L"¥£€$¢₡₢₣₤₥₦₧₨₩₪₫₭₮₯₹2je fe [32*# ";
     kh::String temp = kh::toString(teststr);
-    return kh::fromStringW(temp) != teststr;
+    KH_TEST_TRUE(kh::fromStringW(temp) == teststr);
+    return false;
 }
 
 bool testUtf8Encode() {
     kh::String temp = kh::toString(L"¥£€$¢₡₢₣₤₥₦₧₨₩₪₫₭₮₯₹2je fe [32*# ");
     std::string teststr = kh::encodeUtf8(temp);
-    return teststr != kh::encodeUtf8(temp);
+    KH_TEST_TRUE(teststr == kh::encodeUtf8(temp));
+    return false;
 }
 
 bool testUtf8Decode() {
     std::string teststr = u8"¥£€$¢₡₢₣₤₥₦₧₨₩₪₫₭₮₯₹2je fe [32*# ";
     kh::String temp = kh::decodeUtf8(teststr);
-    return kh::decodeUtf8(teststr) != temp;
+    KH_TEST_TRUE(temp == kh::decodeUtf8(teststr));
+    return false;
 }
 
 KH_TEST_BEGIN(String)

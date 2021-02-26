@@ -13,15 +13,24 @@
 
 int runTests() {
     int failures = 0;
+    std::cout << "Running Kithare Unit tests!\n";
 
     failures += testString();
     failures += testLexer();
 
+    std::cout << "Total number of failures are " << failures << "\n";
     return failures;
 }
 
+/* wmain is needed for MinGW in this case */
 #undef main
-int main() {
+#undef wmain
+#ifdef _WIN32
+int wmain(const int argc, wchar_t* argv[])
+#else
+int main(const int argc, char* argv[])
+#endif
+{
     std::setlocale(LC_ALL, "en_US.utf8");
     #ifdef _WIN32
     /* Sets up std::wcout and std::wcin on Windows */
