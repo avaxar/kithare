@@ -1,7 +1,9 @@
-# Kithare
- An open source high performant interpreted statically typed programming language.
+![Kithare](assets/logo.png) <br/>
+![State](https://img.shields.io/badge/state-unfinished-ff2222.svg)
+![Version](https://img.shields.io/badge/version-0.0.0-00ffaa.svg)
 
-###### This project is still in an unfinished state!
+# Kithare
+ An open source easy-to-use C-like programmimg language.
 
 ## Contributing
 - New Contributors are most welcome to come and help us in making Kithare better.
