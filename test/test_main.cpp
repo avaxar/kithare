@@ -8,13 +8,14 @@
 */
 
 #include "test/test_string.hpp"
+#include "test/test_lexer.hpp"
 
 
 int runTests() {
     int failures = 0;
 
-    /* String tests */
     failures += testString();
+    failures += testLexer();
 
     return failures;
 }

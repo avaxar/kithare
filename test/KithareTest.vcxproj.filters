@@ -33,12 +33,18 @@
     <ClCompile Include="..\src\utility\utf8.cpp">
       <Filter>kithare</Filter>
     </ClCompile>
+    <ClCompile Include="test_lexer.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\test\test.hpp">
       <Filter>include/test</Filter>
     </ClInclude>
     <ClInclude Include="..\include\test\test_string.hpp">
+      <Filter>include/test</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\test\test_lexer.hpp">
       <Filter>include/test</Filter>
     </ClInclude>
   </ItemGroup>

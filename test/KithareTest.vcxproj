@@ -24,11 +24,13 @@
     <ClCompile Include="..\src\parser\parse.cpp" />
     <ClCompile Include="..\src\utility\string.cpp" />
     <ClCompile Include="..\src\utility\utf8.cpp" />
+    <ClCompile Include="test_lexer.cpp" />
     <ClCompile Include="test_main.cpp" />
     <ClCompile Include="test_string.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\test\test.hpp" />
+    <ClInclude Include="..\include\test\test_lexer.hpp" />
     <ClInclude Include="..\include\test\test_string.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
