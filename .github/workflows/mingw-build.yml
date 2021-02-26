@@ -43,5 +43,5 @@ jobs:
     - name: Upload dist
       uses: actions/upload-artifact@v2
       with:
-        name: dist-MinGW-x64
-        path: dist/MinGW-x64/
+        name: dist-MinGW
+        path: dist/
