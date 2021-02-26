@@ -22,7 +22,9 @@ immediately.
 #### MSVC / Visual Studio
 - Make sure you have Visual Studio 2019 with C/C++ build tools and Windows 10 SDK installed.
 - Run `python3 build.py --msvc`. It'll download the dependencies such as SDL and create the build destination directory with the dependencies' DLLs copied.
-- Open the `Kithare.sln` and you can build it on Visual Studio right away!
+- Open the solution `Kithare.sln`.
+- See `Kithare` in the Solution Explorer. If the name's not bolded, right click and click "Set as Startup Project".
+- You can now build it by clicking "Local Windows Debugger".
 
 #### MinGW
 - Make sure you have MinGW's bin directory be put in the PATH. (In order to call the compiler commands, especially `g++`)
@@ -35,7 +37,11 @@ immediately.
 
 ### Running Tests
 #### MSVC / Visual Studio
-- TODO: @Avaxar fill this.
+- Make sure you've successfully done the compilation above.
+- Open the solution `Kithare.sln`.
+- See `KithareTest` in the Solution Explorer. If the name's not bolded, right click and click "Set as Startup Project".
+- You can now build it by clicking "Local Windows Debugger".
+
 #### Others
 - Run `python3 build.py --build-tests` to build the unit test sources. It will generate an executable. To build and run the tests, use the command 
 `python3 build.py --build-tests --run-tests` instead.
