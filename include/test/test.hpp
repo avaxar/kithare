@@ -9,6 +9,9 @@
 
 /* Pass a test function to this macro, that returns 0 on a successful test. Pass
  * a message argument to breifly describe the test */
+
+#pragma once
+
 #define KH_TEST_WITH_FUNC(funcname, msg)      \
     {                                         \
         std::cout << "  - Testing " msg ": "; \
