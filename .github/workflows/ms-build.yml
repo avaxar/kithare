@@ -23,7 +23,6 @@ on:
 env:
   # Path to the solution file relative to the root of the project.
   SOLUTION_FILE: Kithare.sln
-  TEST_SOLUTION_FILE: KithareTest.sln
 
 jobs:
   build:
@@ -31,17 +30,14 @@ jobs:
 
     strategy:
       matrix:
-        arch: ["x86", "x64"]
+        # arch: ["x86", "x64"] # TODO
+        arch: ["x64"]
 
     steps:
     - uses: actions/checkout@v2
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1
-
-    #- name: Restore NuGet packages
-      #working-directory: ${{env.GITHUB_WORKSPACE}}
-      #run: nuget restore ${{env.SOLUTION_FILE_PATH}}
 
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
@@ -51,13 +47,9 @@ jobs:
     - name: Install SDL dependencies
       run: python build.py --msvc
 
-    - name: Build source
+    - name: Build source and tests
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: msbuild /m /p:Configuration=Release /p:Platform=${{matrix.arch}}  ${{env.SOLUTION_FILE}}
-
-    - name: Build tests
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild /m /p:Configuration=Release /p:Platform=${{matrix.arch}} ${{env.TEST_SOLUTION_FILE}}
 
     - name: Run tests
       run: python build.py --msvc --run-tests
