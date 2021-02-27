@@ -81,7 +81,7 @@ if run_tests:
 is_32_bit_req = "-m32" in sys.argv
 
 _machine = platform.machine()
-if _machine in ["i686", "i386"]:
+if _machine.endswith("86"):
     machine = "x86"
     machine_alt = "i686"
 
@@ -89,11 +89,11 @@ elif _machine.lower() in ["x86_64", "amd64"]:
     machine = "x86" if is_32_bit_req else "x64"
     machine_alt = "i686" if is_32_bit_req else "x86_64"
 
-elif _machine.lower() in ["arm", "arm32", "armv6l", "armv7l"]:
-    machine = "ARM"
-
 elif _machine.lower() in ["armv8l", "arm64", "aarch64"]:
     machine = "ARM" if is_32_bit_req else "ARM64"
+
+elif _machine.lower().startswith("arm"):
+    machine = "ARM"
 
 else:
     machine = _machine if _machine else "None"
@@ -248,6 +248,9 @@ def compile_gpp(src, output, srcflag="-c "):
 
 
 def _build_exe(files, exepath):
+    """
+    Helper to generate final exe
+    """
     print("Building exe")
     ecode = compile_gpp(" ".join(files), exepath, "")
     print()
@@ -256,6 +259,9 @@ def _build_exe(files, exepath):
 
 
 def build_exe(builddir, distdir, testmode=False):
+    """
+    Generate final exe
+    """
     exepath = f"{distdir}/{TEST_EXE if testmode else EXE}"
     objfiles = glob.glob(f"{builddir}/*.o")
 
@@ -286,7 +292,7 @@ def main():
     global cflags
 
     if compiler == "MSVC":
-        distdir = f"dist/MSVC-x64-Release"
+        distdir = f"dist/MSVC-{machine}-Release"
     else:
         builddir = f"build/{compiler}-{machine}"
         distdir = f"dist/{compiler}-{machine}"
