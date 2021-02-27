@@ -36,28 +36,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-
-    - name: Cache LLVM and Clang
-      id: cache-llvm
-      uses: actions/cache@v2
-      with:
-        path: ${{ runner.temp }}/llvm
-        key: llvm-10.0
-
-    - name: Install LLVM and Clang
-      uses: KyleMayes/install-llvm-action@v1
-      with:
-        version: "10.0"
-        directory: ${{ runner.temp }}/llvm
-        cached: ${{ steps.cache-llvm.outputs.cache-hit }}
     
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
         python-version: 3.9
 
-    - name: Install SDL and deps
-      run: brew install sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf
+    - name: Install Clang(llvm) and SDL deps
+      run: |
+        LDFLAGS="-L$(brew --prefix)/opt/llvm/lib -Wl,-rpath,$(brew --prefix)/opt/llvm/lib"
+        brew install llvm sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf
 
     - name: Build source and tests
       run: python3 build.py --build-tests
@@ -68,5 +56,5 @@ jobs:
     #- name: Upload dist
       #uses: actions/upload-artifact@v2
       #with:
-        #name: dist-Ubuntu-GCC
+        #name: dist-Mac-Clang
         #path: dist/
