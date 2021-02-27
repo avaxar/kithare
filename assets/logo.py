@@ -3,6 +3,7 @@ pygame.init()
 
 WIDTH, HEIGHT = 946, 946
 logo = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+banner = pygame.Surface((WIDTH * 4, HEIGHT), pygame.SRCALPHA)
 FACTOR = 1 / 16.0
 
 BLUE1 = (2, 5, 190)
@@ -20,6 +21,7 @@ def translate(c):
 
 def poly(points, color):
     pygame.draw.polygon(logo, color, list(map(translate, points)))
+    pygame.draw.polygon(banner, color, list(map(translate, points)))
 
 
 # A1 piece
@@ -101,3 +103,4 @@ poly([
 ], BLUE4)
 
 pygame.image.save(logo, "logo.png")
+pygame.image.save(banner, "banner.png")

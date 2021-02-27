@@ -1,4 +1,4 @@
-![Kithare](assets/logo.png) <br/>
+![Kithare](assets/banner.png) <br/>
 ![State](https://img.shields.io/badge/state-unfinished-ff2222.svg)
 ![Version](https://img.shields.io/badge/version-0.0.0-00ffaa.svg)
 
