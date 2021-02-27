@@ -51,8 +51,8 @@ namespace kh {
         return '0' <= chr && chr <= '7';
     }
     inline bool isHex(const uint32 chr) {
-        return (('0' <= chr && chr <= '9') ||
-                ('a' <= chr && chr <= 'f') ||
-                ('A' <= chr && chr <= 'F'));
+        return ('0' <= chr && chr <= '9') ||
+               ('a' <= chr && chr <= 'f') ||
+               ('A' <= chr && chr <= 'F');
     }
 }
