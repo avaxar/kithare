@@ -12,6 +12,7 @@ on:
     - 'README.md'
     - '.github/workflows/mingw-build.yml'
     - '.github/workflows/ubuntu-build.yml'
+    - '.github/workflows/macos-build.yml'
   pull_request:
     branches: [ main ]
     paths-ignore:
@@ -23,6 +24,7 @@ on:
     - 'README.md'
     - '.github/workflows/mingw-build.yml'
     - '.github/workflows/ubuntu-build.yml'
+    - '.github/workflows/macos-build.yml'
 
 env:
   # Path to the solution file relative to the root of the project.

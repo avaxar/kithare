@@ -14,10 +14,12 @@ On Windows and MSVC:
     'py build.py --msvc'
 
 On Mac:
-    (Unfinished as of now)
     This assumes you have Clang (clang++) installed. Also, you need to install 
     SDL dependencies on your own.
     Kithare needs 'SDL2', 'SDL2_mixer', 'SDL2_image', 'SDL2_ttf' and 'SDL2_net'.
+
+    A recommended way to install them, is via Homebrew. Just do
+    `brew install sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf`
     Make sure to install 'devel' releases of those, not just runtime shared 
     libraries.
 
@@ -308,10 +310,6 @@ def main():
 
         for package, ver in SDL_DEPS.items():
             cflags += download_sdl_deps(package, ver)
-
-    elif platform.system() == "Darwin":
-        # TODO: Include SDL directories properly on this one
-        pass
 
     else:
         for inc_dir in ["/usr/include/SDL2", "/usr/local/include/SDL2"]:
