@@ -50,11 +50,6 @@ kh::String kh::repr(const kh::Token& token) {
         case kh::Operator::IPOW:
             str += kh::toString(L"^="); break;
 
-        case kh::Operator::INCREMENT:
-            str += kh::toString(L"++"); break;
-        case kh::Operator::DECREMENT:
-            str += kh::toString(L"--"); break;
-
         case kh::Operator::EQUAL:
             str += kh::toString(L"=="); break;
         case kh::Operator::NOT_EQUAL:
@@ -96,11 +91,6 @@ kh::String kh::repr(const kh::Token& token) {
         case kh::Operator::SCOPE:
             str += kh::toString(L"."); break;
 
-        case kh::Operator::TERNARY_IF:
-            str += kh::toString(L"?"); break;
-        case kh::Operator::TERNARY_ELSE:
-            str += kh::toString(L":"); break;
-
         case kh::Operator::STACK_INST:
             str += kh::toString(L"$"); break;
 
@@ -119,6 +109,10 @@ kh::String kh::repr(const kh::Token& token) {
             str += kh::toString(L";"); break;
         case kh::Symbol::COMMA:
             str += kh::toString(L","); break;
+        case kh::Symbol::QUESTION:
+            str += kh::toString(L"?"); break;
+        case kh::Symbol::COLON:
+            str += kh::toString(L":"); break;
 
         case kh::Symbol::PARENTHESES_OPEN:
             str += kh::toString(L"("); break;

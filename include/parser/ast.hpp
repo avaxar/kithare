@@ -13,5 +13,7 @@
 
 
 namespace kh {
-    
+    class AstFile {
+
+    };
 }

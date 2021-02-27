@@ -22,7 +22,6 @@ namespace kh {
     enum class Operator {
         ADD, SUB, MUL, DIV, MOD, POW,
         IADD, ISUB, IMUL, IDIV, IMOD, IPOW,
-        INCREMENT, DECREMENT,
 
         EQUAL, NOT_EQUAL, LESS, MORE, LESS_EQUAL, MORE_EQUAL,
 
@@ -31,13 +30,11 @@ namespace kh {
         AND, OR, NOT,
 
         ASSIGN, SIZEOF, ADDRESS, SCOPE,
-        TERNARY_IF, TERNARY_ELSE,
-
         STACK_INST
     };
 
     enum class Symbol {
-        SEMICOLON, COMMA,
+        SEMICOLON, COMMA, QUESTION, COLON,
 
         PARENTHESES_OPEN, PARENTHESES_CLOSE,
         CURLY_OPEN, CURLY_CLOSE,

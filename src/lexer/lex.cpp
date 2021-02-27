@@ -413,11 +413,6 @@ std::vector<kh::Token> kh::lex(const kh::String& source, const kh::String& file_
                         i++;
                         char_line++;
                     }
-                    else if (chAt(i + 1) == '+') {
-                        value.operator_type = kh::Operator::INCREMENT;
-                        i++;
-                        char_line++;
-                    }
 
                     tokens.emplace_back(
                         kh::TokenType::OPERATOR,
@@ -433,11 +428,6 @@ std::vector<kh::Token> kh::lex(const kh::String& source, const kh::String& file_
 
                     if (chAt(i + 1) == '=') {
                         value.operator_type = kh::Operator::ISUB;
-                        i++;
-                        char_line++;
-                    }
-                    else if (chAt(i + 1) == '-') {
-                        value.operator_type = kh::Operator::DECREMENT;
                         i++;
                         char_line++;
                     }
@@ -634,18 +624,6 @@ std::vector<kh::Token> kh::lex(const kh::String& source, const kh::String& file_
                     tokens.emplace_back(kh::TokenType::OPERATOR, value, char_line, line_n);
                 } break;
 
-                case '?': {
-                    kh::TokenValue value;
-                    value.operator_type = kh::Operator::TERNARY_IF;
-                    tokens.emplace_back(kh::TokenType::OPERATOR, value, char_line, line_n);
-                } break;
-
-                case ':': {
-                    kh::TokenValue value;
-                    value.operator_type = kh::Operator::TERNARY_ELSE;
-                    tokens.emplace_back(kh::TokenType::OPERATOR, value, char_line, line_n);
-                } break;
-
                 case '$': {
                     kh::TokenValue value;
                     value.operator_type = kh::Operator::STACK_INST;
@@ -661,6 +639,18 @@ std::vector<kh::Token> kh::lex(const kh::String& source, const kh::String& file_
                 case ',': {
                     kh::TokenValue value;
                     value.symbol_type = kh::Symbol::COMMA;
+                    tokens.emplace_back(kh::TokenType::SYMBOL, value, char_line, line_n);
+                } break;
+
+                case '?': {
+                    kh::TokenValue value;
+                    value.symbol_type = kh::Symbol::QUESTION;
+                    tokens.emplace_back(kh::TokenType::SYMBOL, value, char_line, line_n);
+                } break;
+
+                case ':': {
+                    kh::TokenValue value;
+                    value.symbol_type = kh::Symbol::COLON;
                     tokens.emplace_back(kh::TokenType::SYMBOL, value, char_line, line_n);
                 } break;
 
