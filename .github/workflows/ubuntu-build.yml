@@ -28,7 +28,7 @@ on:
 
 jobs:
   build:
-    runs-on: $ {{ matrix.distro }}
+    runs-on: ${{ matrix.distro }}
     strategy:
       matrix:
         distro: [ubuntu-20.04, ubuntu-18.04]

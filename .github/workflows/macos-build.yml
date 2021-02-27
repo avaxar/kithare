@@ -28,11 +28,11 @@ on:
 
 jobs:
   build:
-    runs-on: $ {{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         # os: [macos-10.15, macos-11.0]  # TODO: when Github actions supports M1 Mac
-        os: macos-10.15
+        os: [macos-10.15]
 
     steps:
     - uses: actions/checkout@v2
