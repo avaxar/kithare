@@ -10,6 +10,8 @@ on:
     - '.gitignore'
     - 'LICENSE'
     - 'README.md'
+    - '.github/workflows/ms-build.yml'
+    - '.github/workflows/mingw-build.yml'
   pull_request:
     branches: [ main ]
     paths-ignore:
@@ -19,6 +21,8 @@ on:
     - '.gitignore'
     - 'LICENSE'
     - 'README.md'
+    - '.github/workflows/ms-build.yml'
+    - '.github/workflows/mingw-build.yml'
 
 jobs:
   build:

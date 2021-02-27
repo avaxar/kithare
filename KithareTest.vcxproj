@@ -81,23 +81,23 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)dist\MSVC-$(PlatformTarget)-$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)build\MSVC-$(PlatformTarget)-$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)build\MSVC-$(PlatformTarget)-$(Configuration)-test\</IntDir>
     <TargetName>test_kcr</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)dist\MSVC-$(PlatformTarget)-$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)build\MSVC-$(PlatformTarget)-$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)build\MSVC-$(PlatformTarget)-$(Configuration)-test\</IntDir>
     <TargetName>test_kcr</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)dist\MSVC-$(PlatformTarget)-$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)build\MSVC-$(PlatformTarget)-$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)build\MSVC-$(PlatformTarget)-$(Configuration)-test\</IntDir>
     <TargetName>test_kcr</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)dist\MSVC-$(PlatformTarget)-$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)build\MSVC-$(PlatformTarget)-$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)build\MSVC-$(PlatformTarget)-$(Configuration)-test\</IntDir>
     <TargetName>test_kcr</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

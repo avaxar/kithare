@@ -10,6 +10,8 @@ on:
     - '.gitignore'
     - 'LICENSE'
     - 'README.md'
+    - '.github/workflows/mingw-build.yml'
+    - '.github/workflows/ubuntu-build.yml'
   pull_request:
     branches: [ main ]
     paths-ignore:
@@ -19,6 +21,8 @@ on:
     - '.gitignore'
     - 'LICENSE'
     - 'README.md'
+    - '.github/workflows/mingw-build.yml'
+    - '.github/workflows/ubuntu-build.yml'
 
 env:
   # Path to the solution file relative to the root of the project.
@@ -30,8 +34,7 @@ jobs:
 
     strategy:
       matrix:
-        # arch: ["x86", "x64"] # TODO
-        arch: ["x64"]
+        arch: ["x86", "x64"]
 
     steps:
     - uses: actions/checkout@v2
@@ -49,7 +52,7 @@ jobs:
 
     - name: Build source and tests
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild /m /p:Configuration=Release /p:Platform=${{matrix.arch}}  ${{env.SOLUTION_FILE}}
+      run: msbuild /m /p:Configuration=Release /p:Platform=${{matrix.arch}} ${{env.SOLUTION_FILE}}
 
     - name: Run tests
       run: python build.py --msvc --run-tests

@@ -218,6 +218,7 @@ def download_sdl_deps(name, version):
                 d = f"dist/MSVC-{i}-{j}"
                 mkdir(d)
                 mkdir(f"build/MSVC-{i}-{j}")
+                mkdir(f"build/MSVC-{i}-{j}-test")
                 for dll in glob.iglob(f"{download_path}/lib/{i}/*.dll"):
                     shutil.copyfile(
                         dll, 
