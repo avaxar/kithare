@@ -55,11 +55,11 @@ jobs:
       run: msbuild /m /p:Configuration=Release /p:Platform=${{matrix.arch}} ${{env.SOLUTION_FILE}}
 
     - name: Run x86 tests
-      if: ${{ matrix.arch == "x86" }}
+      if: matrix.arch == 'x86'
       run: python build.py -m32 --msvc --run-tests
 
     - name: Run x64 tests
-      if: ${{ matrix.arch == "x64" }}
+      if: matrix.arch == 'x64'
       run: python build.py --msvc --run-tests
 
     #- name: Upload dist
