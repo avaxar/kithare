@@ -100,7 +100,7 @@ else:
     compiler = "GCC"
 
 
-cflags = "-O3 -I include"
+cflags = "-O3 -std=c++17 -I include"
 cflags += " -lSDL2 -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lSDL2_net"
 
 if compiler == "MinGW":
