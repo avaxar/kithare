@@ -10,8 +10,7 @@
 #pragma once
 
 #include "test/test.hpp"
-#include "utility/string.hpp"
-#include "utility/utf8.hpp"
+#include "utility/utils.hpp"
 
 
 int testString();
