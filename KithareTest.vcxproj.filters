@@ -12,39 +12,39 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="test_main.cpp">
+    <ClCompile Include="test\test_main.cpp">
       <Filter>test</Filter>
     </ClCompile>
-    <ClCompile Include="test_string.cpp">
+    <ClCompile Include="test\test_string.cpp">
       <Filter>test</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\lexer\lex.cpp">
+    <ClCompile Include="src\lexer\lex.cpp">
       <Filter>kithare</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\lexer\token.cpp">
+    <ClCompile Include="src\lexer\token.cpp">
       <Filter>kithare</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\parser\parse.cpp">
+    <ClCompile Include="src\parser\parse.cpp">
       <Filter>kithare</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\utility\string.cpp">
+    <ClCompile Include="src\utility\string.cpp">
       <Filter>kithare</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\utility\utf8.cpp">
+    <ClCompile Include="src\utility\utf8.cpp">
       <Filter>kithare</Filter>
     </ClCompile>
-    <ClCompile Include="test_lexer.cpp">
+    <ClCompile Include="test\test_lexer.cpp">
       <Filter>test</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\test\test.hpp">
+    <ClInclude Include="include\test\test.hpp">
       <Filter>include/test</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\test\test_string.hpp">
+    <ClInclude Include="include\test\test_string.hpp">
       <Filter>include/test</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\test\test_lexer.hpp">
+    <ClInclude Include="include\test\test_lexer.hpp">
       <Filter>include/test</Filter>
     </ClInclude>
   </ItemGroup>
