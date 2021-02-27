@@ -43,9 +43,7 @@ jobs:
         python-version: 3.9
 
     - name: Install Clang(llvm) and SDL deps
-      run: |
-        LDFLAGS="-L$(brew --prefix)/opt/llvm/lib -Wl,-rpath,$(brew --prefix)/opt/llvm/lib"
-        brew install llvm sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf
+      run: brew install gcc sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf
 
     - name: Build source and tests
       run: python3 build.py --build-tests

@@ -30,8 +30,10 @@ immediately.
 - Run `python3 build.py`. It'll download the dependencies such as SDL and compile Kithare and put the executable in the build destination directory with the dependencies' DLLs copied.
 
 ### Other platforms
-- Make sure you have the GCC compiler installed for linux, or Clang for MacOS.
+- Make sure you have the GCC compiler.
 - Install development libraries for these: `SDL2`, `SDL2_mixer`, `SDL2_image`, `SDL2_ttf`, `SDL2_net`.
+- A recommended way to do this on Mac, is to use Homebrew. Just run
+`brew install gcc sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf`
 - Run `python3 build.py`. It'll compile Kithare and put the executable in the build destination directory.
 
 ### Running Tests

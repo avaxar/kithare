@@ -13,22 +13,15 @@ On Windows and MSVC:
     job in this case, that is installing SDL dependencies. Just run:
     'py build.py --msvc'
 
-On Mac:
-    This assumes you have Clang (clang++) installed. Also, you need to install 
-    SDL dependencies on your own.
-    Kithare needs 'SDL2', 'SDL2_mixer', 'SDL2_image', 'SDL2_ttf' and 'SDL2_net'.
-
-    A recommended way to install them, is via Homebrew. Just do
-    `brew install sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf`
-    Make sure to install 'devel' releases of those, not just runtime shared 
-    libraries.
-
 On other OS:
     This assumes you have GCC (g++) installed. Also, you need to install SDL
     dependencies on your own, via your systems package manager.
     Kithare needs 'SDL2', 'SDL2_mixer', 'SDL2_image', 'SDL2_ttf' and 'SDL2_net'.
     Make sure to install 'devel' releases of those, not just runtime shared 
     libraries.
+
+    A recommended and easy way to do this on MacOS, is via homebrew. Just run
+    `brew install gcc sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf`.
 
 If you are on a 64-bit system, and want to compile for 32-bit architecture,
 pass '-m32' as an argument to the build script (note that this might not work
@@ -104,9 +97,8 @@ if platform.system() == "Windows":
     compiler = "MSVC" if "--msvc" in sys.argv else "MinGW"
 
 else:
-    compiler = "Clang" if platform.system() == "Darwin" else "GCC"
+    compiler = "GCC"
 
-cc = "clang++" if compiler == "Clang" else "g++"
 
 cflags = "-O3 -I include"
 cflags += " -lSDL2 -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lSDL2_net"
@@ -244,7 +236,7 @@ def compile_gpp(src, output, srcflag="-c "):
     """
     Used to execute g++ commands
     """
-    cmd = f"{cc} -o {output} {srcflag}{src} {cflags}"
+    cmd = f"g++ -o {output} {srcflag}{src} {cflags}"
     print(cmd)
     return os.system(cmd)
 
