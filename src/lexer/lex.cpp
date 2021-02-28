@@ -611,19 +611,6 @@ std::vector<kh::Token> kh::lex(const kh::String& source, const kh::String& file_
                     tokens.emplace_back(kh::TokenType::OPERATOR, value, char_line, line_n);
                 } break;
 
-                case '.': {
-                    kh::TokenValue value;
-                    value.operator_type = kh::Operator::SCOPE;
-
-                    if (kh::isDec(chAt(i + 1))) {
-                        state = kh::TokenizeState::FLOATING;
-                        temp_str = kh::toString(L"0.");
-                        continue;
-                    }
-
-                    tokens.emplace_back(kh::TokenType::OPERATOR, value, char_line, line_n);
-                } break;
-
                 case '$': {
                     kh::TokenValue value;
                     value.operator_type = kh::Operator::STACK_INST;
@@ -633,6 +620,19 @@ std::vector<kh::Token> kh::lex(const kh::String& source, const kh::String& file_
                 case ';': {
                     kh::TokenValue value;
                     value.symbol_type = kh::Symbol::SEMICOLON;
+                    tokens.emplace_back(kh::TokenType::SYMBOL, value, char_line, line_n);
+                } break;
+
+                case '.': {
+                    kh::TokenValue value;
+                    value.symbol_type = kh::Symbol::DOT;
+
+                    if (kh::isDec(chAt(i + 1))) {
+                        state = kh::TokenizeState::FLOATING;
+                        temp_str = kh::toString(L"0.");
+                        continue;
+                    }
+
                     tokens.emplace_back(kh::TokenType::SYMBOL, value, char_line, line_n);
                 } break;
 

@@ -39,7 +39,7 @@ bool testLexTokenType() {
         KH_TEST_TRUE(tokens[11].type == kh::TokenType::FLOATING);
         KH_TEST_TRUE(tokens[12].type == kh::TokenType::SYMBOL);
         KH_TEST_TRUE(tokens[13].type == kh::TokenType::IDENTIFIER);
-        KH_TEST_TRUE(tokens[14].type == kh::TokenType::OPERATOR);
+        KH_TEST_TRUE(tokens[14].type == kh::TokenType::SYMBOL);
         KH_TEST_TRUE(tokens[15].type == kh::TokenType::IDENTIFIER);
         KH_TEST_TRUE(tokens[16].type == kh::TokenType::SYMBOL);
         KH_TEST_TRUE(tokens[17].type == kh::TokenType::STRING);

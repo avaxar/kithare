@@ -88,8 +88,6 @@ kh::String kh::repr(const kh::Token& token) {
             str += kh::toString(L"#"); break;
         case kh::Operator::ADDRESS:
             str += kh::toString(L"@"); break;
-        case kh::Operator::SCOPE:
-            str += kh::toString(L"."); break;
 
         case kh::Operator::STACK_INST:
             str += kh::toString(L"$"); break;
@@ -107,6 +105,8 @@ kh::String kh::repr(const kh::Token& token) {
         switch (token.value.symbol_type) {
         case kh::Symbol::SEMICOLON:
             str += kh::toString(L";"); break;
+        case kh::Symbol::DOT:
+            str += kh::toString(L"."); break;
         case kh::Symbol::COMMA:
             str += kh::toString(L","); break;
         case kh::Symbol::QUESTION:
