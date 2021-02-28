@@ -8,7 +8,7 @@
 ## Contributing
 - New Contributors are most welcome to come and help us in making Kithare better.
 - If you want to contribute a major change, it's a good idea to discuss with us
-first, either on our discord channel, or on github issues section.
+first, either on our discord server, or on GitHub issues section.
 - It is expected that contributors follow code formatting rules while contributing
 to Kithare. If any *unclean* code is opened up in a PR, that PR will be closed
 immediately.
