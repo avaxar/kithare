@@ -5,13 +5,8 @@
 # Kithare
  An open source easy-to-use and cross-platform C-like programmimg language.
 
-## Contributing
-- New Contributors are most welcome to come and help us in making Kithare better.
-- If you want to contribute a major change, it's a good idea to discuss with us
-first, either on our discord server, or on GitHub issues section.
-- It is expected that contributors follow code formatting rules while contributing
-to Kithare. If any *unclean* code is opened up in a PR, that PR will be closed
-immediately.
+## Community / Contact
+- [Discord server](https://discord.gg/hXvY8CzS7A)
 
 ## Building
 - Have Python 3.6 or above installed
@@ -51,5 +46,11 @@ needed. For this command to work, the tests need to be built fisrt.
 - Run `python3 build.py --build-tests` to build the Kithare source AND unit test 
 sources.
 
-## Community / Contact
-- [Discord server](https://discord.gg/hXvY8CzS7A)
+## Contributing
+- New Contributors are most welcome to come and help us in making Kithare better.
+- If you want to contribute a major change, it's a good idea to discuss with us
+first, either on our discord server, or on GitHub issues section.
+- It is expected that contributors follow code formatting rules while contributing
+to Kithare. If any *unclean* code is opened up in a PR, that PR will be closed
+immediately.
+
