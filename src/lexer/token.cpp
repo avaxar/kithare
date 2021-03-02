@@ -89,9 +89,6 @@ kh::String kh::repr(const kh::Token& token) {
         case kh::Operator::ADDRESS:
             str += kh::toString(L"@"); break;
 
-        case kh::Operator::STACK_INST:
-            str += kh::toString(L"$"); break;
-
         default:
             str += kh::toString(L"UNKNOWN");
         }
@@ -109,10 +106,13 @@ kh::String kh::repr(const kh::Token& token) {
             str += kh::toString(L"."); break;
         case kh::Symbol::COMMA:
             str += kh::toString(L","); break;
+
         case kh::Symbol::QUESTION:
             str += kh::toString(L"?"); break;
         case kh::Symbol::COLON:
             str += kh::toString(L":"); break;
+        case kh::Symbol::DOLLAR:
+            str += kh::toString(L"$"); break;
 
         case kh::Symbol::PARENTHESES_OPEN:
             str += kh::toString(L"("); break;

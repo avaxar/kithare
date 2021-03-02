@@ -29,12 +29,12 @@ namespace kh {
         BIT_LSHIFT, BIT_RSHIFT,
         AND, OR, NOT,
 
-        ASSIGN, SIZEOF, ADDRESS,
-        STACK_INST
+        ASSIGN, SIZEOF, ADDRESS
     };
 
     enum class Symbol {
-        SEMICOLON, DOT, COMMA, QUESTION, COLON,
+        SEMICOLON, DOT, COMMA, 
+        QUESTION, COLON, DOLLAR,
 
         PARENTHESES_OPEN, PARENTHESES_CLOSE,
         CURLY_OPEN, CURLY_CLOSE,
