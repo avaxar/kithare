@@ -10,7 +10,7 @@
 #include "lexer/lex.hpp"
 
 
-std::vector<kh::Token> kh::lex(const kh::String& source, const kh::String& file_name) {
+std::vector<kh::Token> kh::lex(const kh::String& source) {
     std::vector<kh::Token> tokens;
     kh::TokenizeState state = kh::TokenizeState::NONE;
 

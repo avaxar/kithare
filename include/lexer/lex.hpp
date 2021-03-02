@@ -15,7 +15,7 @@
 #include "lexer/token.hpp"
 
 /* Helper to raise error at a file */
-#define KH_RAISE_ERROR(msg, n) throw kh::LexException(file_name, kh::toString(msg), line_n, char_line + n, i + n, n > 0 ? chAt(i + n) : ' ')
+#define KH_RAISE_ERROR(msg, n) throw kh::LexException(kh::toString(msg), line_n, char_line + n, i + n, n > 0 ? chAt(i + n) : ' ')
 
 
 namespace kh {
@@ -27,11 +27,10 @@ namespace kh {
     };
 
     struct LexException {
-        LexException(const kh::String& _file_name, const kh::String& _what, const size_t _line, const size_t _character_line,
+        LexException(const kh::String& _what, const size_t _line, const size_t _character_line,
                 const size_t _index, const uint32 _character) :
-            file_name(_file_name), what(_what), line(_line), character_line(_character_line), index(_index), character(_character) {}
+            what(_what), line(_line), character_line(_character_line), index(_index), character(_character) {}
 
-        kh::String file_name;
         kh::String what;
         size_t line;
         size_t character_line;
@@ -39,7 +38,7 @@ namespace kh {
         uint32 character;
     };
 
-    std::vector<kh::Token> lex(const kh::String& source, const kh::String& file_name);
+    std::vector<kh::Token> lex(const kh::String& source);
 
     inline bool isDec(const uint32 chr) {
         return '0' <= chr && chr <= '9';

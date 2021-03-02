@@ -22,7 +22,7 @@ bool testLexTokenType() {
 
 
     try {
-        auto tokens = kh::lex(source, kh::toString(L"<test>"));
+        auto tokens = kh::lex(source);
 
         KH_TEST_TRUE(tokens.size() == 21);
         KH_TEST_TRUE(tokens[0].type == kh::TokenType::IDENTIFIER);
@@ -65,7 +65,7 @@ bool testLexNumeralValue() {
     );
 
     try {
-        auto tokens = kh::lex(source, kh::toString(L"<test>"));
+        auto tokens = kh::lex(source);
         KH_TEST_TRUE(tokens.size() == 21);
 
         KH_TEST_TRUE(tokens[0].type == kh::TokenType::INTEGER);
