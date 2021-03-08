@@ -17,5 +17,5 @@ bool testTokenRepr() {
 }
 
 KH_TEST_BEGIN(Token)
-	KH_TEST_WITH_FUNC(testTokenRepr, "'repr' overload on 'Token'")
+    KH_TEST_WITH_FUNC(testTokenRepr, "'repr' overload on 'Token'")
 KH_TEST_END

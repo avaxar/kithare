@@ -14,12 +14,12 @@
 
 
 namespace kh {
-	class Lexer {
-	private:
-		std::u32string src;
-		size_t it;
-	public:
-		Lexer(const std::u32string& source);
-		~Lexer();
-	};
+    class Lexer {
+    private:
+        std::u32string src;
+        size_t it;
+    public:
+        Lexer(const std::u32string& source);
+        ~Lexer();
+    };
 }
