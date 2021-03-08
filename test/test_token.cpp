@@ -3,19 +3,19 @@
 * The source code for Kithare programming language is distributed under the MIT license.
 * Copyright (C) 2021 Avaxar (AvaxarXapaxa)
 *
-* test/test_lexer.cpp
-* Lexical analyzer (lexer) unittest.
+* test/test_token.cpp
+* Lexical token stuff unittest.
 */
 
-#include "parser/lexer.hpp"
+#include "parser/token.hpp"
 
 #include "test.hpp"
 
 
-bool testLexerLiteral() {
+bool testTokenRepr() {
 
 }
 
-KH_TEST_BEGIN(Lexer)
-    KH_TEST_WITH_FUNC(testLexerLiteral, "Lexer literal value analysis")
+KH_TEST_BEGIN(Token)
+	KH_TEST_WITH_FUNC(testTokenRepr, "'repr' overload on 'Token'")
 KH_TEST_END

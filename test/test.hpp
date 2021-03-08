@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include <iostream>
+
 #define KH_TEST_WITH_FUNC(funcname, msg)      \
     {                                         \
         std::cout << "  - Testing " msg ": "; \
@@ -24,18 +26,18 @@
         }                                     \
     }
 
-// Begin a test function declare block
+/* Begin a test function declare block */
 #define KH_TEST_BEGIN(modname)                  \
     int test##modname() {                       \
         int fail = 0;                           \
         std::cout << "> " #modname " module\n";
 
-// End a test function declare block
+/* End a test function declare block */
 #define KH_TEST_END                                             \
     std::cout << "  Failures in this module: " << fail << "\n"; \
     return fail; }
 
-// Test Equal macro
+/* Test Equal macro */
 #define KH_TEST_TRUE(exp)                                  \
     {                                                      \
         if (!(exp)) {                                      \
@@ -43,3 +45,7 @@
             return true;                                   \
         }                                                  \
     }
+
+int testString();
+int testLexer();
+int testToken();

@@ -3,14 +3,23 @@
 * The source code for Kithare programming language is distributed under the MIT license.
 * Copyright (C) 2021 Avaxar (AvaxarXapaxa)
 *
-* include/test/test_string.hpp
-* Header for lexer file tests
+* include/parser/lexer.hpp
 */
 
 #pragma once
 
-#include "test/test.hpp"
-#include "lexer/lex.hpp"
+#include <string>
+
+#include "parser/token.hpp"
 
 
-int testLexer();
+namespace kh {
+	class Lexer {
+	private:
+		std::u32string src;
+		size_t it;
+	public:
+		Lexer(const std::u32string& source);
+		~Lexer();
+	};
+}
