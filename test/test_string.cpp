@@ -13,11 +13,11 @@
 
 
 bool testStringEncodeToUtf8() {
-    
+    return false;
 }
 
 bool testStringDecodeFromUtf8() {
-
+    return false;
 }
 
 KH_TEST_BEGIN(String)

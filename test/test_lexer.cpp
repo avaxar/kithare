@@ -13,7 +13,7 @@
 
 
 bool testLexerLiteral() {
-
+    return false;
 }
 
 KH_TEST_BEGIN(Lexer)

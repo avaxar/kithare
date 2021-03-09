@@ -38,7 +38,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="test\test.hpp">
+    <ClInclude Include="include\test.hpp">
       <Filter>test</Filter>
     </ClInclude>
   </ItemGroup>

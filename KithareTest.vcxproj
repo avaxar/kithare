@@ -30,7 +30,7 @@
     <ClCompile Include="test\test_token.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="test\test.hpp" />
+    <ClInclude Include="include\test.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

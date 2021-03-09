@@ -13,7 +13,7 @@
 
 
 bool testTokenRepr() {
-
+    return false;
 }
 
 KH_TEST_BEGIN(Token)
