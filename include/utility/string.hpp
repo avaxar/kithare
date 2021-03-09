@@ -17,6 +17,9 @@ namespace kh {
     std::string encodeUtf8(const std::u32string& str);
     std::u32string decodeUtf8(const std::string& str);
 
+    std::u32string quote(const std::u32string& str);
+    std::u32string quote(const std::string& str);
+
     std::u32string repr(const std::u32string& str);
     std::u32string repr(const std::wstring& str);
     std::u32string repr(const std::string& str);

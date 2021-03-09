@@ -25,9 +25,9 @@ std::u32string kh::repr(const kh::Token& token) {
     case kh::TokenType::CHARACTER:
         str += kh::repr(token.value.character); break;
     case kh::TokenType::STRING:
-        str += token.value.string; break;
+        str += kh::quote(token.value.string); break;
     case kh::TokenType::BUFFER:
-        str += kh::repr(token.value.buffer); break;
+        str += kh::quote(token.value.buffer); break;
 
     case kh::TokenType::UINTEGER: 
         str += kh::repr(token.value.uinteger); break;

@@ -103,6 +103,11 @@ namespace kh {
             this->value.character = chr;
         }
 
+        Token(const std::u32string str, const size_t _column, const size_t _line) :
+            type(kh::TokenType::STRING), column(_column), line(_line) {
+            this->value.string = str;
+        }
+
         Token(const std::string buf, const size_t _column, const size_t _line) :
             type(kh::TokenType::BUFFER), column(_column), line(_line) {
             this->value.buffer = buf;

@@ -8,6 +8,8 @@
 */
 
 #include <iostream>
+#include <string>
+#include <sstream>
 
 #include "utility/string.hpp"
 
@@ -118,6 +120,56 @@ std::u32string kh::decodeUtf8(const std::string& str) {
     return str32;
 }
 
+/// <summary>
+/// Quotes a string and handles escapes.
+/// </summary>
+/// <param name="str">String to be quoted</param>
+/// <returns></returns>
+std::u32string kh::quote(const std::u32string& str) {
+    std::u32string repr_str = U"\"";
+    repr_str.reserve(str.size() + str.size() / 8 + 2);
+
+    for (const char32_t chr : str) {
+        switch (chr) {
+        case U'"': repr_str += U"\\\""; break;
+        case U'\\': repr_str += U"\\\\"; break;
+        default: repr_str += chr;
+        }
+    }
+
+    repr_str += U'"';
+    return repr_str;
+}
+
+/// <summary>
+/// Quotes a string and handles escapes.
+/// </summary>
+/// <param name="str">String to be quoted</param>
+/// <returns></returns>
+std::u32string kh::quote(const std::string& str) {
+    std::u32string repr_str = U"\"";
+    repr_str.reserve(str.size() + str.size() / 8 + 2);
+
+    for (const char chr : str) {
+        switch (chr) {
+        case '"': repr_str += U"\\\""; break;
+        case '\\': repr_str += U"\\\\"; break;
+        case ' ': repr_str += U" "; break;
+        default:
+            if (chr > 32 && chr < 127)
+                repr_str += (char32_t)chr;
+            else {
+                std::stringstream sstream;
+                sstream << std::hex << (int)((uint8_t)chr);
+                repr_str += U"\\x" + kh::repr((sstream.str().size() == 1 ? "0" : "") + sstream.str());
+            }
+        }
+    }
+
+    repr_str += U'"';
+    return repr_str;
+}
+
 std::u32string kh::repr(const std::u32string& str) {
     return str;
 }
@@ -151,17 +203,17 @@ std::u32string kh::repr(const char32_t chr) {
 }
 
 std::u32string kh::repr(const int64_t n) {
-    return kh::repr(std::to_wstring(n));
+    return kh::repr(std::to_string(n));
 }
 
 std::u32string kh::repr(const uint64_t n) {
-    return kh::repr(std::to_wstring(n));
+    return kh::repr(std::to_string(n));
 }
 
 std::u32string kh::repr(const float n) {
-    return kh::repr(std::to_wstring(n));
+    return kh::repr(std::to_string(n));
 }
 
 std::u32string kh::repr(const double n) {
-    return kh::repr(std::to_wstring(n));
+    return kh::repr(std::to_string(n));
 }
