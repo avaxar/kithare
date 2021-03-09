@@ -11,13 +11,16 @@
 
 #include "test.hpp"
 
+#define KH_TEST_U32STRING U"\x42\x63\xf6\xf3\u4242\u6363\U00010000"
+#define KH_TEST_U8STRING  "\x42\x63\xc3\xb6\xc3\xb3\xe4\x89\x82\xe6\x8d\xa3\xf0\x90\x80\x80"
+
 
 bool testStringEncodeToUtf8() {
-    return false;
+    return kh::encodeUtf8(KH_TEST_U32STRING) != KH_TEST_U8STRING;
 }
 
 bool testStringDecodeFromUtf8() {
-    return false;
+    return kh::decodeUtf8(KH_TEST_U8STRING) != KH_TEST_U32STRING;
 }
 
 KH_TEST_BEGIN(String)

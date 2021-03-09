@@ -40,7 +40,7 @@
 /* Test Equal macro */
 #define KH_TEST_TRUE(exp)                                  \
     {                                                      \
-        if (!(exp)) {                                      \
+        if (!exp) {                                      \
             std::cout << "\nFailed Assertion: " #exp "\n"; \
             return true;                                   \
         }                                                  \

@@ -21,8 +21,7 @@
 
 
 void run(const std::vector<std::u32string>& args) {
-    kh::Token te(kh::Operator::ADD, 0, 0);
-    kh::println(te);
+    
 }
 
 #undef main
