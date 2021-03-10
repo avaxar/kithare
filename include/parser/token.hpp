@@ -10,6 +10,8 @@
 
 #include <string>
 
+#include "utility/string.hpp"
+
 
 namespace kh {
     enum class Operator;
