@@ -7,14 +7,8 @@
 * The main entry point of the Kithare programming language compiler and runtime.
 */
 
-#include <clocale>
-#include <ctime>
 #include <iostream>
 #include <vector>
-
-#ifdef _WIN32
-#include <codecvt>
-#endif
 
 #include "utility/string.hpp"
 #include "parser/lexer.hpp"
@@ -33,16 +27,9 @@ int wmain(const int argc, wchar_t* argv[])
 int main(const int argc, char* argv[])
 #endif
 {
-    srand((unsigned int)time(NULL));
-    std::setlocale(LC_ALL, "en_US.utf8");
-
     std::vector<std::u32string> args;
-
+    
     #ifdef _WIN32
-    /* Sets up std::wcout and std::wcin on Windows */
-    std::locale utf8(std::locale(), new std::codecvt_utf8_utf16<wchar_t>);
-    std::wcout.imbue(utf8);
-
     for (int arg = 0; arg < argc; arg++)
         args.push_back(kh::repr(std::wstring(argv[arg])));
     #else

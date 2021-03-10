@@ -7,17 +7,10 @@
 * Main file for tests
 */
 
-#include <clocale>
-#include <ctime>
 #include <iostream>
 #include <vector>
 
-#ifdef _WIN32
-#include <codecvt>
-#endif
-
 #include "utility/string.hpp"
-
 #include "test.hpp"
 
 
@@ -30,9 +23,6 @@ int wmain(const int argc, wchar_t* argv[])
 int main(const int argc, char* argv[])
 #endif
 {
-    srand((unsigned int)time(NULL));
-    std::setlocale(LC_ALL, "en_US.utf8");
-    
     int failures = 0;
     std::cout << "Running Kithare Unit tests!\n";
 
