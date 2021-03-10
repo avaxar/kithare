@@ -14,22 +14,24 @@
 
 #include <iostream>
 
-#define KH_TEST_WITH_FUNC(funcname, msg)      \
-    {                                         \
-        std::cout << "  - Testing " msg ": "; \
-        if (funcname()) {                     \
-            fail++;                           \
-            std::cout << "Failed\n";          \
-        }                                     \
-        else {                                \
-            std::cout << "Passed\n";          \
-        }                                     \
+/* Declare a test func with this macro */
+#define KH_TEST_WITH_FUNC(f, msg)                         \
+    std::cout << "  - Testing " msg ": ";                 \
+    try {                                                 \
+        if (f())                                          \
+            fail++;                                       \
+        else                                              \
+            std::cout << "Passed\n";                      \
+    }                                                     \
+    catch (...) {                                         \
+        std::cout << "Failed with unhandled exception\n"; \
+        fail++;                                           \
     }
 
 /* Begin a test function declare block */
-#define KH_TEST_BEGIN(modname)                  \
-    int test##modname() {                       \
-        int fail = 0;                           \
+#define KH_TEST_BEGIN(modname) \
+    int test##modname() {      \
+        int fail = 0;          \
         std::cout << "> " #modname " module\n";
 
 /* End a test function declare block */
@@ -37,18 +39,18 @@
     std::cout << "  Failures in this module: " << fail << "\n"; \
     return fail; }
 
-/* Test True macro */
-#define KH_TEST_TRUE(exp)                                  \
-    {                                                      \
+/* Test Assert macro */
+#define KH_ASSERT(exp)                                     \
+    do {                                                   \
         if (!(exp)) {                                      \
             std::cout << "\nFailed Assertion: " #exp "\n"; \
             return true;                                   \
         }                                                  \
-    }
+    } while (false)
 
 /* Assert Equal macro */
-#define KH_ASSERT_EQUAL(a, b) KH_TEST_TRUE(a == b)
-#define KH_ASSERT_UNEQUAL(a, b) KH_TEST_TRUE(a != b)
+#define KH_ASSERT_EQUAL(a, b) KH_ASSERT(a == b)
+#define KH_ASSERT_UNEQUAL(a, b) KH_ASSERT(a != b)
 
 int testString();
 int testLexer();
