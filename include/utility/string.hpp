@@ -9,8 +9,13 @@
 
 #pragma once
 
+#include <clocale>
 #include <iostream>
 #include <string>
+
+#ifdef _WIN32
+#include <codecvt>
+#endif
 
 #define print(val) {                    \
     std::u32string str = kh::repr(val); \
@@ -18,6 +23,15 @@
         std::wcout << (wchar_t)chr; }
 #define println(val) { print(val); std::wcout << L'\n'; }
 
+
+/* Sets the locale. These below are sorta' automatically run once the program starts if this header is included */
+static const auto _locale_set = std::setlocale(LC_ALL, "en_US.utf8");
+#ifdef _WIN32
+/* Sets up std::wcout and std::wcin on Windows */
+static std::locale _utf8_locale(std::locale(), new std::codecvt_utf8_utf16<wchar_t>);
+static const auto _imbue_wcout_utf8 = std::wcout.imbue(_utf8_locale);
+static const auto _imbue_wcin_utf8 = std::wcin.imbue(_utf8_locale);
+#endif
 
 namespace kh {
     std::string encodeUtf8(const std::u32string& str);
