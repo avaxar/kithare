@@ -4,43 +4,28 @@
 * Copyright (C) 2021 Avaxar (AvaxarXapaxa)
 * 
 * test/test_string.cpp
-* Source for string file tests
+* String utility functions unittest.
 */
 
-#include "test/test_string.hpp"
+#include "utility/string.hpp"
+
+#include "test.hpp"
+
+#define KH_TEST_U32STRING U"\x42\x63\xf6\xf3\u4242\u6363\U00010000"
+#define KH_TEST_U8STRING  "\x42\x63\xc3\xb6\xc3\xb3\xe4\x89\x82\xe6\x8d\xa3\xf0\x90\x80\x80"
 
 
-bool testFromStringToString() {
-    std::string teststr = u8"¥£€$¢₡₢₣₤₥₦₧₨₩₪₫₭₮₯₹2je fe [32*# ";
-    kh::String temp = kh::toString(teststr);
-    KH_TEST_TRUE(kh::fromString(temp) == teststr);
+bool testStringEncodeToUtf8() {
+    KH_TEST_TRUE(kh::encodeUtf8(KH_TEST_U32STRING) == KH_TEST_U8STRING);
     return false;
 }
 
-bool testFromStringWToString() {
-    std::wstring teststr = L"¥£€$¢₡₢₣₤₥₦₧₨₩₪₫₭₮₯₹2je fe [32*# ";
-    kh::String temp = kh::toString(teststr);
-    KH_TEST_TRUE(kh::fromStringW(temp) == teststr);
-    return false;
-}
-
-bool testUtf8Encode() {
-    kh::String temp = kh::toString(L"¥£€$¢₡₢₣₤₥₦₧₨₩₪₫₭₮₯₹2je fe [32*# ");
-    std::string teststr = kh::encodeUtf8(temp);
-    KH_TEST_TRUE(teststr == kh::encodeUtf8(temp));
-    return false;
-}
-
-bool testUtf8Decode() {
-    std::string teststr = u8"¥£€$¢₡₢₣₤₥₦₧₨₩₪₫₭₮₯₹2je fe [32*# ";
-    kh::String temp = kh::decodeUtf8(teststr);
-    KH_TEST_TRUE(temp == kh::decodeUtf8(teststr));
+bool testStringDecodeFromUtf8() {
+    KH_TEST_TRUE(kh::decodeUtf8(KH_TEST_U8STRING) == KH_TEST_U32STRING);
     return false;
 }
 
 KH_TEST_BEGIN(String)
-    KH_TEST_WITH_FUNC(testFromStringToString, "'fromString' and 'toString'")
-    KH_TEST_WITH_FUNC(testFromStringWToString, "'fromStringW' and 'toString'")
-    KH_TEST_WITH_FUNC(testUtf8Encode, "'encodeUtf8'")
-    KH_TEST_WITH_FUNC(testUtf8Decode, "'decodeUtf8'")
+    KH_TEST_WITH_FUNC(testStringEncodeToUtf8, "'encodeUtf8'")
+    KH_TEST_WITH_FUNC(testStringDecodeFromUtf8, "'decodeUtf8'")
 KH_TEST_END

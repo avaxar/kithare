@@ -7,19 +7,22 @@
 * The main entry point of the Kithare programming language compiler and runtime.
 */
 
-#include "utility/utils.hpp"
-#include "parser/parse.hpp"
+#include <clocale>
+#include <ctime>
+#include <iostream>
+#include <vector>
+
+#ifdef _WIN32
+#include <codecvt>
+#endif
+
+#include "utility/string.hpp"
+#include "parser/lexer.hpp"
 
 
-void executeArgs(const std::vector<kh::String>& args) {
-    kh::String test_source = kh::toString(
-        "int main() {                       \n"
-        "    str var = \"\\wrong_escape\";  \n"
-        "}                                  \n"
-    );
-    auto tokens = kh::lex(test_source);
-    for (auto& token : tokens)
-        std::wcout << token << '\n';
+void run(const std::vector<std::u32string>& args) {
+    kh::Token te(U"Cough", 0, 0);
+    kh::println(te);
 }
 
 #undef main
@@ -33,7 +36,7 @@ int main(const int argc, char* argv[])
     srand((unsigned int)time(NULL));
     std::setlocale(LC_ALL, "en_US.utf8");
 
-    std::vector<kh::String> args;
+    std::vector<std::u32string> args;
 
     #ifdef _WIN32
     /* Sets up std::wcout and std::wcin on Windows */
@@ -41,24 +44,13 @@ int main(const int argc, char* argv[])
     std::wcout.imbue(utf8);
 
     for (int arg = 0; arg < argc; arg++)
-        args.emplace_back((uint32*)argv[arg]);
+        args.push_back(kh::repr(std::wstring(argv[arg])));
     #else
     for (int arg = 0; arg < argc; arg++)
-        args.push_back(kh::decodeUtf8(argv[arg]));
+        args.push_back(kh::decodeUtf8(std::string(argv[arg])));
     #endif
 
-    try {
-        executeArgs(args);
-    }
-    catch (const kh::LexException& exc) {
-        std::wcout
-            << "Caught a LexException!"
-            << "\nWhat: " << exc.what
-            << "\nIndex: " << exc.index
-            << "\nAt: " << exc.character_line << ", " << exc.line << " '" << (wchar_t)exc.character << "\'\n";
-        std::exit(1);
-    }
+    run(args);
 
-    std::cin.get();
     return 0;
 }

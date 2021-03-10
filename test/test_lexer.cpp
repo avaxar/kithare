@@ -3,22 +3,23 @@
 * The source code for Kithare programming language is distributed under the MIT license.
 * Copyright (C) 2021 Avaxar (AvaxarXapaxa)
 *
-* test/test_string.cpp
-* Source for lexer file tests
+* test/test_lexer.cpp
+* Lexical analyzer (lexer) unittest.
 */
 
-#include "test/test_lexer.hpp"
+#include "parser/lexer.hpp"
+
+#include "test.hpp"
 
 
 bool testLexTokenType() {
-    kh::String source = kh::toString(
-        L"import std;                            \n"
-        L"int main() {                           \n"
-        L"    // Inline comments                 \n"
-        L"    float number = 6.9;                \n"
-        L"    std.print(\"Hello, world!\");      \n"
-        L"}                                      \n"
-    );
+    std::u32string source =
+        U"import std;                            \n"
+        U"int main() {                           \n"
+        U"    // Inline comments                 \n"
+        U"    float number = 6.9;                \n"
+        U"    std.print(\"Hello, world!\");      \n"
+        U"}                                      \n";
 
 
     try {
@@ -53,16 +54,15 @@ bool testLexTokenType() {
 
 /* TODO */
 bool testLexNumeralValue() {
-    kh::String source = kh::toString(
-        L"0 1 2 8 9  " /* Single digit decimal integers */
-        L"00 10 29U  " /* Multi-digit + Unsigned */
-        L"0.1 0.2    " /* Floating point */
-        L"11.1 .123  " /* Several other cases */
-        L"0xFFF 0x1  " /* Hexadecimal */
-        L"0o77 0o11  " /* Octal */
-        L"0b111 0b01 " /* Binary */
-        L"4i 2i 5.6i " /* Imaginary */
-    );
+    std::u32string source =
+        U"0 1 2 8 9  "  /* Single digit decimal integers */
+        U"00 10 29U  "  /* Multi-digit + Unsigned */
+        U"0.1 0.2    "  /* Floating point */
+        U"11.1 .123  "  /* Several other cases */
+        U"0xFFF 0x1  "  /* Hexadecimal */
+        U"0o77 0o11  "  /* Octal */
+        U"0b111 0b01 "  /* Binary */
+        U"4i 2i 5.6i "; /* Imaginary */
 
     try {
         auto tokens = kh::lex(source);
@@ -82,8 +82,8 @@ bool testLexNumeralValue() {
         KH_TEST_TRUE(tokens[5].value.integer == 0);
         KH_TEST_TRUE(tokens[6].type == kh::TokenType::INTEGER);
         KH_TEST_TRUE(tokens[6].value.integer == 10);
-        KH_TEST_TRUE(tokens[7].type == kh::TokenType::UNSIGNED_INTEGER);
-        KH_TEST_TRUE(tokens[7].value.unsigned_integer == 29);
+        KH_TEST_TRUE(tokens[7].type == kh::TokenType::UINTEGER);
+        KH_TEST_TRUE(tokens[7].value.uinteger == 29);
         KH_TEST_TRUE(tokens[8].type == kh::TokenType::FLOATING);
         KH_TEST_TRUE(tokens[8].value.floating == 0.1);
         KH_TEST_TRUE(tokens[9].type == kh::TokenType::FLOATING);
@@ -116,6 +116,6 @@ bool testLexNumeralValue() {
 }
 
 KH_TEST_BEGIN(Lexer)
-    KH_TEST_WITH_FUNC(testLexTokenType, "Lex Token Types")
-    KH_TEST_WITH_FUNC(testLexNumeralValue, "Lex Numeral Values")
+KH_TEST_WITH_FUNC(testLexTokenType, "Lex Token Types")
+KH_TEST_WITH_FUNC(testLexNumeralValue, "Lex Numeral Values")
 KH_TEST_END

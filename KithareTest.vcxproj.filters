@@ -4,11 +4,8 @@
     <Filter Include="test">
       <UniqueIdentifier>{2de48893-588e-4802-ae52-24297758b19c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="include/test">
-      <UniqueIdentifier>{9b39170c-a14f-40a9-893f-34cd4a3975e8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="kithare">
-      <UniqueIdentifier>{e468a48a-d3f5-4de3-9dfc-141d1c9ace46}</UniqueIdentifier>
+      <UniqueIdentifier>{4112a5de-ee8e-49b8-aec9-3c8dbd567187}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -18,34 +15,31 @@
     <ClCompile Include="test\test_string.cpp">
       <Filter>test</Filter>
     </ClCompile>
-    <ClCompile Include="src\lexer\lex.cpp">
-      <Filter>kithare</Filter>
-    </ClCompile>
-    <ClCompile Include="src\lexer\token.cpp">
-      <Filter>kithare</Filter>
-    </ClCompile>
-    <ClCompile Include="src\parser\parse.cpp">
-      <Filter>kithare</Filter>
+    <ClCompile Include="test\test_lexer.cpp">
+      <Filter>test</Filter>
     </ClCompile>
     <ClCompile Include="src\utility\string.cpp">
       <Filter>kithare</Filter>
     </ClCompile>
-    <ClCompile Include="src\utility\utf8.cpp">
+    <ClCompile Include="src\parser\ast.cpp">
       <Filter>kithare</Filter>
     </ClCompile>
-    <ClCompile Include="test\test_lexer.cpp">
+    <ClCompile Include="src\parser\lexer.cpp">
+      <Filter>kithare</Filter>
+    </ClCompile>
+    <ClCompile Include="src\parser\parser.cpp">
+      <Filter>kithare</Filter>
+    </ClCompile>
+    <ClCompile Include="src\parser\token.cpp">
+      <Filter>kithare</Filter>
+    </ClCompile>
+    <ClCompile Include="test\test_token.cpp">
       <Filter>test</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\test\test.hpp">
-      <Filter>include/test</Filter>
-    </ClInclude>
-    <ClInclude Include="include\test\test_string.hpp">
-      <Filter>include/test</Filter>
-    </ClInclude>
-    <ClInclude Include="include\test\test_lexer.hpp">
-      <Filter>include/test</Filter>
+    <ClInclude Include="include\test.hpp">
+      <Filter>test</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

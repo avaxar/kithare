@@ -7,22 +7,21 @@
 * Main file for tests
 */
 
-#include "test/test_string.hpp"
-#include "test/test_lexer.hpp"
+#include <clocale>
+#include <ctime>
+#include <iostream>
+#include <vector>
+
+#ifdef _WIN32
+#include <codecvt>
+#endif
+
+#include "utility/string.hpp"
+
+#include "test.hpp"
 
 
-int runTests() {
-    int failures = 0;
-    std::cout << "Running Kithare Unit tests!\n";
-
-    failures += testString();
-    failures += testLexer();
-
-    std::cout << "Total number of failures are " << failures << "\n";
-    return failures;
-}
-
-/* wmain is needed for MinGW in this case */
+/* wmain is needed for Windows in this case */
 #undef main
 #undef wmain
 #ifdef _WIN32
@@ -31,12 +30,16 @@ int wmain(const int argc, wchar_t* argv[])
 int main(const int argc, char* argv[])
 #endif
 {
+    srand((unsigned int)time(NULL));
     std::setlocale(LC_ALL, "en_US.utf8");
-    #ifdef _WIN32
-    /* Sets up std::wcout and std::wcin on Windows */
-    std::locale utf8(std::locale(), new std::codecvt_utf8_utf16<wchar_t>);
-    std::wcout.imbue(utf8);
-    #endif
+    
+    int failures = 0;
+    std::cout << "Running Kithare Unit tests!\n";
 
-    return runTests();
+    failures += testString();
+    failures += testToken();
+    failures += testLexer();
+
+    std::cout << "Total number of failures are " << failures << "\n";
+    return failures;
 }
