@@ -12,8 +12,11 @@
 #include <iostream>
 #include <string>
 
-/* Bring the kh::repr overloads, cause GCC is dumb at finding it while templatizing kh::print */
-#include "parser/token.hpp"
+#define print(val) {                    \
+    std::u32string str = kh::repr(val); \
+    for (const char32_t chr : str)      \
+        std::wcout << (wchar_t)chr; }
+#define println(val) { print(val); std::wcout << L'\n'; }
 
 
 namespace kh {
@@ -35,28 +38,4 @@ namespace kh {
     std::u32string repr(const uint64_t n);
     std::u32string repr(const float n);
     std::u32string repr(const double n);
-
-    /// <summary>
-    /// Prints the value to the terminal.
-    /// </summary>
-    /// <typeparam name="T">Value type</typeparam>
-    /// <param name="val">Value to be printed</param>
-    template <typename T> 
-    void print(const T& val) {
-        std::u32string str = kh::repr(val);
-
-        for (const char32_t chr : str)
-            std::wcout << (wchar_t)chr;
-    }
-
-    /// <summary>
-    /// Prints the value to the terminal with an additional newline character at the end.
-    /// </summary>
-    /// <typeparam name="T">Value type</typeparam>
-    /// <param name="val">Value to be printed</param>
-    template <typename T> 
-    void println(const T& val) {
-        kh::print<T>(val);
-        std::wcout << '\n';
-    }
 }

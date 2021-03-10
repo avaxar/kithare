@@ -22,7 +22,7 @@
 
 void run(const std::vector<std::u32string>& args) {
     kh::Token te(U"Cough", 0, 0);
-    kh::println(te);
+    println(te);
 }
 
 #undef main
