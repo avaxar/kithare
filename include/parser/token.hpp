@@ -78,6 +78,9 @@ namespace kh {
         kh::TokenType type;
         kh::TokenValue value;
 
+        Token(const kh::TokenType _type, const kh::TokenValue& _value, const size_t _column, const size_t _line) :
+            type(_type), value(_value), column(_column), line(_line) {}
+
         Token(const kh::Operator op, const size_t _column, const size_t _line) :
             type(kh::TokenType::OPERATOR), column(_column), line(_line) {
             this->value.operator_type = op;

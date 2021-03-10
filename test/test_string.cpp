@@ -16,11 +16,13 @@
 
 
 bool testStringEncodeToUtf8() {
-    return kh::encodeUtf8(KH_TEST_U32STRING) != KH_TEST_U8STRING;
+    KH_TEST_TRUE(kh::encodeUtf8(KH_TEST_U32STRING) == KH_TEST_U8STRING);
+    return false;
 }
 
 bool testStringDecodeFromUtf8() {
-    return kh::decodeUtf8(KH_TEST_U8STRING) != KH_TEST_U32STRING;
+    KH_TEST_TRUE(kh::decodeUtf8(KH_TEST_U8STRING) == KH_TEST_U32STRING);
+    return false;
 }
 
 KH_TEST_BEGIN(String)

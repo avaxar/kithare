@@ -17,7 +17,7 @@
 #endif
 
 #include "utility/string.hpp"
-#include "parser/token.hpp"
+#include "parser/lexer.hpp"
 
 
 void run(const std::vector<std::u32string>& args) {
