@@ -4,6 +4,7 @@
 * Copyright (C) 2021 Avaxar (AvaxarXapaxa)
 *
 * src/parser/lexer.cpp
+* Defines include/parser/lexer.hpp and declare+define several internal helper stuff.
 */
 
 #include <cwctype>
@@ -17,6 +18,13 @@
 #define KH_RAISE_ERROR(msg, n) throw kh::LexException(msg, line_n, char_line + n, i + n, n > 0 ? chAt(i + n) : ' ')
 
 namespace kh {
+    enum class TokenizeState {
+        NONE, IDENTIFIER,
+        INTEGER, FLOATING, HEX, OCTAL, BIN,
+        IN_BUF, IN_STR,
+        IN_INLINE_COMMENT, IN_MULTIPLE_LINE_COMMENT
+    };
+
     inline bool isDec(const char32_t chr) {
         return U'0' <= chr && chr <= U'9';
     }
@@ -37,6 +45,11 @@ namespace kh {
     }
 }
 
+/// <summary>
+/// Lexicate/tokenize a source string into a list/std::vector of tokens.
+/// </summary>
+/// <param name="source">Input source string</param>
+/// <returns></returns>
 std::vector<kh::Token> kh::lex(const std::u32string& source) {
     std::vector<kh::Token> tokens;
     kh::TokenizeState state = kh::TokenizeState::NONE;

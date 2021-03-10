@@ -3,7 +3,8 @@
 * The source code for Kithare programming language is distributed under the MIT license.
 * Copyright (C) 2021 Avaxar (AvaxarXapaxa)
 *
-* src/parser/token.hpp
+* src/parser/token.cpp
+* Defines include/parser/token.hpp
 */
 
 #include "utility/string.hpp"

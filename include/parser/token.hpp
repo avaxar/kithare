@@ -4,6 +4,7 @@
 * Copyright (C) 2021 Avaxar (AvaxarXapaxa)
 *
 * include/parser/token.hpp
+* Declares token types and string repr overloads.
 */
 
 #pragma once

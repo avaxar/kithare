@@ -4,6 +4,7 @@
 * Copyright (C) 2021 Avaxar (AvaxarXapaxa)
 *
 * include/parser/lexer.hpp
+* Declares the lexical analyzer (lexer) function and an exception type.
 */
 
 #pragma once
@@ -15,13 +16,6 @@
 
 
 namespace kh {
-    enum class TokenizeState {
-        NONE, IDENTIFIER,
-        INTEGER, FLOATING, HEX, OCTAL, BIN,
-        IN_BUF, IN_STR,
-        IN_INLINE_COMMENT, IN_MULTIPLE_LINE_COMMENT
-    };
-
     struct LexException {
         LexException(const std::u32string& _what, const size_t _line, const size_t _column,
             const size_t _index, const char32_t _character) :
