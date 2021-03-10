@@ -42,7 +42,7 @@ jobs:
       with:
         python-version: 3.9
 
-    - name: Install Clang(llvm) and SDL deps
+    - name: Install GCC(g++) and SDL deps
       run: brew install gcc sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf
 
     - name: Build source and tests

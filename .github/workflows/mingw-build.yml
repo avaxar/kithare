@@ -30,24 +30,38 @@ jobs:
   build:
     runs-on: windows-latest
 
+    strategy:
+      matrix:
+        arch: ["x86", "x64"]
+
     steps:
     - uses: actions/checkout@v2
 
     - name: Set up MinGW
       uses: egor-tensin/setup-mingw@v2
       with:
-        platform: x64
+        platform: ${{ matrix.arch }} 
 
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
         python-version: 3.9
 
-    - name: Build source and tests
+    - name: Build x64 source and tests
+      if: matrix.arch == 'x64'
       run: python3 build.py --build-tests
     
-    - name: Run tests
+    - name: Run x64 tests
+      if: matrix.arch == 'x64'
       run: python3 build.py --run-tests
+    
+    - name: Build x86 source and tests
+      if: matrix.arch != 'x64'
+      run: python3 build.py -m32 --build-tests
+    
+    - name: Run x86 tests
+      if: matrix.arch != 'x64'
+      run: python3 build.py -m32 --run-tests
 
     #- name: Upload dist
       #uses: actions/upload-artifact@v2

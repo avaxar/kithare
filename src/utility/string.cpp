@@ -24,22 +24,7 @@ std::string kh::encodeUtf8(const std::u32string& str) {
     str8.reserve(str.size() + str.size() / 4);
 
     for (const char32_t chr : str) {
-        if (chr > 0x3FFFFFF) {
-            str8 += 0b11111100 | (char)(0b00000001 & (chr >> 30));
-            str8 += 0b10000000 | (char)(0b00111111 & (chr >> 24));
-            str8 += 0b10000000 | (char)(0b00111111 & (chr >> 18));
-            str8 += 0b10000000 | (char)(0b00111111 & (chr >> 12));
-            str8 += 0b10000000 | (char)(0b00111111 & (chr >> 6));
-            str8 += 0b10000000 | (char)(0b00111111 & chr);
-        }
-        else if (chr > 0x1FFFFF) {
-            str8 += 0b11111000 | (char)(0b00000011 & (chr >> 24));
-            str8 += 0b10000000 | (char)(0b00111111 & (chr >> 18));
-            str8 += 0b10000000 | (char)(0b00111111 & (chr >> 12));
-            str8 += 0b10000000 | (char)(0b00111111 & (chr >> 6));
-            str8 += 0b10000000 | (char)(0b00111111 & chr);
-        }
-        else if (chr > 0xFFFF) {
+        if (chr > 0xFFFF) {
             str8 += 0b11110000 | (char)(0b00000111 & (chr >> 18));
             str8 += 0b10000000 | (char)(0b00111111 & (chr >> 12));
             str8 += 0b10000000 | (char)(0b00111111 & (chr >> 6));
@@ -71,12 +56,15 @@ std::u32string kh::decodeUtf8(const std::string& str) {
     str32.reserve(str.size());
 
     uint8_t continuation = 0;
-    uint32_t temp = 0;
+    uint32_t i = 0, temp = 0;
 
     for (const char schr : str) {
-        unsigned char chr = schr;
+        uint8_t chr = schr;
 
         if (continuation) {
+            if ((chr & 0b11000000) != 0b10000000)
+                throw kh::UnicodeDecodeError(U"Expected continuation byte", i);
+
             temp = (temp << 6) + (chr & 0b00111111);
             continuation--;
         }
@@ -84,13 +72,11 @@ std::u32string kh::decodeUtf8(const std::string& str) {
             if (temp) {
                 str32 += (char32_t)temp;
                 temp = 0;
+                i++;
             }
 
             if (chr < 128)
                 str32 += (char32_t)chr;
-            else if ((chr & 0b11000000) == 0b10000000) {
-                /* This shouldn't be happening, do nothing. */
-            }
             else if ((chr & 0b11100000) == 0b11000000) {
                 temp = chr & 0b00011111;
                 continuation = 1;
@@ -103,16 +89,13 @@ std::u32string kh::decodeUtf8(const std::string& str) {
                 temp = chr & 0b00000111;
                 continuation = 3;
             }
-            else if ((chr & 0b11111100) == 0b11111000) {
-                temp = chr & 0b00000011;
-                continuation = 4;
-            }
-            else if ((chr & 0b11111110) == 0b11111100) {
-                temp = chr & 0b00000001;
-                continuation = 5;
-            }
+            else
+                throw kh::UnicodeDecodeError(U"Ivalid start byte", i);
         }
     }
+
+    if (continuation)
+        throw kh::UnicodeDecodeError(U"Expected continuation byte near end", i);
 
     if (temp)
         str32 += (char32_t)temp;

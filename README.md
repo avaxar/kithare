@@ -31,18 +31,18 @@
 `brew install gcc sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf`
 - Run `python3 build.py`. It'll compile Kithare and put the executable in the build destination directory.
 
-### Running Tests
+## Running Tests
 - To run the tests, use the command `python3 build.py --run-tests`, note that 
 this command only runs the tests, and does nothing else. Pass `--msvc` flag too, if
-needed. For this command to work, the tests need to be built fisrt.
+needed. For this command to work, the tests need to be built first.
 
-#### MSVC / Visual Studio
+### MSVC / Visual Studio
 - Make sure you've successfully done the compilation above.
 - Open the solution `Kithare.sln`.
 - See `KithareTest` in the Solution Explorer. If the name's not bolded, right click and click "Set as Startup Project".
 - You can now build it by clicking "Local Windows Debugger".
 
-#### Others
+### Others
 - Run `python3 build.py --build-tests` to build the Kithare source AND unit test 
 sources.
 

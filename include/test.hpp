@@ -37,7 +37,7 @@
     std::cout << "  Failures in this module: " << fail << "\n"; \
     return fail; }
 
-/* Test Equal macro */
+/* Test True macro */
 #define KH_TEST_TRUE(exp)                                  \
     {                                                      \
         if (!(exp)) {                                      \
@@ -45,6 +45,10 @@
             return true;                                   \
         }                                                  \
     }
+
+/* Assert Equal macro */
+#define KH_ASSERT_EQUAL(a, b) KH_TEST_TRUE(a == b)
+#define KH_ASSERT_UNEQUAL(a, b) KH_TEST_TRUE(a != b)
 
 int testString();
 int testLexer();

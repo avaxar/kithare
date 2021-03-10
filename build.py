@@ -246,7 +246,7 @@ def _build_exe(files, exepath):
     Helper to generate final exe
     """
     print("Building exe")
-    ecode = compile_gpp(" ".join(files), exepath, "")
+    ecode = compile_gpp(" ".join(files).replace("\\", "/"), exepath, "")
     print()
     if ecode:
         sys.exit(ecode)
