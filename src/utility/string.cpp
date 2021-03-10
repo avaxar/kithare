@@ -72,7 +72,6 @@ std::u32string kh::decodeUtf8(const std::string& str) {
             if (temp) {
                 str32 += (char32_t)temp;
                 temp = 0;
-                i++;
             }
 
             if (chr < 128)
