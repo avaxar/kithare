@@ -56,10 +56,10 @@ std::u32string kh::decodeUtf8(const std::string& str) {
     str32.reserve(str.size());
 
     uint8_t continuation = 0;
-    uint32_t i = 0, temp = 0;
+    uint32_t temp = 0;
 
-    for (const char schr : str) {
-        uint8_t chr = schr;
+    for (size_t i = 0; i < str.size(); i++) {
+        const uint8_t chr = str[i];
 
         if (continuation) {
             if ((chr & 0b11000000) != 0b10000000)
@@ -95,7 +95,7 @@ std::u32string kh::decodeUtf8(const std::string& str) {
     }
 
     if (continuation)
-        throw kh::UnicodeDecodeError(U"Expected continuation byte near end", i);
+        throw kh::UnicodeDecodeError(U"Expected continuation byte near end", str.size() - 1);
 
     if (temp)
         str32 += (char32_t)temp;
