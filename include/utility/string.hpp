@@ -17,11 +17,11 @@
 #include <codecvt>
 #endif
 
-#define print(val) {                    \
+#define print(val) do {                 \
     std::u32string str = kh::repr(val); \
     for (const char32_t chr : str)      \
-        std::wcout << (wchar_t)chr; }
-#define println(val) { print(val); std::wcout << L'\n'; }
+        std::wcout << (wchar_t)chr; } while (false)
+#define println(val) do { print(val); std::wcout << L'\n'; } while (false)
 
 
 /* Sets the locale. These below are sorta' automatically run once the program starts if this header is included */
