@@ -12,6 +12,9 @@
 #include <iostream>
 #include <string>
 
+/* Bring the kh::repr overloads, cause GCC is dumb at finding it while templatizing kh::print */
+#include "parser/token.hpp"
+
 
 namespace kh {
     std::string encodeUtf8(const std::u32string& str);
