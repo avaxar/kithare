@@ -5,5 +5,3 @@
 *
 * src/parser/ast.cpp
 */
-
-#pragma once
