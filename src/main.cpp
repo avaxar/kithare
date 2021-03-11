@@ -15,8 +15,20 @@
 
 
 void run(const std::vector<std::u32string>& args) {
-    kh::Token te(U"Cough", 0, 0);
-    println(te);
+    std::u32string source =
+        U"0 1 2 8 9  "  /* Single digit decimal integers */
+        U"00 10 29U  "  /* Multi-digit + Unsigned */
+        U"0.1 0.2    "  /* Floating point */
+        U"11.1 .123  "  /* Several other cases */
+        U"0xFFF 0x1  "  /* Hexadecimal */
+        U"0o77 0o11  "  /* Octal */
+        U"0b111 0b01 "  /* Binary */
+        U"4i 2i 5.6i "; /* Imaginary */
+    
+    auto tokens = kh::lex(source);
+    for (auto token : tokens) {
+        println(token);
+    }
 }
 
 #undef main

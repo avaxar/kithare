@@ -42,7 +42,7 @@ std::u32string kh::repr(const kh::Token& token) {
     default: str = U"UNKNOWN";
     }
 
-    return str + U" at " + kh::repr((uint64_t)token.column) + U", " + kh::repr((uint64_t)token.line);
+    return str;
 }
 
 std::u32string kh::repr(const kh::TokenType type) {
