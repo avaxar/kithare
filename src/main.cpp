@@ -25,9 +25,15 @@ void run(const std::vector<std::u32string>& args) {
         U"0b111 0b01 "  /* Binary */
         U"4i 2i 5.6i "; /* Imaginary */
     
-    auto tokens = kh::lex(source);
-    for (auto token : tokens) {
-        println(token);
+    try {
+        auto tokens = kh::lex(source);
+        for (auto token : tokens) {
+            println(token);
+        }
+    }
+    catch (kh::LexException &exc) {
+        println(exc.what);
+        std::exit(1);
     }
 }
 

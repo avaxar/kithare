@@ -30,12 +30,12 @@
     i += _start + _len
 
 /* Helper macro */
-#define _PLACE_HEXSTR_AS_TYPE(_var, ttype) \
-    if (chAt(i) == '\'') {                               \
-        _var = std::stoul(hex_str, nullptr, 16);         \
-        tokens.emplace_back(ttype, value);               \
-    }                                                    \
-    else                                                 \
+#define _PLACE_HEXSTR_AS_TYPE(_var, ttype)       \
+    if (chAt(i) == '\'') {                       \
+        _var = std::stoul(hex_str, nullptr, 16); \
+        tokens.emplace_back(ttype, value);       \
+    }                                            \
+    else                                         \
         KH_RAISE_ERROR(U"Expected a closing single quote", 0)
 
 /* Place a hex_str as an integer into tokens stack */
@@ -70,6 +70,8 @@
     _HANDLE_ESCAPE_1('r', '\r', _val, _valc, _len)  \
     _HANDLE_ESCAPE_1('t', '\t', _val, _valc, _len)  \
     _HANDLE_ESCAPE_1('v', '\v', _val, _valc, _len)  \
+    _HANDLE_ESCAPE_1('b', '\b', _val, _valc, _len)  \
+    _HANDLE_ESCAPE_1('f', '\f', _val, _valc, _len)  \
     _HANDLE_ESCAPE_1('\\', '\\', _val, _valc, _len) \
     _HANDLE_ESCAPE_1('"', '\"', _val, _valc, _len)  \
     _HANDLE_ESCAPE_1('\'', '\'', _val, _valc, _len) \
@@ -84,6 +86,8 @@
     _HANDLE_ESCAPE('r', '\r', value, 1, code)  \
     _HANDLE_ESCAPE('t', '\t', value, 1, code)  \
     _HANDLE_ESCAPE('v', '\v', value, 1, code)  \
+    _HANDLE_ESCAPE('b', '\b', value, 1, code)  \
+    _HANDLE_ESCAPE('f', '\f', value, 1, code)  \
     _HANDLE_ESCAPE('\\', '\\', value, 1, code) \
     _HANDLE_ESCAPE('"', '\"', value, 1, code)  \
     _HANDLE_ESCAPE('\'', '\'', value, 1, code) \
@@ -697,7 +701,6 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
         case kh::TokenizeState::IN_STR:
             if (chAt(i) == '"') {
                 /* End string */
-
                 kh::TokenValue value;
                 value.string = temp_str;
                 tokens.emplace_back(kh::TokenType::STRING, value);
@@ -766,5 +769,11 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
             KH_RAISE_ERROR(U"Got an unknown tokenize state", 0);
         }
     }
+    /* We were expecting to be in a tokenize state, but got EOF, so throw error.
+     * This usually happens if the user has forgotten to close a multiline comment, 
+     * string or buffer */
+    if (state != kh::TokenizeState::NONE)
+        throw kh::LexException(U"Got unexpected EOF", source.size());
+
     return tokens;
 }
