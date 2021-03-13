@@ -215,21 +215,20 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                         }
                         else if (chAt(i + 2) == '\n')
                             KH_RAISE_ERROR(U"New line before byte character closing", 2);
+
                         /* Plain byte-char without character escapes */
-                        else {
-                            if (chAt(i + 3) == '\'') {
-                                if (chAt(i + 2) > 255)
-                                    KH_RAISE_ERROR(U"A non-byte sized character", 2);
+                        else if (chAt(i + 3) == '\'') {
+                            if (chAt(i + 2) > 255)
+                                KH_RAISE_ERROR(U"A non-byte sized character", 2);
 
-                                kh::TokenValue value;
-                                value.integer = chAt(i + 2);
-                                tokens.emplace_back(kh::TokenType::INTEGER, value);
+                            kh::TokenValue value;
+                            value.integer = chAt(i + 2);
+                            tokens.emplace_back(kh::TokenType::INTEGER, value);
 
-                                i += 3;
-                            }
-                            else
-                                KH_RAISE_ERROR(U"Expected a closing single quote", 3);
+                            i += 3;
                         }
+                        else
+                            KH_RAISE_ERROR(U"Expected a closing single quote", 3);
                         continue;
                     }
                     /* Possible byte-string/buffer */
@@ -328,17 +327,15 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                     }
                     else if (chAt(i + 1) == '\n')
                         KH_RAISE_ERROR(U"New line before character closing", 1);
-                    else {
-                        if (chAt(i + 2) == '\'') {
-                            kh::TokenValue value;
-                            value.character = chAt(i + 1);
-                            tokens.emplace_back(kh::TokenType::CHARACTER, value);
+                    else if (chAt(i + 2) == '\'') {
+                        kh::TokenValue value;
+                        value.character = chAt(i + 1);
+                        tokens.emplace_back(kh::TokenType::CHARACTER, value);
 
-                            i += 2;
-                        }
-                        else
-                            KH_RAISE_ERROR(U"Expected a closing single quote", 2);
+                        i += 2;
                     }
+                    else
+                        KH_RAISE_ERROR(U"Expected a closing single quote", 2);
                     continue;
                 } break;
 

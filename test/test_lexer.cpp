@@ -115,18 +115,34 @@ bool testLexNumeralValue() {
     catch (...) { return true; }
 }
 
-bool testLexStringEscapes() {
+bool testLexStringsAndBuffers() {
     /* "AB\x42\x88\u1234\u9876\U00001234\U00010000\"\n" */
-    std::u32string source = U"\"AB\\x42\\x88\\u1234\\u9876\\U00001234\\U00010000\\\"\\n\"";
+    std::u32string source = 
+        U"\"AB\\x42\\x88\\u1234\\u9876\\U00001234\\U00010000\\\"\\n\""
+        U"b'' '' b\"aFd\\x87\\x90\\xff\" 'K' b'f' b'\\x34''\\U0001AF21'";
 
     try {
         auto tokens = kh::lex(source);
 
-        KH_ASSERT_EQUAL(tokens.size(), 1);
-        KH_ASSERT_EQUAL(tokens[0].type, kh::TokenType::STRING);
+        KH_ASSERT_EQUAL(tokens.size(), 8);
 
-        std::u32string& str = tokens[0].value.string;
-        KH_ASSERT_EQUAL(str, U"AB\x42\x88\u1234\u9876\U00001234\U00010000\"\n");
+        KH_ASSERT_EQUAL(tokens[0].type, kh::TokenType::STRING);
+        KH_ASSERT_EQUAL(tokens[0].value.string, U"AB\x42\x88\u1234\u9876\U00001234\U00010000\"\n");
+        KH_ASSERT_EQUAL(tokens[1].type, kh::TokenType::INTEGER);
+        KH_ASSERT_EQUAL(tokens[1].value.integer, '\0');
+        KH_ASSERT_EQUAL(tokens[2].type, kh::TokenType::CHARACTER);
+        KH_ASSERT_EQUAL(tokens[2].value.character, U'\0');
+        KH_ASSERT_EQUAL(tokens[3].type, kh::TokenType::BUFFER);
+        KH_ASSERT_EQUAL(tokens[3].value.buffer, "aFd\x87\x90\xff");
+        KH_ASSERT_EQUAL(tokens[4].type, kh::TokenType::CHARACTER);
+        KH_ASSERT_EQUAL(tokens[4].value.character, U'K');
+        KH_ASSERT_EQUAL(tokens[5].type, kh::TokenType::INTEGER);
+        KH_ASSERT_EQUAL(tokens[5].value.integer, 'f');
+        KH_ASSERT_EQUAL(tokens[6].type, kh::TokenType::INTEGER);
+        KH_ASSERT_EQUAL(tokens[6].value.integer, '\x34');
+        KH_ASSERT_EQUAL(tokens[7].type, kh::TokenType::CHARACTER);
+        KH_ASSERT_EQUAL(tokens[7].value.character, U'\U0001AF21');
+
 
         return false;
     }
@@ -136,5 +152,5 @@ bool testLexStringEscapes() {
 KH_TEST_BEGIN(Lexer)
     KH_TEST_WITH_FUNC(testLexTokenType, "Lex Token Types")
     KH_TEST_WITH_FUNC(testLexNumeralValue, "Lex Numeral Values")
-    KH_TEST_WITH_FUNC(testLexStringEscapes, "Lex String Escapes")
+    KH_TEST_WITH_FUNC(testLexStringsAndBuffers, "Lex Strings and buffers")
 KH_TEST_END
