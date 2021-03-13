@@ -505,7 +505,12 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
             else if (chAt(i) == 'u' || chAt(i) == 'U') {
                 /* Is unsigned */
                 kh::TokenValue value;
-                value.uinteger = std::stoull(kh::encodeUtf8(temp_str));
+                try {
+                    value.uinteger = std::stoull(kh::encodeUtf8(temp_str));
+                }
+                catch (...) {
+                    KH_RAISE_ERROR(U"Unsigned integer too large to be interpret", 0);
+                }
                 tokens.emplace_back(kh::TokenType::UINTEGER, value);
 
                 state = kh::TokenizeState::NONE;
@@ -513,7 +518,12 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
             else if (chAt(i) == 'i' || chAt(i) == 'I') {
                 /* Is imaginary */
                 kh::TokenValue value;
-                value.imaginary = std::stoull(kh::encodeUtf8(temp_str));
+                try {
+                    value.imaginary = std::stoull(kh::encodeUtf8(temp_str));
+                }
+                catch (...) {
+                    KH_RAISE_ERROR(U"Imaginary integer too large to be interpret", 0);
+                }
                 tokens.emplace_back(kh::TokenType::IMAGINARY, value);
 
                 state = kh::TokenizeState::NONE;
@@ -525,7 +535,12 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
             }
             else {
                 kh::TokenValue value;
-                value.integer = std::stoll(kh::encodeUtf8(temp_str));
+                try {
+                    value.integer = std::stoll(kh::encodeUtf8(temp_str));
+                }
+                catch (...) {
+                    KH_RAISE_ERROR(U"Integer too large to be interpret", -1);
+                }
                 tokens.emplace_back(kh::TokenType::INTEGER, value);
 
                 state = kh::TokenizeState::NONE;
@@ -569,7 +584,12 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
             else if (chAt(i) == 'u' || chAt(i) == 'U') {
                 /* Is unsigned */
                 kh::TokenValue value;
-                value.uinteger = std::stoull(kh::encodeUtf8(temp_str), nullptr, 16);
+                try {
+                    value.uinteger = std::stoull(kh::encodeUtf8(temp_str), nullptr, 16);
+                }
+                catch (...) {
+                    KH_RAISE_ERROR(U"Unsigned hex integer too large to be interpret", 0);
+                }
                 tokens.emplace_back(kh::TokenType::UINTEGER, value);
 
                 state = kh::TokenizeState::NONE;
@@ -577,14 +597,24 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
             else if (chAt(i) == 'i' || chAt(i) == 'I') {
                 /* Is imaginary */
                 kh::TokenValue value;
-                value.imaginary = std::stoull(kh::encodeUtf8(temp_str), nullptr, 16);
+                try {
+                    value.imaginary = std::stoull(kh::encodeUtf8(temp_str), nullptr, 16);
+                }
+                catch (...) {
+                    KH_RAISE_ERROR(U"Imaginary hex integer too large to be interpret", 0);
+                }
                 tokens.emplace_back(kh::TokenType::IMAGINARY, value);
 
                 state = kh::TokenizeState::NONE;
             }
             else {
                 kh::TokenValue value;
-                value.integer = std::stoull(kh::encodeUtf8(temp_str), nullptr, 16);
+                try {
+                    value.integer = std::stoull(kh::encodeUtf8(temp_str), nullptr, 16);
+                }
+                catch (...) {
+                    KH_RAISE_ERROR(U"Hex integer too large to be interpret", -1);
+                }
                 tokens.emplace_back(kh::TokenType::INTEGER, value);
 
                 state = kh::TokenizeState::NONE;
@@ -599,7 +629,12 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
             else if (chAt(i) == 'u' || chAt(i) == 'U') {
                 /* Is unsigned */
                 kh::TokenValue value;
-                value.uinteger = std::stoull(kh::encodeUtf8(temp_str), nullptr, 8);
+                try {
+                    value.uinteger = std::stoull(kh::encodeUtf8(temp_str), nullptr, 8);
+                }
+                catch (...) {
+                    KH_RAISE_ERROR(U"Unsigned octal integer too large to be interpret", 0);
+                }
                 tokens.emplace_back(kh::TokenType::UINTEGER, value);
 
                 state = kh::TokenizeState::NONE;
@@ -607,14 +642,24 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
             else if (chAt(i) == 'i' || chAt(i) == 'I') {
                 /* Is imaginary */
                 kh::TokenValue value;
-                value.imaginary = std::stoull(kh::encodeUtf8(temp_str), nullptr, 8);
+                try {
+                    value.imaginary = std::stoull(kh::encodeUtf8(temp_str), nullptr, 8);
+                }
+                catch (...) {
+                    KH_RAISE_ERROR(U"Imaginary octal integer too large to be interpret", 0);
+                }
                 tokens.emplace_back(kh::TokenType::IMAGINARY, value);
 
                 state = kh::TokenizeState::NONE;
             }
             else {
                 kh::TokenValue value;
-                value.integer = std::stoull(kh::encodeUtf8(temp_str), nullptr, 8);
+                try {
+                    value.integer = std::stoull(kh::encodeUtf8(temp_str), nullptr, 8);
+                }
+                catch (...) {
+                    KH_RAISE_ERROR(U"Octal integer too large to be interpret", -1);
+                }
                 tokens.emplace_back(kh::TokenType::INTEGER, value);
 
                 state = kh::TokenizeState::NONE;
@@ -630,7 +675,12 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
             else if (chAt(i) == 'u' || chAt(i) == 'U') {
                 /* Is unsigned */
                 kh::TokenValue value;
-                value.uinteger = std::stoull(kh::encodeUtf8(temp_str), nullptr, 2);
+                try {
+                    value.uinteger = std::stoull(kh::encodeUtf8(temp_str), nullptr, 2);
+                }
+                catch (...) {
+                    KH_RAISE_ERROR(U"Unsigned binary integer too large to be interpret", 0);
+                }
                 tokens.emplace_back(kh::TokenType::UINTEGER, value);
 
                 state = kh::TokenizeState::NONE;
@@ -638,14 +688,24 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
             else if (chAt(i) == 'i' || chAt(i) == 'I') {
                 /* Is imaginary */
                 kh::TokenValue value;
-                value.imaginary = std::stoull(kh::encodeUtf8(temp_str), nullptr, 2);
+                try {
+                    value.imaginary = std::stoull(kh::encodeUtf8(temp_str), nullptr, 2);
+                }
+                catch (...) {
+                    KH_RAISE_ERROR(U"Imaginary binary integer too large to be interpret", 0);
+                }
                 tokens.emplace_back(kh::TokenType::IMAGINARY, value);
 
                 state = kh::TokenizeState::NONE;
             }
             else {
                 kh::TokenValue value;
-                value.integer = std::stoull(kh::encodeUtf8(temp_str), nullptr, 2);
+                try {
+                    value.integer = std::stoull(kh::encodeUtf8(temp_str), nullptr, 2);
+                }
+                catch (...) {
+                    KH_RAISE_ERROR(U"Binary integer too large to be interpret", -1);
+                }
                 tokens.emplace_back(kh::TokenType::INTEGER, value);
 
                 state = kh::TokenizeState::NONE;
