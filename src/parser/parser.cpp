@@ -6,4 +6,3 @@
 * src/parser/parser.cpp
 */
 
-#pragma once

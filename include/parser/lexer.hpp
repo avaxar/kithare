@@ -17,15 +17,11 @@
 
 namespace kh {
     struct LexException {
-        LexException(const std::u32string& _what, const size_t _line, const size_t _column,
-            const size_t _index, const char32_t _character) :
-            what(_what), line(_line), column(_column), index(_index), character(_character) {}
+        LexException(const std::u32string& _what, const size_t _index) :
+            what(_what), index(_index) {}
 
         std::u32string what;
-        size_t line;
-        size_t column;
         size_t index;
-        char32_t character;
     };
 
     std::vector<kh::Token> lex(const std::u32string& source);
