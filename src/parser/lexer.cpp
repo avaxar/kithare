@@ -838,7 +838,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
             else {
                 /* An artifact from how integers were checked that was transferred as a floating point with an invalid character after . */
                 if (temp_str.back() == '.')
-                    temp_str.pop_back();
+                    KH_RAISE_ERROR(U"Was expecting a digit after the decimal point", 0);
 
                 kh::TokenValue value;
                 value.floating = std::stod(kh::encodeUtf8(temp_str));
