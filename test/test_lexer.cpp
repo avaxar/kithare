@@ -115,7 +115,26 @@ bool testLexNumeralValue() {
     catch (...) { return true; }
 }
 
+bool testLexStringEscapes() {
+    /* "AB\x42\x88\u1234\u9876\U00001234\U00010000\"\n" */
+    std::u32string source = U"\"AB\\x42\\x88\\u1234\\u9876\\U00001234\\U00010000\\\"\\n\"";
+
+    try {
+        auto tokens = kh::lex(source);
+
+        KH_ASSERT_EQUAL(tokens.size(), 1);
+        KH_ASSERT_EQUAL(tokens[0].type, kh::TokenType::STRING);
+
+        std::u32string& str = tokens[0].value.string;
+        KH_ASSERT_EQUAL(str, U"AB\x42\x88\u1234\u9876\U00001234\U00010000\"\n");
+
+        return false;
+    }
+    catch (...) { return true; }
+}
+
 KH_TEST_BEGIN(Lexer)
-KH_TEST_WITH_FUNC(testLexTokenType, "Lex Token Types")
-KH_TEST_WITH_FUNC(testLexNumeralValue, "Lex Numeral Values")
+    KH_TEST_WITH_FUNC(testLexTokenType, "Lex Token Types")
+    KH_TEST_WITH_FUNC(testLexNumeralValue, "Lex Numeral Values")
+    KH_TEST_WITH_FUNC(testLexStringEscapes, "Lex String Escapes")
 KH_TEST_END
