@@ -39,7 +39,7 @@ std::string kh::encodeUtf8(const std::u32string& str) {
             str8 += 0b11000000 | (char)(0b00011111 & (chr >> 6));
             str8 += 0b10000000 | (char)(0b00111111 & chr);
         }
-        else 
+        else
             str8 += (char)chr;
     }
 

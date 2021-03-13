@@ -30,13 +30,13 @@ std::u32string kh::repr(const kh::Token& token) {
     case kh::TokenType::BUFFER:
         str += kh::quote(token.value.buffer); break;
 
-    case kh::TokenType::UINTEGER: 
+    case kh::TokenType::UINTEGER:
         str += kh::repr(token.value.uinteger); break;
-    case kh::TokenType::INTEGER: 
+    case kh::TokenType::INTEGER:
         str += kh::repr(token.value.integer); break;
-    case kh::TokenType::FLOATING: 
+    case kh::TokenType::FLOATING:
         str += kh::repr(token.value.floating); break;
-    case kh::TokenType::IMAGINARY: 
+    case kh::TokenType::IMAGINARY:
         str += kh::repr(token.value.imaginary) + U"i"; break;
 
     default: str = U"UNKNOWN";

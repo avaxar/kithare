@@ -9,7 +9,7 @@ On Windows and MinGW:
     with: 'py build.py'.
 
 On Windows and MSVC:
-    Because MSVC has its own setup for compilation, this builder has only one 
+    Because MSVC has its own setup for compilation, this builder has only one
     job in this case, that is installing SDL dependencies. Just run:
     'py build.py --msvc'
 
@@ -17,7 +17,7 @@ On other OS:
     This assumes you have GCC (g++) installed. Also, you need to install SDL
     dependencies on your own, via your systems package manager.
     Kithare needs 'SDL2', 'SDL2_mixer', 'SDL2_image', 'SDL2_ttf' and 'SDL2_net'.
-    Make sure to install 'devel' releases of those, not just runtime shared 
+    Make sure to install 'devel' releases of those, not just runtime shared
     libraries.
 
     A recommended and easy way to do this on MacOS, is via homebrew. Just run
@@ -31,7 +31,7 @@ If you want to compile tests to, pass '--build-tests' to this builder.
 To just run tests, do `python3 build.py --run-tests`. Note that this command is
 only going to run the tests, it does not build anything.
 
-Note that any arguments passed to this builder will be forwarded to the 
+Note that any arguments passed to this builder will be forwarded to the
 compiler.
 
 This feature might fall of use for advanced users, who know what they are
@@ -130,7 +130,7 @@ def find_includes(file):
                     retfile = retfile.replace(char, "")
 
                 retfile = os.path.join(
-                    "include", 
+                    "include",
                     os.path.normcase(retfile.strip())
                 )
 
@@ -148,11 +148,11 @@ def should_build(file, ofile):
     """
     if not os.path.isfile(ofile):
         return True
-    
+
     ofile_m = os.stat(ofile).st_mtime
     if os.stat(file).st_mtime > ofile_m:
         return True
-    
+
     for f in find_includes(file):
         if os.stat(f).st_mtime > ofile_m:
             return True
@@ -174,7 +174,7 @@ def download_sdl_deps(name, version):
 
     if os.path.isdir(download_path):
         print(f"Skipping {name} download because it already exists")
-    
+
     else:
         print(f"Downloading {name} from {download_link}")
         request = urllib.Request(
@@ -201,7 +201,7 @@ def download_sdl_deps(name, version):
             finally:
                 if os.path.exists("temp"):
                     os.remove("temp")
-        
+
         os.rename(f"{download_path}-{version}", download_path)
         print(f"Finished downloading {name}")
 
@@ -215,7 +215,7 @@ def download_sdl_deps(name, version):
                 mkdir(f"build/MSVC-{i}-{j}-test")
                 for dll in glob.iglob(f"{download_path}/lib/{i}/*.dll"):
                     shutil.copyfile(
-                        dll, 
+                        dll,
                         os.path.join(d, os.path.basename(dll))
                     )
         return ""
@@ -225,7 +225,7 @@ def download_sdl_deps(name, version):
             f"{download_path}/{machine_alt}-w64-mingw32/bin/*.dll"
         ):
             shutil.copyfile(
-                dll, 
+                dll,
                 os.path.join(f"dist/MinGW-{machine}", os.path.basename(dll))
             )
         return f" -I {download_path}/{machine_alt}-w64-mingw32/include/SDL2" + \
@@ -292,7 +292,7 @@ def main():
         distdir = f"dist/{compiler}-{machine}"
         mkdir(builddir)
         mkdir(distdir)
-    
+
     if run_tests:
         sys.exit(os.system(os.path.normpath(f"{distdir}/{TEST_EXE}")))
 
@@ -308,7 +308,7 @@ def main():
             if os.path.isdir(inc_dir):
                 cflags += f" -I {inc_dir}"
                 break
-    
+
     if compiler == "MSVC":
         return
 
@@ -322,13 +322,13 @@ def main():
                 print("g++ command exited with an error")
                 isfailed = True
             print()
-    
+
     if isfailed:
         print("Skipped building executable, because all files didn't build")
         sys.exit(1)
-    
+
     build_exe(builddir, distdir)
-    
+
     # Below section is for tests
     if build_tests:
         isfailed = False
@@ -340,11 +340,11 @@ def main():
                     print("g++ command exited with an error")
                     isfailed = True
                 print()
-    
+
         if isfailed:
             print("Skipped building test exe, because all tests didn't build")
             sys.exit(1)
-        
+
         build_exe(builddir, distdir, testmode=True)
 
     print("Done!")

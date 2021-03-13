@@ -143,7 +143,7 @@ namespace kh {
     }
 
     inline bool isHex(const char32_t chr) {
-        return 
+        return
             (U'0' <= chr && chr <= U'9') ||
             (U'a' <= chr && chr <= U'f') ||
             (U'A' <= chr && chr <= U'F');
@@ -827,7 +827,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
         }
     }
     /* We were expecting to be in a tokenize state, but got EOF, so throw error.
-     * This usually happens if the user has forgotten to close a multiline comment, 
+     * This usually happens if the user has forgotten to close a multiline comment,
      * string or buffer */
     if (state != kh::TokenizeState::NONE)
         throw kh::LexException(U"Got unexpected EOF", source.size());
