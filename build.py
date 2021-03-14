@@ -12,14 +12,15 @@ On Windows and MSVC:
     Make sure you have Visual Studio 2019 with C/C++ build tools and Windows 10
     SDK installed.
 
-    To build kithare from the command line, run 'py build.py --msvc'. This
-    command will build kithare sources using the MSVC compiler. By default, this
-    command will build in "Release" mode, if you want to build in "Debug" mode,
-    pass '--debug' too.
+    To build kithare from the command line, you first need to have the 'msbuild'
+    command in your PATH. Then run 'py build.py --msvc'. This will build kithare
+    sources using the MSVC compiler. By default, this command will build in
+    "Release" mode, if you want to build in "Debug" mode, pass '--debug' too.
 
     If you are familiar with Visual Studio C++ IDE, you can also use the graphical
     interface in the IDE to build kithare. But in that case, you would first
-    need to run 'py build.py --msvc-dep', as this installs the required dependencies.
+    need to run 'py build.py --msvc-deps', as this installs the required
+    dependencies.
 
 On other OS:
     This assumes you have GCC (g++) installed. Also, you need to install SDL
@@ -34,8 +35,8 @@ On other OS:
     And the build is really simple, just run 'python3 build.py'
 
 If you are on a 64-bit system, and want to compile for 32-bit architecture,
-pass '-m32' as an argument to the build script (note that this might not work
-in some cases)
+pass '--arch=x86' as an argument to the build script (note that this might not
+work in some cases)
 
 If you want to compile tests too, pass '--build-tests' to this builder.
 
@@ -84,7 +85,7 @@ run_tests = "--run-tests" in sys.argv
 if run_tests:
     sys.argv.remove("--run-tests")
 
-is_32_bit_req = "-m32" in sys.argv
+is_32_bit = "--arch=x86" in sys.argv
 
 _machine = platform.machine()
 if _machine.endswith("86"):
@@ -92,11 +93,11 @@ if _machine.endswith("86"):
     machine_alt = "i686"
 
 elif _machine.lower() in ["x86_64", "amd64"]:
-    machine = "x86" if is_32_bit_req else "x64"
-    machine_alt = "i686" if is_32_bit_req else "x86_64"
+    machine = "x86" if is_32_bit else "x64"
+    machine_alt = "i686" if is_32_bit else "x86_64"
 
 elif _machine.lower() in ["armv8l", "arm64", "aarch64"]:
-    machine = "ARM" if is_32_bit_req else "ARM64"
+    machine = "ARM" if is_32_bit else "ARM64"
 
 elif _machine.lower().startswith("arm"):
     machine = "ARM"
@@ -118,6 +119,9 @@ cflags += " -lSDL2 -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lSDL2_net"
 
 if compiler == "MinGW":
     cflags += " -municode"
+
+if is_32_bit and "-m32" not in sys.argv:
+    cflags += " -m32"
 
 cflags += " " + " ".join(sys.argv[1:])
 
@@ -324,13 +328,10 @@ def main():
         if msvc_no_compile:
             return
 
-        msbuild = r"C:\Program Files (x86)\Microsoft Visual Studio\2019"
-        msbuild += r"\BuildTools\MSBuild\Current\Bin\msbuild.exe"
-        bfile = "KithareTest.vcxpoj" if build_tests else "Kithare.vcxpoj"
-
+        bfile = "KithareTest.vcxproj" if build_tests else "Kithare.vcxproj"
         sys.exit(
             os.system(
-                f'"{msbuild}" /m /p:Configuration={msvc_config} ' + \
+                f"msbuild /m /p:Configuration={msvc_config} " + \
                 f"/p:Platform={machine} {bfile}"
             )
         )

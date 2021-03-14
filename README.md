@@ -18,10 +18,10 @@ use the build script to achieve more things
 ### Windows
 #### MSVC / Visual Studio
 - Make sure you have Visual Studio 2019 with C++ build tools and Windows 10 SDK installed.
-- To build kithare from the command line, run 'py build.py --msvc'. This command will build kithare sources using the MSVC compiler.
-- If you are familiar with Visual Studio C++ IDE, you can also use the graphical
-interface in the IDE to build kithare. But in that case, you would first need to run 
-'py build.py --msvc-dep', as this installs the required dependencies.
+- Run `python3 build.py --msvc-deps`. It'll download the dependencies such as SDL and create the build destination directory with the dependencies' DLLs copied.
+- Open the solution `Kithare.sln`.
+- See `Kithare` in the Solution Explorer. If the name's not bolded, right click and click "Set as Startup Project".
+- You can now build it by clicking "Local Windows Debugger".
 
 #### MinGW
 - Make sure you have MinGW (aka MinGW-w64) installed, and it's `bin` directory be put in 
