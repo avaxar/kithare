@@ -30,6 +30,7 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false  # if a particular matrix build fails, don't skip the rest
       matrix:
         # os: [macos-10.15, macos-11.0]  # TODO: when Github actions supports M1 Mac
         os: [macos-10.15]

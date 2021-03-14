@@ -30,6 +30,7 @@ jobs:
   build:
     runs-on: ${{ matrix.distro }}
     strategy:
+      fail-fast: false  # if a particular matrix build fails, don't skip the rest
       matrix:
         distro: [ubuntu-20.04, ubuntu-18.04]
 

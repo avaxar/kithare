@@ -35,6 +35,7 @@ jobs:
     runs-on: windows-latest
 
     strategy:
+      fail-fast: false  # if a particular matrix build fails, don't skip the rest
       matrix:
         arch: ["x86", "x64"]
 

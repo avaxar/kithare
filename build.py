@@ -87,6 +87,10 @@ if run_tests:
 
 is_32_bit = "--arch=x86" in sys.argv
 
+for i in ["--arch=x86", "--arch=x64"]:
+    if i in sys.argv:
+        sys.argv.remove(i)
+
 _machine = platform.machine()
 if _machine.endswith("86"):
     machine = "x86"
