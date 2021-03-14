@@ -49,20 +49,21 @@ jobs:
       with:
         python-version: 3.9
 
-    - name: Install SDL dependencies
-      run: python build.py --msvc
+    - name: Build x64 source and tests
+      if: matrix.arch == 'x64'
+      run: python build.py --msvc --build-tests
 
-    - name: Build source and tests
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild /m /p:Configuration=Release /p:Platform=${{matrix.arch}} ${{env.SOLUTION_FILE}}
-
-    - name: Run x86 tests
+    - name: Build x86 source and tests
       if: matrix.arch == 'x86'
-      run: python build.py -m32 --msvc --run-tests
+      run: python build.py --msvc --build-tests -m32
 
     - name: Run x64 tests
       if: matrix.arch == 'x64'
       run: python build.py --msvc --run-tests
+
+    - name: Run x86 tests
+      if: matrix.arch == 'x86'
+      run: python build.py --msvc --run-tests -m32
 
     #- name: Upload dist
       #uses: actions/upload-artifact@v2

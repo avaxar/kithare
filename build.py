@@ -9,9 +9,17 @@ On Windows and MinGW:
     with: 'py build.py'.
 
 On Windows and MSVC:
-    Because MSVC has its own setup for compilation, this builder has only one
-    job in this case, that is installing SDL dependencies. Just run:
-    'py build.py --msvc'
+    Make sure you have Visual Studio 2019 with C/C++ build tools and Windows 10
+    SDK installed.
+
+    To build kithare from the command line, run 'py build.py --msvc'. This
+    command will build kithare sources using the MSVC compiler. By default, this
+    command will build in "Release" mode, if you want to build in "Debug" mode,
+    pass '--debug' too.
+
+    If you are familiar with Visual Studio C++ IDE, you can also use the graphical
+    interface in the IDE to build kithare. But in that case, you would first
+    need to run 'py build.py --msvc-dep', as this installs the required dependencies.
 
 On other OS:
     This assumes you have GCC (g++) installed. Also, you need to install SDL
@@ -23,16 +31,19 @@ On other OS:
     A recommended and easy way to do this on MacOS, is via homebrew. Just run
     `brew install gcc sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf`.
 
+    And the build is really simple, just run 'python3 build.py'
+
 If you are on a 64-bit system, and want to compile for 32-bit architecture,
 pass '-m32' as an argument to the build script (note that this might not work
 in some cases)
 
-If you want to compile tests to, pass '--build-tests' to this builder.
-To just run tests, do `python3 build.py --run-tests`. Note that this command is
-only going to run the tests, it does not build anything.
+If you want to compile tests too, pass '--build-tests' to this builder.
 
-Note that any arguments passed to this builder will be forwarded to the
-compiler.
+To just run tests, pass '--run-tests'. Note that this command is
+only going to run the tests, it does not do anything else.
+
+Any other arguments passed to this builder will be forwarded to the
+compiler (but not on MSVC).
 
 This feature might fall of use for advanced users, who know what they are
 doing.
@@ -54,7 +65,7 @@ TEST_EXE = "test_kcr.exe" if platform.system() == "Windows" else "test_kcr"
 # While we recursively search for include files, we don't want to seach
 # the whole file, because that would waste a lotta time. So, we just take
 # an arbitrary line number limit, beyond which, we won't search
-INC_FILE_LINE_LIMIT = 26
+INC_FILE_LINE_LIMIT = 50
 
 # SDL project-version pairs, remember to keep updated
 SDL_DEPS = {
@@ -94,7 +105,9 @@ else:
     machine = _machine if _machine else "None"
 
 if platform.system() == "Windows":
-    compiler = "MSVC" if "--msvc" in sys.argv else "MinGW"
+    msvc_no_compile = "--msvc-deps" in sys.argv
+    msvc_config = "Debug" if "--debug" in sys.argv else "Release"
+    compiler = "MSVC" if "--msvc" in sys.argv or msvc_no_compile else "MinGW"
 
 else:
     compiler = "GCC"
@@ -211,8 +224,6 @@ def download_sdl_deps(name, version):
             for j in ["Debug", "Release"]:
                 d = f"dist/MSVC-{i}-{j}"
                 mkdir(d)
-                mkdir(f"build/MSVC-{i}-{j}")
-                mkdir(f"build/MSVC-{i}-{j}-test")
                 for dll in glob.iglob(f"{download_path}/lib/{i}/*.dll"):
                     shutil.copyfile(
                         dll,
@@ -310,7 +321,19 @@ def main():
                 break
 
     if compiler == "MSVC":
-        return
+        if msvc_no_compile:
+            return
+
+        msbuild = r"C:\Program Files (x86)\Microsoft Visual Studio\2019"
+        msbuild += r"\BuildTools\MSBuild\Current\Bin\msbuild.exe"
+        bfile = "KithareTest.vcxpoj" if build_tests else "Kithare.vcxpoj"
+
+        sys.exit(
+            os.system(
+                f'"{msbuild}" /m /p:Configuration={msvc_config} ' + \
+                f"/p:Platform={machine} {bfile}"
+            )
+        )
 
     print()
     isfailed = False
