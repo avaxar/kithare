@@ -12,6 +12,7 @@
 
 #include "utility/string.hpp"
 #include "parser/lexer.hpp"
+#include "parser/ast.hpp"
 
 
 void run(const std::vector<std::u32string>& args) {

@@ -33,7 +33,7 @@
 #define _PLACE_HEXSTR_AS_TYPE(_var, ttype)       \
     if (chAt(i) == '\'') {                       \
         _var = std::stoul(hex_str, nullptr, 16); \
-        tokens.emplace_back(ttype, value);       \
+        tokens.emplace_back(i, ttype, value);       \
     }                                            \
     else                                         \
         KH_RAISE_ERROR(U"Expected a closing single quote", 0)
@@ -59,7 +59,7 @@
     _HANDLE_ESCAPE(chr, echr, _val, _len,                             \
         if (chAt(i + _len) != '\'')                                   \
             KH_RAISE_ERROR(U"Expected a closing single quote", _len); \
-        tokens.emplace_back(_ttype, value);                           \
+        tokens.emplace_back(i, _ttype, value);                           \
     )
 
 /* Use this to handle string escapes from a switch statement. This is used to handle
@@ -99,7 +99,7 @@
     case sym: {                                          \
         kh::TokenValue val;                              \
         val.symbol_type = name;                          \
-        tokens.emplace_back(kh::TokenType::SYMBOL, val); \
+        tokens.emplace_back(i, kh::TokenType::SYMBOL, val); \
     } break;
 
 /* Handle a simple operator from a switch block */
@@ -107,7 +107,7 @@
     case sym: {                                            \
         kh::TokenValue val;                                \
         val.operator_type = name;                          \
-        tokens.emplace_back(kh::TokenType::OPERATOR, val); \
+        tokens.emplace_back(i, kh::TokenType::OPERATOR, val); \
     } break;
 
 /* Handle a combination of two operators as a single operator from a switch block */
@@ -119,7 +119,7 @@
             val.operator_type = name2;                     \
             i++;                                           \
         }                                                  \
-        tokens.emplace_back(kh::TokenType::OPERATOR, val); \
+        tokens.emplace_back(i, kh::TokenType::OPERATOR, val); \
     } break;
 
 namespace kh {
@@ -209,7 +209,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                             /* No Character inserted, like b''. Treat it like a 0 */
                             kh::TokenValue value;
                             value.integer = 0;
-                            tokens.emplace_back(kh::TokenType::INTEGER, value);
+                            tokens.emplace_back(i, kh::TokenType::INTEGER, value);
 
                             i += 2;
                         }
@@ -223,7 +223,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
 
                             kh::TokenValue value;
                             value.integer = chAt(i + 2);
-                            tokens.emplace_back(kh::TokenType::INTEGER, value);
+                            tokens.emplace_back(i, kh::TokenType::INTEGER, value);
 
                             i += 3;
                         }
@@ -321,7 +321,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                         /* No Character inserted, like ''. Treat it like a \0 */
                         kh::TokenValue value;
                         value.character = 0;
-                        tokens.emplace_back(kh::TokenType::CHARACTER, value);
+                        tokens.emplace_back(i, kh::TokenType::CHARACTER, value);
 
                         i += 1;
                     }
@@ -330,7 +330,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                     else if (chAt(i + 2) == '\'') {
                         kh::TokenValue value;
                         value.character = chAt(i + 1);
-                        tokens.emplace_back(kh::TokenType::CHARACTER, value);
+                        tokens.emplace_back(i, kh::TokenType::CHARACTER, value);
 
                         i += 2;
                     }
@@ -382,10 +382,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                     else if (chAt(i + 1) == '/')
                         KH_RAISE_ERROR(U"Unexpected comment close", 0);
 
-                    tokens.emplace_back(
-                        kh::TokenType::OPERATOR,
-                        value
-                    );
+                    tokens.emplace_back(i, kh::TokenType::OPERATOR, value);
                 } break;
 
                 case '/': {
@@ -407,7 +404,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                         continue;
                     }
 
-                    tokens.emplace_back(kh::TokenType::OPERATOR, value);
+                    tokens.emplace_back(i, kh::TokenType::OPERATOR, value);
                 } break;
 
                 case '<': {
@@ -423,7 +420,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                         i++;
                     }
 
-                    tokens.emplace_back(kh::TokenType::OPERATOR, value);
+                    tokens.emplace_back(i, kh::TokenType::OPERATOR, value);
                 } break;
 
                 case '>': {
@@ -442,11 +439,11 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                         value.symbol_type = kh::Symbol::TEMPLATE_CLOSE;
                         i++;
 
-                        tokens.emplace_back(kh::TokenType::SYMBOL, value);
+                        tokens.emplace_back(i, kh::TokenType::SYMBOL, value);
                         continue;
                     }
 
-                    tokens.emplace_back(kh::TokenType::OPERATOR, value);
+                    tokens.emplace_back(i, kh::TokenType::OPERATOR, value);
                 } break;
 
                 case '.': {
@@ -459,7 +456,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                         continue;
                     }
 
-                    tokens.emplace_back(kh::TokenType::SYMBOL, value);
+                    tokens.emplace_back(i, kh::TokenType::SYMBOL, value);
                 } break;
 
                 case '[': {
@@ -470,7 +467,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                         value.symbol_type = kh::Symbol::TEMPLATE_OPEN;
                         i++;
                     }
-                    tokens.emplace_back(kh::TokenType::SYMBOL, value);
+                    tokens.emplace_back(i, kh::TokenType::SYMBOL, value);
                 } break;
 
                 default:
@@ -488,7 +485,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                 /* If it's not, reset the state and appends the concatenated identifier characters as a token */
                 kh::TokenValue value;
                 value.identifier = temp_str;
-                tokens.emplace_back(kh::TokenType::IDENTIFIER, value);
+                tokens.emplace_back(i, kh::TokenType::IDENTIFIER, value);
 
                 state = kh::TokenizeState::NONE;
                 i--;
@@ -508,7 +505,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                 catch (...) {
                     KH_RAISE_ERROR(U"Unsigned integer too large to be interpret", 0);
                 }
-                tokens.emplace_back(kh::TokenType::UINTEGER, value);
+                tokens.emplace_back(i, kh::TokenType::UINTEGER, value);
 
                 state = kh::TokenizeState::NONE;
             }
@@ -521,7 +518,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                 catch (...) {
                     KH_RAISE_ERROR(U"Imaginary integer too large to be interpret", 0);
                 }
-                tokens.emplace_back(kh::TokenType::IMAGINARY, value);
+                tokens.emplace_back(i, kh::TokenType::IMAGINARY, value);
 
                 state = kh::TokenizeState::NONE;
             }
@@ -538,7 +535,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                 catch (...) {
                     KH_RAISE_ERROR(U"Integer too large to be interpret", -1);
                 }
-                tokens.emplace_back(kh::TokenType::INTEGER, value);
+                tokens.emplace_back(i, kh::TokenType::INTEGER, value);
 
                 state = kh::TokenizeState::NONE;
                 i--;
@@ -556,7 +553,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
 
                 kh::TokenValue value;
                 value.imaginary = std::stod(kh::encodeUtf8(temp_str));
-                tokens.emplace_back(kh::TokenType::IMAGINARY, value);
+                tokens.emplace_back(i, kh::TokenType::IMAGINARY, value);
 
                 state = kh::TokenizeState::NONE;
             }
@@ -567,7 +564,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
 
                 kh::TokenValue value;
                 value.floating = std::stod(kh::encodeUtf8(temp_str));
-                tokens.emplace_back(kh::TokenType::FLOATING, value);
+                tokens.emplace_back(i, kh::TokenType::FLOATING, value);
 
                 state = kh::TokenizeState::NONE;
                 i--;
@@ -587,7 +584,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                 catch (...) {
                     KH_RAISE_ERROR(U"Unsigned hex integer too large to be interpret", 0);
                 }
-                tokens.emplace_back(kh::TokenType::UINTEGER, value);
+                tokens.emplace_back(i, kh::TokenType::UINTEGER, value);
 
                 state = kh::TokenizeState::NONE;
             }
@@ -600,7 +597,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                 catch (...) {
                     KH_RAISE_ERROR(U"Imaginary hex integer too large to be interpret", 0);
                 }
-                tokens.emplace_back(kh::TokenType::IMAGINARY, value);
+                tokens.emplace_back(i, kh::TokenType::IMAGINARY, value);
 
                 state = kh::TokenizeState::NONE;
             }
@@ -612,7 +609,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                 catch (...) {
                     KH_RAISE_ERROR(U"Hex integer too large to be interpret", -1);
                 }
-                tokens.emplace_back(kh::TokenType::INTEGER, value);
+                tokens.emplace_back(i, kh::TokenType::INTEGER, value);
 
                 state = kh::TokenizeState::NONE;
                 i--;
@@ -632,7 +629,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                 catch (...) {
                     KH_RAISE_ERROR(U"Unsigned octal integer too large to be interpret", 0);
                 }
-                tokens.emplace_back(kh::TokenType::UINTEGER, value);
+                tokens.emplace_back(i, kh::TokenType::UINTEGER, value);
 
                 state = kh::TokenizeState::NONE;
             }
@@ -645,7 +642,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                 catch (...) {
                     KH_RAISE_ERROR(U"Imaginary octal integer too large to be interpret", 0);
                 }
-                tokens.emplace_back(kh::TokenType::IMAGINARY, value);
+                tokens.emplace_back(i, kh::TokenType::IMAGINARY, value);
 
                 state = kh::TokenizeState::NONE;
             }
@@ -657,7 +654,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                 catch (...) {
                     KH_RAISE_ERROR(U"Octal integer too large to be interpret", -1);
                 }
-                tokens.emplace_back(kh::TokenType::INTEGER, value);
+                tokens.emplace_back(i, kh::TokenType::INTEGER, value);
 
                 state = kh::TokenizeState::NONE;
                 i--;
@@ -678,7 +675,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                 catch (...) {
                     KH_RAISE_ERROR(U"Unsigned binary integer too large to be interpret", 0);
                 }
-                tokens.emplace_back(kh::TokenType::UINTEGER, value);
+                tokens.emplace_back(i, kh::TokenType::UINTEGER, value);
 
                 state = kh::TokenizeState::NONE;
             }
@@ -691,7 +688,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                 catch (...) {
                     KH_RAISE_ERROR(U"Imaginary binary integer too large to be interpret", 0);
                 }
-                tokens.emplace_back(kh::TokenType::IMAGINARY, value);
+                tokens.emplace_back(i, kh::TokenType::IMAGINARY, value);
 
                 state = kh::TokenizeState::NONE;
             }
@@ -703,7 +700,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                 catch (...) {
                     KH_RAISE_ERROR(U"Binary integer too large to be interpret", -1);
                 }
-                tokens.emplace_back(kh::TokenType::INTEGER, value);
+                tokens.emplace_back(i, kh::TokenType::INTEGER, value);
 
                 state = kh::TokenizeState::NONE;
                 i--;
@@ -717,7 +714,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
 
                 kh::TokenValue value;
                 value.buffer = temp_buf;
-                tokens.emplace_back(kh::TokenType::BUFFER, value);
+                tokens.emplace_back(i, kh::TokenType::BUFFER, value);
 
                 state = kh::TokenizeState::NONE;
             }
@@ -760,7 +757,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                 /* End string */
                 kh::TokenValue value;
                 value.string = temp_str;
-                tokens.emplace_back(kh::TokenType::STRING, value);
+                tokens.emplace_back(i, kh::TokenType::STRING, value);
 
                 state = kh::TokenizeState::NONE;
             }
