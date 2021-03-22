@@ -4,5 +4,7 @@
 * Copyright (C) 2021 Avaxar (AvaxarXapaxa)
 *
 * src/parser/parser.cpp
+* Defines include/parser/parser.hpp.
 */
 
+#include "parser/parser.hpp"

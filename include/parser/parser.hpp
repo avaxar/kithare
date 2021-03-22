@@ -4,6 +4,7 @@
 * Copyright (C) 2021 Avaxar (AvaxarXapaxa)
 *
 * include/parser/parser.hpp
+* Declares the kh::Parser class.
 */
 
 #pragma once
