@@ -27,7 +27,6 @@
     <ClCompile Include="test\test_lexer.cpp" />
     <ClCompile Include="test\test_main.cpp" />
     <ClCompile Include="test\test_string.cpp" />
-    <ClCompile Include="test\test_token.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\test.hpp" />

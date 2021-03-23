@@ -33,9 +33,6 @@
     <ClCompile Include="src\parser\token.cpp">
       <Filter>kithare</Filter>
     </ClCompile>
-    <ClCompile Include="test\test_token.cpp">
-      <Filter>test</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\test.hpp">
