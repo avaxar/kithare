@@ -35,13 +35,20 @@ namespace kh {
     class AstScopeExpression;
     class AstConstValue;
     class AstTupleExpression;
-    class AstArrayExpression;
     class AstIf;
     class AstWhile;
     class AstDoWhile;
     class AstFor;
     class AstStatement;
 
+    std::u32string repr(const kh::AstModule& module_ast, const size_t indent = 0);
+    std::u32string repr(const kh::AstImport& import_ast, const size_t indent = 0);
+    std::u32string repr(const kh::AstFunction& function_ast, const size_t indent = 0);
+    std::u32string repr(const kh::AstClass& class_ast, const size_t indent = 0);
+    std::u32string repr(const kh::AstStruct& struct_ast, const size_t indent = 0);
+    std::u32string repr(const kh::AstEnum& enum_ast, const size_t indent = 0);
+    std::u32string repr(const kh::AstBody& ast, const size_t indent = 0);
+    std::u32string repr(const kh::AstExpression& expr, const size_t indent = 0);
 
     class AstModule {
     public:
@@ -146,7 +153,7 @@ namespace kh {
         enum class ExType {
             NONE,
             IDENTIFIER,
-            UNARY, BINARY, TRINARY,
+            UNARY, BINARY, TERNARY,
             SUBSCRIPT, CALL,
             DECLARE,
             SCOPE, CONSTANT, TUPLE
@@ -206,19 +213,19 @@ namespace kh {
         }
     };
 
-    class AstTrinaryExpression : public kh::AstExpression {
+    class AstTernaryExpression : public kh::AstExpression {
     public:
         kh::AstExpression* condition;
         kh::AstExpression* value;
         kh::AstExpression* otherwise;
 
-        AstTrinaryExpression(const size_t _index, kh::AstExpression* _condition, kh::AstExpression* _value, kh::AstExpression* _otherwise) :
+        AstTernaryExpression(const size_t _index, kh::AstExpression* _condition, kh::AstExpression* _value, kh::AstExpression* _otherwise) :
             condition(_condition), value(_value), otherwise(_otherwise) {
             this->index = _index;
             this->type = kh::AstBody::Type::EXPRESSION;
-            this->expression_type = kh::AstExpression::ExType::TRINARY;
+            this->expression_type = kh::AstExpression::ExType::TERNARY;
         }
-        virtual ~AstTrinaryExpression() {
+        virtual ~AstTernaryExpression() {
             if (this->condition) delete this->condition;
             if (this->value) delete this->value;
             if (this->otherwise) delete this->otherwise;
@@ -284,7 +291,7 @@ namespace kh {
             if (this->var_type)
                 delete this->var_type;
 
-            if (this->expression) 
+            if (this->expression)
                 delete this->expression;
         }
     };
@@ -320,9 +327,9 @@ namespace kh {
             double floating;
         };
 
-        std::complex<double> complex;
-        std::string buffer;
-        std::u32string string;
+        std::complex<double> complex = 0;
+        std::string buffer = "";
+        std::u32string string = U"";
 
         AstConstValue(const size_t _index, const char32_t _character, const kh::AstConstValue::ValueType _value_type = kh::AstConstValue::ValueType::CHARACTER) :
             value_type((ValueType)((size_t)_value_type)) {
