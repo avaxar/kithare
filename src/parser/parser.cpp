@@ -8,3 +8,21 @@
 */
 
 #include "parser/parser.hpp"
+
+
+kh::AstModule kh::parse(const std::vector<kh::Token>& tokens) {
+    kh::Parser parser(tokens);
+    return parser.parse();
+}
+
+kh::Parser::Parser(const std::vector<kh::Token>& tokens) {
+
+}
+
+kh::Parser::~Parser() {
+
+}
+
+kh::AstModule kh::Parser::parse() {
+    return *(kh::AstModule*)nullptr;
+}
