@@ -54,4 +54,3 @@
 
 int testString();
 int testLexer();
-int testToken();

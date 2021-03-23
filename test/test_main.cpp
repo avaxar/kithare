@@ -27,7 +27,6 @@ int main(const int argc, char* argv[])
     std::cout << "Running Kithare Unit tests!\n";
 
     failures += testString();
-    failures += testToken();
     failures += testLexer();
 
     std::cout << "Total number of failures are " << failures << "\n";
