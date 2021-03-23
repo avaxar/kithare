@@ -207,3 +207,11 @@ std::u32string kh::repr(const float n) {
 std::u32string kh::repr(const double n) {
     return kh::repr(std::to_string(n));
 }
+
+std::u32string kh::repr(const std::complex<float> n) {
+    return kh::repr(n.real()) + U" + " + kh::repr(n.imag()) + U"i";
+}
+
+std::u32string kh::repr(const std::complex<double> n) {
+    return kh::repr(n.real()) + U" + " + kh::repr(n.imag()) + U"i";
+}

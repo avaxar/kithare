@@ -10,6 +10,7 @@
 #pragma once
 
 #include <clocale>
+#include <complex>
 #include <iostream>
 #include <string>
 
@@ -66,4 +67,7 @@ namespace kh {
     std::u32string repr(const uint64_t n);
     std::u32string repr(const float n);
     std::u32string repr(const double n);
+
+    std::u32string repr(const std::complex<float> n);
+    std::u32string repr(const std::complex<double> n);
 }
