@@ -12,57 +12,45 @@
 #include "parser/ast.hpp"
 
 
+#define DEL_ALL_IN(var, typ) for (typ* _var : var) if (_var) delete _var
+
+#define REPR_ALL_IN(var, typ) \
+    for (typ* _var : var)     \
+        if (_var)             \
+            str += U"\n\t" + ind + kh::repr(*_var, indent + 1)
+
+
 kh::AstModule::~AstModule() {
-    for (kh::AstImport* import_ : this->imports)
-        if (import_) delete import_;
-
-    for (kh::AstFunction* function : this->functions)
-        if (function) delete function;
-
-    for (kh::AstClass* class_ : this->classes)
-        if (class_) delete class_;
-
-    for (kh::AstStruct* struct_ : this->structs)
-        if (struct_) delete struct_;
-
-    for (kh::AstEnum* enum_ : this->enums)
-        if (enum_) delete enum_;
-
-    for (kh::AstDeclarationExpression* variable : this->variables)
-        if (variable) delete variable;
+    DEL_ALL_IN(this->imports, kh::AstImport);
+    DEL_ALL_IN(this->functions, kh::AstFunction);
+    DEL_ALL_IN(this->classes, kh::AstClass);
+    DEL_ALL_IN(this->structs, kh::AstStruct);
+    DEL_ALL_IN(this->enums, kh::AstEnum);
+    DEL_ALL_IN(this->variables, kh::AstDeclarationExpression);
 }
 
 kh::AstFunction::~AstFunction() {
     if (this->return_type)
         delete this->return_type;
-
-    for (kh::AstDeclarationExpression* argument : this->arguments)
-        if (argument) delete argument;
-
-    for (kh::AstFunction* function : this->nested_functions)
-        if (function) delete function;
-
-    for (kh::AstBody* part : this->body)
-        if (part) delete part;
+    
+    DEL_ALL_IN(this->arguments, kh::AstDeclarationExpression);
+    DEL_ALL_IN(this->nested_functions, kh::AstFunction);
+    DEL_ALL_IN(this->body, kh::AstBody);
 }
 
 kh::AstClass::~AstClass() {
     if (this->base)
         delete this->base;
 
-    for (kh::AstDeclarationExpression* member : this->members)
-        if (member) delete member;
-
-    for (kh::AstFunction* method : this->methods)
-        if (method) delete method;
+    DEL_ALL_IN(this->members, kh::AstDeclarationExpression);
+    DEL_ALL_IN(this->methods, kh::AstFunction);
 }
 
 kh::AstStruct::~AstStruct() {
     if (this->base)
         delete this->base;
 
-    for (kh::AstDeclarationExpression* member : this->members)
-        if (member) delete member;
+    DEL_ALL_IN(this->members, kh::AstDeclarationExpression);
 }
 
 kh::AstEnum::~AstEnum() {
@@ -78,30 +66,12 @@ std::u32string kh::repr(const kh::AstModule& module_ast, const size_t indent) {
 
     std::u32string str = U"MODULE:";
 
-    for (kh::AstImport* import_ : module_ast.imports)
-        if (import_)
-            str += U"\n\t" + ind + kh::repr(*import_, indent + 1);
-
-    for (kh::AstFunction* function : module_ast.functions)
-        if (function)
-            str += U"\n\t" + ind + kh::repr(*function, indent + 1);
-
-    for (kh::AstClass* class_ : module_ast.classes)
-        if (class_)
-            str += U"\n\t" + ind + kh::repr(*class_, indent + 1);
-
-    for (kh::AstStruct* struct_ : module_ast.structs)
-        if (struct_)
-            str += U"\n\t" + ind + kh::repr(*struct_, indent + 1);
-
-    for (kh::AstEnum* enum_ : module_ast.enums)
-        if (enum_)
-            str += U"\n\t" + ind + kh::repr(*enum_, indent + 1);
-
-    for (kh::AstDeclarationExpression* variable : module_ast.variables)
-        if (variable)
-            str += U"\n\t" + ind + kh::repr(*variable, indent + 1);
-
+    REPR_ALL_IN(module_ast.imports, kh::AstImport);
+    REPR_ALL_IN(module_ast.functions, kh::AstFunction);
+    REPR_ALL_IN(module_ast.classes, kh::AstClass);
+    REPR_ALL_IN(module_ast.structs, kh::AstStruct);
+    REPR_ALL_IN(module_ast.enums, kh::AstEnum);
+    REPR_ALL_IN(module_ast.variables, kh::AstDeclarationExpression);
     return str;
 }
 
@@ -181,6 +151,7 @@ std::u32string kh::repr(const kh::AstClass& class_ast, const size_t indent) {
     }
 
     str += U"\n\t" + ind + U"MEMBERS:";
+
     for (kh::AstDeclarationExpression* member : class_ast.members)
         str += U"\n\t" + ind + kh::repr(*member);
 
