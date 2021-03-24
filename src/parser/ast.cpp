@@ -12,21 +12,21 @@
 #include "parser/ast.hpp"
 
 
-#define DEL_ALL_IN(var, typ) for (typ* _var : var) if (_var) delete _var
+#define DEL_ALL_IN(var) for (auto _var : var) if (_var) delete _var
 
-#define REPR_ALL_IN(var, typ) \
-    for (typ* _var : var)     \
+#define REPR_ALL_IN(var) \
+    for (auto _var : var)     \
         if (_var)             \
             str += U"\n\t" + ind + kh::repr(*_var, indent + 1)
 
 
 kh::AstModule::~AstModule() {
-    DEL_ALL_IN(this->imports, kh::AstImport);
-    DEL_ALL_IN(this->functions, kh::AstFunction);
-    DEL_ALL_IN(this->classes, kh::AstClass);
-    DEL_ALL_IN(this->structs, kh::AstStruct);
-    DEL_ALL_IN(this->enums, kh::AstEnum);
-    DEL_ALL_IN(this->variables, kh::AstDeclarationExpression);
+    DEL_ALL_IN(this->imports);
+    DEL_ALL_IN(this->functions);
+    DEL_ALL_IN(this->classes);
+    DEL_ALL_IN(this->structs);
+    DEL_ALL_IN(this->enums);
+    DEL_ALL_IN(this->variables);
 }
 
 kh::AstFunction::~AstFunction() {
@@ -42,15 +42,15 @@ kh::AstClass::~AstClass() {
     if (this->base)
         delete this->base;
 
-    DEL_ALL_IN(this->members, kh::AstDeclarationExpression);
-    DEL_ALL_IN(this->methods, kh::AstFunction);
+    DEL_ALL_IN(this->members);
+    DEL_ALL_IN(this->methods);
 }
 
 kh::AstStruct::~AstStruct() {
     if (this->base)
         delete this->base;
 
-    DEL_ALL_IN(this->members, kh::AstDeclarationExpression);
+    DEL_ALL_IN(this->members);
 }
 
 kh::AstEnum::~AstEnum() {
@@ -66,12 +66,12 @@ std::u32string kh::repr(const kh::AstModule& module_ast, const size_t indent) {
 
     std::u32string str = U"MODULE:";
 
-    REPR_ALL_IN(module_ast.imports, kh::AstImport);
-    REPR_ALL_IN(module_ast.functions, kh::AstFunction);
-    REPR_ALL_IN(module_ast.classes, kh::AstClass);
-    REPR_ALL_IN(module_ast.structs, kh::AstStruct);
-    REPR_ALL_IN(module_ast.enums, kh::AstEnum);
-    REPR_ALL_IN(module_ast.variables, kh::AstDeclarationExpression);
+    REPR_ALL_IN(module_ast.imports);
+    REPR_ALL_IN(module_ast.functions);
+    REPR_ALL_IN(module_ast.classes);
+    REPR_ALL_IN(module_ast.structs);
+    REPR_ALL_IN(module_ast.enums);
+    REPR_ALL_IN(module_ast.variables);
     return str;
 }
 
