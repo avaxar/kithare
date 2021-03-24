@@ -24,5 +24,10 @@ namespace kh {
         size_t index;
     };
 
+    /// <summary>
+    /// Lexicate/tokenize a source string into a list/std::vector of tokens.
+    /// </summary>
+    /// <param name="source">Input source string</param>
+    /// <returns></returns>
     std::vector<kh::Token> lex(const std::u32string& source);
 }

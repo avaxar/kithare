@@ -14,11 +14,6 @@
 #include "utility/string.hpp"
 
 
-/// <summary>
-/// Encodes UTF-32 string to a UTF-8 string.
-/// </summary>
-/// <param name="str">UTF-32 string</param>
-/// <returns></returns>
 std::string kh::encodeUtf8(const std::u32string& str) {
     std::string str8;
     str8.reserve(str.size() + str.size() / 4);
@@ -46,11 +41,6 @@ std::string kh::encodeUtf8(const std::u32string& str) {
     return str8;
 }
 
-/// <summary>
-/// Decodes a UTF-8 encoded string to a UTF-32 string.
-/// </summary>
-/// <param name="str">UTF-8 string</param>
-/// <returns></returns>
 std::u32string kh::decodeUtf8(const std::string& str) {
     std::u32string str32;
     str32.reserve(str.size());
@@ -102,11 +92,6 @@ std::u32string kh::decodeUtf8(const std::string& str) {
     return str32;
 }
 
-/// <summary>
-/// Quotes a string and handles escapes.
-/// </summary>
-/// <param name="str">String to be quoted</param>
-/// <returns></returns>
 std::u32string kh::quote(const std::u32string& str) {
     std::u32string repr_str = U"\"";
     repr_str.reserve(str.size() + str.size() / 8 + 2);
@@ -127,11 +112,6 @@ std::u32string kh::quote(const std::u32string& str) {
     return repr_str;
 }
 
-/// <summary>
-/// Quotes a string and handles escapes.
-/// </summary>
-/// <param name="str">String to be quoted</param>
-/// <returns></returns>
 std::u32string kh::quote(const std::string& str) {
     std::u32string repr_str = U"\"";
     repr_str.reserve(str.size() + str.size() / 8 + 2);

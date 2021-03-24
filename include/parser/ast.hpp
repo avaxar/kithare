@@ -4,7 +4,7 @@
 * Copyright (C) 2021 Avaxar (AvaxarXapaxa)
 *
 * include/parser/ast.hpp
-* Declares AST node types.
+* Declares AST node types and their kh::repr overloads.
 */
 
 #pragma once

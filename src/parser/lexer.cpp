@@ -150,11 +150,6 @@ namespace kh {
     }
 }
 
-/// <summary>
-/// Lexicate/tokenize a source string into a list/std::vector of tokens.
-/// </summary>
-/// <param name="source">Input source string</param>
-/// <returns></returns>
 std::vector<kh::Token> kh::lex(const std::u32string& source) {
     std::vector<kh::Token> tokens;
     kh::TokenizeState state = kh::TokenizeState::NONE;

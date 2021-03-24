@@ -58,11 +58,35 @@ namespace kh {
         size_t index;
     };
 
+    /// <summary>
+    /// Encodes UTF-32 string to a UTF-8 string.
+    /// </summary>
+    /// <param name="str">UTF-32 string</param>
+    /// <returns></returns>
     std::string encodeUtf8(const std::u32string& str);
+
+    /// <summary>
+    /// Decodes a UTF-8 encoded string to a UTF-32 string.
+    /// </summary>
+    /// <param name="str">UTF-8 string</param>
+    /// <returns></returns>
     std::u32string decodeUtf8(const std::string& str);
 
+
+    /// <summary>
+    /// Quotes a string and handles escapes.
+    /// </summary>
+    /// <param name="str">String to be quoted</param>
+    /// <returns></returns>
     std::u32string quote(const std::u32string& str);
+
+    /// <summary>
+    /// Quotes a string and handles escapes.
+    /// </summary>
+    /// <param name="str">String to be quoted</param>
+    /// <returns></returns>
     std::u32string quote(const std::string& str);
+
 
     std::u32string repr(const std::u32string& str);
     std::u32string repr(const std::wstring& str);
