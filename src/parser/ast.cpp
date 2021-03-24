@@ -33,9 +33,9 @@ kh::AstFunction::~AstFunction() {
     if (this->return_type)
         delete this->return_type;
     
-    DEL_ALL_IN(this->arguments, kh::AstDeclarationExpression);
-    DEL_ALL_IN(this->nested_functions, kh::AstFunction);
-    DEL_ALL_IN(this->body, kh::AstBody);
+    DEL_ALL_IN(this->arguments);
+    DEL_ALL_IN(this->nested_functions);
+    DEL_ALL_IN(this->body);
 }
 
 kh::AstClass::~AstClass() {
