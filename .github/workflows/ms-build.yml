@@ -26,9 +26,6 @@ on:
     - '.github/workflows/ubuntu-build.yml'
     - '.github/workflows/macos-build.yml'
 
-env:
-  # Path to the solution file relative to the root of the project.
-  SOLUTION_FILE: Kithare.sln
 
 jobs:
   build:

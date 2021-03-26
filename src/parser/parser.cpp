@@ -47,7 +47,7 @@ kh::AstFunction* kh::Parser::parseFunction() {
 }
 
 kh::AstDeclarationExpression* kh::Parser::parseDeclaration() {
-    
+
 }
 
 kh::AstClass* kh::Parser::parseClass() {

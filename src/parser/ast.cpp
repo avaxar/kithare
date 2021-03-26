@@ -32,7 +32,7 @@ kh::AstModule::~AstModule() {
 kh::AstFunction::~AstFunction() {
     if (this->return_type)
         delete this->return_type;
-    
+
     DEL_ALL_IN(this->arguments);
     DEL_ALL_IN(this->nested_functions);
     DEL_ALL_IN(this->body);
