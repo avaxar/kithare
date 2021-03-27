@@ -33,7 +33,7 @@
 #define _PLACE_HEXSTR_AS_TYPE(_var, ttype)       \
     if (chAt(i) == '\'') {                       \
         _var = std::stoul(hex_str, nullptr, 16); \
-        tokens.emplace_back(i, ttype, value);       \
+        tokens.emplace_back(i, ttype, value);    \
     }                                            \
     else                                         \
         KH_RAISE_ERROR(U"Expected a closing single quote", 0)
@@ -59,7 +59,7 @@
     _HANDLE_ESCAPE(chr, echr, _val, _len,                             \
         if (chAt(i + _len) != '\'')                                   \
             KH_RAISE_ERROR(U"Expected a closing single quote", _len); \
-        tokens.emplace_back(i, _ttype, value);                           \
+        tokens.emplace_back(i, _ttype, value);                        \
     )
 
 /* Use this to handle string escapes from a switch statement. This is used to handle
@@ -95,30 +95,30 @@
         KH_RAISE_ERROR(U"Unknown escape character", 1);
 
 /* Handle a simple symbol from a switch block */
-#define HANDLE_SIMPLE_SYMBOL(sym, name)                  \
-    case sym: {                                          \
-        kh::TokenValue val;                              \
-        val.symbol_type = name;                          \
+#define HANDLE_SIMPLE_SYMBOL(sym, name)                     \
+    case sym: {                                             \
+        kh::TokenValue val;                                 \
+        val.symbol_type = name;                             \
         tokens.emplace_back(i, kh::TokenType::SYMBOL, val); \
     } break;
 
 /* Handle a simple operator from a switch block */
-#define HANDLE_SIMPLE_OP(sym, name)                        \
-    case sym: {                                            \
-        kh::TokenValue val;                                \
-        val.operator_type = name;                          \
+#define HANDLE_SIMPLE_OP(sym, name)                           \
+    case sym: {                                               \
+        kh::TokenValue val;                                   \
+        val.operator_type = name;                             \
         tokens.emplace_back(i, kh::TokenType::OPERATOR, val); \
     } break;
 
 /* Handle a combination of two operators as a single operator from a switch block */
-#define HANDLE_OP_COMBO(sym, name, sym2, name2)            \
-    case sym: {                                            \
-        kh::TokenValue val;                                \
-        val.operator_type = name;                          \
-        if (chAt(i + 1) == sym2) {                         \
-            val.operator_type = name2;                     \
-            i++;                                           \
-        }                                                  \
+#define HANDLE_OP_COMBO(sym, name, sym2, name2)               \
+    case sym: {                                               \
+        kh::TokenValue val;                                   \
+        val.operator_type = name;                             \
+        if (chAt(i + 1) == sym2) {                            \
+            val.operator_type = name2;                        \
+            i++;                                              \
+        }                                                     \
         tokens.emplace_back(i, kh::TokenType::OPERATOR, val); \
     } break;
 
