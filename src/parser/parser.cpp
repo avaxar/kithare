@@ -10,7 +10,7 @@
 #include "parser/parser.hpp"
 
 
-kh::AstModule kh::parse(const std::vector<kh::Token>& tokens) {
+kh::AstModule* kh::parse(const std::vector<kh::Token>& tokens) {
     kh::Parser parser(tokens);
     return parser.parse();
 }
@@ -23,7 +23,7 @@ kh::Parser::~Parser() {
 
 }
 
-kh::AstModule kh::Parser::parse() {
+kh::AstModule* kh::Parser::parse() {
     std::vector<kh::AstImport*> imports;
     std::vector<kh::AstFunction*> functions;
     std::vector<kh::AstClass*> classes;
@@ -35,29 +35,37 @@ kh::AstModule kh::Parser::parse() {
 
     }
 
-    return kh::AstModule{ imports, functions, classes, structs, enums, variables };
+    return new kh::AstModule(imports, functions, classes, structs, enums, variables);
 }
 
 kh::AstImport* kh::Parser::parseImport() {
-    this->i++; /* Consume `import` */
-}
-
-kh::AstFunction* kh::Parser::parseFunction() {
-    this->i++; /* Consume `def` */
-}
-
-kh::AstDeclarationExpression* kh::Parser::parseDeclaration() {
     
 }
 
+kh::AstFunction* kh::Parser::parseFunction() {
+
+}
+
+kh::AstFunction* kh::Parser::parseFunction(const bool is_static, const bool is_public) {
+
+}
+
+kh::AstDeclarationExpression* kh::Parser::parseDeclaration() {
+
+}
+
+kh::AstDeclarationExpression* kh::Parser::parseDeclaration(const bool is_static, const bool is_private) {
+
+}
+
 kh::AstClass* kh::Parser::parseClass() {
-    this->i++; /* Consume `class` */
+
 }
 
 kh::AstStruct* kh::Parser::parseStruct() {
-    this->i++; /* Consume `struct` */
+
 }
 
 kh::AstEnum* kh::Parser::parseEnum() {
-    this->i++; /* Consume `enum` */
+
 }

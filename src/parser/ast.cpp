@@ -32,7 +32,7 @@ kh::AstModule::~AstModule() {
 kh::AstFunction::~AstFunction() {
     if (this->return_type)
         delete this->return_type;
-    
+
     DEL_ALL_IN(this->arguments);
     DEL_ALL_IN(this->nested_functions);
     DEL_ALL_IN(this->body);
@@ -107,12 +107,17 @@ std::u32string kh::repr(const kh::AstFunction& function_ast, const size_t indent
     for (const std::u32string& identifier : function_ast.identifiers)
         str += U"\n\t\t" + ind + identifier;
 
-    str += U"\n\t" + ind + U"TEMPLATES:";
-    for (const std::u32string& template_ : function_ast.templates)
-        str += U"\n\t\t" + ind + template_;
+    if (!function_ast.generic_args.empty()) {
+        str += U"\n\t" + ind + U"GENERICS:";
+        for (const std::u32string& generic_ : function_ast.generic_args)
+            str += U"\n\t\t" + ind + generic_;
+    }
 
-    str += U"\n\t" + ind + U"RETURN TYPE REF DEPTH: " + kh::repr((uint64_t)function_ast.return_ref_depth);
-    str += U"\n\t" + ind + U"RETURN TYPE:\n\t\t" + ind + kh::repr(*function_ast.return_type, indent + 2);
+    if (function_ast.return_ref_depth)
+        str += U"\n\t" + ind + U"RETURN TYPE REF DEPTH: " + kh::repr((uint64_t)function_ast.return_ref_depth);
+
+    if (function_ast.return_type)
+        str += U"\n\t" + ind + U"RETURN TYPE:\n\t\t" + ind + kh::repr(*function_ast.return_type, indent + 2);
 
     str += U"\n\t" + ind + U"ARGUMENTS:";
     for (kh::AstDeclarationExpression* arg : function_ast.arguments)
@@ -144,10 +149,10 @@ std::u32string kh::repr(const kh::AstClass& class_ast, const size_t indent) {
     if (class_ast.base)
         str += U"\n\t" + ind + U"BASE:\n\t\t" + ind + kh::repr(*class_ast.base);
 
-    if (!class_ast.templates.empty()) {
-        str += U"\n\t" + ind + U"TEMPLATES:";
-        for (const std::u32string& template_ : class_ast.templates)
-            str += U"\n\t\t" + ind + template_;
+    if (!class_ast.generic_args.empty()) {
+        str += U"\n\t" + ind + U"GENERICS:";
+        for (const std::u32string& generic_ : class_ast.generic_args)
+            str += U"\n\t\t" + ind + generic_;
     }
 
     str += U"\n\t" + ind + U"MEMBERS:";
@@ -362,11 +367,11 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
                 str += U"\n\t\t" + ind + identifier;
         }
 
-        if (!expr_id.templates.empty()) {
-            str += U"\n\t" + ind + U"TEMPLATES:";
-            for (kh::AstIdentifierExpression* template_ : expr_id.templates)
-                if (template_)
-                    str += U"\n\t\t" + ind + kh::repr(*template_, indent + 2);
+        if (!expr_id.generics.empty()) {
+            str += U"\n\t" + ind + U"GENERICS:";
+            for (kh::AstIdentifierExpression* generic_ : expr_id.generics)
+                if (generic_)
+                    str += U"\n\t\t" + ind + kh::repr(*generic_, indent + 2);
         }
 
         break;

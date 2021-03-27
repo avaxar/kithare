@@ -431,7 +431,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                         i++;
                     }
                     else if (chAt(i + 1) == ']') {
-                        value.symbol_type = kh::Symbol::TEMPLATE_CLOSE;
+                        value.symbol_type = kh::Symbol::GENERIC_CLOSE;
                         i++;
 
                         tokens.emplace_back(i, kh::TokenType::SYMBOL, value);
@@ -459,7 +459,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                     value.symbol_type = kh::Symbol::SQUARE_OPEN;
 
                     if (chAt(i + 1) == '<') {
-                        value.symbol_type = kh::Symbol::TEMPLATE_OPEN;
+                        value.symbol_type = kh::Symbol::GENERIC_OPEN;
                         i++;
                     }
                     tokens.emplace_back(i, kh::TokenType::SYMBOL, value);

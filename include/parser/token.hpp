@@ -45,7 +45,7 @@ namespace kh {
         CURLY_OPEN, CURLY_CLOSE,
         SQUARE_OPEN, SQUARE_CLOSE,
 
-        TEMPLATE_OPEN, TEMPLATE_CLOSE
+        GENERIC_OPEN, GENERIC_CLOSE
     };
 
     enum class TokenType {

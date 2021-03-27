@@ -81,7 +81,7 @@ namespace kh {
     public:
         size_t index;
         std::vector<std::u32string> identifiers;
-        std::vector<std::u32string> templates;
+        std::vector<std::u32string> generic_args;
         kh::AstIdentifierExpression* return_type;
         size_t return_ref_depth;
         std::vector<kh::AstDeclarationExpression*> arguments;
@@ -90,11 +90,11 @@ namespace kh {
         bool is_static;
         bool is_public;
 
-        AstFunction(const size_t _index, const std::vector<std::u32string>& _identifiers, const std::vector<std::u32string>& _templates,
+        AstFunction(const size_t _index, const std::vector<std::u32string>& _identifiers, const std::vector<std::u32string>& _generic_args,
             kh::AstIdentifierExpression* _return_type, const size_t _return_ref_depth,
             const std::vector<kh::AstDeclarationExpression*>& _arguments, const std::vector<kh::AstFunction*>& _nested_functions,
             const std::vector<kh::AstBody*>& _body, const bool _is_static, const bool _is_public) :
-            index(_index), identifiers(_identifiers), templates(_templates), return_type(_return_type), return_ref_depth(_return_ref_depth),
+            index(_index), identifiers(_identifiers), generic_args(_generic_args), return_type(_return_type), return_ref_depth(_return_ref_depth),
             arguments(_arguments), nested_functions(_nested_functions), body(_body), is_static(_is_static), is_public(_is_public) {}
         virtual ~AstFunction();
     };
@@ -104,13 +104,13 @@ namespace kh {
         size_t index;
         std::u32string name;
         kh::AstIdentifierExpression* base;
-        std::vector<std::u32string> templates;
+        std::vector<std::u32string> generic_args;
         std::vector<kh::AstDeclarationExpression*> members;
         std::vector<kh::AstFunction*> methods;
 
-        AstClass(const size_t _index, const std::u32string& _name, kh::AstIdentifierExpression* _base, const std::vector<std::u32string>& _templates,
+        AstClass(const size_t _index, const std::u32string& _name, kh::AstIdentifierExpression* _base, const std::vector<std::u32string>& _generic_args,
             const std::vector<kh::AstDeclarationExpression*>& _members, const std::vector<kh::AstFunction*>& _methods) :
-            index(_index), name(_name), base(_base), members(_members), methods(_methods) {}
+            index(_index), name(_name), base(_base), generic_args(_generic_args), members(_members), methods(_methods) {}
         virtual ~AstClass();
     };
 
@@ -165,16 +165,16 @@ namespace kh {
     class AstIdentifierExpression : public kh::AstExpression {
     public:
         std::vector<std::u32string> identifiers;
-        std::vector<kh::AstIdentifierExpression*> templates;
+        std::vector<kh::AstIdentifierExpression*> generics;
 
-        AstIdentifierExpression(const size_t _index, const std::vector<std::u32string>& _identifiers, const std::vector<kh::AstIdentifierExpression*>& _templates) :
-            identifiers(_identifiers), templates(_templates) {
+        AstIdentifierExpression(const size_t _index, const std::vector<std::u32string>& _identifiers, const std::vector<kh::AstIdentifierExpression*>& _generics) :
+            identifiers(_identifiers), generics(_generics) {
             this->index = _index;
             this->type = kh::AstBody::Type::EXPRESSION;
             this->expression_type = kh::AstExpression::ExType::IDENTIFIER;
         }
         virtual ~AstIdentifierExpression() {
-            for (kh::AstIdentifierExpression* template_ : this->templates)
+            for (kh::AstIdentifierExpression* template_ : this->generics)
                 if (template_) delete template_;
         }
     };
