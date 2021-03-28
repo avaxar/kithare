@@ -75,65 +75,11 @@ namespace kh {
 
     struct Token {
         size_t index;
+        /* size_t length; */
         kh::TokenType type;
         kh::TokenValue value;
 
-        Token(const size_t _index, const kh::TokenType _type, const kh::TokenValue& _value) :
-            index(_index), type(_type), value(_value) {}
-
-        Token(const size_t _index, const kh::Operator op) :
-            index(_index), type(kh::TokenType::OPERATOR) {
-            this->value.operator_type = op;
-        }
-
-        Token(const size_t _index, const kh::Symbol sym) :
-            index(_index), type(kh::TokenType::SYMBOL) {
-            this->value.symbol_type = sym;
-        }
-
-        Token(const size_t _index, const uint64_t uintg) :
-            index(_index), type(kh::TokenType::UINTEGER) {
-            this->value.uinteger = uintg;
-        }
-
-        Token(const size_t _index, const int64_t intg) :
-            index(_index), type(kh::TokenType::INTEGER) {
-            this->value.integer = intg;
-        }
-
-        Token(const size_t _index, const char32_t chr) :
-            index(_index), type(kh::TokenType::CHARACTER) {
-            this->value.character = chr;
-        }
-
-        Token(const size_t _index, const std::u32string str) :
-            index(_index), type(kh::TokenType::STRING) {
-            this->value.string = str;
-        }
-
-        Token(const size_t _index, const std::string buf) :
-            index(_index), type(kh::TokenType::BUFFER) {
-            this->value.buffer = buf;
-        }
-
-        Token(const size_t _index, const double fl, const kh::TokenType _type) :
-            index(_index), type(_type) {
-            switch (_type) {
-            case kh::TokenType::FLOATING:
-                this->value.floating = fl; break;
-            case kh::TokenType::IMAGINARY:
-                this->value.imaginary = fl; break;
-            }
-        }
-
-        Token(const size_t _index, const std::u32string str, const kh::TokenType _type) :
-            index(_index), type(_type) {
-            switch (_type) {
-            case kh::TokenType::IDENTIFIER:
-                this->value.identifier = str; break;
-            case kh::TokenType::STRING:
-                this->value.string = str; break;
-            }
-        }
+        Token(const size_t _index, /* const size_t _length, */ const kh::TokenType _type, const kh::TokenValue& _value) :
+            index(_index), /* length(_length), */ type(_type), value(_value) {}
     };
 }
