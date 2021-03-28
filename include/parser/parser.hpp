@@ -24,15 +24,24 @@ namespace kh {
         size_t index;
     };
 
+    struct ParseExceptions {
+        ParseExceptions(const std::vector<kh::ParseException>& _exceptions) :
+            exceptions(_exceptions) {}
+
+        std::vector<kh::ParseException> exceptions;
+    };
+
     /// <summary>
     /// Parses the given tokens and returns an AST module tree.
     /// </summary>
     /// <param name="tokens">Tokens to be parsed</param>
     /// <returns></returns>
-    kh::AstModule* parse(const std::vector<kh::Token>& tokens);
+    kh::Ast* parse(const std::vector<kh::Token>& tokens);
 
     class Parser {
     public:
+        std::vector<kh::ParseException> exceptions;
+
         Parser(const std::vector<kh::Token>& _tokens);
         ~Parser();
 
@@ -40,10 +49,10 @@ namespace kh {
         /// Parses the provided tokens and returns an AST module tree.
         /// </summary>
         /// <returns></returns>
-        kh::AstModule* parse();
+        kh::Ast* parse();
     private:
         std::vector<kh::Token> tokens;
-        size_t i = 0;
+        size_t ti = 0; /* Token iterator */
 
         kh::AstImport* parseImport();
         kh::AstFunction* parseFunction();

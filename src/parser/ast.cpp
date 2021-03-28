@@ -20,7 +20,7 @@
             str += U"\n\t" + ind + kh::repr(*_var, indent + 1)
 
 
-kh::AstModule::~AstModule() {
+kh::Ast::~Ast() {
     DEL_ALL_IN(this->imports);
     DEL_ALL_IN(this->functions);
     DEL_ALL_IN(this->classes);
@@ -58,13 +58,13 @@ kh::AstEnum::~AstEnum() {
         delete this->base;
 }
 
-std::u32string kh::repr(const kh::AstModule& module_ast, const size_t indent) {
+std::u32string kh::repr(const kh::Ast& module_ast, const size_t indent) {
     std::u32string ind;
     ind.reserve(indent);
     for (size_t i = 0; i < indent; i++)
         ind += '\t';
 
-    std::u32string str = U"MODULE:";
+    std::u32string str = U"AST:";
 
     REPR_ALL_IN(module_ast.imports);
     REPR_ALL_IN(module_ast.functions);
@@ -432,7 +432,7 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
     }
 
     case kh::AstExpression::ExType::CALL: {
-        const kh::AstCallExpression & expr_call = *(kh::AstCallExpression*)&expr;
+        const kh::AstCallExpression& expr_call = *(kh::AstCallExpression*)&expr;
         str += U"CALL:";
 
         if (expr_call.expression)
@@ -442,7 +442,7 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
             str += U"\n\t" + ind + U"ARGUMENTS:";
             for (kh::AstExpression* argument : expr_call.arguments)
                 if (argument)
-                    str += U"\n\t\t"+ ind + kh::repr(*argument, indent + 2);
+                    str += U"\n\t\t" + ind + kh::repr(*argument, indent + 2);
         }
 
         break;

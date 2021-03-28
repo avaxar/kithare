@@ -10,9 +10,15 @@
 #include "parser/parser.hpp"
 
 
-kh::AstModule* kh::parse(const std::vector<kh::Token>& tokens) {
+kh::Ast* kh::parse(const std::vector<kh::Token>& tokens) {
     kh::Parser parser(tokens);
-    return parser.parse();
+    kh::Ast* ast = parser.parse();
+
+    if (parser.exceptions.empty())
+        return ast;
+    else
+        throw kh::ParseExceptions(parser.exceptions);
+
 }
 
 kh::Parser::Parser(const std::vector<kh::Token>& _tokens) {
@@ -23,7 +29,9 @@ kh::Parser::~Parser() {
 
 }
 
-kh::AstModule* kh::Parser::parse() {
+kh::Ast* kh::Parser::parse() {
+    this->exceptions.clear();
+
     std::vector<kh::AstImport*> imports;
     std::vector<kh::AstFunction*> functions;
     std::vector<kh::AstClass*> classes;
@@ -31,15 +39,17 @@ kh::AstModule* kh::Parser::parse() {
     std::vector<kh::AstEnum*> enums;
     std::vector<kh::AstDeclarationExpression*> variables;
 
-    for (this->i = 0; this->i < this->tokens.size(); this->i++) {
+    for (this->ti = 0; this->ti < this->tokens.size(); this->ti++) {
 
     }
 
-    return new kh::AstModule(imports, functions, classes, structs, enums, variables);
+    return new kh::Ast(imports, functions, classes, structs, enums, variables);
 }
 
+/* // This part of the code is commented as these methods haven't been implemented plus so that the CI doesn't fail, hopefully.
+
 kh::AstImport* kh::Parser::parseImport() {
-    
+
 }
 
 kh::AstFunction* kh::Parser::parseFunction() {
@@ -69,3 +79,65 @@ kh::AstStruct* kh::Parser::parseStruct() {
 kh::AstEnum* kh::Parser::parseEnum() {
 
 }
+
+kh::AstExpression* kh::Parser::parseExpression() {
+
+}
+
+kh::AstExpression* kh::Parser::parseAssignOps() {
+
+}
+
+kh::AstExpression* kh::Parser::parseTernary() {
+
+}
+
+kh::AstExpression* kh::Parser::parseOr() {
+
+}
+
+kh::AstExpression* kh::Parser::parseAnd() {
+
+}
+
+kh::AstExpression* kh::Parser::parseComparison() {
+
+}
+
+kh::AstExpression* kh::Parser::parseBitwiseOr() {
+
+}
+
+kh::AstExpression* kh::Parser::parseBitwiseAnd() {
+
+}
+
+kh::AstExpression* kh::Parser::parseBitwiseShift() {
+
+}
+
+kh::AstExpression* kh::Parser::parseAddSub() {
+
+}
+
+kh::AstExpression* kh::Parser::parseMulDivMod() {
+
+}
+
+kh::AstExpression* kh::Parser::parseExponentiation() {
+
+}
+
+kh::AstExpression* kh::Parser::parseUnLiteral() {
+
+}
+
+kh::AstExpression* kh::Parser::parseIdentifiers() {
+
+}
+
+kh::AstExpression* kh::Parser::parseTuple() {
+
+}
+
+*/

@@ -17,7 +17,7 @@
 
 
 namespace kh {
-    class AstModule;
+    class Ast;
     class AstImport;
     class AstFunction;
     class AstClass;
@@ -41,7 +41,7 @@ namespace kh {
     class AstFor;
     class AstStatement;
 
-    std::u32string repr(const kh::AstModule& module_ast, const size_t indent = 0);
+    std::u32string repr(const kh::Ast& module_ast, const size_t indent = 0);
     std::u32string repr(const kh::AstImport& import_ast, const size_t indent = 0);
     std::u32string repr(const kh::AstFunction& function_ast, const size_t indent = 0);
     std::u32string repr(const kh::AstClass& class_ast, const size_t indent = 0);
@@ -50,7 +50,7 @@ namespace kh {
     std::u32string repr(const kh::AstBody& ast, const size_t indent = 0);
     std::u32string repr(const kh::AstExpression& expr, const size_t indent = 0);
 
-    class AstModule {
+    class Ast {
     public:
         std::vector<kh::AstImport*> imports;
         std::vector<kh::AstFunction*> functions;
@@ -59,11 +59,11 @@ namespace kh {
         std::vector<kh::AstEnum*> enums;
         std::vector<kh::AstDeclarationExpression*> variables;
 
-        AstModule(const std::vector<kh::AstImport*>& _imports, const std::vector<kh::AstFunction*>& _functions,
+        Ast(const std::vector<kh::AstImport*>& _imports, const std::vector<kh::AstFunction*>& _functions,
             const std::vector<kh::AstClass*>& _classes, const std::vector<kh::AstStruct*>& _structs, const std::vector<kh::AstEnum*>& _enums,
             const std::vector<kh::AstDeclarationExpression*>& _variables) :
             variables(_variables), imports(_imports), functions(_functions), classes(_classes), structs(_structs), enums(_enums) {}
-        virtual ~AstModule();
+        virtual ~Ast();
     };
 
     class AstImport {
