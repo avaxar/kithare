@@ -126,7 +126,7 @@ namespace kh {
     enum class TokenizeState {
         NONE, IDENTIFIER,
         INTEGER, FLOATING, HEX, OCTAL, BIN,
-        IN_BUF, IN_STR,
+        IN_BUF, IN_MULTILINE_BUF, IN_STR, IN_MULTILINE_STR,
         IN_INLINE_COMMENT, IN_MULTIPLE_LINE_COMMENT
     };
 
@@ -189,7 +189,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                         if (chAt(i + 2) == '\\') {
                             kh::TokenValue value;
                             switch (chAt(i + 3)) {
-                                /* Hex character escape */
+                            /* Hex character escape */
                             case 'x':
                             case 'X':
                             {
@@ -228,8 +228,14 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                     }
                     /* Possible byte-string/buffer */
                     else if (chAt(i + 1) == '"') {
-                        state = kh::TokenizeState::IN_BUF;
-                        i++;
+                        if (chAt(i + 2) == '"' && chAt(i + 3)) {
+                            state = kh::TokenizeState::IN_MULTILINE_BUF;
+                            i += 3;
+                        }
+                        else {
+                            state = kh::TokenizeState::IN_BUF;
+                            i += 1;
+                        }
                         continue;
                     }
                 }
@@ -285,13 +291,13 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
 
             else {
                 switch (chAt(i)) {
-                    /* Possible character */
+                /* Possible character */
                 case '\'': {
                     kh::TokenValue value;
                     /* Possible char escape */
                     if (chAt(i + 1) == '\\') {
                         switch (chAt(i + 2)) {
-                            /* Hex escapes */
+                        /* Hex escapes */
                         case 'x': case 'X': {
                             HANDLE_HEX_INTO_HEXSTR(3, 2);
                             PLACE_HEXSTR_AS_CHAR();
@@ -309,7 +315,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                             PLACE_HEXSTR_AS_CHAR();
                         } break;
 
-                        HANDLE_ESCAPES_1(value.character, kh::TokenType::CHARACTER, 3)
+                            HANDLE_ESCAPES_1(value.character, kh::TokenType::CHARACTER, 3)
                         }
                     }
                     else if (chAt(i + 1) == '\'') {
@@ -326,7 +332,6 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                         kh::TokenValue value;
                         value.character = chAt(i + 1);
                         tokens.emplace_back(i, kh::TokenType::CHARACTER, value);
-
                         i += 2;
                     }
                     else
@@ -336,33 +341,38 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
 
                 /* Possible string */
                 case '"':
-                    state = kh::TokenizeState::IN_STR;
+                    if (chAt(i + 1) == '"' && chAt(i + 2) == '"') {
+                        state = kh::TokenizeState::IN_MULTILINE_STR;
+                        i += 2;
+                    }
+                    else
+                        state = kh::TokenizeState::IN_STR;
                     break;
 
                 /* Operator handling */
-                HANDLE_OP_COMBO('+', kh::Operator::ADD, '=', kh::Operator::IADD)
-                HANDLE_OP_COMBO('-', kh::Operator::SUB, '=', kh::Operator::ISUB)
-                HANDLE_OP_COMBO('%', kh::Operator::MOD, '=', kh::Operator::IMOD)
-                HANDLE_OP_COMBO('^', kh::Operator::POW, '=', kh::Operator::IPOW)
-                HANDLE_OP_COMBO('=', kh::Operator::ASSIGN, '=', kh::Operator::EQUAL)
-                HANDLE_OP_COMBO('!', kh::Operator::NOT, '=', kh::Operator::NOT_EQUAL)
-                HANDLE_OP_COMBO('&', kh::Operator::BIT_AND, '&', kh::Operator::AND)
-                HANDLE_OP_COMBO('|', kh::Operator::BIT_OR, '|', kh::Operator::OR)
-                HANDLE_SIMPLE_OP('~', kh::Operator::BIT_NOT)
-                HANDLE_SIMPLE_OP('#', kh::Operator::SIZEOF)
-                HANDLE_SIMPLE_OP('@', kh::Operator::ADDRESS)
+                HANDLE_OP_COMBO('+', kh::Operator::ADD, '=', kh::Operator::IADD);
+                HANDLE_OP_COMBO('-', kh::Operator::SUB, '=', kh::Operator::ISUB);
+                HANDLE_OP_COMBO('%', kh::Operator::MOD, '=', kh::Operator::IMOD);
+                HANDLE_OP_COMBO('^', kh::Operator::POW, '=', kh::Operator::IPOW);
+                HANDLE_OP_COMBO('=', kh::Operator::ASSIGN, '=', kh::Operator::EQUAL);
+                HANDLE_OP_COMBO('!', kh::Operator::NOT, '=', kh::Operator::NOT_EQUAL);
+                HANDLE_OP_COMBO('&', kh::Operator::BIT_AND, '&', kh::Operator::AND);
+                HANDLE_OP_COMBO('|', kh::Operator::BIT_OR, '|', kh::Operator::OR);
+                HANDLE_SIMPLE_OP('~', kh::Operator::BIT_NOT);
+                HANDLE_SIMPLE_OP('#', kh::Operator::SIZEOF);
+                HANDLE_SIMPLE_OP('@', kh::Operator::ADDRESS);
 
                 /* Symbol handling */
-                HANDLE_SIMPLE_SYMBOL(';', kh::Symbol::SEMICOLON)
-                HANDLE_SIMPLE_SYMBOL(',', kh::Symbol::COMMA)
-                HANDLE_SIMPLE_SYMBOL('?', kh::Symbol::QUESTION)
-                HANDLE_SIMPLE_SYMBOL(':', kh::Symbol::COLON)
-                HANDLE_SIMPLE_SYMBOL('$', kh::Symbol::DOLLAR)
-                HANDLE_SIMPLE_SYMBOL('(', kh::Symbol::PARENTHESES_OPEN)
-                HANDLE_SIMPLE_SYMBOL(')', kh::Symbol::PARENTHESES_CLOSE)
-                HANDLE_SIMPLE_SYMBOL('{', kh::Symbol::CURLY_OPEN)
-                HANDLE_SIMPLE_SYMBOL('}', kh::Symbol::CURLY_CLOSE)
-                HANDLE_SIMPLE_SYMBOL(']', kh::Symbol::SQUARE_CLOSE)
+                HANDLE_SIMPLE_SYMBOL(';', kh::Symbol::SEMICOLON);
+                HANDLE_SIMPLE_SYMBOL(',', kh::Symbol::COMMA);
+                HANDLE_SIMPLE_SYMBOL('?', kh::Symbol::QUESTION);
+                HANDLE_SIMPLE_SYMBOL(':', kh::Symbol::COLON);
+                HANDLE_SIMPLE_SYMBOL('$', kh::Symbol::DOLLAR);
+                HANDLE_SIMPLE_SYMBOL('(', kh::Symbol::PARENTHESES_OPEN);
+                HANDLE_SIMPLE_SYMBOL(')', kh::Symbol::PARENTHESES_CLOSE);
+                HANDLE_SIMPLE_SYMBOL('{', kh::Symbol::CURLY_OPEN);
+                HANDLE_SIMPLE_SYMBOL('}', kh::Symbol::CURLY_CLOSE);
+                HANDLE_SIMPLE_SYMBOL(']', kh::Symbol::SQUARE_CLOSE);
 
                 /* Some operators and symbols have more complicated handling, and
                  * those are not macro-ised */
@@ -721,7 +731,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                 if (chAt(i) == '\\') {
                     uint8_t value;
                     switch (chAt(i + 1)) {
-                        /* Hex character escape */
+                    /* Hex character escape */
                     case 'x':
                     case 'X': {
                         HANDLE_HEX_INTO_HEXSTR(2, 2);
@@ -734,7 +744,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                         break;
 
                     /* Other character escapes */
-                    HANDLE_ESCAPES_2(temp_buf.push_back(value))
+                    HANDLE_ESCAPES_2(temp_buf.push_back(value));
                     }
                 }
                 else {
@@ -746,7 +756,48 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
             }
             continue;
 
-            /* Checks for a string */
+            /* Checks for a multiline byte-string/buffer */
+        case kh::TokenizeState::IN_MULTILINE_BUF:
+            if (chAt(i) == '"' && chAt(i + 1) == '"' && chAt(i + 2) == '"') {
+                /* End buffer */
+                kh::TokenValue value;
+                value.buffer = temp_buf;
+                tokens.emplace_back(i, kh::TokenType::BUFFER, value);
+
+                state = kh::TokenizeState::NONE;
+                i += 2;
+            }
+            else {
+                /* Possible character escape */
+                if (chAt(i) == '\\') {
+                    uint8_t value;
+                    switch (chAt(i + 1)) {
+                    /* Hex character escape */
+                    case 'x':
+                    case 'X': {
+                        HANDLE_HEX_INTO_HEXSTR(2, 2);
+                        temp_buf.push_back(std::stoul(hex_str, nullptr, 16));
+                        i--;
+                    } break;
+
+                    case '\n':
+                        i++;
+                        break;
+
+                    /* Other character escapes */
+                    HANDLE_ESCAPES_2(temp_buf.push_back(value));
+                    }
+                }
+                else {
+                    if (chAt(i) > 255)
+                        KH_RAISE_ERROR(U"A non-byte sized character", 0);
+
+                    temp_buf.push_back(chAt(i));
+                }
+            }
+            continue;
+
+        /* Checks for a string */
         case kh::TokenizeState::IN_STR:
             if (chAt(i) == '"') {
                 /* End string */
@@ -764,7 +815,57 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                 if (chAt(i) == '\\') {
                     uint8_t value;
                     switch (chAt(i + 1)) {
-                        /* Hex character escape */
+                    /* Hex character escape */
+                    case 'x': case 'X': {
+                        HANDLE_HEX_INTO_HEXSTR(2, 2);
+                        temp_str += std::stoul(hex_str, nullptr, 16);
+                        i--;
+                    } break;
+
+                    /* 2 bytes unicode escape */
+                    case 'u': {
+                        HANDLE_HEX_INTO_HEXSTR(2, 4);
+                        temp_str += std::stoul(hex_str, nullptr, 16);
+                        i--;
+                    } break;
+
+                    /* 4 bytes unicode escape */
+                    case 'U': {
+                        HANDLE_HEX_INTO_HEXSTR(2, 8);
+                        temp_str += std::stoul(hex_str, nullptr, 16);
+                        i--;
+                    } break;
+
+                    case '\n':
+                        i++;
+                        break;
+
+                    /* Other character escapes */
+                    HANDLE_ESCAPES_2(temp_str += value)
+                    }
+                }
+                else
+                    temp_str += chAt(i);
+            }
+            continue;
+
+        /* Checks for a multiline string */
+        case kh::TokenizeState::IN_MULTILINE_STR:
+            if (chAt(i) == '"' && chAt(i + 1) == '"' && chAt(i + 2) == '"') {
+                /* End string */
+                kh::TokenValue value;
+                value.string = temp_str;
+                tokens.emplace_back(i, kh::TokenType::STRING, value);
+
+                state = kh::TokenizeState::NONE;
+                i += 2;
+            }
+            else {
+                /* Possible character escape */
+                if (chAt(i) == '\\') {
+                    uint8_t value;
+                    switch (chAt(i + 1)) {
+                    /* Hex character escape */
                     case 'x': case 'X': {
                         HANDLE_HEX_INTO_HEXSTR(2, 2);
                         temp_str += std::stoul(hex_str, nullptr, 16);

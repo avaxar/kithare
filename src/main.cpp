@@ -32,7 +32,7 @@ void run(const std::vector<std::u32string>& args) {
             println(token);
         }
     }
-    catch (kh::LexException &exc) {
+    catch (kh::LexException& exc) {
         println(exc.what);
         std::exit(1);
     }

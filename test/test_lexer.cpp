@@ -66,7 +66,7 @@ bool testLexNumeralValue() {
 
     try {
         auto tokens = kh::lex(source);
-        KH_ASSERT_EQUAL(tokens.size() , 21);
+        KH_ASSERT_EQUAL(tokens.size(), 21);
 
         KH_ASSERT_EQUAL(tokens[0].type, kh::TokenType::INTEGER);
         KH_ASSERT_EQUAL(tokens[0].value.integer, 0);
@@ -118,13 +118,19 @@ bool testLexNumeralValue() {
 bool testLexStringsAndBuffers() {
     /* "AB\x42\x88\u1234\u9876\U00001234\U00010000\"\n" */
     std::u32string source =
-        U"\"AB\\x42\\x88\\u1234\\u9876\\v\\U00001234\\U00010000\\\"\\n\""
-        U"b'' '' b\"aFd\\x87\\x90\\xff\" 'K' b'\\b' b'\\x34''\\U0001AF21' '\\r'";
+        U"\"AB\\x42\\x88\\u1234\\u9876\\v\\U00001234\\U00010000\\\"\\n\"" /* Escape tests */
+        U"b'' '' b\"aFd\\x87\\x90\\xff\" 'K' b'\\b' b'\\x34''\\U0001AF21' '\\r' "
+        U"\"Hello, world!\" "  /* String */
+        U"b\"Hello, world!\" " /* Buffer / byte-string */
+        U"\"\"\"Hello,\n"
+        U"world!\"\"\" "       /* Multiline string */
+        U"b\"\"\"Hello,\n"
+        U"world!\"\"\" ";      /* Multiline buffer */
 
     try {
         auto tokens = kh::lex(source);
 
-        KH_ASSERT_EQUAL(tokens.size(), 9);
+        KH_ASSERT_EQUAL(tokens.size(), 13);
 
         KH_ASSERT_EQUAL(tokens[0].type, kh::TokenType::STRING);
         KH_ASSERT_EQUAL(tokens[0].value.string, U"AB\x42\x88\u1234\u9876\v\U00001234\U00010000\"\n");
@@ -144,6 +150,14 @@ bool testLexStringsAndBuffers() {
         KH_ASSERT_EQUAL(tokens[7].value.character, U'\U0001AF21');
         KH_ASSERT_EQUAL(tokens[8].type, kh::TokenType::CHARACTER);
         KH_ASSERT_EQUAL(tokens[8].value.character, U'\r');
+        KH_ASSERT_EQUAL(tokens[9].type, kh::TokenType::STRING);
+        KH_ASSERT_EQUAL(tokens[9].value.string, U"Hello, world!");
+        KH_ASSERT_EQUAL(tokens[10].type, kh::TokenType::BUFFER);
+        KH_ASSERT_EQUAL(tokens[10].value.buffer, "Hello, world!");
+        KH_ASSERT_EQUAL(tokens[11].type, kh::TokenType::STRING);
+        KH_ASSERT_EQUAL(tokens[11].value.string, U"Hello,\nworld!");
+        KH_ASSERT_EQUAL(tokens[12].type, kh::TokenType::BUFFER);
+        KH_ASSERT_EQUAL(tokens[12].value.buffer, "Hello,\nworld!");
 
 
         return false;
