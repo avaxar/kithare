@@ -323,12 +323,10 @@ def main():
             cflags += download_sdl_deps(package, ver)
 
     else:
-        sys.stderr.write("use windows lol")
-        sys.exit(hash("fuck you"))
-        # for inc_dir in ["/usr/include/SDL2", "/usr/local/include/SDL2"]:
-        #     if os.path.isdir(inc_dir):
-        #         cflags += f" -I {inc_dir}"
-        #         break
+        for inc_dir in ["/usr/include/SDL2", "/usr/local/include/SDL2"]:
+            if os.path.isdir(inc_dir):
+                cflags += f" -I {inc_dir}"
+                break
 
     if compiler == "MSVC":
         if msvc_no_compile:
