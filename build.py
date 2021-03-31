@@ -260,11 +260,13 @@ def compile_gpp(src, output, srcflag="-c "):
     return os.system(cmd)
 
 
-def _build_exe(files, exepath):
+def _build_exe(files, exepath, icoflag):
     """
     Helper to generate final exe
     """
     print("Building exe")
+    if icoflag:
+        files.append("icon.res")
 
     ecode = compile_gpp(" ".join(files).replace("\\", "/"), exepath, "")
     print()
@@ -272,7 +274,7 @@ def _build_exe(files, exepath):
         sys.exit(ecode)
 
 
-def build_exe(builddir, distdir, testmode=False, icoflag=""):
+def build_exe(builddir, distdir, testmode=False, icoflag=False):
     """
     Generate final exe
     """
@@ -288,17 +290,14 @@ def build_exe(builddir, distdir, testmode=False, icoflag=""):
             if os.path.basename(i).startswith("test_"):
                 objfiles.remove(i)
 
-    if icoflag:
-        objfiles.append(icoflag)
-
     if not os.path.exists(exepath):
-        _build_exe(objfiles, exepath)
+        _build_exe(objfiles, exepath, icoflag)
 
     else:
         dist_m = os.stat(exepath).st_mtime
         for ofile in objfiles:
             if os.stat(ofile).st_mtime > dist_m:
-                _build_exe(objfiles, exepath)
+                _build_exe(objfiles, exepath, icoflag)
                 break
 
 
@@ -359,13 +358,12 @@ def main():
         print("Skipped building executable, because all files didn't build")
         sys.exit(1)
 
-    icoflag = ""
     if compiler == "MinGW":
-        icoflag = "icon.res"
-        os.system(f"windres assets/Kithare.rc -O coff -o {icoflag}")
-
-    build_exe(builddir, distdir, icoflag=icoflag)
-    os.remove(icoflag)
+        os.system(f"windres assets/Kithare.rc -O coff -o icon.res")
+        build_exe(builddir, distdir, icoflag=True)
+        os.remove("icon.res")
+    else:
+        build_exe(builddir, distdir)
 
     # Below section is for tests
     if build_tests:
