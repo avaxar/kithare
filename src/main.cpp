@@ -12,28 +12,38 @@
 
 #include "utility/string.hpp"
 #include "parser/lexer.hpp"
-#include "parser/ast.hpp"
+#include "parser/parser.hpp"
 
 
 void run(const std::vector<std::u32string>& args) {
     std::u32string source =
-        U"0 1 2 8 9  "  /* Single digit decimal integers */
-        U"00 10 29U  "  /* Multi-digit + Unsigned */
-        U"0.1 0.2    "  /* Floating point */
-        U"11.1 .123  "  /* Several other cases */
-        U"0xFFF 0x1  "  /* Hexadecimal */
-        U"0o77 0o11  "  /* Octal */
-        U"0b111 0b01 "  /* Binary */
-        U"4i 2i 5.6i "; /* Imaginary */
+        U"import stuff;                             \n"
+        U"import stuff.with.path;                   \n"
+        U"import stuff.with.path as something;      \n"
+        U"include this.too;                         \n"
+
+        U"def main() {                              \n"
+        U"    std.println(\"Hello, world!\");       \n"
+        U"}                                         \n";
 
     try {
-        auto tokens = kh::lex(source);
-        for (auto token : tokens) {
+        println(U"Lexicating the source and generate tokens...");
+        std::vector<kh::Token> tokens = kh::lex(source);
+        for (auto token : tokens)
             println(token);
-        }
+
+        println(U"\n\nParsing the tokens and generate an AST tree...");
+        // kh::Ast* ast = kh::parse(tokens);
+        // println(*ast);
+        // delete ast;
     }
-    catch (kh::LexException& exc) {
+    catch (const kh::LexException& exc) {
         println(exc.what);
+        std::exit(1);
+    }
+    catch (const kh::ParseExceptions& exc) {
+        for (const kh::ParseException& ex : exc.exceptions)
+            println(ex.what);
         std::exit(1);
     }
 }

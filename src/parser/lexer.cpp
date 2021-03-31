@@ -315,7 +315,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                             PLACE_HEXSTR_AS_CHAR();
                         } break;
 
-                            HANDLE_ESCAPES_1(value.character, kh::TokenType::CHARACTER, 3)
+                        HANDLE_ESCAPES_1(value.character, kh::TokenType::CHARACTER, 3);
                         }
                     }
                     else if (chAt(i + 1) == '\'') {

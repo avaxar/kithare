@@ -54,15 +54,21 @@ namespace kh {
         std::vector<kh::Token> tokens;
         size_t ti = 0; /* Token iterator */
 
-        kh::AstImport* parseImport();
-        kh::AstFunction* parseFunction();
-        kh::AstFunction* parseFunction(const bool is_static, const bool is_public);
-        kh::AstDeclarationExpression* parseDeclaration();
+        /* Get token of the current iterator index */
+        inline kh::Token& to(const size_t offset = 0) {
+            return this->tokens[this->ti + offset];
+        }
+
+        kh::AstImport* parseImport(const bool is_include);
+        void parseAccessAttribs(bool& is_static, bool& is_public);
+        kh::AstFunctionExpression* parseFunction(const bool is_static, const bool is_public);
         kh::AstDeclarationExpression* parseDeclaration(const bool is_static, const bool is_public);
 
         kh::AstClass* parseClass();
         kh::AstStruct* parseStruct();
         kh::AstEnum* parseEnum();
+
+        std::vector<std::shared_ptr<kh::AstBody>> parseBody();
 
         /* These parse expressions below are ordered based from their precedence from lowest to highest */
 
