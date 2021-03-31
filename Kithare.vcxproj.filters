@@ -44,9 +44,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="assets\resource.h">
-      <Filter>resource</Filter>
-    </ClInclude>
     <ClInclude Include="include\utility\string.hpp">
       <Filter>include\utility</Filter>
     </ClInclude>

@@ -27,7 +27,6 @@
     <ClCompile Include="src\utility\string.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="assets\resource.h" />
     <ClInclude Include="include\parser\ast.hpp" />
     <ClInclude Include="include\parser\lexer.hpp" />
     <ClInclude Include="include\parser\parser.hpp" />

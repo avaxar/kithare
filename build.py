@@ -2,8 +2,8 @@
 Builder script to build Kithare.
 
 On Windows and MinGW:
-    You must have MinGW (AKA MinGW-w64) installed, and 'g++' command must
-    be on PATH.
+    You must have MinGW (AKA MinGW-w64) installed, and the bin folder of
+    MinGW must be on PATH.
 
     This builder automatically installs SDL dependencies. Just run this file
     with: 'py build.py'.
@@ -17,10 +17,10 @@ On Windows and MSVC:
     sources using the MSVC compiler. By default, this command will build in
     "Release" mode, if you want to build in "Debug" mode, pass '--debug' too.
 
-    If you are familiar with Visual Studio C++ IDE, you can also use the graphical
-    interface in the IDE to build kithare. But in that case, you would first
-    need to run 'py build.py --msvc-deps', as this installs the required
-    dependencies.
+    If you are familiar with Visual Studio C++ IDE, you can also use the
+    graphical interface in the IDE to build kithare. But in that case, you
+    would first need to run 'py build.py --msvc-deps', as this installs the
+    required dependencies.
 
 On other OS:
     This assumes you have GCC (g++) installed. Also, you need to install SDL
@@ -265,13 +265,14 @@ def _build_exe(files, exepath):
     Helper to generate final exe
     """
     print("Building exe")
+
     ecode = compile_gpp(" ".join(files).replace("\\", "/"), exepath, "")
     print()
     if ecode:
         sys.exit(ecode)
 
 
-def build_exe(builddir, distdir, testmode=False):
+def build_exe(builddir, distdir, testmode=False, icoflag=""):
     """
     Generate final exe
     """
@@ -286,6 +287,9 @@ def build_exe(builddir, distdir, testmode=False):
         for i in list(objfiles):
             if os.path.basename(i).startswith("test_"):
                 objfiles.remove(i)
+
+    if icoflag:
+        objfiles.append(icoflag)
 
     if not os.path.exists(exepath):
         _build_exe(objfiles, exepath)
@@ -355,7 +359,13 @@ def main():
         print("Skipped building executable, because all files didn't build")
         sys.exit(1)
 
-    build_exe(builddir, distdir)
+    icoflag = ""
+    if compiler == "MinGW":
+        icoflag = "icon.res"
+        os.system(f"windres assets/Kithare.rc -O coff -o {icoflag}")
+
+    build_exe(builddir, distdir, icoflag=icoflag)
+    os.remove(icoflag)
 
     # Below section is for tests
     if build_tests:
