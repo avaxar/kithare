@@ -1036,6 +1036,9 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
             this->ti++;
         else {
             do {
+                this->ti++;
+                GUARD(0);
+
                 generics.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
 
                 GUARD(0);
