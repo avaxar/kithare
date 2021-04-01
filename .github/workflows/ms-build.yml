@@ -53,8 +53,8 @@ jobs:
     - name: Run tests
       run: python3 build.py --msvc --run-tests --arch=${{matrix.arch}}
 
-    #- name: Upload dist
-      #uses: actions/upload-artifact@v2
-      #with:
-        #name: dist-MSVC
-        #path: dist/MSVC-x64-Release
+    - name: Upload dist
+      uses: actions/upload-artifact@v2
+      with:
+        name: dist-MSVC
+        path: dist/MSVC-${{matrix.arch}}-Release

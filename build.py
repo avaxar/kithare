@@ -2,8 +2,8 @@
 Builder script to build Kithare.
 
 On Windows and MinGW:
-    You must have MinGW (AKA MinGW-w64) installed, and the bin folder of
-    MinGW must be on PATH.
+    You must have MinGW (AKA MinGW-w64) installed, and the bin folder of MinGW
+    must be on PATH.
 
     This builder automatically installs SDL dependencies. Just run this file
     with: 'py build.py'.
@@ -12,15 +12,15 @@ On Windows and MSVC:
     Make sure you have Visual Studio 2019 with C/C++ build tools and Windows 10
     SDK installed.
 
+    If you are familiar with Visual Studio C++ IDE, you can use the graphical
+    interface in the IDE to build kithare. But in that case, you would first
+    need to run 'py build.py --msvc-deps', as this installs the required
+    dependencies.
+
     To build kithare from the command line, you first need to have the 'msbuild'
     command in your PATH. Then run 'py build.py --msvc'. This will build kithare
     sources using the MSVC compiler. By default, this command will build in
     "Release" mode, if you want to build in "Debug" mode, pass '--debug' too.
-
-    If you are familiar with Visual Studio C++ IDE, you can also use the
-    graphical interface in the IDE to build kithare. But in that case, you
-    would first need to run 'py build.py --msvc-deps', as this installs the
-    required dependencies.
 
 On other OS:
     This assumes you have GCC (g++) installed. Also, you need to install SDL
@@ -34,20 +34,18 @@ On other OS:
 
     And the build is really simple, just run 'python3 build.py'
 
-If you are on a 64-bit system, and want to compile for 32-bit architecture,
-pass '--arch=x86' as an argument to the build script (note that this might not
-work in some cases)
+If you are on a 64-bit system, and want to compile for 32-bit architecture, pass
+'--arch=x86' as an argument to the build script (note that this might not work
+in some cases)
 
 If you want to compile tests too, pass '--build-tests' to this builder.
 
-To just run tests, pass '--run-tests'. Note that this command is
-only going to run the tests, it does not do anything else.
+To just run tests, pass '--run-tests'. Note that this command is only going to
+run the tests, it does not do anything else.
 
-Any other arguments passed to this builder will be forwarded to the
-compiler (but not on MSVC).
-
-This feature might fall of use for advanced users, who know what they are
-doing.
+Any other arguments passed to this builder will be forwarded to the compiler,
+but this is not true in the case of MSVC.
+This feature might fall of use for advanced users, who know what they are doing.
 """
 
 import glob
@@ -77,59 +75,40 @@ SDL_DEPS = {
     "SDL2_net": "2.0.1",
 }
 
-build_tests = "--build-tests" in sys.argv
-if build_tests:
-    sys.argv.remove("--build-tests")
+IS_32_BIT = "--arch=x86" in sys.argv
 
-run_tests = "--run-tests" in sys.argv
-if run_tests:
-    sys.argv.remove("--run-tests")
+for arch in ["--arch=x86", "--arch=x64"]:
+    if arch in sys.argv:
+        sys.argv.remove(arch)
 
-is_32_bit = "--arch=x86" in sys.argv
+MACHINE = platform.machine()
+if MACHINE.endswith("86"):
+    MACHINE = "x86"
+    MACHINE_ALT = "i686"
 
-for i in ["--arch=x86", "--arch=x64"]:
-    if i in sys.argv:
-        sys.argv.remove(i)
+elif MACHINE.lower() in ["x86_64", "amd64"]:
+    MACHINE = "x86" if IS_32_BIT else "x64"
+    MACHINE_ALT = "i686" if IS_32_BIT else "x86_64"
 
-_machine = platform.machine()
-if _machine.endswith("86"):
-    machine = "x86"
-    machine_alt = "i686"
+elif MACHINE.lower() in ["armv8l", "arm64", "aarch64"]:
+    MACHINE = "ARM" if IS_32_BIT else "ARM64"
 
-elif _machine.lower() in ["x86_64", "amd64"]:
-    machine = "x86" if is_32_bit else "x64"
-    machine_alt = "i686" if is_32_bit else "x86_64"
+elif MACHINE.lower().startswith("arm"):
+    MACHINE = "ARM"
 
-elif _machine.lower() in ["armv8l", "arm64", "aarch64"]:
-    machine = "ARM" if is_32_bit else "ARM64"
+elif not MACHINE:
+    MACHINE = "None"
 
-elif _machine.lower().startswith("arm"):
-    machine = "ARM"
-
-else:
-    machine = _machine if _machine else "None"
-
+MSVC_NO_COMPILE = False
 if platform.system() == "Windows":
-    msvc_no_compile = "--msvc-deps" in sys.argv
-    msvc_config = "Debug" if "--debug" in sys.argv else "Release"
-    compiler = "MSVC" if "--msvc" in sys.argv or msvc_no_compile else "MinGW"
+    MSVC_NO_COMPILE = "--msvc-deps" in sys.argv
+    MSVC_CONFIG = "Debug" if "--debug" in sys.argv else "Release"
+    COMPILER = "MSVC" if "--msvc" in sys.argv or MSVC_NO_COMPILE else "MinGW"
 
 else:
-    compiler = "GCC"
+    COMPILER = "GCC"
 
-
-cflags = "-O3 -std=c++17 -I include"
-cflags += " -lSDL2 -lSDL2main -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lSDL2_net"
-
-if compiler == "MinGW":
-    cflags += " -municode"
-
-if is_32_bit and "-m32" not in sys.argv:
-    cflags += " -m32"
-
-cflags += " " + " ".join(sys.argv[1:])
-
-download_dir = f"deps/SDL-{compiler}"
+DOWNLOAD_DIR = f"deps/SDL-{COMPILER}"
 
 
 def mkdir(file):
@@ -143,8 +122,8 @@ def find_includes(file):
     """
     Recursively find include files for a given file
     """
-    with open(file, "r") as f:
-        for cnt, line in enumerate(f.read().splitlines()):
+    with open(file, "r") as fobj:
+        for cnt, line in enumerate(fobj.read().splitlines()):
             if line.startswith("#include "):
                 retfile = line[len("#include "):]
                 for char in ['"', '<', '>']:
@@ -174,10 +153,40 @@ def should_build(file, ofile):
     if os.stat(file).st_mtime > ofile_m:
         return True
 
-    for f in find_includes(file):
-        if os.stat(f).st_mtime > ofile_m:
+    for incfile in find_includes(file):
+        if os.stat(incfile).st_mtime > ofile_m:
             return True
     return False
+
+
+def copy_sdl_dll(download_path):
+    """
+    Copy SDL dll's into the dist folder, and also return the cflags to include
+    the SDL library
+    """
+    if COMPILER == "MSVC":
+        for i in ["x86", "x64"]:
+            for j in ["Debug", "Release"]:
+                distdir = f"dist/MSVC-{i}-{j}"
+                mkdir(distdir)
+                for dll in glob.iglob(f"{download_path}/lib/{i}/*.dll"):
+                    shutil.copyfile(
+                        dll,
+                        os.path.join(distdir, os.path.basename(dll))
+                    )
+        return tuple()
+
+    for dll in glob.iglob(
+        f"{download_path}/{MACHINE_ALT}-w64-mingw32/bin/*.dll"
+    ):
+        shutil.copyfile(
+            dll,
+            os.path.join(f"dist/MinGW-{MACHINE}", os.path.basename(dll))
+        )
+    return (
+        f"-I {download_path}/{MACHINE_ALT}-w64-mingw32/include/SDL2",
+        f"-L {download_path}/{MACHINE_ALT}-w64-mingw32/lib"
+    )
 
 
 def download_sdl_deps(name, version):
@@ -189,9 +198,9 @@ def download_sdl_deps(name, version):
         download_link += f"projects/{name}/".replace("2", "")
 
     download_link += f"release/{name}-devel-{version}-"
-    download_link += "VC.zip" if compiler == "MSVC" else "mingw.tar.gz"
+    download_link += "VC.zip" if COMPILER == "MSVC" else "mingw.tar.gz"
 
-    download_path = f"{download_dir}/{name}"
+    download_path = f"{DOWNLOAD_DIR}/{name}"
 
     if os.path.isdir(download_path):
         print(f"Skipping {name} download because it already exists")
@@ -207,18 +216,18 @@ def download_sdl_deps(name, version):
             response = download.read()
 
         print("Extracting compressed files")
-        if compiler == "MSVC":
+        if COMPILER == "MSVC":
             with zipfile.ZipFile(io.BytesIO(response), 'r') as zipped:
-                zipped.extractall(download_dir)
+                zipped.extractall(DOWNLOAD_DIR)
 
         else:
             # Tarfile does not support bytes IO, so use temp file
             try:
-                with open("temp", "wb") as f:
-                    f.write(response)
+                with open("temp", "wb") as tar:
+                    tar.write(response)
 
                 with tarfile.open("temp", 'r:gz') as tarred:
-                    tarred.extractall(download_dir)
+                    tarred.extractall(DOWNLOAD_DIR)
             finally:
                 if os.path.exists("temp"):
                     os.remove("temp")
@@ -226,58 +235,55 @@ def download_sdl_deps(name, version):
         os.rename(f"{download_path}-{version}", download_path)
         print(f"Finished downloading {name}")
 
-    # Copy all SDL DLLs to dist dir
-    if compiler == "MSVC":
-        for i in ["x86", "x64"]:
-            for j in ["Debug", "Release"]:
-                d = f"dist/MSVC-{i}-{j}"
-                mkdir(d)
-                for dll in glob.iglob(f"{download_path}/lib/{i}/*.dll"):
-                    shutil.copyfile(
-                        dll,
-                        os.path.join(d, os.path.basename(dll))
-                    )
-        return ""
-
-    else:
-        for dll in glob.iglob(
-            f"{download_path}/{machine_alt}-w64-mingw32/bin/*.dll"
-        ):
-            shutil.copyfile(
-                dll,
-                os.path.join(f"dist/MinGW-{machine}", os.path.basename(dll))
-            )
-        return f" -I {download_path}/{machine_alt}-w64-mingw32/include/SDL2" + \
-            f" -L {download_path}/{machine_alt}-w64-mingw32/lib"
+    return copy_sdl_dll(download_path)
 
 
-def compile_gpp(src, output, srcflag="-c "):
+def compile_gpp(src, output, srcflag="-c ", cflags=()):
     """
     Used to execute g++ commands
     """
-    cmd = f"g++ -o {output} {srcflag}{src} {cflags}"
+    cmd = f"g++ -o {output} {srcflag}{src} {' '.join(cflags)}"
     print(cmd)
     return os.system(cmd)
 
 
-def _build_exe(files, exepath, icoflag):
+def build_sources(builddir, testmode, cflags):
     """
-    Helper to generate final exe
+    Generate obj files from source files
     """
-    print("Building exe")
-    if icoflag:
-        files.append("icon.res")
+    isfailed = 0
+    globpattern = "test/**/test_*.cpp" if testmode else "src/**/*.cpp"
 
-    ecode = compile_gpp(" ".join(files).replace("\\", "/"), exepath, "")
-    print()
-    if ecode:
-        sys.exit(ecode)
+    for file in glob.iglob(globpattern, recursive=True):
+        ofile = f"{builddir}/{os.path.basename(file)}".replace(".cpp", ".o")
+        if should_build(file, ofile):
+            print("\nBuilding file:", file)
+            isfailed = compile_gpp(file, ofile, cflags=cflags)
+            if isfailed:
+                print("g++ command exited with an error code:", isfailed)
+
+    if isfailed:
+        print("Skipped building executable, because all files didn't build")
+        sys.exit(isfailed)
 
 
-def build_exe(builddir, distdir, testmode=False, icoflag=False):
+def build_exe(builddir, distdir, cflags, testmode=False):
     """
-    Generate final exe
+    Generate final exe.
     """
+    if COMPILER == "MSVC":
+        build_file = "KithareTest.vcxproj" if testmode else "Kithare.vcxproj"
+        ecode = os.system(
+            f"msbuild /m /p:Configuration={MSVC_CONFIG} " + \
+            f"/p:Platform={MACHINE} {build_file}"
+        )
+
+        if ecode:
+            sys.exit(ecode)
+        return
+
+    build_sources(builddir, testmode, cflags)
+
     exepath = f"{distdir}/{TEST_EXE if testmode else EXE}"
     objfiles = glob.glob(f"{builddir}/*.o")
 
@@ -290,98 +296,97 @@ def build_exe(builddir, distdir, testmode=False, icoflag=False):
             if os.path.basename(i).startswith("test_"):
                 objfiles.remove(i)
 
-    if not os.path.exists(exepath):
-        _build_exe(objfiles, exepath, icoflag)
+    args = " ".join(objfiles).replace("\\", "/")
 
-    else:
+    icores = "icon.res"
+    if not testmode and COMPILER == "MinGW":
+        os.system(f"windres assets/Kithare.rc -O coff -o {icores}")
+        args += f" {icores}"
+
+    if os.path.exists(exepath):
         dist_m = os.stat(exepath).st_mtime
-        for ofile in objfiles:
-            if os.stat(ofile).st_mtime > dist_m:
-                _build_exe(objfiles, exepath, icoflag)
-                break
+
+    for ofile in objfiles:
+        if not os.path.exists(exepath) or os.stat(ofile).st_mtime > dist_m:
+            print("\nBuilding exe")
+
+            ecode = compile_gpp(args, exepath, "", cflags=cflags)
+            if ecode:
+                sys.exit(ecode)
+            break
+
+    if os.path.exists(icores):
+        os.remove(icores)
+
+
+def init_cflags():
+    """
+    Return an initialized cflags instance
+    """
+    cflags = ["-O3", "-std=c++17", "-I include"]
+    cflags.extend(
+        [
+            "-lSDL2", "-lSDL2main", "-lSDL2_image", "-lSDL2_ttf",
+            "-lSDL2_mixer", "-lSDL2_net"
+        ]
+    )
+
+    if COMPILER == "MinGW":
+        cflags.append("-municode")
+
+    if IS_32_BIT and "-m32" not in sys.argv:
+        cflags.append("-m32")
+
+    cflags.extend(sys.argv[1:])
+    return cflags
 
 
 def main():
     """
     Main code, that runs on startup
     """
-    global cflags
+    build_tests = "--build-tests" in sys.argv
+    if build_tests:
+        sys.argv.remove("--build-tests")
 
-    if compiler == "MSVC":
-        distdir = f"dist/MSVC-{machine}-Release"
+    run_tests = "--run-tests" in sys.argv
+    if run_tests:
+        sys.argv.remove("--run-tests")
+
+    cflags = init_cflags()
+
+    if COMPILER == "MSVC":
+        distdir = f"dist/MSVC-{MACHINE}-{MSVC_CONFIG}"
+        builddir = ""  # For a dummy argument, that goes unused
     else:
-        builddir = f"build/{compiler}-{machine}"
-        distdir = f"dist/{compiler}-{machine}"
+        builddir = f"build/{COMPILER}-{MACHINE}"
+        distdir = f"dist/{COMPILER}-{MACHINE}"
         mkdir(builddir)
         mkdir(distdir)
 
     if run_tests:
         sys.exit(os.system(os.path.normpath(f"{distdir}/{TEST_EXE}")))
 
-    # Prepare dependencies
+    # Prepare dependencies and cflags with SDL flags
     if platform.system() == "Windows":
-        mkdir(download_dir)
+        mkdir(DOWNLOAD_DIR)
 
         for package, ver in SDL_DEPS.items():
-            cflags += download_sdl_deps(package, ver)
+            cflags.extend(download_sdl_deps(package, ver))
 
     else:
         for inc_dir in ["/usr/include/SDL2", "/usr/local/include/SDL2"]:
             if os.path.isdir(inc_dir):
-                cflags += f" -I {inc_dir}"
+                cflags.append(f"-I {inc_dir}")
                 break
 
-    if compiler == "MSVC":
-        if msvc_no_compile:
-            return
+    # Building in only dependency install mode
+    if MSVC_NO_COMPILE:
+        return
 
-        bfile = "KithareTest.vcxproj" if build_tests else "Kithare.vcxproj"
-        sys.exit(
-            os.system(
-                f"msbuild /m /p:Configuration={msvc_config} " + \
-                f"/p:Platform={machine} {bfile}"
-            )
-        )
-
-    print()
-    isfailed = False
-    for file in glob.iglob("src/**/*.cpp", recursive=True):
-        ofile = f"{builddir}/{os.path.basename(file)}".replace(".cpp", ".o")
-        if should_build(file, ofile):
-            print("Building file:", file)
-            if compile_gpp(file, ofile):
-                print("g++ command exited with an error")
-                isfailed = True
-            print()
-
-    if isfailed:
-        print("Skipped building executable, because all files didn't build")
-        sys.exit(1)
-
-    if compiler == "MinGW":
-        os.system(f"windres assets/Kithare.rc -O coff -o icon.res")
-        build_exe(builddir, distdir, icoflag=True)
-        os.remove("icon.res")
-    else:
-        build_exe(builddir, distdir)
-
-    # Below section is for tests
+    build_exe(builddir, distdir, cflags)
     if build_tests:
-        isfailed = False
-        for file in glob.iglob("test/**/test_*.cpp", recursive=True):
-            ofile = f"{builddir}/{os.path.basename(file)}".replace(".cpp", ".o")
-            if should_build(file, ofile):
-                print("Building test file:", file)
-                if compile_gpp(file, ofile):
-                    print("g++ command exited with an error")
-                    isfailed = True
-                print()
-
-        if isfailed:
-            print("Skipped building test exe, because all tests didn't build")
-            sys.exit(1)
-
-        build_exe(builddir, distdir, testmode=True)
+        build_exe(builddir, distdir, cflags, testmode=True)
 
     print("Done!")
 
