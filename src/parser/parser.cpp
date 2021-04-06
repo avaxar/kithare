@@ -1035,7 +1035,11 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
         if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::GENERIC_CLOSE)
             this->ti++;
         else {
-            do {
+            generics.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers())
+            GUARD(0);
+            token = this->to();
+
+            while (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::COMMA) {
                 this->ti++;
                 GUARD(0);
 
@@ -1043,10 +1047,7 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
 
                 GUARD(0);
                 token = this->to();
-            } while (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::COMMA);
-
-            GUARD(0);
-            token = this->to();
+            }
 
             if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::GENERIC_CLOSE)
                 this->ti++;
@@ -1056,7 +1057,6 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
     }
 end:
     return new kh::AstIdentifierExpression(index, identifiers, generics);
-
 }
 
 kh::AstExpression* kh::Parser::parseTuple() {
