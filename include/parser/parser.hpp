@@ -54,15 +54,21 @@ namespace kh {
         std::vector<kh::Token> tokens;
         size_t ti = 0; /* Token iterator */
 
-        kh::AstImport* parseImport();
-        kh::AstFunction* parseFunction();
-        kh::AstFunction* parseFunction(const bool is_static, const bool is_public);
-        kh::AstDeclarationExpression* parseDeclaration();
+        /* Get token of the current iterator index */
+        inline kh::Token& to(const size_t offset = 0) {
+            return this->tokens[this->ti + offset];
+        }
+
+        kh::AstImport* parseImport(const bool is_include);
+        void parseAccessAttribs(bool& is_static, bool& is_public);
+        kh::AstFunctionExpression* parseFunction(const bool is_static, const bool is_public);
         kh::AstDeclarationExpression* parseDeclaration(const bool is_static, const bool is_public);
 
         kh::AstClass* parseClass();
         kh::AstStruct* parseStruct();
         kh::AstEnum* parseEnum();
+
+        std::vector<std::shared_ptr<kh::AstBody>> parseBody();
 
         /* These parse expressions below are ordered based from their precedence from lowest to highest */
 
@@ -78,9 +84,11 @@ namespace kh {
         kh::AstExpression* parseBitwiseShift();   /* Parses bitwise shift `<<` `>>` */
         kh::AstExpression* parseAddSub();         /* Parses `+` and `-` */
         kh::AstExpression* parseMulDivMod();      /* Parses `*`, `/`, and `%` */
+        kh::AstExpression* parseUnary();          /* Parses unary operations */
         kh::AstExpression* parseExponentiation(); /* Parses `^` */
-        kh::AstExpression* parseUnLiteral();      /* Parses literals and unary operations */
+        kh::AstExpression* parseLiteral();        /* Parses literals */
         kh::AstExpression* parseIdentifiers();    /* Parses identifiers with scoping and templates */
-        kh::AstExpression* parseTuple();          /* Parses tuples with parentheses expressions */
+        kh::AstExpression* parseTuple(const kh::Symbol opening = kh::Symbol::PARENTHESES_OPEN, const kh::Symbol closing = kh::Symbol::PARENTHESES_CLOSE); 
+                                                 /* Parses tuples with parentheses expressions */
     };
 }

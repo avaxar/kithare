@@ -7,56 +7,17 @@
 * Defines include/parser/ast.hpp.
 */
 
+#include <memory>
+
 #include "utility/string.hpp"
 
 #include "parser/ast.hpp"
 
-
-#define DEL_ALL_IN(var) for (auto _var : var) if (_var) delete _var
-
-#define REPR_ALL_IN(var) \
+#define REPR_ALL_IN(var)      \
     for (auto _var : var)     \
         if (_var)             \
             str += U"\n\t" + ind + kh::repr(*_var, indent + 1)
 
-
-kh::Ast::~Ast() {
-    DEL_ALL_IN(this->imports);
-    DEL_ALL_IN(this->functions);
-    DEL_ALL_IN(this->classes);
-    DEL_ALL_IN(this->structs);
-    DEL_ALL_IN(this->enums);
-    DEL_ALL_IN(this->variables);
-}
-
-kh::AstFunction::~AstFunction() {
-    if (this->return_type)
-        delete this->return_type;
-
-    DEL_ALL_IN(this->arguments);
-    DEL_ALL_IN(this->nested_functions);
-    DEL_ALL_IN(this->body);
-}
-
-kh::AstClass::~AstClass() {
-    if (this->base)
-        delete this->base;
-
-    DEL_ALL_IN(this->members);
-    DEL_ALL_IN(this->methods);
-}
-
-kh::AstStruct::~AstStruct() {
-    if (this->base)
-        delete this->base;
-
-    DEL_ALL_IN(this->members);
-}
-
-kh::AstEnum::~AstEnum() {
-    if (this->base)
-        delete this->base;
-}
 
 std::u32string kh::repr(const kh::Ast& module_ast, const size_t indent) {
     std::u32string ind;
@@ -81,58 +42,14 @@ std::u32string kh::repr(const kh::AstImport& import_ast, const size_t indent) {
     for (size_t i = 0; i < indent; i++)
         ind += '\t';
 
-    std::u32string str = U"IMPORT:";
+    std::u32string str = import_ast.is_include ? U"INCLUDE:" : U"IMPORT:";
 
     str += U"\n\t" + ind + U"PATH:";
     for (const std::u32string& dir : import_ast.path)
         str += U"\n\t\t" + ind + dir;
 
-    str += U"\n\t" + ind + U"IDENTIFIER: " + import_ast.identifier;
-
-    return str;
-}
-
-std::u32string kh::repr(const kh::AstFunction& function_ast, const size_t indent) {
-    std::u32string ind;
-    ind.reserve(indent);
-    for (size_t i = 0; i < indent; i++)
-        ind += '\t';
-
-    std::u32string str = U"FUNCTION:";
-
-    str += U"\n\t" + ind + U"STATIC: " + (function_ast.is_static ? U"STATIC" : U"NON-STATIC");
-    str += U"\n\t" + ind + U"ACCESS: " + (function_ast.is_public ? U"PUBLIC" : U"PRIVATE");
-
-    str += U"\n\t" + ind + U"IDENTIFIERS:";
-    for (const std::u32string& identifier : function_ast.identifiers)
-        str += U"\n\t\t" + ind + identifier;
-
-    if (!function_ast.generic_args.empty()) {
-        str += U"\n\t" + ind + U"GENERICS:";
-        for (const std::u32string& generic_ : function_ast.generic_args)
-            str += U"\n\t\t" + ind + generic_;
-    }
-
-    if (function_ast.return_ref_depth)
-        str += U"\n\t" + ind + U"RETURN TYPE REF DEPTH: " + kh::repr((uint64_t)function_ast.return_ref_depth);
-
-    if (function_ast.return_type)
-        str += U"\n\t" + ind + U"RETURN TYPE:\n\t\t" + ind + kh::repr(*function_ast.return_type, indent + 2);
-
-    str += U"\n\t" + ind + U"ARGUMENTS:";
-    for (kh::AstDeclarationExpression* arg : function_ast.arguments)
-        if (arg)
-            str += U"\n\t\t" + ind + kh::repr(*arg, indent + 2);
-
-    str += U"\n\t" + ind + U"NESTED FUNCTIONS:";
-    for (kh::AstFunction* function : function_ast.nested_functions)
-        if (function)
-            str += U"\n\t\t" + ind + kh::repr(*function, indent + 2);
-
-    str += U"\n\t" + ind + U"BODY:";
-    for (kh::AstBody* part : function_ast.body)
-        if (part)
-            str += U"\n\t\t" + ind + kh::repr(*part, indent + 2);
+    if (!import_ast.is_include)
+        str += U"\n\t" + ind + U"IDENTIFIER: " + import_ast.identifier;
 
     return str;
 }
@@ -147,7 +64,7 @@ std::u32string kh::repr(const kh::AstClass& class_ast, const size_t indent) {
     str += U"\n\t" + ind + U"NAME: " + class_ast.name;
 
     if (class_ast.base)
-        str += U"\n\t" + ind + U"BASE:\n\t\t" + ind + kh::repr(*class_ast.base);
+        str += U"\n\t" + ind + U"BASE:\n\t\t" + ind + kh::repr(*class_ast.base, indent + 2);
 
     if (!class_ast.generic_args.empty()) {
         str += U"\n\t" + ind + U"GENERICS:";
@@ -157,12 +74,12 @@ std::u32string kh::repr(const kh::AstClass& class_ast, const size_t indent) {
 
     str += U"\n\t" + ind + U"MEMBERS:";
 
-    for (kh::AstDeclarationExpression* member : class_ast.members)
-        str += U"\n\t" + ind + kh::repr(*member);
+    for (auto member : class_ast.members)
+        str += U"\n\t\t" + ind + kh::repr(*member, indent + 2);
 
     str += U"\n\t" + ind + U"METHODS:";
-    for (kh::AstFunction* method : class_ast.methods)
-        str += U"\n\t" + ind + kh::repr(*method);
+    for (auto method : class_ast.methods)
+        str += U"\n\t\t" + ind + kh::repr(*method, indent + 2);
 
     return str;
 }
@@ -177,11 +94,11 @@ std::u32string kh::repr(const kh::AstStruct& struct_ast, const size_t indent) {
     str += U"\n\t" + ind + U"NAME: " + struct_ast.name;
 
     if (struct_ast.base)
-        str += U"\n\t" + ind + U"BASE:\n\t\t" + ind + kh::repr(*struct_ast.base);
+        str += U"\n\t" + ind + U"BASE:\n\t\t" + ind + kh::repr(*struct_ast.base, indent + 3);
 
     str += U"\n\t" + ind + U"MEMBERS:";
-    for (kh::AstDeclarationExpression* member : struct_ast.members)
-        str += U"\n\t" + ind + kh::repr(*member);
+    for (auto member : struct_ast.members)
+        str += U"\n\t\t" + ind + kh::repr(*member, indent + 2);
 
     return str;
 }
@@ -196,11 +113,11 @@ std::u32string kh::repr(const kh::AstEnum& enum_ast, const size_t indent) {
     str += U"\n\t" + ind + U"NAME: " + enum_ast.name;
 
     if (enum_ast.base)
-        str += U"\n\t" + ind + U"BASE:\n\t\t" + ind + kh::repr(*enum_ast.base);
+        str += U"\n\t" + ind + U"BASE:\n\t\t" + ind + kh::repr(*enum_ast.base, indent + 2);
 
     str += U"\n\t" + ind + U"MEMBERS:";
     for (const std::u32string& member : enum_ast.members)
-        str += U"\n\t" + ind + member;
+        str += U"\n\t\t" + ind + member;
 
     return str;
 }
@@ -231,7 +148,7 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
 
             if (!ast_if.bodies[clause].empty()) {
                 str += U"\n\t\t" + ind + U"BODY:";
-                for (kh::AstBody* part : ast_if.bodies[clause])
+                for (auto part : ast_if.bodies[clause])
                     if (part)
                         str += U"\n\t\t" + ind + kh::repr(*part, indent + 3);
             }
@@ -239,7 +156,7 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
 
         if (!ast_if.else_body.empty()) {
             str += U"\n\t" + ind + U"ELSE CLAUSE:\n";
-            for (kh::AstBody* part : ast_if.else_body)
+            for (auto part : ast_if.else_body)
                 if (part)
                     str += U"\n\t\t" + ind + kh::repr(*part, indent + 2);
         }
@@ -257,7 +174,7 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
 
         if (!ast_while.body.empty()) {
             str += U"\n\t" + ind + U"BODY:";
-            for (kh::AstBody* part : ast_while.body)
+            for (auto part : ast_while.body)
                 if (part)
                     str += U"\n\t\t" + ind + kh::repr(*part, indent + 2);
         }
@@ -274,7 +191,7 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
 
         if (!ast_do_while.body.empty()) {
             str += U"\n\t" + ind + U"BODY:";
-            for (kh::AstBody* part : ast_do_while.body)
+            for (auto part : ast_do_while.body)
                 if (part)
                     str += U"\n\t\t" + ind + kh::repr(*part, indent + 2);
         }
@@ -288,7 +205,7 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
 
         if (!ast_for.targets.empty()) {
             str += U"\n\t" + ind + U"TARGETS:";
-            for (kh::AstExpression* target : ast_for.targets)
+            for (auto target : ast_for.targets)
                 if (target)
                     str += U"\n\t\t" + ind + kh::repr(*target, indent + 2);
         }
@@ -298,7 +215,7 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
 
         if (!ast_for.body.empty()) {
             str += U"\n\t" + ind + U"BODY:";
-            for (kh::AstBody* part : ast_for.body)
+            for (auto part : ast_for.body)
                 if (part)
                     str += U"\n\t\t" + ind + kh::repr(*part, indent + 2);
         }
@@ -334,7 +251,7 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
 
         str += U"\n\t" + ind + U"OP NAME: " + ast_inst.op_name;
 
-        for (kh::AstExpression* op_arg : ast_inst.op_arguments)
+        for (auto op_arg : ast_inst.op_arguments)
             if (op_arg)
                 str += str += U"\n\t" + ind + U"OP ARGUMENT:\n\t\t" + ind + kh::repr(*op_arg, indent + 2);
 
@@ -369,7 +286,7 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
 
         if (!expr_id.generics.empty()) {
             str += U"\n\t" + ind + U"GENERICS:";
-            for (kh::AstIdentifierExpression* generic_ : expr_id.generics)
+            for (auto generic_ : expr_id.generics)
                 if (generic_)
                     str += U"\n\t\t" + ind + kh::repr(*generic_, indent + 2);
         }
@@ -424,7 +341,7 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
         if (expr_subscript.expression)
             str += U"\n\t" + ind + U"EXPRESSION:\n\t\t" + ind + kh::repr(*expr_subscript.expression, indent + 2);
 
-        for (kh::AstExpression* argument : expr_subscript.arguments)
+        for (auto argument : expr_subscript.arguments)
             if (argument)
                 str += U"\n\t" + ind + U"ARGUMENT:\n\t\t" + ind + kh::repr(*argument, indent + 2);
 
@@ -440,7 +357,7 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
 
         if (!expr_call.arguments.empty()) {
             str += U"\n\t" + ind + U"ARGUMENTS:";
-            for (kh::AstExpression* argument : expr_call.arguments)
+            for (auto argument : expr_call.arguments)
                 if (argument)
                     str += U"\n\t\t" + ind + kh::repr(*argument, indent + 2);
         }
@@ -455,7 +372,7 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
         if (expr_declare.var_type)
             str += U"\n\t" + ind + U"TYPE:\n\t\t" + ind + kh::repr(*expr_declare.var_type, indent + 2);
 
-        str += U"\n\t" + ind + U"NAME: " + ind + expr_declare.var_name;
+        str += U"\n\t" + ind + U"NAME: " + expr_declare.var_name;
 
         if (expr_declare.expression)
             str += U"\n\t" + ind + U"EXPRESSION:\n\t\t" + ind + kh::repr(*expr_declare.expression, indent + 2);
@@ -463,6 +380,43 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
         str += U"\n\t" + ind + U"REF DEPTH: " + kh::repr((uint64_t)expr_declare.ref_depth);
         str += U"\n\t" + ind + U"STATIC: " + (expr_declare.is_static ? U"STATIC" : U"NON-STATIC");
         str += U"\n\t" + ind + U"ACCESS: " + (expr_declare.is_public ? U"PUBLIC" : U"PRIVATE");
+
+        break;
+    }
+
+    case kh::AstExpression::ExType::FUNCTION: {
+        const kh::AstFunctionExpression& expr_func = *(kh::AstFunctionExpression*)&expr;
+
+        str += U"FUNCTION:";
+
+        str += U"\n\t" + ind + U"STATIC: " + (expr_func.is_static ? U"STATIC" : U"NON-STATIC");
+        str += U"\n\t" + ind + U"ACCESS: " + (expr_func.is_public ? U"PUBLIC" : U"PRIVATE");
+
+        str += U"\n\t" + ind + U"IDENTIFIERS:";
+        for (const std::u32string& identifier : expr_func.identifiers)
+            str += U"\n\t\t" + ind + identifier;
+
+        if (!expr_func.generic_args.empty()) {
+            str += U"\n\t" + ind + U"GENERICS:";
+            for (const std::u32string& generic_ : expr_func.generic_args)
+                str += U"\n\t\t" + ind + generic_;
+        }
+
+        if (expr_func.return_ref_depth)
+            str += U"\n\t" + ind + U"RETURN TYPE REF DEPTH: " + kh::repr((uint64_t)expr_func.return_ref_depth);
+
+        if (expr_func.return_type)
+            str += U"\n\t" + ind + U"RETURN TYPE:\n\t\t" + ind + kh::repr(*expr_func.return_type, indent + 2);
+
+        str += U"\n\t" + ind + U"ARGUMENTS:";
+        for (auto arg : expr_func.arguments)
+            if (arg)
+                str += U"\n\t\t" + ind + kh::repr(*arg, indent + 2);
+
+        str += U"\n\t" + ind + U"BODY:";
+        for (auto part : expr_func.body)
+            if (part)
+                str += U"\n\t\t" + ind + kh::repr(*part, indent + 2);
 
         break;
     }
@@ -534,7 +488,7 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
         const kh::AstTupleExpression& expr_const = *(kh::AstTupleExpression*)&expr;
         str += U"TUPLE:";
 
-        for (kh::AstExpression* element : expr_const.elements)
+        for (auto element : expr_const.elements)
             if (element)
                 str += U"\n\t" + ind + kh::repr(*element, indent + 1);
 

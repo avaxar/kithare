@@ -140,6 +140,20 @@ std::u32string kh::quote(const std::string& str) {
     return repr_str;
 }
 
+void kh::strIndexPos(const std::u32string& str, const size_t index, size_t& column, size_t& line) {
+    column = 1;
+    line = 1;
+
+    for (size_t i = 0; i < index + 1; i++) {
+        if (str[i] == '\n') {
+            column = 1;
+            line++;
+        }
+        else
+            column++;
+    }
+}
+
 std::u32string kh::repr(const std::u32string& str) {
     return str;
 }

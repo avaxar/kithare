@@ -10,6 +10,7 @@
 #pragma once
 
 #include <complex>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -18,12 +19,19 @@
 
 namespace kh {
     class Ast;
+
     class AstImport;
-    class AstFunction;
     class AstClass;
     class AstStruct;
     class AstEnum;
+
     class AstBody;
+    class AstIf;
+    class AstWhile;
+    class AstDoWhile;
+    class AstFor;
+    class AstStatement;
+
     class AstExpression;
     class AstIdentifierExpression;
     class AstUnaryExpression;
@@ -32,18 +40,13 @@ namespace kh {
     class AstSubscriptExpression;
     class AstCallExpression;
     class AstDeclarationExpression;
+    class AstFunctionExpression;
     class AstScopeExpression;
     class AstConstValue;
     class AstTupleExpression;
-    class AstIf;
-    class AstWhile;
-    class AstDoWhile;
-    class AstFor;
-    class AstStatement;
 
     std::u32string repr(const kh::Ast& module_ast, const size_t indent = 0);
     std::u32string repr(const kh::AstImport& import_ast, const size_t indent = 0);
-    std::u32string repr(const kh::AstFunction& function_ast, const size_t indent = 0);
     std::u32string repr(const kh::AstClass& class_ast, const size_t indent = 0);
     std::u32string repr(const kh::AstStruct& struct_ast, const size_t indent = 0);
     std::u32string repr(const kh::AstEnum& enum_ast, const size_t indent = 0);
@@ -52,90 +55,69 @@ namespace kh {
 
     class Ast {
     public:
-        std::vector<kh::AstImport*> imports;
-        std::vector<kh::AstFunction*> functions;
-        std::vector<kh::AstClass*> classes;
-        std::vector<kh::AstStruct*> structs;
-        std::vector<kh::AstEnum*> enums;
-        std::vector<kh::AstDeclarationExpression*> variables;
+        std::vector<std::shared_ptr<kh::AstImport>> imports;
+        std::vector<std::shared_ptr<kh::AstFunctionExpression>> functions;
+        std::vector<std::shared_ptr<kh::AstClass>> classes;
+        std::vector<std::shared_ptr<kh::AstStruct>> structs;
+        std::vector<std::shared_ptr<kh::AstEnum>> enums;
+        std::vector<std::shared_ptr<kh::AstDeclarationExpression>> variables;
 
-        Ast(const std::vector<kh::AstImport*>& _imports, const std::vector<kh::AstFunction*>& _functions,
-            const std::vector<kh::AstClass*>& _classes, const std::vector<kh::AstStruct*>& _structs, const std::vector<kh::AstEnum*>& _enums,
-            const std::vector<kh::AstDeclarationExpression*>& _variables) :
+        Ast(const std::vector<std::shared_ptr<kh::AstImport>>& _imports, const std::vector<std::shared_ptr<kh::AstFunctionExpression>>& _functions,
+            const std::vector<std::shared_ptr<kh::AstClass>>& _classes, const std::vector<std::shared_ptr<kh::AstStruct>>& _structs, const std::vector<std::shared_ptr<kh::AstEnum>>& _enums,
+            const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _variables) :
             variables(_variables), imports(_imports), functions(_functions), classes(_classes), structs(_structs), enums(_enums) {}
-        virtual ~Ast();
+        virtual ~Ast() {}
     };
 
     class AstImport {
     public:
         size_t index;
         std::vector<std::u32string> path;
+        bool is_include;
         std::u32string identifier;
 
-        AstImport(const size_t _index, const std::vector<std::u32string>& _path, const std::u32string& _identifier) :
-            index(_index), path(_path), identifier(_identifier) {}
+        AstImport(const size_t _index, const std::vector<std::u32string>& _path, const bool _is_include, const std::u32string& _identifier) :
+            index(_index), path(_path), is_include(_is_include), identifier(_identifier) {}
         virtual ~AstImport() {}
-    };
-
-    class AstFunction {
-    public:
-        size_t index;
-        std::vector<std::u32string> identifiers;
-        std::vector<std::u32string> generic_args;
-        kh::AstIdentifierExpression* return_type;
-        size_t return_ref_depth;
-        std::vector<kh::AstDeclarationExpression*> arguments;
-        std::vector<kh::AstFunction*> nested_functions;
-        std::vector<kh::AstBody*> body;
-        bool is_static;
-        bool is_public;
-
-        AstFunction(const size_t _index, const std::vector<std::u32string>& _identifiers, const std::vector<std::u32string>& _generic_args,
-            kh::AstIdentifierExpression* _return_type, const size_t _return_ref_depth,
-            const std::vector<kh::AstDeclarationExpression*>& _arguments, const std::vector<kh::AstFunction*>& _nested_functions,
-            const std::vector<kh::AstBody*>& _body, const bool _is_static, const bool _is_public) :
-            index(_index), identifiers(_identifiers), generic_args(_generic_args), return_type(_return_type), return_ref_depth(_return_ref_depth),
-            arguments(_arguments), nested_functions(_nested_functions), body(_body), is_static(_is_static), is_public(_is_public) {}
-        virtual ~AstFunction();
     };
 
     class AstClass {
     public:
         size_t index;
         std::u32string name;
-        kh::AstIdentifierExpression* base;
+        std::shared_ptr<kh::AstIdentifierExpression> base;
         std::vector<std::u32string> generic_args;
-        std::vector<kh::AstDeclarationExpression*> members;
-        std::vector<kh::AstFunction*> methods;
+        std::vector<std::shared_ptr<kh::AstDeclarationExpression>> members;
+        std::vector<std::shared_ptr<kh::AstFunctionExpression>> methods;
 
-        AstClass(const size_t _index, const std::u32string& _name, kh::AstIdentifierExpression* _base, const std::vector<std::u32string>& _generic_args,
-            const std::vector<kh::AstDeclarationExpression*>& _members, const std::vector<kh::AstFunction*>& _methods) :
+        AstClass(const size_t _index, const std::u32string& _name, std::shared_ptr<kh::AstIdentifierExpression>& _base, const std::vector<std::u32string>& _generic_args,
+            const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _members, const std::vector<std::shared_ptr<kh::AstFunctionExpression>>& _methods) :
             index(_index), name(_name), base(_base), generic_args(_generic_args), members(_members), methods(_methods) {}
-        virtual ~AstClass();
+        virtual ~AstClass() {}
     };
 
     class AstStruct {
     public:
         size_t index;
         std::u32string name;
-        kh::AstIdentifierExpression* base;
-        std::vector<kh::AstDeclarationExpression*> members;
+        std::shared_ptr<kh::AstIdentifierExpression> base;
+        std::vector<std::shared_ptr<kh::AstDeclarationExpression>> members;
 
-        AstStruct(const size_t _index, const std::u32string& _name, kh::AstIdentifierExpression* _base, const std::vector<kh::AstDeclarationExpression*> _members) :
+        AstStruct(const size_t _index, const std::u32string& _name, std::shared_ptr<kh::AstIdentifierExpression>& _base, const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _members) :
             index(_index), name(_name), base(_base), members(_members) {}
-        virtual ~AstStruct();
+        virtual ~AstStruct() {}
     };
 
     class AstEnum {
     public:
         size_t index;
         std::u32string name;
-        kh::AstIdentifierExpression* base;
+        std::shared_ptr<kh::AstIdentifierExpression> base;
         std::vector<std::u32string> members;
 
-        AstEnum(const size_t _index, const std::u32string& _name, kh::AstIdentifierExpression* _base, const std::vector<std::u32string>& _members) :
+        AstEnum(const size_t _index, const std::u32string& _name, std::shared_ptr<kh::AstIdentifierExpression>& _base, const std::vector<std::u32string>& _members) :
             index(_index), name(_name), base(_base), members(_members) {}
-        virtual ~AstEnum();
+        virtual ~AstEnum() {}
     };
 
     class AstBody {
@@ -155,7 +137,7 @@ namespace kh {
             IDENTIFIER,
             UNARY, BINARY, TERNARY,
             SUBSCRIPT, CALL,
-            DECLARE,
+            DECLARE, FUNCTION,
             SCOPE, CONSTANT, TUPLE
         } expression_type = ExType::NONE;
 
@@ -165,121 +147,102 @@ namespace kh {
     class AstIdentifierExpression : public kh::AstExpression {
     public:
         std::vector<std::u32string> identifiers;
-        std::vector<kh::AstIdentifierExpression*> generics;
+        std::vector<std::shared_ptr<kh::AstIdentifierExpression>> generics;
 
-        AstIdentifierExpression(const size_t _index, const std::vector<std::u32string>& _identifiers, const std::vector<kh::AstIdentifierExpression*>& _generics) :
+        AstIdentifierExpression(const size_t _index, const std::vector<std::u32string>& _identifiers, const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _generics) :
             identifiers(_identifiers), generics(_generics) {
             this->index = _index;
             this->type = kh::AstBody::Type::EXPRESSION;
             this->expression_type = kh::AstExpression::ExType::IDENTIFIER;
         }
-        virtual ~AstIdentifierExpression() {
-            for (kh::AstIdentifierExpression* template_ : this->generics)
-                if (template_) delete template_;
-        }
+        virtual ~AstIdentifierExpression() {}
     };
 
     class AstUnaryExpression : public kh::AstExpression {
     public:
         kh::Operator operation;
-        kh::AstExpression* rvalue;
+        std::shared_ptr<kh::AstExpression> rvalue;
 
-        AstUnaryExpression(const size_t _index, const kh::Operator _operation, kh::AstExpression* _rvalue) :
+        AstUnaryExpression(const size_t _index, const kh::Operator _operation, std::shared_ptr<kh::AstExpression>& _rvalue) :
             operation(_operation), rvalue(_rvalue) {
             this->index = _index;
             this->type = kh::AstBody::Type::EXPRESSION;
             this->expression_type = kh::AstExpression::ExType::UNARY;
         }
-        virtual ~AstUnaryExpression() {
-            if (this->rvalue) delete this->rvalue;
-        }
+        virtual ~AstUnaryExpression() {}
     };
 
     class AstBinaryExpression : public kh::AstExpression {
     public:
         kh::Operator operation;
-        kh::AstExpression* lvalue;
-        kh::AstExpression* rvalue;
+        std::shared_ptr<kh::AstExpression> lvalue;
+        std::shared_ptr<kh::AstExpression> rvalue;
 
-        AstBinaryExpression(const size_t _index, const kh::Operator _operation, kh::AstExpression* _lvalue, kh::AstExpression* _rvalue) :
+        AstBinaryExpression(const size_t _index, const kh::Operator _operation,
+            std::shared_ptr<kh::AstExpression>& _lvalue, std::shared_ptr<kh::AstExpression>& _rvalue) :
             operation(_operation), lvalue(_lvalue), rvalue(_rvalue) {
             this->index = _index;
             this->type = kh::AstBody::Type::EXPRESSION;
             this->expression_type = kh::AstExpression::ExType::BINARY;
         }
-        virtual ~AstBinaryExpression() {
-            if (this->lvalue) delete this->lvalue;
-            if (this->rvalue) delete this->rvalue;
-        }
+        virtual ~AstBinaryExpression() {}
     };
 
     class AstTernaryExpression : public kh::AstExpression {
     public:
-        kh::AstExpression* condition;
-        kh::AstExpression* value;
-        kh::AstExpression* otherwise;
+        std::shared_ptr<kh::AstExpression> condition;
+        std::shared_ptr<kh::AstExpression> value;
+        std::shared_ptr<kh::AstExpression> otherwise;
 
-        AstTernaryExpression(const size_t _index, kh::AstExpression* _condition, kh::AstExpression* _value, kh::AstExpression* _otherwise) :
+        AstTernaryExpression(const size_t _index, std::shared_ptr<kh::AstExpression>& _condition,
+            std::shared_ptr<kh::AstExpression>& _value, std::shared_ptr<kh::AstExpression>& _otherwise) :
             condition(_condition), value(_value), otherwise(_otherwise) {
             this->index = _index;
             this->type = kh::AstBody::Type::EXPRESSION;
             this->expression_type = kh::AstExpression::ExType::TERNARY;
         }
-        virtual ~AstTernaryExpression() {
-            if (this->condition) delete this->condition;
-            if (this->value) delete this->value;
-            if (this->otherwise) delete this->otherwise;
-        }
+        virtual ~AstTernaryExpression() {}
     };
 
     class AstSubscriptExpression : public kh::AstExpression {
     public:
-        kh::AstExpression* expression;
-        std::vector<kh::AstExpression*> arguments;
+        std::shared_ptr<kh::AstExpression> expression;
+        std::vector<std::shared_ptr<kh::AstExpression>> arguments;
 
-        AstSubscriptExpression(const size_t _index, kh::AstExpression* _expression, const std::vector<kh::AstExpression*>& _arguments) :
+        AstSubscriptExpression(const size_t _index, std::shared_ptr<kh::AstExpression>& _expression, const std::vector<std::shared_ptr<kh::AstExpression>>& _arguments) :
             expression(_expression), arguments(_arguments) {
             this->index = _index;
             this->type = kh::AstBody::Type::EXPRESSION;
             this->expression_type = kh::AstExpression::ExType::SUBSCRIPT;
         }
-        virtual ~AstSubscriptExpression() {
-            if (this->expression) delete this->expression;
-
-            for (kh::AstExpression* argument : this->arguments)
-                if (argument) delete argument;
-        }
+        virtual ~AstSubscriptExpression() {}
     };
 
     class AstCallExpression : public kh::AstExpression {
     public:
-        kh::AstExpression* expression;
-        std::vector<kh::AstExpression*> arguments;
+        std::shared_ptr<kh::AstExpression> expression;
+        std::vector<std::shared_ptr<kh::AstExpression>> arguments;
 
-        AstCallExpression(const size_t _index, kh::AstExpression* _expression, const std::vector<kh::AstExpression*>& _arguments) :
+        AstCallExpression(const size_t _index, std::shared_ptr<kh::AstExpression>& _expression, const std::vector<std::shared_ptr<kh::AstExpression>>& _arguments) :
             expression(_expression), arguments(_arguments) {
             this->index = _index;
             this->type = kh::AstBody::Type::EXPRESSION;
             this->expression_type = kh::AstExpression::ExType::CALL;
         }
-        virtual ~AstCallExpression() {
-            if (this->expression) delete this->expression;
-
-            for (kh::AstExpression* argument : this->arguments)
-                if (argument) delete argument;
-        }
+        virtual ~AstCallExpression() {}
     };
 
     class AstDeclarationExpression : public kh::AstExpression {
     public:
-        kh::AstIdentifierExpression* var_type;
+        std::shared_ptr<kh::AstIdentifierExpression> var_type;
         std::u32string var_name;
-        kh::AstExpression* expression;
+        std::shared_ptr<kh::AstExpression> expression;
         size_t ref_depth;
         bool is_static;
         bool is_public;
 
-        AstDeclarationExpression(const size_t _index, kh::AstIdentifierExpression* _var_type, const std::u32string& _var_name, kh::AstExpression* _expression,
+        AstDeclarationExpression(const size_t _index, std::shared_ptr<kh::AstIdentifierExpression>& _var_type,
+            const std::u32string& _var_name, std::shared_ptr<kh::AstExpression>& _expression,
             const size_t _ref_depth, const bool _is_static, const bool _is_public) :
             var_type(_var_type), var_name(_var_name), expression(_expression),
             ref_depth(_ref_depth), is_static(_is_static), is_public(_is_public) {
@@ -287,30 +250,46 @@ namespace kh {
             this->type = kh::AstBody::Type::EXPRESSION;
             this->expression_type = kh::AstExpression::ExType::DECLARE;
         }
-        virtual ~AstDeclarationExpression() {
-            if (this->var_type)
-                delete this->var_type;
+        virtual ~AstDeclarationExpression() {}
+    };
 
-            if (this->expression)
-                delete this->expression;
+    class AstFunctionExpression : public kh::AstExpression {
+    public:
+        size_t index;
+        std::vector<std::u32string> identifiers;
+        std::vector<std::u32string> generic_args;
+        std::shared_ptr<kh::AstIdentifierExpression> return_type;
+        size_t return_ref_depth;
+        std::vector<std::shared_ptr<kh::AstDeclarationExpression>> arguments;
+        std::vector<std::shared_ptr<kh::AstBody>> body;
+        bool is_static;
+        bool is_public;
+
+        AstFunctionExpression(const size_t _index, const std::vector<std::u32string>& _identifiers, const std::vector<std::u32string>& _generic_args,
+            std::shared_ptr<kh::AstIdentifierExpression>& _return_type, const size_t _return_ref_depth,
+            const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _arguments,
+            const std::vector<std::shared_ptr<kh::AstBody>>& _body, const bool _is_static, const bool _is_public) :
+            index(_index), identifiers(_identifiers), generic_args(_generic_args), return_type(_return_type), return_ref_depth(_return_ref_depth),
+            arguments(_arguments), body(_body), is_static(_is_static), is_public(_is_public) {
+            this->index = _index;
+            this->type = kh::AstBody::Type::EXPRESSION;
+            this->expression_type = kh::AstExpression::ExType::FUNCTION;
         }
+        virtual ~AstFunctionExpression() {}
     };
 
     class AstScopeExpression : public kh::AstExpression {
     public:
-        kh::AstExpression* expression;
+        std::shared_ptr<kh::AstExpression> expression;
         std::vector<std::u32string> identifiers;
 
-        AstScopeExpression(const size_t _index, kh::AstExpression* _expression, const std::vector<std::u32string>& _identifiers) :
+        AstScopeExpression(const size_t _index, std::shared_ptr<kh::AstExpression>& _expression, const std::vector<std::u32string>& _identifiers) :
             expression(_expression), identifiers(_identifiers) {
             this->index = _index;
             this->type = kh::AstBody::Type::EXPRESSION;
             this->expression_type = kh::AstExpression::ExType::SCOPE;
         }
-        virtual ~AstScopeExpression() {
-            if (this->expression)
-                delete this->expression;
-        }
+        virtual ~AstScopeExpression() {}
     };
 
     class AstConstValue : public kh::AstExpression {
@@ -385,102 +364,72 @@ namespace kh {
 
     class AstTupleExpression : public kh::AstExpression {
     public:
-        std::vector<kh::AstExpression*> elements;
+        std::vector<std::shared_ptr<kh::AstExpression>> elements;
 
-        AstTupleExpression(const size_t _index, const std::vector<kh::AstExpression*>& _elements) :
+        AstTupleExpression(const size_t _index, const std::vector<std::shared_ptr<kh::AstExpression>>& _elements) :
             elements(_elements) {
             this->index = _index;
             this->type = kh::AstBody::Type::EXPRESSION;
             this->expression_type = kh::AstExpression::ExType::TUPLE;
         }
-        virtual ~AstTupleExpression() {
-            for (kh::AstExpression* expression : this->elements)
-                if (expression) delete expression;
-        }
+        virtual ~AstTupleExpression() {}
     };
 
     class AstIf : public kh::AstBody {
     public:
-        std::vector<kh::AstExpression*> conditions; /* Including the else if conditions */
-        std::vector<std::vector<kh::AstBody*>> bodies;
-        std::vector<kh::AstBody*> else_body;
+        std::vector<std::shared_ptr<kh::AstExpression>> conditions; /* Including the else if conditions */
+        std::vector<std::vector<std::shared_ptr<kh::AstBody>>> bodies;
+        std::vector<std::shared_ptr<kh::AstBody>> else_body;
 
-        AstIf(const size_t _index, const std::vector<kh::AstExpression*>& _conditions, const std::vector<std::vector<kh::AstBody*>>& _bodies, const std::vector<kh::AstBody*>& _else_body) :
+        AstIf(const size_t _index, const std::vector<std::shared_ptr<kh::AstExpression>>& _conditions,
+            const std::vector<std::vector<std::shared_ptr<kh::AstBody>>>& _bodies,
+            const std::vector<std::shared_ptr<kh::AstBody>>& _else_body) :
             conditions(_conditions), bodies(_bodies), else_body(_else_body) {
             this->index = _index;
             this->type = kh::AstBody::Type::IF;
         }
-        virtual ~AstIf() {
-            for (kh::AstExpression* condition : this->conditions)
-                if (condition) delete condition;
-
-            for (std::vector<kh::AstBody*>& body : this->bodies)
-                for (kh::AstBody* part : body)
-                    if (part) delete part;
-
-            for (kh::AstBody* part : this->else_body)
-                if (part) delete part;
-        }
+        virtual ~AstIf() {}
     };
 
     class AstWhile : public kh::AstBody {
     public:
-        kh::AstExpression* condition;
-        std::vector<kh::AstBody*> body;
+        std::shared_ptr<kh::AstExpression> condition;
+        std::vector<std::shared_ptr<kh::AstBody>> body;
 
-        AstWhile(const size_t _index, kh::AstExpression* _condition, const std::vector<kh::AstBody*>& _body) :
+        AstWhile(const size_t _index, std::shared_ptr<kh::AstExpression>& _condition, const std::vector<std::shared_ptr<kh::AstBody>>& _body) :
             condition(_condition), body(_body) {
             this->index = _index;
             this->type = kh::AstBody::Type::WHILE;
         }
-        virtual ~AstWhile() {
-            if (this->condition)
-                delete this->condition;
-
-            for (kh::AstBody* part : this->body)
-                if (part) delete part;
-        }
+        virtual ~AstWhile() {}
     };
 
     class AstDoWhile : public kh::AstBody {
     public:
-        kh::AstExpression* condition;
-        std::vector<kh::AstBody*> body;
+        std::shared_ptr<kh::AstExpression> condition;
+        std::vector<std::shared_ptr<kh::AstBody>> body;
 
-        AstDoWhile(const size_t _index, kh::AstExpression* _condition, const std::vector<kh::AstBody*>& _body) :
+        AstDoWhile(const size_t _index, std::shared_ptr<kh::AstExpression>& _condition, const std::vector<std::shared_ptr<kh::AstBody>>& _body) :
             condition(_condition), body(_body) {
             this->index = _index;
             this->type = kh::AstBody::Type::DO_WHILE;
         }
-        virtual ~AstDoWhile() {
-            if (this->condition)
-                delete this->condition;
-
-            for (kh::AstBody* part : this->body)
-                if (part) delete part;
-        }
+        virtual ~AstDoWhile() {}
     };
 
     class AstFor : public kh::AstBody {
     public:
-        std::vector<kh::AstExpression*> targets;
-        kh::AstExpression* iterator;
-        std::vector<kh::AstBody*> body;
+        std::vector<std::shared_ptr<kh::AstExpression>> targets;
+        std::shared_ptr<kh::AstExpression> iterator;
+        std::vector<std::shared_ptr<kh::AstBody>> body;
 
-        AstFor(const size_t _index, const std::vector<kh::AstExpression*>& _targets, kh::AstExpression* _iterator, const std::vector<kh::AstBody*>& _body) :
+        AstFor(const size_t _index, const std::vector<std::shared_ptr<kh::AstExpression>>& _targets,
+            std::shared_ptr<kh::AstExpression>& _iterator, const std::vector<std::shared_ptr<kh::AstBody>>& _body) :
             targets(_targets), iterator(_iterator), body(_body) {
             this->index = _index;
             this->type = kh::AstBody::Type::FOR;
         }
-        virtual ~AstFor() {
-            for (kh::AstExpression* target : this->targets)
-                if (target) delete target;
-
-            if (this->iterator) delete this->iterator;
-
-            for (kh::AstBody* part : this->body)
-                if (part) delete part;
-        }
+        virtual ~AstFor() {}
     };
 
     class AstStatement : public kh::AstBody {
@@ -488,32 +437,26 @@ namespace kh {
         enum class Type {
             CONTINUE, BREAK, RETURN
         } statement_type;
-        kh::AstExpression* expression;
+        std::shared_ptr<kh::AstExpression> expression;
 
-        AstStatement(const size_t _index, const kh::AstStatement::Type _statement_type, kh::AstExpression* _expression) :
+        AstStatement(const size_t _index, const kh::AstStatement::Type _statement_type, std::shared_ptr<kh::AstExpression>& _expression) :
             statement_type((Type)((size_t)_statement_type)), expression(expression) {
             this->index = _index;
             this->type = kh::AstBody::Type::STATEMENT;
         }
-        virtual ~AstStatement() {
-            if (this->expression)
-                delete this->expression;
-        }
+        virtual ~AstStatement() {}
     };
 
     class AstInstruction : public kh::AstBody {
     public:
         std::u32string op_name;
-        std::vector<kh::AstExpression*> op_arguments;
+        std::vector<std::shared_ptr<kh::AstExpression>> op_arguments;
 
-        AstInstruction(const size_t _index, const std::u32string& _op_name, const std::vector<kh::AstExpression*>& _op_arguments) :
+        AstInstruction(const size_t _index, const std::u32string& _op_name, const std::vector<std::shared_ptr<kh::AstExpression>>& _op_arguments) :
             op_name(_op_name), op_arguments(_op_arguments) {
             this->index = _index;
             this->type = kh::AstBody::Type::INSTRUCTION;
         }
-        virtual ~AstInstruction() {
-            for (kh::AstExpression* argument : this->op_arguments)
-                if (argument) delete argument;
-        }
+        virtual ~AstInstruction() {}
     };
 }
