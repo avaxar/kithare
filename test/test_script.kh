@@ -1,0 +1,8 @@
+def main() {
+	std.println("Hello, world!");
+
+	var str name = std.input();
+	if name.lowerCase() == "joe" { std.println("mama"); }
+	else { std.println("Hello, " + name + "!"); }
+
+}

@@ -55,7 +55,7 @@ kh::Ast* kh::Parser::parse() {
         case kh::TokenType::IDENTIFIER: {
             const std::u32string& identifier = token.value.identifier;
 
-            if (identifier == U"var" || identifier == U"static" || identifier == U"private" || identifier == U"public") {
+            if (identifier == U"var" || identifier == U"ref" || identifier == U"static" || identifier == U"private" || identifier == U"public") {
                 bool is_static, is_public;
                 this->parseAccessAttribs(is_static, is_public);
                 GUARD(0);
@@ -129,6 +129,7 @@ end:
 
 kh::AstImport* kh::Parser::parseImport(const bool is_include) {
     std::vector<std::u32string> path;
+    std::u32string identifier;
     kh::Token token = this->to();
     size_t index = token.index;
 
@@ -163,7 +164,7 @@ kh::AstImport* kh::Parser::parseImport(const bool is_include) {
         token = this->to();
 
         if (token.type == kh::TokenType::IDENTIFIER) {
-            std::u32string identifier = token.value.identifier;
+            identifier = token.value.identifier;
 
             this->ti++;
             GUARD(0);
@@ -178,7 +179,7 @@ kh::AstImport* kh::Parser::parseImport(const bool is_include) {
             this->ti++;
     }
 end:
-    return new kh::AstImport(index, path, is_include, path.empty() ? U"" : path.back());
+    return new kh::AstImport(index, path, is_include, path.empty() ? U"" : (identifier.empty() ? path.back() : identifier));
 }
 
 void kh::Parser::parseAccessAttribs(bool& is_static, bool& is_public) {
@@ -397,8 +398,10 @@ kh::AstClass* kh::Parser::parseClass() {
                 this->ti++;
                 break;
             }
-            else if (!(token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::COMMA))
+            else if (!(token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::COMMA)) {
                 this->exceptions.emplace_back(U"Was expecting a comma or a generic close", token.index);
+                break;
+            }
 
             this->ti++;
             GUARD(0);
@@ -410,6 +413,8 @@ kh::AstClass* kh::Parser::parseClass() {
     token = this->to();
 
     if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
+        this->ti++;
+        GUARD(0);
         base.reset((kh::AstIdentifierExpression*)this->parseIdentifiers());
         GUARD(0);
         token = this->to();
@@ -433,7 +438,7 @@ kh::AstClass* kh::Parser::parseClass() {
 
             switch (token.type) {
             case kh::TokenType::IDENTIFIER: {
-                if (token.value.identifier == U"var" || token.value.identifier == U"static" || token.value.identifier == U"private" || token.value.identifier == U"public") {
+                if (token.value.identifier == U"var" || token.value.identifier == U"ref" || token.value.identifier == U"static" || token.value.identifier == U"private" || token.value.identifier == U"public") {
                     bool is_static, is_public;
                     this->parseAccessAttribs(is_static, is_public);
                     GUARD(0);
@@ -684,7 +689,17 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {
                 GUARD(0);
 
                 std::vector<std::shared_ptr<kh::AstBody>> do_while_body = this->parseBody();
-                std::shared_ptr<kh::AstExpression> condition(this->parseExpression());
+                std::shared_ptr<kh::AstExpression> condition;
+
+                GUARD(0);
+                token = this->to();
+
+                if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"while") {
+                    this->ti++;
+                    condition.reset(this->parseExpression());
+                }
+                else
+                    this->exceptions.emplace_back(U"Was expecting `while`", token.index);
 
                 GUARD(0);
                 token = this->to();
@@ -705,9 +720,9 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {
                 std::vector<std::shared_ptr<kh::AstBody>> for_body;
 
                 while (true) {
-                    GUARD(0);
                     targets.emplace_back(this->parseExpression());
 
+                    GUARD(0);
                     kh::Token token = this->to();
                     if (token.type == kh::TokenType::SYMBOL) {
                         switch (token.value.symbol_type) {
@@ -737,9 +752,9 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {
             else if (token.value.identifier == U"continue") {
                 this->ti++;
                 GUARD(0);
-                token = this->to();
 
                 std::shared_ptr<kh::AstExpression> expression((kh::AstExpression*)nullptr);
+                token = this->to();
 
                 if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::SEMICOLON)
                     this->ti++;
@@ -751,9 +766,9 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {
             else if (token.value.identifier == U"break") {
                 this->ti++;
                 GUARD(0);
-                token = this->to();
 
                 std::shared_ptr<kh::AstExpression> expression((kh::AstExpression*)nullptr);
+                token = this->to();
 
                 if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::SEMICOLON)
                     this->ti++;
@@ -765,9 +780,9 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {
             else if (token.value.identifier == U"return") {
                 this->ti++;
                 GUARD(0);
-                token = this->to();
 
                 std::shared_ptr<kh::AstExpression> expression(this->parseExpression());
+                token = this->to();
 
                 if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::SEMICOLON)
                     this->ti++;
@@ -856,7 +871,28 @@ end:
 }
 
 kh::AstExpression* kh::Parser::parseExpression() {
+    kh::Token token = this->to();
+    size_t index = token.index;
 
+    if (token.type == kh::TokenType::IDENTIFIER && (
+        token.value.identifier == U"var" || token.value.identifier == U"ref" || token.value.identifier == U"static" || token.value.identifier == U"private" || token.value.identifier == U"public"
+        )) {
+        bool is_static, is_public;
+        this->parseAccessAttribs(is_static, is_public);
+        GUARD(0);
+        return this->parseDeclaration(is_static, is_public);
+    }
+    else if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"def") {
+        bool is_static, is_public;
+        this->parseAccessAttribs(is_static, is_public);
+        GUARD(0);
+        return this->parseFunction(is_static, is_public);
+    }
+    else
+        return this->parseAssignOps();
+
+end:
+    return nullptr;
 }
 
 kh::AstExpression* kh::Parser::parseAssignOps() {
@@ -877,13 +913,13 @@ kh::AstExpression* kh::Parser::parseAssignOps() {
         case kh::Operator::IDIV:
         case kh::Operator::IMOD:
         case kh::Operator::IPOW: {
-            std::shared_ptr<kh::AstExpression> lval(expr);
             this->ti++;
             GUARD(0);
 
+            std::shared_ptr<kh::AstExpression> lval(expr);
             std::shared_ptr<kh::AstExpression> rval(this->parseTernary());
             expr = new kh::AstBinaryExpression(token.index, token.value.operator_type, lval, rval);
-        }
+        } break;
 
         default:
             goto end;
@@ -942,12 +978,14 @@ end:
         GUARD(0);                                                                       \
         token = this->to();                                                             \
         index = token.index;                                                            \
-        if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == op) { \
-            std::shared_ptr<kh::AstExpression> lval(expr);                              \
+        while (token.type == kh::TokenType::OPERATOR && token.value.operator_type == op) { \
             this->ti++;                                                                 \
             GUARD(0);                                                                   \
+            std::shared_ptr<kh::AstExpression> lval(expr);                              \
             std::shared_ptr<kh::AstExpression> rval(lower());                           \
             expr = new kh::AstBinaryExpression(token.index, token.value.operator_type, lval, rval); \
+            GUARD(0);                                                                   \
+            token = this->to();                                                         \
         }                                                                               \
         GUARD(0);                                                                       \
         token = this->to();                                                             \
@@ -960,39 +998,311 @@ kh::AstExpression* kh::Parser::parseOr() {
 }
 
 kh::AstExpression* kh::Parser::parseAnd() {
-    RECURSIVE_DESCENT_SINGULAR_OP(this->parseComparison, kh::Operator::OR);
+    RECURSIVE_DESCENT_SINGULAR_OP(this->parseComparison, kh::Operator::AND);
 }
 
 kh::AstExpression* kh::Parser::parseComparison() {
+    kh::AstExpression* expr = this->parseBitwiseOr();
+    kh::Token token;
+    size_t index;
 
+    GUARD(0);
+    token = this->to();
+    index = token.index;
+
+    while (token.type == kh::TokenType::OPERATOR) {
+        switch (token.value.operator_type) {
+        case kh::Operator::EQUAL:
+        case kh::Operator::NOT_EQUAL:
+        case kh::Operator::LESS:
+        case kh::Operator::LESS_EQUAL:
+        case kh::Operator::MORE:
+        case kh::Operator::MORE_EQUAL: {
+            this->ti++;
+            GUARD(0);
+
+            std::shared_ptr<kh::AstExpression> lval(expr);
+            std::shared_ptr<kh::AstExpression> rval(this->parseBitwiseOr());
+            expr = new kh::AstBinaryExpression(token.index, token.value.operator_type, lval, rval);
+        } break;
+
+        default:
+            goto end;
+        }
+
+        GUARD(0);
+        token = this->to();
+    }
+end:
+    return expr;
 }
 
 kh::AstExpression* kh::Parser::parseBitwiseOr() {
-
+    RECURSIVE_DESCENT_SINGULAR_OP(this->parseBitwiseAnd, kh::Operator::BIT_OR);
 }
 
 kh::AstExpression* kh::Parser::parseBitwiseAnd() {
-
+    RECURSIVE_DESCENT_SINGULAR_OP(this->parseBitwiseShift, kh::Operator::BIT_AND);
 }
 
 kh::AstExpression* kh::Parser::parseBitwiseShift() {
+    kh::AstExpression* expr = this->parseAddSub();
+    kh::Token token;
+    size_t index;
 
+    GUARD(0);
+    token = this->to();
+    index = token.index;
+
+    while (token.type == kh::TokenType::OPERATOR) {
+        switch (token.value.operator_type) {
+        case kh::Operator::BIT_LSHIFT:
+        case kh::Operator::BIT_RSHIFT: {
+            this->ti++;
+            GUARD(0);
+
+            std::shared_ptr<kh::AstExpression> lval(expr);
+            std::shared_ptr<kh::AstExpression> rval(this->parseAddSub());
+            expr = new kh::AstBinaryExpression(token.index, token.value.operator_type, lval, rval);
+        } break;
+
+        default:
+            goto end;
+        }
+
+        GUARD(0);
+        token = this->to();
+    }
+end:
+    return expr;
 }
 
 kh::AstExpression* kh::Parser::parseAddSub() {
+    kh::AstExpression* expr = this->parseMulDivMod();
+    kh::Token token;
+    size_t index;
 
+    GUARD(0);
+    token = this->to();
+    index = token.index;
+
+    while (token.type == kh::TokenType::OPERATOR) {
+        switch (token.value.operator_type) {
+        case kh::Operator::ADD:
+        case kh::Operator::SUB: {
+            this->ti++;
+            GUARD(0);
+
+            std::shared_ptr<kh::AstExpression> lval(expr);
+            std::shared_ptr<kh::AstExpression> rval(this->parseMulDivMod());
+            expr = new kh::AstBinaryExpression(token.index, token.value.operator_type, lval, rval);
+        } break;
+
+        default:
+            goto end;
+        }
+
+        GUARD(0);
+        token = this->to();
+    }
+end:
+    return expr;
 }
 
 kh::AstExpression* kh::Parser::parseMulDivMod() {
+    kh::AstExpression* expr = this->parseUnary();
+    kh::Token token;
+    size_t index;
 
+    GUARD(0);
+    token = this->to();
+    index = token.index;
+
+    while (token.type == kh::TokenType::OPERATOR) {
+        switch (token.value.operator_type) {
+        case kh::Operator::MUL:
+        case kh::Operator::DIV:
+        case kh::Operator::MOD: {
+            this->ti++;
+            GUARD(0);
+
+            std::shared_ptr<kh::AstExpression> lval(expr);
+            std::shared_ptr<kh::AstExpression> rval(this->parseUnary());
+            expr = new kh::AstBinaryExpression(token.index, token.value.operator_type, lval, rval);
+        } break;
+
+        default:
+            goto end;
+        }
+
+        GUARD(0);
+        token = this->to();
+    }
+end:
+    return expr;
+}
+
+kh::AstExpression* kh::Parser::parseUnary() {
+    kh::AstExpression* expr = nullptr;
+    kh::Token token = this->to();
+    size_t index = token.index;
+
+    if (token.type == kh::TokenType::OPERATOR) {
+        switch (token.value.operator_type) {
+        case kh::Operator::ADD:
+        case kh::Operator::SUB:
+        case kh::Operator::ADDRESS: {
+            this->ti++;
+            GUARD(0);
+
+            std::shared_ptr<kh::AstExpression> rval(this->parseUnary());
+            expr = new kh::AstUnaryExpression(token.index, token.value.operator_type, rval);
+        } break;
+
+        default:
+            this->exceptions.emplace_back(U"Unexpected operator", token.index);
+        }
+    }
+    else
+        expr = this->parseExponentiation();
+
+end:
+    return expr;
 }
 
 kh::AstExpression* kh::Parser::parseExponentiation() {
-
+    RECURSIVE_DESCENT_SINGULAR_OP(this->parseLiteral, kh::Operator::POW);
 }
 
-kh::AstExpression* kh::Parser::parseUnLiteral() {
+kh::AstExpression* kh::Parser::parseLiteral() {
+    kh::AstExpression* expr = nullptr;
+    kh::Token token = this->to();
+    size_t index = token.index;
+    
+    switch (token.type) {
+    case kh::TokenType::CHARACTER:
+        expr = new kh::AstConstValue(token.index, token.value.character);
+        this->ti++;
+        break;
 
+    case kh::TokenType::UINTEGER:
+        expr = new kh::AstConstValue(token.index, token.value.uinteger);
+        this->ti++;
+        break;
+
+    case kh::TokenType::INTEGER:
+        expr = new kh::AstConstValue(token.index, token.value.integer);
+        this->ti++;
+        break;
+
+    case kh::TokenType::FLOATING:
+        expr = new kh::AstConstValue(token.index, token.value.floating);
+        this->ti++;
+        break;
+
+    case kh::TokenType::STRING:
+        expr = new kh::AstConstValue(token.index, token.value.string);
+        this->ti++;
+        break;
+
+    case kh::TokenType::BUFFER:
+        expr = new kh::AstConstValue(token.index, token.value.buffer);
+        this->ti++;
+        break;
+
+    case kh::TokenType::IDENTIFIER:
+        expr = this->parseIdentifiers();
+        break;
+
+    case kh::TokenType::SYMBOL:
+        switch (token.value.symbol_type) {
+        case kh::Symbol::PARENTHESES_OPEN: {
+            kh::AstTupleExpression* tuple = (kh::AstTupleExpression*)this->parseTuple();
+
+            if (tuple->elements.size() == 1) {
+                expr = tuple->elements[0].get();
+
+                /* Sketchy solution but hope this works */
+                std::shared_ptr<kh::AstExpression>* dummy_ptr = new std::shared_ptr<kh::AstExpression>(tuple->elements[0]);
+                std::free((void*)dummy_ptr);
+            }
+            else
+                expr = tuple;
+        } break;
+
+        default:
+            this->exceptions.emplace_back(U"Unexpected token", token.index);
+            goto end;
+        } break;
+
+    default:
+        this->exceptions.emplace_back(U"Unexpected token", token.index);
+        goto end;
+    }
+
+    GUARD(0);
+    token = this->to();
+
+    while (token.type == kh::TokenType::SYMBOL && (
+        token.value.symbol_type == kh::Symbol::DOT ||
+        token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN ||
+        token.value.symbol_type == kh::Symbol::SQUARE_OPEN
+    )) {
+        index = token.index;
+
+        switch (token.value.symbol_type) {
+        case kh::Symbol::DOT: {
+            std::vector<std::u32string> identifiers;
+
+            do {
+                this->ti++;
+                GUARD(0);
+                token = this->to();
+
+                if (token.type == kh::TokenType::IDENTIFIER)
+                    identifiers.push_back(token.value.identifier);
+                else
+                    this->exceptions.emplace_back(U"Was expecting an identifier", token.index);
+
+                this->ti++;
+                GUARD(0);
+                token = this->to();
+            } while (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::DOT);
+
+            std::shared_ptr<kh::AstExpression> exprptr(expr);
+            expr = new kh::AstScopeExpression(index, exprptr, identifiers);
+        } break;
+
+        case kh::Symbol::PARENTHESES_OPEN: {
+            std::shared_ptr<kh::AstExpression> exprptr(expr);
+            kh::AstTupleExpression* tuple = (kh::AstTupleExpression*)this->parseTuple();
+            std::vector<std::shared_ptr<kh::AstExpression>> arguments;
+
+            for (std::shared_ptr<kh::AstExpression>& element : tuple->elements)
+                arguments.push_back(element);
+
+            expr = new kh::AstCallExpression(index, exprptr, arguments);
+            delete tuple;
+        } break;
+
+        case kh::Symbol::SQUARE_OPEN: {
+            std::shared_ptr<kh::AstExpression> exprptr(expr);
+            kh::AstTupleExpression* tuple = (kh::AstTupleExpression*)this->parseTuple(kh::Symbol::SQUARE_OPEN, kh::Symbol::SQUARE_CLOSE);
+            std::vector<std::shared_ptr<kh::AstExpression>> arguments;
+
+            for (std::shared_ptr<kh::AstExpression>& element : tuple->elements)
+                arguments.push_back(element);
+
+            expr = new kh::AstSubscriptExpression(index, exprptr, arguments);
+            delete tuple;
+        } break;
+        }
+
+        GUARD(0);
+        token = this->to();
+    }
+end:
+    return expr;
 }
 
 kh::AstExpression* kh::Parser::parseIdentifiers() {
@@ -1006,8 +1316,10 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
         identifiers.push_back(token.value.identifier);
         this->ti++;
     }
-    else
+    else {
         this->exceptions.emplace_back(U"Was expecting an identifier", token.index);
+        goto end;
+    }
 
     GUARD(0);
     token = this->to();
@@ -1019,8 +1331,10 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
 
         if (token.type == kh::TokenType::IDENTIFIER)
             identifiers.push_back(token.value.identifier);
-        else
+        else {
             this->exceptions.emplace_back(U"Was expecting an identifier", token.index);
+            goto end;
+        }
 
         this->ti++;
         GUARD(0);
@@ -1035,7 +1349,7 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
         if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::GENERIC_CLOSE)
             this->ti++;
         else {
-            generics.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers())
+            generics.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
             GUARD(0);
             token = this->to();
 
@@ -1059,36 +1373,43 @@ end:
     return new kh::AstIdentifierExpression(index, identifiers, generics);
 }
 
-kh::AstExpression* kh::Parser::parseTuple() {
+kh::AstExpression* kh::Parser::parseTuple(const kh::Symbol opening, const kh::Symbol closing) {
     std::vector<std::shared_ptr<kh::AstExpression>> elements;
 
     kh::Token token = this->to();
     size_t index = token.index;
 
-    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
+    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == opening) {
         this->ti++;
         GUARD(0);
         token = this->to();
-
-        while (!(token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::PARENTHESES_CLOSE)) {
+        
+        bool skip_parentheses = true;
+        while (!(token.type == kh::TokenType::SYMBOL && token.value.symbol_type == closing)) {
             elements.emplace_back(this->parseExpression());
             GUARD(0);
             token = this->to();
 
-            if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::PARENTHESES_CLOSE) {
+            if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == closing) {
                 this->ti++;
+                skip_parentheses = false;
                 break;
             }
-            else if (!(token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::COMMA))
-                this->exceptions.emplace_back(U"Was expecting a comma or a closing parentheses", token.index);
+            else if (!(token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::COMMA)) {
+                this->exceptions.emplace_back(closing == kh::Symbol::SQUARE_CLOSE ? U"Was expecting a comma or a closing square bracket" : U"Was expecting a comma or a closing parentheses", token.index);
+                break;
+            }
 
             this->ti++;
             GUARD(0);
             token = this->to();
         }
+
+        if (skip_parentheses)
+            this->ti++;
     }
     else
-        this->exceptions.emplace_back(U"Was expecting an opening parentheses", token.index);
+        this->exceptions.emplace_back(opening == kh::Symbol::SQUARE_OPEN ? U"Was expecting an opening square bracket" : U"Was expecting an opening parentheses", token.index);
 
 end:
     return new kh::AstTupleExpression(index, elements);

@@ -64,7 +64,7 @@ std::u32string kh::repr(const kh::AstClass& class_ast, const size_t indent) {
     str += U"\n\t" + ind + U"NAME: " + class_ast.name;
 
     if (class_ast.base)
-        str += U"\n\t" + ind + U"BASE:\n\t\t" + ind + kh::repr(*class_ast.base);
+        str += U"\n\t" + ind + U"BASE:\n\t\t" + ind + kh::repr(*class_ast.base, indent + 2);
 
     if (!class_ast.generic_args.empty()) {
         str += U"\n\t" + ind + U"GENERICS:";
@@ -75,11 +75,11 @@ std::u32string kh::repr(const kh::AstClass& class_ast, const size_t indent) {
     str += U"\n\t" + ind + U"MEMBERS:";
 
     for (auto member : class_ast.members)
-        str += U"\n\t" + ind + kh::repr(*member);
+        str += U"\n\t\t" + ind + kh::repr(*member, indent + 2);
 
     str += U"\n\t" + ind + U"METHODS:";
     for (auto method : class_ast.methods)
-        str += U"\n\t" + ind + kh::repr(*method);
+        str += U"\n\t\t" + ind + kh::repr(*method, indent + 2);
 
     return str;
 }
@@ -94,11 +94,11 @@ std::u32string kh::repr(const kh::AstStruct& struct_ast, const size_t indent) {
     str += U"\n\t" + ind + U"NAME: " + struct_ast.name;
 
     if (struct_ast.base)
-        str += U"\n\t" + ind + U"BASE:\n\t\t" + ind + kh::repr(*struct_ast.base);
+        str += U"\n\t" + ind + U"BASE:\n\t\t" + ind + kh::repr(*struct_ast.base, indent + 3);
 
     str += U"\n\t" + ind + U"MEMBERS:";
     for (auto member : struct_ast.members)
-        str += U"\n\t" + ind + kh::repr(*member);
+        str += U"\n\t\t" + ind + kh::repr(*member, indent + 2);
 
     return str;
 }
@@ -113,11 +113,11 @@ std::u32string kh::repr(const kh::AstEnum& enum_ast, const size_t indent) {
     str += U"\n\t" + ind + U"NAME: " + enum_ast.name;
 
     if (enum_ast.base)
-        str += U"\n\t" + ind + U"BASE:\n\t\t" + ind + kh::repr(*enum_ast.base);
+        str += U"\n\t" + ind + U"BASE:\n\t\t" + ind + kh::repr(*enum_ast.base, indent + 2);
 
     str += U"\n\t" + ind + U"MEMBERS:";
     for (const std::u32string& member : enum_ast.members)
-        str += U"\n\t" + ind + member;
+        str += U"\n\t\t" + ind + member;
 
     return str;
 }
@@ -372,7 +372,7 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
         if (expr_declare.var_type)
             str += U"\n\t" + ind + U"TYPE:\n\t\t" + ind + kh::repr(*expr_declare.var_type, indent + 2);
 
-        str += U"\n\t" + ind + U"NAME: " + ind + expr_declare.var_name;
+        str += U"\n\t" + ind + U"NAME: " + expr_declare.var_name;
 
         if (expr_declare.expression)
             str += U"\n\t" + ind + U"EXPRESSION:\n\t\t" + ind + kh::repr(*expr_declare.expression, indent + 2);

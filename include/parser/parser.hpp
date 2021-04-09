@@ -84,9 +84,11 @@ namespace kh {
         kh::AstExpression* parseBitwiseShift();   /* Parses bitwise shift `<<` `>>` */
         kh::AstExpression* parseAddSub();         /* Parses `+` and `-` */
         kh::AstExpression* parseMulDivMod();      /* Parses `*`, `/`, and `%` */
+        kh::AstExpression* parseUnary();          /* Parses unary operations */
         kh::AstExpression* parseExponentiation(); /* Parses `^` */
-        kh::AstExpression* parseUnLiteral();      /* Parses literals and unary operations */
+        kh::AstExpression* parseLiteral();        /* Parses literals */
         kh::AstExpression* parseIdentifiers();    /* Parses identifiers with scoping and templates */
-        kh::AstExpression* parseTuple();          /* Parses tuples with parentheses expressions */
+        kh::AstExpression* parseTuple(const kh::Symbol opening = kh::Symbol::PARENTHESES_OPEN, const kh::Symbol closing = kh::Symbol::PARENTHESES_CLOSE); 
+                                                 /* Parses tuples with parentheses expressions */
     };
 }

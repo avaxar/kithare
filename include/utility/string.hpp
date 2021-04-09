@@ -87,6 +87,13 @@ namespace kh {
     /// <returns></returns>
     std::u32string quote(const std::string& str);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="str"></param>
+    /// <param name="column"></param>
+    /// <param name="line"></param>
+    void strIndexPos(const std::u32string& str, const size_t index, size_t& column, size_t& line);
 
     std::u32string repr(const std::u32string& str);
     std::u32string repr(const std::wstring& str);
