@@ -7,6 +7,7 @@
 * Defines include/parser/parser.hpp.
 */
 
+#include <iostream>
 #include "parser/parser.hpp"
 
 #define GUARD(offset) do {                                                              \
@@ -35,7 +36,7 @@ kh::Parser::Parser(const std::vector<kh::Token>& _tokens) {
 }
 
 kh::Parser::~Parser() {
-    
+
 }
 
 kh::Ast* kh::Parser::parse() {
@@ -222,6 +223,12 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
         token = this->to();
     }
 
+    if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::BIT_AND) {
+        this->ti++;
+        return_type.reset(new kh::AstIdentifierExpression(token.index, { U"void" }, {}));
+        goto parseArgs;
+    }
+
     return_type_or_identifiers.reset((kh::AstIdentifierExpression*)this->parseIdentifiers());
 
     GUARD(0);
@@ -230,18 +237,10 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
     if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
         return_type.reset(new kh::AstIdentifierExpression(return_type_or_identifiers->index, { U"void" }, {}));
         identifiers = return_type_or_identifiers->identifiers;
-
-        for (auto generic_ : return_type_or_identifiers->generics) {
-            if (generic_->identifiers.size() != 1)
-                this->exceptions.emplace_back(U"Could not have multiple identifiers as a generic argument name", generic_->index);
-            if (!generic_->generics.empty())
-                this->exceptions.emplace_back(U"Could not have generic arguments in a generic argument", generic_->generics[0]->index);
-
-            generic_args.push_back(generic_->identifiers.empty() ? U"" : generic_->identifiers[0]);
-        }
     }
     else if (token.type == kh::TokenType::IDENTIFIER) {
         return_type = return_type_or_identifiers;
+
         std::shared_ptr<kh::AstIdentifierExpression> id_generic_args((kh::AstIdentifierExpression*)this->parseIdentifiers());
         identifiers = id_generic_args->identifiers;
 
@@ -254,11 +253,16 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
             generic_args.push_back(generic_->identifiers.empty() ? U"" : generic_->identifiers[0]);
         }
     }
-    else {
+    else if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::BIT_AND) {
+        return_type = return_type_or_identifiers;
+        this->ti++;
+    }
+    else{
         this->exceptions.emplace_back(U"Unexpected token", token.index);
         goto end;
     }
-    
+
+parseArgs:
     GUARD(0);
     token = this->to();
 
@@ -279,7 +283,7 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
 
         GUARD(0);
         token = this->to();
-
+        
         if (token.type == kh::TokenType::SYMBOL) {
             if (token.value.symbol_type == kh::Symbol::COMMA) {
                 this->ti++;
@@ -780,14 +784,21 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {
             else if (token.value.identifier == U"return") {
                 this->ti++;
                 GUARD(0);
-
-                std::shared_ptr<kh::AstExpression> expression(this->parseExpression());
                 token = this->to();
-
+                
+                std::shared_ptr<kh::AstExpression> expression((kh::AstExpression*)nullptr);
                 if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::SEMICOLON)
                     this->ti++;
-                else
-                    this->exceptions.emplace_back(U"Was expecting a semicolon", token.index);
+                else {
+                    expression.reset(this->parseExpression());
+                    GUARD(0);
+                    token = this->to();
+
+                    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::SEMICOLON)
+                        this->ti++;
+                    else
+                        this->exceptions.emplace_back(U"Was expecting a semicolon", token.index);
+                }
 
                 body.emplace_back(new kh::AstStatement(index, kh::AstStatement::Type::RETURN, expression));
             }
@@ -834,8 +845,10 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {
 
                     if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::SEMICOLON)
                         break;
-                    else if (!(token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::COMMA))
+                    else if (!(token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::COMMA)) {
                         this->exceptions.emplace_back(U"Was expecting a semicolon or a comma", token.index);
+                        break;
+                    }
 
                     this->ti++;
                     GUARD(0);
@@ -843,7 +856,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {
                 }
 
                 this->ti++;
-
+                
                 body.emplace_back(new kh::AstInstruction(index, op_name, op_args));
             } break;
 
@@ -884,6 +897,8 @@ kh::AstExpression* kh::Parser::parseExpression() {
     }
     else if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"def") {
         bool is_static, is_public;
+        this->ti++;
+        GUARD(0);
         this->parseAccessAttribs(is_static, is_public);
         GUARD(0);
         return this->parseFunction(is_static, is_public);
@@ -1178,7 +1193,7 @@ kh::AstExpression* kh::Parser::parseLiteral() {
     kh::AstExpression* expr = nullptr;
     kh::Token token = this->to();
     size_t index = token.index;
-    
+
     switch (token.type) {
     case kh::TokenType::CHARACTER:
         expr = new kh::AstConstValue(token.index, token.value.character);
@@ -1383,7 +1398,7 @@ kh::AstExpression* kh::Parser::parseTuple(const kh::Symbol opening, const kh::Sy
         this->ti++;
         GUARD(0);
         token = this->to();
-        
+
         bool skip_parentheses = true;
         while (!(token.type == kh::TokenType::SYMBOL && token.value.symbol_type == closing)) {
             elements.emplace_back(this->parseExpression());

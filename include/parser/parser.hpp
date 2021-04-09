@@ -88,7 +88,9 @@ namespace kh {
         kh::AstExpression* parseExponentiation(); /* Parses `^` */
         kh::AstExpression* parseLiteral();        /* Parses literals */
         kh::AstExpression* parseIdentifiers();    /* Parses identifiers with scoping and templates */
-        kh::AstExpression* parseTuple(const kh::Symbol opening = kh::Symbol::PARENTHESES_OPEN, const kh::Symbol closing = kh::Symbol::PARENTHESES_CLOSE); 
-                                                 /* Parses tuples with parentheses expressions */
+        kh::AstExpression* parseTuple(            /* Parses tuples with parentheses expressions */
+            const kh::Symbol opening = kh::Symbol::PARENTHESES_OPEN,
+            const kh::Symbol closing = kh::Symbol::PARENTHESES_CLOSE
+        );
     };
 }

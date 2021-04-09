@@ -1,3 +1,7 @@
+def int &() {
+	$PUSH a, b;
+}
+
 def main() {
 	std.println("Hello, world!");
 
@@ -5,4 +9,7 @@ def main() {
 	if name.lowerCase() == "joe" { std.println("mama"); }
 	else { std.println("Hello, " + name + "!"); }
 
+	var function[<int, int, int>] lambda_test = def int a(int a, int b) {
+		return a + (b + c) + d + e * f;
+	};
 }

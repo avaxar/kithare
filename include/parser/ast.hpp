@@ -440,7 +440,7 @@ namespace kh {
         std::shared_ptr<kh::AstExpression> expression;
 
         AstStatement(const size_t _index, const kh::AstStatement::Type _statement_type, std::shared_ptr<kh::AstExpression>& _expression) :
-            statement_type((Type)((size_t)_statement_type)), expression(expression) {
+            statement_type((Type)((size_t)_statement_type)), expression(_expression) {
             this->index = _index;
             this->type = kh::AstBody::Type::STATEMENT;
         }

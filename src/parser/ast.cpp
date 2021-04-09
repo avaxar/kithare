@@ -144,7 +144,7 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
             str += U"\n\t" + ind + U"IF CLAUSE:";
 
             if (ast_if.conditions[clause])
-                str += U"\n\t\t" + ind + U"CONDITION:\n\t\t\t" + kh::repr(*ast_if.conditions[clause], indent + 3);
+                str += U"\n\t\t" + ind + U"CONDITION:\n\t\t\t" + ind + kh::repr(*ast_if.conditions[clause], indent + 3);
 
             if (!ast_if.bodies[clause].empty()) {
                 str += U"\n\t\t" + ind + U"BODY:";
@@ -155,7 +155,7 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
         }
 
         if (!ast_if.else_body.empty()) {
-            str += U"\n\t" + ind + U"ELSE CLAUSE:\n";
+            str += U"\n\t" + ind + U"ELSE CLAUSE:";
             for (auto part : ast_if.else_body)
                 if (part)
                     str += U"\n\t\t" + ind + kh::repr(*part, indent + 2);
@@ -251,9 +251,9 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
 
         str += U"\n\t" + ind + U"OP NAME: " + ast_inst.op_name;
 
-        for (auto op_arg : ast_inst.op_arguments)
+        for (auto& op_arg : ast_inst.op_arguments)
             if (op_arg)
-                str += str += U"\n\t" + ind + U"OP ARGUMENT:\n\t\t" + ind + kh::repr(*op_arg, indent + 2);
+                str += U"\n\t" + ind + U"OP ARGUMENT:\n\t\t" + ind + kh::repr(*op_arg, indent + 2);
 
         break;
     }
@@ -392,14 +392,18 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
         str += U"\n\t" + ind + U"STATIC: " + (expr_func.is_static ? U"STATIC" : U"NON-STATIC");
         str += U"\n\t" + ind + U"ACCESS: " + (expr_func.is_public ? U"PUBLIC" : U"PRIVATE");
 
-        str += U"\n\t" + ind + U"IDENTIFIERS:";
-        for (const std::u32string& identifier : expr_func.identifiers)
-            str += U"\n\t\t" + ind + identifier;
+        if (expr_func.identifiers.empty())
+            str += U"\n\t" + ind + U"IDENTIFIERS: (lambda)";
+        else {
+            str += U"\n\t" + ind + U"IDENTIFIERS:";
+            for (const std::u32string& identifier : expr_func.identifiers)
+                str += U"\n\t\t" + ind + identifier;
 
-        if (!expr_func.generic_args.empty()) {
-            str += U"\n\t" + ind + U"GENERICS:";
-            for (const std::u32string& generic_ : expr_func.generic_args)
-                str += U"\n\t\t" + ind + generic_;
+            if (!expr_func.generic_args.empty()) {
+                str += U"\n\t" + ind + U"GENERICS:";
+                for (const std::u32string& generic_ : expr_func.generic_args)
+                    str += U"\n\t\t" + ind + generic_;
+            }
         }
 
         if (expr_func.return_ref_depth)

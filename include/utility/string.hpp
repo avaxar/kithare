@@ -21,7 +21,7 @@
 #endif
 
 #ifndef KH_PRINT_TAB_SIZE
-#define KH_PRINT_TAB_SIZE 4
+#define KH_PRINT_TAB_SIZE 2
 #endif
 
 #define print(val)                          \
@@ -88,7 +88,7 @@ namespace kh {
     std::u32string quote(const std::string& str);
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="str"></param>
     /// <param name="column"></param>
