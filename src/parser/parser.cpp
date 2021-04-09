@@ -283,7 +283,7 @@ parseArgs:
 
         GUARD(0);
         token = this->to();
-        
+
         if (token.type == kh::TokenType::SYMBOL) {
             if (token.value.symbol_type == kh::Symbol::COMMA) {
                 this->ti++;
@@ -785,7 +785,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {
                 this->ti++;
                 GUARD(0);
                 token = this->to();
-                
+
                 std::shared_ptr<kh::AstExpression> expression((kh::AstExpression*)nullptr);
                 if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::SEMICOLON)
                     this->ti++;
@@ -856,7 +856,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {
                 }
 
                 this->ti++;
-                
+
                 body.emplace_back(new kh::AstInstruction(index, op_name, op_args));
             } break;
 
