@@ -42,6 +42,12 @@
     <ClCompile Include="src\parser\token.cpp">
       <Filter>src\parser</Filter>
     </ClCompile>
+    <ClCompile Include="src\utility\cmd.cpp">
+      <Filter>src\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utility\file.cpp">
+      <Filter>src\utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\utility\string.hpp">
@@ -58,6 +64,15 @@
     </ClInclude>
     <ClInclude Include="include\parser\token.hpp">
       <Filter>include\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="include\utility\cmd.hpp">
+      <Filter>include\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\utility\file.hpp">
+      <Filter>include\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\info.hpp">
+      <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

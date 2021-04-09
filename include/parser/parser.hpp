@@ -11,7 +11,6 @@
 
 #include <vector>
 
-#include "parser/token.hpp"
 #include "parser/ast.hpp"
 
 
@@ -92,5 +91,6 @@ namespace kh {
             const kh::Symbol opening = kh::Symbol::PARENTHESES_OPEN,
             const kh::Symbol closing = kh::Symbol::PARENTHESES_CLOSE
         );
+
     };
 }

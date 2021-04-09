@@ -79,7 +79,7 @@ std::u32string kh::decodeUtf8(const std::string& str) {
                 continuation = 3;
             }
             else
-                throw kh::UnicodeDecodeError(U"Ivalid start byte", i);
+                throw kh::UnicodeDecodeError(U"Invalid start byte", i);
         }
     }
 
