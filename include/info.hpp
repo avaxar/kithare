@@ -3,9 +3,8 @@
 * The source code for Kithare programming language is distributed under the MIT license.
 * Copyright (C) 2021 Avaxar (AvaxarXapaxa)
 *
-* include/kithareinfo.hpp
-* Header that contains info about Kithare, like version, compiler used to compile
-* kithare, etc etc
+* include/info.hpp
+* Header that contains info about the Kithare build. Such as version, compiler, and OS.
 */
 
 #pragma once
@@ -21,31 +20,23 @@
 
 #ifdef _MSC_VER
 #define KH_COMPILER "MSVC"
-
-#elif defined(__MINGW64__)
+#elif __MINGW64__
 #define KH_COMPILER "MinGW-x64"
-
-#elif defined(__MINGW32__)
+#elif __MINGW32__
 #define KH_COMPILER "MinGW"
-
-#elif defined(__GNUC__)
+#elif __GNUC__
 #define KH_COMPILER "GCC"
-
+#else
+#define KH_COMPILER "Unknown"
 #endif
 
 #ifdef _WIN32
 #define KH_OS "Windows"
-#endif
-
-#ifdef __APPLE__
+#elif __APPLE__
 #define KH_OS "Mac OS"
-#endif
-
-#ifdef __linux__
+#elif __linux__
 #define KH_OS "Linux"
-#endif
-
-#ifndef KH_OS
+#else
 #define KH_OS "Unknown"
 #endif
 

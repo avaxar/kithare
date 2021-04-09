@@ -6,24 +6,15 @@
 * src/utility/cmd.cpp
 * Implements argument parsing for kithare commandline interface
 */
+
 #include "utility/cmd.hpp"
-#include "kithareinfo.hpp"
+#include "utility/file.hpp"
+#include "utility/string.hpp"
+#include "info.hpp"
 
-std::u32string kh::readFile(std::u32string scriptname) {
-    std::string u8source;
-    std::ifstream fin(kh::encodeUtf8(scriptname), std::ios::in | std::ios::binary);
-    char byte;
+#include "parser/lexer.hpp"
+#include "parser/parser.hpp"
 
-    if (fin.fail())
-        throw kh::FileNotFound(scriptname);
-
-    while (!fin.eof()) {
-        fin.read(&byte, 1);
-        u8source += byte;
-    }
-
-    return kh::decodeUtf8(u8source);
-}
 
 int kh::run(const std::vector<std::u32string>& args) {
     std::vector<std::u32string> exargs;
@@ -32,7 +23,7 @@ int kh::run(const std::vector<std::u32string>& args) {
     kh::Ast* ast;
     bool lex = false;
 
-    for (auto arg: args) {
+    for (const std::u32string& arg: args) {
         if (exargs.empty() && !arg.compare(0, 1, U"-")) {
             // A kithare command line option, handle all those here
             if (arg == U"-v") {

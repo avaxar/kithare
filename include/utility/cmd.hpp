@@ -9,22 +9,10 @@
 
 #pragma once
 
-#include <fstream>
-#include <iostream>
+#include <string>
 #include <vector>
 
-#include "utility/string.hpp"
-#include "parser/lexer.hpp"
-#include "parser/parser.hpp"
 
 namespace kh {
-    struct FileNotFound {
-        FileNotFound (const std::u32string& _fname) :
-            fname(_fname) {}
-
-        std::u32string fname;
-    };
-
-    std::u32string readFile(std::u32string scriptname);
     int run(const std::vector<std::u32string>& args);
 }
