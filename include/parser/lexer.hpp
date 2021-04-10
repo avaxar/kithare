@@ -11,6 +11,7 @@
 
 #include <cwctype>
 #include <functional>
+#include <vector>
 
 #include "parser/token.hpp"
 #include "utility/string.hpp"
