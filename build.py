@@ -323,7 +323,7 @@ def init_cflags():
     """
     Return an initialized cflags instance
     """
-    cflags = ["-O3", "-std=c++17", "-I include"]
+    cflags = ["-O3", "-std=c++14", "-I include"]
     cflags.extend(
         [
             "-lSDL2", "-lSDL2main", "-lSDL2_image", "-lSDL2_ttf",

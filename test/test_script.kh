@@ -1,15 +1,4 @@
-def int &() {
-	$PUSH a, b;
-}
+def int sum(int a, int b) { return a + b; }
 
-def main() {
-	std.println("Hello, world!");
-
-	var str name = std.input();
-	if name.lowerCase() == "joe" { std.println("mama"); }
-	else { std.println("Hello, " + name + "!"); }
-
-	var function[<int, int, int>] lambda_test = def int a(int a, int b) {
-		return a + (b + c) + d + e * f;
-	};
-}
+/* If no return type is provided, it'll be void */
+def main() {}
