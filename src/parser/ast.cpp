@@ -7,10 +7,6 @@
 * Defines include/parser/ast.hpp.
 */
 
-#include <memory>
-
-#include "utility/string.hpp"
-
 #include "parser/ast.hpp"
 
 #define REPR_ALL_IN(var)      \

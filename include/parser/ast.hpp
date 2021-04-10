@@ -11,10 +11,10 @@
 
 #include <complex>
 #include <memory>
-#include <string>
 #include <vector>
 
 #include "parser/token.hpp"
+#include "utility/string.hpp"
 
 
 namespace kh {

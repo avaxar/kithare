@@ -7,7 +7,6 @@
 * Defines include/parser/parser.hpp.
 */
 
-#include <iostream>
 #include "parser/parser.hpp"
 
 #define GUARD(offset) do {                                                              \

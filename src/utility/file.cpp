@@ -7,10 +7,7 @@
 * Defines include/utility/file.hpp
 */
 
-#include <fstream>
-
 #include "utility/file.hpp"
-#include "utility/string.hpp"
 
 
 std::u32string kh::readFile(const std::u32string& path) {

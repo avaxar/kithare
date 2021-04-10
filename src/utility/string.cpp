@@ -7,10 +7,6 @@
 * Defines include/utility/string.hpp
 */
 
-#include <iostream>
-#include <string>
-#include <sstream>
-
 #include "utility/string.hpp"
 
 
