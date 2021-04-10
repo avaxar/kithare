@@ -24,7 +24,7 @@
 #define KH_PRINT_TAB_SIZE 2
 #endif
 
-#define print(val)                          \
+#define khPrint(val)                        \
     do {                                    \
         std::u32string str = kh::repr(val); \
         for (const char32_t chr : str) {    \
@@ -36,7 +36,7 @@
         }                                   \
     } while (false)                         \
 
-#define println(val) do { print(val); std::putwchar(L'\n'); } while (false)
+#define khPrintln(val) do { khPrint(val); std::putwchar(L'\n'); } while (false)
 
 
 /* Sets the locale. These below are sorta' automatically run once the program starts if this header is included */

@@ -39,7 +39,3 @@
 #else
 #define KH_OS "Unknown"
 #endif
-
-#ifndef KH_COMPILER
-#define KH_COMPILER "Unknown"
-#endif

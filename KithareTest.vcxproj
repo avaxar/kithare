@@ -23,6 +23,8 @@
     <ClCompile Include="src\parser\lexer.cpp" />
     <ClCompile Include="src\parser\parser.cpp" />
     <ClCompile Include="src\parser\token.cpp" />
+    <ClCompile Include="src\utility\cmd.cpp" />
+    <ClCompile Include="src\utility\file.cpp" />
     <ClCompile Include="src\utility\string.cpp" />
     <ClCompile Include="test\test_lexer.cpp" />
     <ClCompile Include="test\test_main.cpp" />

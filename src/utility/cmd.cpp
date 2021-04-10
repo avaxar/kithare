@@ -27,15 +27,15 @@ int kh::run(const std::vector<std::u32string>& args) {
         if (exargs.empty() && !arg.compare(0, 1, U"-")) {
             // A kithare command line option, handle all those here
             if (arg == U"-v") {
-                println("Kithare " KH_VERSION_STR);
+                khPrintln("Kithare " KH_VERSION_STR);
                 return 0;
             }
 
             if (arg == U"-V") {
-                println("Kithare " KH_VERSION_STR);
-                println("OS: " KH_OS);
-                println("Compiler: " KH_COMPILER);
-                println("Compiled on " __DATE__ " at " __TIME__);
+                khPrintln("Kithare " KH_VERSION_STR);
+                khPrintln("OS: " KH_OS);
+                khPrintln("Compiler: " KH_COMPILER);
+                khPrintln("Compiled on " __DATE__ " at " __TIME__);
                 return 0;
             }
 
@@ -48,7 +48,7 @@ int kh::run(const std::vector<std::u32string>& args) {
     }
 
     if (exargs.empty()) {
-        println(U"Path to file to be executed was not passed");
+        khPrintln(U"Path to file to be executed was not passed");
         return 1;
     }
 
@@ -58,20 +58,20 @@ int kh::run(const std::vector<std::u32string>& args) {
         ast = kh::parse(tokens);
     }
     catch (const kh::FileNotFound& exc) {
-        print(U"FileNotFoundError: ");
-        println(exc.fname);
+        khPrint(U"FileNotFoundError: ");
+        khPrintln(exc.fname);
         return 1;
     }
     catch (const kh::UnicodeDecodeError& exc) {
-        print(exc.what);
-        print(U" at ");
-        println((uint64_t)exc.index);
+        khPrint(exc.what);
+        khPrint(U" at ");
+        khPrintln((uint64_t)exc.index);
         return 1;
     }
     catch (const kh::LexException& exc) {
-        print(exc.what);
-        print(U" at ");
-        println((uint64_t)exc.index);
+        khPrint(exc.what);
+        khPrint(U" at ");
+        khPrintln((uint64_t)exc.index);
         return 1;
     }
     catch (const kh::ParseExceptions& exc) {
@@ -79,21 +79,21 @@ int kh::run(const std::vector<std::u32string>& args) {
             size_t column, line;
             kh::strIndexPos(source, ex.index, column, line);
 
-            print(ex.what);
-            print(U" at ");
-            print((uint64_t)column);
-            print(U", ");
-            println((uint64_t)line);
+            khPrint(ex.what);
+            khPrint(U" at ");
+            khPrint((uint64_t)column);
+            khPrint(U", ");
+            khPrintln((uint64_t)line);
         }
         return 1;
     }
 
     if (lex) {
-        println(U"Lexicated the source and generated tokens...");
+        khPrintln(U"Lexicated the source and generated tokens...");
         for (auto token : tokens)
-            println(token);
-        println(U"\n\nParsed the tokens and generated an AST tree...");
-        println(*ast);
+            khPrintln(token);
+        khPrintln(U"\n\nParsed the tokens and generated an AST tree...");
+        khPrintln(*ast);
     }
 
     delete ast;
