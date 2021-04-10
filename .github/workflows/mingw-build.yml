@@ -54,6 +54,11 @@ jobs:
     
     - name: Run tests
       run: python3 build.py --run-tests --arch=${{matrix.arch}}
+    
+    - name: Check dist
+      run: |
+        .\\dist\\MinGW-${{matrix.arch}}\\kcr.exe -V
+        .\\dist\\MinGW-${{matrix.arch}}\\kcr.exe --lex test\\test_script.kh
 
     #- name: Upload dist
       #uses: actions/upload-artifact@v2

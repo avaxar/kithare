@@ -38,7 +38,6 @@ int kh::run(const std::vector<std::u32string>& args) {
         else {
             exargs.emplace_back(arg);
         }
-
     }
 
     if (exargs.empty()) {

@@ -15,32 +15,31 @@ std::u32string kh::readFile(const std::u32string& path) {
 }
 
 std::string kh::readFileBinary(const std::u32string& path) {
-    std::string content;
-
-    /* Windows doesn't accept UTF-8 paths. In order to provide unicode path,
-     * MSVC provide a std::wstring argument for std::fstream with its subclasses (std::ifstream, std::ofstream).
-     * But MinGW's STL doesn't provide that overload, thus Kithare MinGW builds won't be able to open unicode named files.
-     * GL fixing that @ankith26, I'ma add that to why MinGW sucks even more - Avaxar */
-    #ifdef _MSC_VER
+    /* Use C style file handling, because it's superior, and also handles UTF-8
+     * file paths on MinGW correctly */
+    std::string ret;
+    FILE* file;
+#if _WIN32
     std::wstring u16path;
     u16path.reserve(path.size());
     for (const char32_t ch : path)
         u16path += (wchar_t)ch;
 
-    std::ifstream fin(u16path.c_str(), std::ios::in | std::ios::binary);
-    #else
-    std::ifstream fin(kh::encodeUtf8(path), std::ios::in | std::ios::binary);
-    #endif
+    file = _wfopen(u16path.c_str(), L"rb");
+#else
+    file = fopen(kh::encodeUtf8(path).c_str(), "rb");
+#endif
 
-    char byte;
-
-    if (fin.fail())
+    if (!file)
         throw kh::FileNotFound(path);
-
-    while (!fin.eof()) {
-        fin.read(&byte, 1);
-        content += byte;
-    }
-
-    return content;
+    
+    int c; // note: int, not char, required to handle EOF
+    while ((c = fgetc(file)) != EOF)
+       ret += (char)c;
+ 
+    if (ferror(file))
+        throw kh::FileNotFound(path);
+ 
+    fclose(file);
+    return ret;
 }

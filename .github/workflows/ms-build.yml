@@ -52,6 +52,11 @@ jobs:
     
     - name: Run tests
       run: python3 build.py --msvc --run-tests --arch=${{matrix.arch}}
+    
+    - name: Check dist
+      run: |
+        .\\dist\\MSVC-${{matrix.arch}}-Release\\kcr.exe -V
+        .\\dist\\MSVC-${{matrix.arch}}-Release\\kcr.exe --lex test\\test_script.kh
 
     - name: Upload dist
       uses: actions/upload-artifact@v2
