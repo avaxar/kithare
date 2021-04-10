@@ -8,12 +8,6 @@
 */
 
 #include "utility/cmd.hpp"
-#include "utility/file.hpp"
-#include "utility/string.hpp"
-#include "info.hpp"
-
-#include "parser/lexer.hpp"
-#include "parser/parser.hpp"
 
 
 int kh::run(const std::vector<std::u32string>& args) {

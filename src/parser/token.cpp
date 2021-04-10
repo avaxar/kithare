@@ -7,8 +7,6 @@
 * Defines include/parser/token.hpp
 */
 
-#include "utility/string.hpp"
-
 #include "parser/token.hpp"
 
 

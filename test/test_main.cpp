@@ -7,8 +7,6 @@
 * Main file for tests
 */
 
-#include <iostream>
-#include <vector>
 
 #include "utility/string.hpp"
 #include "test.hpp"

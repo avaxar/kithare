@@ -7,11 +7,6 @@
 * Defines include/parser/lexer.hpp and declare+define several internal helper stuff.
 */
 
-#include <cwctype>
-#include <functional>
-
-#include "utility/string.hpp"
-
 #include "parser/lexer.hpp"
 
 /* Helper to raise error at a file */

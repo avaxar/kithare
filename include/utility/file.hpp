@@ -9,8 +9,7 @@
 
 #pragma once
 
-#include <string>
-
+#include "utility/string.hpp"
 
 namespace kh {
     struct FileNotFound {

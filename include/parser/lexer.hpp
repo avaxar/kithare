@@ -9,10 +9,11 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include <cwctype>
+#include <functional>
 
 #include "parser/token.hpp"
+#include "utility/string.hpp"
 
 
 namespace kh {

@@ -13,6 +13,7 @@
 #include <complex>
 #include <iostream>
 #include <string>
+#include <fstream>
 
 #ifdef _WIN32
 #define _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS

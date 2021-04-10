@@ -8,7 +8,6 @@
 */
 
 #include "utility/cmd.hpp"
-#include "utility/string.hpp"
 
 
 #undef main
