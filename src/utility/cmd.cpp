@@ -17,7 +17,7 @@ int kh::run(const std::vector<std::u32string>& args) {
     kh::Ast* ast;
     bool lex = false;
 
-    for (const std::u32string& arg: args) {
+    for (const std::u32string& arg : args) {
         if (exargs.empty() && !arg.compare(0, 1, U"-")) {
             /* A Kithare command line option, handle all those here */
             if (arg == U"-v") {
@@ -50,24 +50,33 @@ int kh::run(const std::vector<std::u32string>& args) {
         tokens = kh::lex(source);
         ast = kh::parse(tokens);
     }
-    catch (const kh::FileNotFound& exc) {
-        khPrint(U"FileNotFoundError: ");
-        khPrintln(exc.fname);
+    catch (const kh::FileError& exc) {
+        std::string estr = "FileError in file ";
+        estr += kh::encodeUtf8(exc.fname);
+        perror(estr.c_str());
         return 1;
     }
     catch (const kh::UnicodeDecodeError& exc) {
+        khPrint(U"UnicodeDecodeError: ");
         khPrint(exc.what);
         khPrint(U" at ");
         khPrintln((uint64_t)exc.index);
         return 1;
     }
     catch (const kh::LexException& exc) {
+        size_t column, line;
+        kh::strIndexPos(source, exc.index, column, line);
+
+        khPrint(U"SyntaxError: ");
         khPrint(exc.what);
         khPrint(U" at ");
-        khPrintln((uint64_t)exc.index);
+        khPrint((uint64_t)column);
+        khPrint(U", ");
+        khPrintln((uint64_t)line);
         return 1;
     }
     catch (const kh::ParseExceptions& exc) {
+        khPrintln(U"SyntaxError(s)");
         for (const kh::ParseException& ex : exc.exceptions) {
             size_t column, line;
             kh::strIndexPos(source, ex.index, column, line);

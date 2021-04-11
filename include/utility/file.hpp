@@ -11,10 +11,10 @@
 
 #include "utility/string.hpp"
 
+
 namespace kh {
-    struct FileNotFound {
-        FileNotFound(const std::u32string& _fname) :
-            fname(_fname) {}
+    struct FileError {
+        FileError(const std::u32string& _fname) : fname(_fname) {}
 
         std::u32string fname;
     };

@@ -15,31 +15,31 @@ std::u32string kh::readFile(const std::u32string& path) {
 }
 
 std::string kh::readFileBinary(const std::u32string& path) {
-    /* Use C style file handling, because it's "superior" (as @ankith26 would say it -.-), and also handles UTF-8
-     * file paths on MinGW correctly */
+    /* Use C style file handling, because it's "superior" (as @ankith26 would say it -.-), and also
+     * handles UTF-8 file paths on MinGW correctly */
     std::string ret;
     FILE* file;
-    #if _WIN32
+#if _WIN32
     std::wstring u16path;
     u16path.reserve(path.size());
     for (const char32_t ch : path)
         u16path += (wchar_t)ch;
 
     file = _wfopen(u16path.c_str(), L"rb");
-    #else
+#else
     file = fopen(kh::encodeUtf8(path).c_str(), "rb");
-    #endif
+#endif
 
     if (!file)
-        throw kh::FileNotFound(path);
-    
+        throw kh::FileError(path);
+
     int c; /* Note: int, not char, required to handle EOF */
     while ((c = fgetc(file)) != EOF)
-       ret += (char)c;
- 
+        ret += (char)c;
+
     if (ferror(file))
-        throw kh::FileNotFound(path);
- 
+        throw kh::FileError(path);
+
     fclose(file);
     return ret;
 }

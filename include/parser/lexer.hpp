@@ -19,8 +19,8 @@
 
 namespace kh {
     struct LexException {
-        LexException(const std::u32string& _what, const size_t _index) :
-            what(_what), index(_index) {}
+        LexException(const std::u32string& _what, const size_t _index)
+            : what(_what), index(_index) {}
 
         std::u32string what;
         size_t index;
