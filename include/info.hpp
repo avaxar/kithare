@@ -1,14 +1,13 @@
 /*
-* This file is a part of the Kithare programming language source code.
-* The source code for Kithare programming language is distributed under the MIT license.
-* Copyright (C) 2021 Avaxar (AvaxarXapaxa)
-*
-* include/info.hpp
-* Header that contains info about the Kithare build. Such as version, compiler, and OS.
-*/
+ * This file is a part of the Kithare programming language source code.
+ * The source code for Kithare programming language is distributed under the MIT license.
+ * Copyright (C) 2021 Avaxar (AvaxarXapaxa)
+ *
+ * include/info.hpp
+ * Header that contains info about the Kithare build. Such as version, compiler, and OS.
+ */
 
 #pragma once
-
 
 #define KH_VERSION_MAJOR 0  // Can be from 0-9
 #define KH_VERSION_MINOR 0  // Can be from 0-99

@@ -1,11 +1,11 @@
 /*
-* This file is a part of the Kithare programming language source code.
-* The source code for Kithare programming language is distributed under the MIT license.
-* Copyright (C) 2021 Avaxar (AvaxarXapaxa)
-*
-* src/parser/token.cpp
-* Defines include/parser/token.hpp
-*/
+ * This file is a part of the Kithare programming language source code.
+ * The source code for Kithare programming language is distributed under the MIT license.
+ * Copyright (C) 2021 Avaxar (AvaxarXapaxa)
+ *
+ * src/parser/token.cpp
+ * Defines include/parser/token.hpp
+ */
 
 #include "parser/token.hpp"
 

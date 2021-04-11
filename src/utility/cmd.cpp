@@ -1,11 +1,11 @@
 /*
-* This file is a part of the Kithare programming language source code.
-* The source code for Kithare programming language is distributed under the MIT license.
-* Copyright (C) 2021 Avaxar (AvaxarXapaxa)
-*
-* src/utility/cmd.cpp
-* Implements argument parsing for kithare commandline interface
-*/
+ * This file is a part of the Kithare programming language source code.
+ * The source code for Kithare programming language is distributed under the MIT license.
+ * Copyright (C) 2021 Avaxar (AvaxarXapaxa)
+ *
+ * src/utility/cmd.cpp
+ * Implements argument parsing for kithare commandline interface
+ */
 
 #include "utility/cmd.hpp"
 
@@ -19,7 +19,7 @@ int kh::run(const std::vector<std::u32string>& args) {
 
     for (const std::u32string& arg: args) {
         if (exargs.empty() && !arg.compare(0, 1, U"-")) {
-            // A kithare command line option, handle all those here
+            /* A Kithare command line option, handle all those here */
             if (arg == U"-v") {
                 khPrintln("Kithare " KH_VERSION_STR);
                 return 0;

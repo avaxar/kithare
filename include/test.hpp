@@ -1,11 +1,11 @@
 /*
-* This file is a part of the Kithare programming language source code.
-* The source code for Kithare programming language is distributed under the MIT license.
-* Copyright (C) 2021 Avaxar (AvaxarXapaxa)
-*
-* include/test.hpp
-* Base utilities for unit tests
-*/
+ * This file is a part of the Kithare programming language source code.
+ * The source code for Kithare programming language is distributed under the MIT license.
+ * Copyright (C) 2021 Avaxar (AvaxarXapaxa)
+ *
+ * include/test.hpp
+ * Base utilities for unit tests
+ */
 
 /* Pass a test function to this macro, that returns 0 on a successful test. Pass
  * a message argument to breifly describe the test */

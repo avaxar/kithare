@@ -63,8 +63,7 @@ int* var = nullptr;
 int& reference_var = *var;
 
 /* Always explicitly specify `const` for values that aren't meant to be changed in the function.
-* For strings and vectors, use a `const` reference.
-*/
+ * For strings and vectors, use a `const` reference. */
 void function(const std::string& str, const int value) {
 
 }
