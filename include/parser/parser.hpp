@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <iostream>
+
 #include "parser/ast.hpp"
 
 
@@ -54,6 +56,10 @@ namespace kh {
 
         /* Get token of the current iterator index */
         inline kh::Token& to(const size_t offset = 0) {
+            std::cout << this->ti << ": ";
+            khPrintln(this->tokens[this->ti]);
+            if (!this->exceptions.empty())
+                khPrintln(this->exceptions.back().what);
             return this->tokens[this->ti + offset];
         }
 
