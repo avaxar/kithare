@@ -1,48 +1,48 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="..\test">
-      <UniqueIdentifier>{2de48893-588e-4802-ae52-24297758b19c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="..\kithare">
-      <UniqueIdentifier>{4112a5de-ee8e-49b8-aec9-3c8dbd567187}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\test\test_main.cpp">
-      <Filter>..\test</Filter>
+    <ClCompile Include="$(SolutionDir)\src\parser\ast.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\test\test_string.cpp">
-      <Filter>..\test</Filter>
+    <ClCompile Include="$(SolutionDir)\src\utility\cmd.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\test\test_lexer.cpp">
-      <Filter>..\test</Filter>
+    <ClCompile Include="$(SolutionDir)\src\utility\file.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\utility\string.cpp">
-      <Filter>..\kithare</Filter>
+    <ClCompile Include="$(SolutionDir)\src\parser\lexer.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\parser\ast.cpp">
-      <Filter>..\kithare</Filter>
+    <ClCompile Include="$(SolutionDir)\src\parser\parser.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\parser\lexer.cpp">
-      <Filter>..\kithare</Filter>
+    <ClCompile Include="$(SolutionDir)\src\utility\string.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\parser\parser.cpp">
-      <Filter>..\kithare</Filter>
+    <ClCompile Include="$(SolutionDir)\test\test_lexer.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\parser\token.cpp">
-      <Filter>..\kithare</Filter>
+    <ClCompile Include="$(SolutionDir)\test\test_main.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\utility\cmd.cpp">
-      <Filter>..\kithare</Filter>
+    <ClCompile Include="$(SolutionDir)\test\test_string.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\utility\file.cpp">
-      <Filter>..\kithare</Filter>
+    <ClCompile Include="$(SolutionDir)\src\parser\token.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\test.hpp">
-      <Filter>test</Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{5d9fa5a3-e04a-49b2-b93c-4de0fdb9a59d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{5018947d-3fdf-4a64-91bd-c597f7d0929c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(SolutionDir)\include\test.hpp">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
