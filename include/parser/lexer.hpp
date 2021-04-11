@@ -16,6 +16,7 @@
 #include "parser/token.hpp"
 #include "utility/string.hpp"
 
+
 namespace kh {
     struct LexException {
         LexException(const std::u32string& _what, const size_t _index)
@@ -31,4 +32,4 @@ namespace kh {
     /// <param name="source">Input source string</param>
     /// <returns></returns>
     std::vector<kh::Token> lex(const std::u32string& source);
-} // namespace kh
+}

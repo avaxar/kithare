@@ -14,6 +14,7 @@
 
 #include <iostream>
 
+
 /* Declare a test func with this macro */
 #define KH_TEST_WITH_FUNC(f, msg)                         \
     std::cout << "  - Testing " msg ": ";                 \

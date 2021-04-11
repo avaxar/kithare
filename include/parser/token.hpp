@@ -11,6 +11,7 @@
 
 #include "utility/string.hpp"
 
+
 namespace kh {
     enum class Operator;
     enum class Symbol;
@@ -119,4 +120,4 @@ namespace kh {
         Token(const size_t _index, const kh::TokenType _type, const kh::TokenValue& _value)
             : index(_index), type(_type), value(_value) {}
     };
-} // namespace kh
+}

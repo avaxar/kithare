@@ -9,6 +9,7 @@
 
 #include "parser/lexer.hpp"
 
+
 /* Helper to raise error at a file */
 #define KH_RAISE_ERROR(msg, n) throw kh::LexException(msg, i + n)
 

@@ -9,6 +9,7 @@
 
 #include "utility/file.hpp"
 
+
 std::u32string kh::readFile(const std::u32string& path) {
     return kh::decodeUtf8(kh::readFileBinary(path));
 }
@@ -30,14 +31,14 @@ std::string kh::readFileBinary(const std::u32string& path) {
 #endif
 
     if (!file)
-        throw kh::FileNotFound(path);
+        throw kh::FileError(path);
 
     int c; /* Note: int, not char, required to handle EOF */
     while ((c = fgetc(file)) != EOF)
         ret += (char)c;
 
     if (ferror(file))
-        throw kh::FileNotFound(path);
+        throw kh::FileError(path);
 
     fclose(file);
     return ret;

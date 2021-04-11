@@ -9,6 +9,7 @@
 
 #include "utility/string.hpp"
 
+
 std::string kh::encodeUtf8(const std::u32string& str) {
     std::string str8;
     str8.reserve(str.size() + str.size() / 4);

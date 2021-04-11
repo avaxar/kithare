@@ -11,13 +11,14 @@
 
 #include "utility/string.hpp"
 
+
 namespace kh {
-    struct FileNotFound {
-        FileNotFound(const std::u32string& _fname) : fname(_fname) {}
+    struct FileError {
+        FileError(const std::u32string& _fname) : fname(_fname) {}
 
         std::u32string fname;
     };
 
     std::u32string readFile(const std::u32string& path);
     std::string readFileBinary(const std::u32string& path);
-} // namespace kh
+}

@@ -26,6 +26,7 @@
 #define KH_PRINT_TAB_SIZE 2
 #endif
 
+
 #define khPrint(val)                                           \
     do {                                                       \
         std::u32string str = kh::repr(val);                    \
@@ -115,4 +116,4 @@ namespace kh {
 
     std::u32string repr(const std::complex<float> n);
     std::u32string repr(const std::complex<double> n);
-} // namespace kh
+}

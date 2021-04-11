@@ -9,6 +9,7 @@
 
 #include "parser/token.hpp"
 
+
 std::u32string kh::repr(const kh::Token& token) {
     std::u32string str = kh::repr(token.type) + U" ";
 

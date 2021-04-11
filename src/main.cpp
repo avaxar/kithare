@@ -9,6 +9,7 @@
 
 #include "utility/cmd.hpp"
 
+
 #undef main
 #undef wmain
 #ifdef _WIN32

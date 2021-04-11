@@ -11,6 +11,7 @@
 
 #include "parser/ast.hpp"
 
+
 namespace kh {
     struct ParseException {
         ParseException(const std::u32string _what, const size_t _index)
@@ -72,23 +73,24 @@ namespace kh {
 
         kh::AstExpression* parseExpression(); /* Parses an expression */
 
-        kh::AstExpression* parseAssignOps(); /* Parses assignment operations and in-place operations
-                                                `=`, `+=`, `-=`, `*=`, ... */
-        kh::AstExpression* parseTernary(); /* Parses ternary expressions */
-        kh::AstExpression* parseOr(); /* Parses logical OR `||` */
-        kh::AstExpression* parseAnd(); /* Parses logical AND `&&` */
-        kh::AstExpression* parseComparison(); /* Parses comparison `==` `!=` `<` `>` `<=` `>=` */
-        kh::AstExpression* parseBitwiseOr(); /* Parses bitwise OR `|` */
-        kh::AstExpression* parseBitwiseAnd(); /* Parses bitwise AND `&` */
-        kh::AstExpression* parseBitwiseShift(); /* Parses bitwise shift `<<` `>>` */
-        kh::AstExpression* parseAddSub(); /* Parses `+` and `-` */
-        kh::AstExpression* parseMulDivMod(); /* Parses `*`, `/`, and `%` */
-        kh::AstExpression* parseUnary(); /* Parses unary operations */
+        kh::AstExpression* parseAssignOps();      /* Parses assignment operations and in-place
+                                                   * operations `=`, `+=`, `-=`, `*=`, ... */
+        kh::AstExpression* parseTernary();        /* Parses ternary expressions */
+        kh::AstExpression* parseOr();             /* Parses logical OR `||` */
+        kh::AstExpression* parseAnd();            /* Parses logical AND `&&` */
+        kh::AstExpression* parseComparison();     /* Parses `==` `!=` `<` `>` `<=` `>=` */
+        kh::AstExpression* parseBitwiseOr();      /* Parses bitwise OR `|` */
+        kh::AstExpression* parseBitwiseAnd();     /* Parses bitwise AND `&` */
+        kh::AstExpression* parseBitwiseShift();   /* Parses bitwise shift `<<` `>>` */
+        kh::AstExpression* parseAddSub();         /* Parses `+` and `-` */
+        kh::AstExpression* parseMulDivMod();      /* Parses `*`, `/`, and `%` */
+        kh::AstExpression* parseUnary();          /* Parses unary operations */
         kh::AstExpression* parseExponentiation(); /* Parses `^` */
-        kh::AstExpression* parseLiteral(); /* Parses literals */
-        kh::AstExpression* parseIdentifiers(); /* Parses identifiers with scoping and templates */
-        kh::AstExpression* parseTuple(/* Parses tuples with parentheses expressions */
+        kh::AstExpression* parseLiteral();        /* Parses literals */
+        kh::AstExpression* parseIdentifiers();    /* Parses identifiers with scoping and
+                                                   * templates */
+        kh::AstExpression* parseTuple(            /* Parses tuples with parentheses expressions */
                                       const kh::Symbol opening = kh::Symbol::PARENTHESES_OPEN,
                                       const kh::Symbol closing = kh::Symbol::PARENTHESES_CLOSE);
     };
-} // namespace kh
+}
