@@ -102,8 +102,10 @@ kh::Ast* kh::Parser::parse() {
                 GUARD(0);
                 imports.emplace_back(this->parseImport(true));
             }
-            else
+            else {
                 this->exceptions.emplace_back(U"Unexpected identifier", token.index);
+                this->ti++;
+            }
         } break;
 
         case kh::TokenType::SYMBOL:
@@ -137,8 +139,10 @@ kh::AstImport* kh::Parser::parseImport(const bool is_include) {
         path.push_back(token.value.identifier);
         this->ti++;
     }
-    else
+    else {
         this->exceptions.emplace_back(U"Was expecting an identifier", token.index);
+        this->ti++;
+    }
 
     GUARD(0);
     token = this->to();
@@ -154,8 +158,10 @@ kh::AstImport* kh::Parser::parseImport(const bool is_include) {
             GUARD(0);
             token = this->to();
         }
-        else
+        else {
             this->exceptions.emplace_back(U"Was expecting an identifier", token.index);
+            break;
+        }
     }
 
     if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"as") {
@@ -175,8 +181,10 @@ kh::AstImport* kh::Parser::parseImport(const bool is_include) {
             else
                 this->exceptions.emplace_back(U"Was expecting a semicolon", token.index);
         }
-        else if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::SEMICOLON)
+        else {
+            this->exceptions.emplace_back(U"Was expecting an identifier", token.index);
             this->ti++;
+        }
     }
 end:
     return new kh::AstImport(index, path, is_include, path.empty() ? U"" : (identifier.empty() ? path.back() : identifier));

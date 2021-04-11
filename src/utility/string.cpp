@@ -137,7 +137,7 @@ std::u32string kh::quote(const std::string& str) {
 }
 
 void kh::strIndexPos(const std::u32string& str, const size_t index, size_t& column, size_t& line) {
-    column = 1;
+    column = 0;
     line = 1;
 
     for (size_t i = 0; i < index + 1; i++) {
