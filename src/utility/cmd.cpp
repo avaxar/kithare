@@ -9,7 +9,6 @@
 
 #include "utility/cmd.hpp"
 
-
 int kh::run(const std::vector<std::u32string>& args) {
     std::vector<std::u32string> exargs;
     std::u32string source;
@@ -17,7 +16,7 @@ int kh::run(const std::vector<std::u32string>& args) {
     kh::Ast* ast;
     bool lex = false;
 
-    for (const std::u32string& arg: args) {
+    for (const std::u32string& arg : args) {
         if (exargs.empty() && !arg.compare(0, 1, U"-")) {
             /* A Kithare command line option, handle all those here */
             if (arg == U"-v") {

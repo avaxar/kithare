@@ -11,16 +11,13 @@
 
 #include "test.hpp"
 
-
 bool testLexTokenType() {
-    std::u32string source =
-        U"import std;                            \n"
-        U"int main() {                           \n"
-        U"    // Inline comments                 \n"
-        U"    float number = 6.9;                \n"
-        U"    std.print(\"Hello, world!\");      \n"
-        U"}                                      \n";
-
+    std::u32string source = U"import std;                            \n"
+                            U"int main() {                           \n"
+                            U"    // Inline comments                 \n"
+                            U"    float number = 6.9;                \n"
+                            U"    std.print(\"Hello, world!\");      \n"
+                            U"}                                      \n";
 
     try {
         auto tokens = kh::lex(source);
@@ -49,20 +46,21 @@ bool testLexTokenType() {
         KH_ASSERT_EQUAL(tokens[20].type, kh::TokenType::SYMBOL);
         return false;
     }
-    catch (...) { return true; }
+    catch (...) {
+        return true;
+    }
 }
 
 /* TODO */
 bool testLexNumeralValue() {
-    std::u32string source =
-        U"0 1 2 8 9  "  /* Single digit decimal integers */
-        U"00 10 29U  "  /* Multi-digit + Unsigned */
-        U"0.1 0.2    "  /* Floating point */
-        U"11.1 .123  "  /* Several other cases */
-        U"0xFFF 0x1  "  /* Hexadecimal */
-        U"0o77 0o11  "  /* Octal */
-        U"0b111 0b01 "  /* Binary */
-        U"4i 2i 5.6i "; /* Imaginary */
+    std::u32string source = U"0 1 2 8 9  " /* Single digit decimal integers */
+                            U"00 10 29U  " /* Multi-digit + Unsigned */
+                            U"0.1 0.2    " /* Floating point */
+                            U"11.1 .123  " /* Several other cases */
+                            U"0xFFF 0x1  " /* Hexadecimal */
+                            U"0o77 0o11  " /* Octal */
+                            U"0b111 0b01 " /* Binary */
+                            U"4i 2i 5.6i "; /* Imaginary */
 
     try {
         auto tokens = kh::lex(source);
@@ -112,7 +110,9 @@ bool testLexNumeralValue() {
         KH_ASSERT_EQUAL(tokens[20].value.imaginary, 5.6);
         return false;
     }
-    catch (...) { return true; }
+    catch (...) {
+        return true;
+    }
 }
 
 bool testLexStringsAndBuffers() {
@@ -120,12 +120,12 @@ bool testLexStringsAndBuffers() {
     std::u32string source =
         U"\"AB\\x42\\x88\\u1234\\u9876\\v\\U00001234\\U00010000\\\"\\n\"" /* Escape tests */
         U"b'' '' b\"aFd\\x87\\x90\\xff\" 'K' b'\\b' b'\\x34''\\U0001AF21' '\\r' "
-        U"\"Hello, world!\" "  /* String */
+        U"\"Hello, world!\" " /* String */
         U"b\"Hello, world!\" " /* Buffer / byte-string */
         U"\"\"\"Hello,\n"
-        U"world!\"\"\" "       /* Multiline string */
+        U"world!\"\"\" " /* Multiline string */
         U"b\"\"\"Hello,\n"
-        U"world!\"\"\" ";      /* Multiline buffer */
+        U"world!\"\"\" "; /* Multiline buffer */
 
     try {
         auto tokens = kh::lex(source);
@@ -133,7 +133,8 @@ bool testLexStringsAndBuffers() {
         KH_ASSERT_EQUAL(tokens.size(), 13);
 
         KH_ASSERT_EQUAL(tokens[0].type, kh::TokenType::STRING);
-        KH_ASSERT_EQUAL(tokens[0].value.string, U"AB\x42\x88\u1234\u9876\v\U00001234\U00010000\"\n");
+        KH_ASSERT_EQUAL(tokens[0].value.string,
+                        U"AB\x42\x88\u1234\u9876\v\U00001234\U00010000\"\n");
         KH_ASSERT_EQUAL(tokens[1].type, kh::TokenType::INTEGER);
         KH_ASSERT_EQUAL(tokens[1].value.integer, '\0');
         KH_ASSERT_EQUAL(tokens[2].type, kh::TokenType::CHARACTER);
@@ -159,14 +160,15 @@ bool testLexStringsAndBuffers() {
         KH_ASSERT_EQUAL(tokens[12].type, kh::TokenType::BUFFER);
         KH_ASSERT_EQUAL(tokens[12].value.buffer, "Hello,\nworld!");
 
-
         return false;
     }
-    catch (...) { return true; }
+    catch (...) {
+        return true;
+    }
 }
 
 KH_TEST_BEGIN(Lexer)
-    KH_TEST_WITH_FUNC(testLexTokenType, "Lex Token Types")
-    KH_TEST_WITH_FUNC(testLexNumeralValue, "Lex Numeral Values")
-    KH_TEST_WITH_FUNC(testLexStringsAndBuffers, "Lex Strings and buffers")
+KH_TEST_WITH_FUNC(testLexTokenType, "Lex Token Types")
+KH_TEST_WITH_FUNC(testLexNumeralValue, "Lex Numeral Values")
+KH_TEST_WITH_FUNC(testLexStringsAndBuffers, "Lex Strings and buffers")
 KH_TEST_END

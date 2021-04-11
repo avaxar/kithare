@@ -11,7 +11,6 @@
 
 #include "utility/string.hpp"
 
-
 namespace kh {
     enum class Operator;
     enum class Symbol;
@@ -25,33 +24,70 @@ namespace kh {
     std::u32string repr(const kh::Symbol sym);
 
     enum class Operator {
-        ADD, SUB, MUL, DIV, MOD, POW,
-        IADD, ISUB, IMUL, IDIV, IMOD, IPOW,
+        ADD,
+        SUB,
+        MUL,
+        DIV,
+        MOD,
+        POW,
+        IADD,
+        ISUB,
+        IMUL,
+        IDIV,
+        IMOD,
+        IPOW,
 
-        EQUAL, NOT_EQUAL, LESS, MORE, LESS_EQUAL, MORE_EQUAL,
+        EQUAL,
+        NOT_EQUAL,
+        LESS,
+        MORE,
+        LESS_EQUAL,
+        MORE_EQUAL,
 
-        BIT_AND, BIT_OR, BIT_NOT,
-        BIT_LSHIFT, BIT_RSHIFT,
-        AND, OR, NOT,
+        BIT_AND,
+        BIT_OR,
+        BIT_NOT,
+        BIT_LSHIFT,
+        BIT_RSHIFT,
+        AND,
+        OR,
+        NOT,
 
-        ASSIGN, SIZEOF, ADDRESS
+        ASSIGN,
+        SIZEOF,
+        ADDRESS
     };
 
     enum class Symbol {
-        SEMICOLON, DOT, COMMA,
-        QUESTION, COLON, DOLLAR,
+        SEMICOLON,
+        DOT,
+        COMMA,
+        QUESTION,
+        COLON,
+        DOLLAR,
 
-        PARENTHESES_OPEN, PARENTHESES_CLOSE,
-        CURLY_OPEN, CURLY_CLOSE,
-        SQUARE_OPEN, SQUARE_CLOSE,
+        PARENTHESES_OPEN,
+        PARENTHESES_CLOSE,
+        CURLY_OPEN,
+        CURLY_CLOSE,
+        SQUARE_OPEN,
+        SQUARE_CLOSE,
 
-        GENERIC_OPEN, GENERIC_CLOSE
+        GENERIC_OPEN,
+        GENERIC_CLOSE
     };
 
     enum class TokenType {
-        IDENTIFIER, OPERATOR, SYMBOL,
-        CHARACTER, STRING, BUFFER,
-        UINTEGER, INTEGER, FLOATING, IMAGINARY
+        IDENTIFIER,
+        OPERATOR,
+        SYMBOL,
+        CHARACTER,
+        STRING,
+        BUFFER,
+        UINTEGER,
+        INTEGER,
+        FLOATING,
+        IMAGINARY
     };
 
     struct TokenValue {
@@ -80,7 +116,7 @@ namespace kh {
         kh::TokenValue value;
 
         Token() {}
-        Token(const size_t _index, /* const size_t _length, */ const kh::TokenType _type, const kh::TokenValue& _value) :
-            index(_index), /* length(_length), */ type(_type), value(_value) {}
+        Token(const size_t _index, const kh::TokenType _type, const kh::TokenValue& _value)
+            : index(_index), type(_type), value(_value) {}
     };
-}
+} // namespace kh

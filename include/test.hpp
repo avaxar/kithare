@@ -37,7 +37,8 @@
 /* End a test function declare block */
 #define KH_TEST_END                                             \
     std::cout << "  Failures in this module: " << fail << "\n"; \
-    return fail; }
+    return fail;                                                \
+    }
 
 /* Test Assert macro */
 #define KH_ASSERT(exp)                                     \

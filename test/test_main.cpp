@@ -7,10 +7,8 @@
  * Main file for tests
  */
 
-
-#include "utility/string.hpp"
 #include "test.hpp"
-
+#include "utility/string.hpp"
 
 /* wmain is needed for Windows in this case */
 #undef main

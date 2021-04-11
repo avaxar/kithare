@@ -11,19 +11,18 @@
 
 #include "parser/ast.hpp"
 
-
 namespace kh {
     struct ParseException {
-        ParseException(const std::u32string _what, const size_t _index) :
-            what(_what), index(_index) {}
+        ParseException(const std::u32string _what, const size_t _index)
+            : what(_what), index(_index) {}
 
         std::u32string what;
         size_t index;
     };
 
     struct ParseExceptions {
-        ParseExceptions(const std::vector<kh::ParseException>& _exceptions) :
-            exceptions(_exceptions) {}
+        ParseExceptions(const std::vector<kh::ParseException>& _exceptions)
+            : exceptions(_exceptions) {}
 
         std::vector<kh::ParseException> exceptions;
     };
@@ -47,6 +46,7 @@ namespace kh {
         /// </summary>
         /// <returns></returns>
         kh::Ast* parse();
+
     private:
         std::vector<kh::Token> tokens;
         size_t ti = 0; /* Token iterator */
@@ -67,28 +67,28 @@ namespace kh {
 
         std::vector<std::shared_ptr<kh::AstBody>> parseBody();
 
-        /* These parse expressions below are ordered based from their precedence from lowest to highest */
+        /* These parse expressions below are ordered based from their precedence from lowest to
+         * highest */
 
-        kh::AstExpression* parseExpression();     /* Parses an expression */
+        kh::AstExpression* parseExpression(); /* Parses an expression */
 
-        kh::AstExpression* parseAssignOps();      /* Parses assignment operations and in-place operations `=`, `+=`, `-=`, `*=`, ... */
-        kh::AstExpression* parseTernary();        /* Parses ternary expressions */
-        kh::AstExpression* parseOr();             /* Parses logical OR `||` */
-        kh::AstExpression* parseAnd();            /* Parses logical AND `&&` */
-        kh::AstExpression* parseComparison();     /* Parses comparison `==` `!=` `<` `>` `<=` `>=` */
-        kh::AstExpression* parseBitwiseOr();      /* Parses bitwise OR `|` */
-        kh::AstExpression* parseBitwiseAnd();     /* Parses bitwise AND `&` */
-        kh::AstExpression* parseBitwiseShift();   /* Parses bitwise shift `<<` `>>` */
-        kh::AstExpression* parseAddSub();         /* Parses `+` and `-` */
-        kh::AstExpression* parseMulDivMod();      /* Parses `*`, `/`, and `%` */
-        kh::AstExpression* parseUnary();          /* Parses unary operations */
+        kh::AstExpression* parseAssignOps(); /* Parses assignment operations and in-place operations
+                                                `=`, `+=`, `-=`, `*=`, ... */
+        kh::AstExpression* parseTernary(); /* Parses ternary expressions */
+        kh::AstExpression* parseOr(); /* Parses logical OR `||` */
+        kh::AstExpression* parseAnd(); /* Parses logical AND `&&` */
+        kh::AstExpression* parseComparison(); /* Parses comparison `==` `!=` `<` `>` `<=` `>=` */
+        kh::AstExpression* parseBitwiseOr(); /* Parses bitwise OR `|` */
+        kh::AstExpression* parseBitwiseAnd(); /* Parses bitwise AND `&` */
+        kh::AstExpression* parseBitwiseShift(); /* Parses bitwise shift `<<` `>>` */
+        kh::AstExpression* parseAddSub(); /* Parses `+` and `-` */
+        kh::AstExpression* parseMulDivMod(); /* Parses `*`, `/`, and `%` */
+        kh::AstExpression* parseUnary(); /* Parses unary operations */
         kh::AstExpression* parseExponentiation(); /* Parses `^` */
-        kh::AstExpression* parseLiteral();        /* Parses literals */
-        kh::AstExpression* parseIdentifiers();    /* Parses identifiers with scoping and templates */
-        kh::AstExpression* parseTuple(            /* Parses tuples with parentheses expressions */
-            const kh::Symbol opening = kh::Symbol::PARENTHESES_OPEN,
-            const kh::Symbol closing = kh::Symbol::PARENTHESES_CLOSE
-        );
-
+        kh::AstExpression* parseLiteral(); /* Parses literals */
+        kh::AstExpression* parseIdentifiers(); /* Parses identifiers with scoping and templates */
+        kh::AstExpression* parseTuple(/* Parses tuples with parentheses expressions */
+                                      const kh::Symbol opening = kh::Symbol::PARENTHESES_OPEN,
+                                      const kh::Symbol closing = kh::Symbol::PARENTHESES_CLOSE);
     };
-}
+} // namespace kh

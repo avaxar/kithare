@@ -4,16 +4,17 @@
  * Copyright (C) 2021 Avaxar (AvaxarXapaxa)
  *
  * include/utility/string.hpp
- * Implements string utilities and specialization for Kithare's generic string which is a UTF-32 string
+ * Implements string utilities and specialization for Kithare's generic string which is a UTF-32
+ * string
  */
 
 #pragma once
 
 #include <clocale>
 #include <complex>
+#include <fstream>
 #include <iostream>
 #include <string>
-#include <fstream>
 
 #ifdef _WIN32
 #define _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS
@@ -25,22 +26,26 @@
 #define KH_PRINT_TAB_SIZE 2
 #endif
 
-#define khPrint(val)                        \
-    do {                                    \
-        std::u32string str = kh::repr(val); \
-        for (const char32_t chr : str) {    \
-            if (chr == U'\t')               \
+#define khPrint(val)                                           \
+    do {                                                       \
+        std::u32string str = kh::repr(val);                    \
+        for (const char32_t chr : str) {                       \
+            if (chr == U'\t')                                  \
                 for (size_t i = 0; i < KH_PRINT_TAB_SIZE; i++) \
-                    std::putwchar(L' ');    \
-            else                            \
-                std::putwchar((wchar_t)chr);\
-        }                                   \
-    } while (false)                         \
+                    std::putwchar(L' ');                       \
+            else                                               \
+                std::putwchar((wchar_t)chr);                   \
+        }                                                      \
+    } while (false)
 
-#define khPrintln(val) do { khPrint(val); std::putwchar(L'\n'); } while (false)
+#define khPrintln(val)        \
+    do {                      \
+        khPrint(val);         \
+        std::putwchar(L'\n'); \
+    } while (false)
 
-
-/* Sets the locale. These below are sorta' automatically run once the program starts if this header is included */
+/* Sets the locale. These below are sorta' automatically run once the program starts if this header
+ * is included */
 static const auto _locale_set = std::setlocale(LC_ALL, "en_US.utf8");
 
 #ifdef _WIN32
@@ -52,8 +57,8 @@ static const auto _imbue_wcin_utf8 = std::wcin.imbue(_utf8_locale);
 
 namespace kh {
     struct UnicodeDecodeError {
-        UnicodeDecodeError(const std::u32string& _what, const size_t _index) :
-            what(_what), index(_index) {}
+        UnicodeDecodeError(const std::u32string& _what, const size_t _index)
+            : what(_what), index(_index) {}
 
         std::u32string what;
         size_t index;
@@ -72,7 +77,6 @@ namespace kh {
     /// <param name="str">UTF-8 string</param>
     /// <returns></returns>
     std::u32string decodeUtf8(const std::string& str);
-
 
     /// <summary>
     /// Quotes a string and handles escapes.
@@ -111,4 +115,4 @@ namespace kh {
 
     std::u32string repr(const std::complex<float> n);
     std::u32string repr(const std::complex<double> n);
-}
+} // namespace kh
