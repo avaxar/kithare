@@ -19,30 +19,30 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\parser\ast.cpp" />
-    <ClCompile Include="src\parser\lexer.cpp" />
-    <ClCompile Include="src\parser\parser.cpp" />
-    <ClCompile Include="src\parser\token.cpp" />
-    <ClCompile Include="src\utility\cmd.cpp" />
-    <ClCompile Include="src\utility\file.cpp" />
-    <ClCompile Include="src\utility\string.cpp" />
+    <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\src\parser\ast.cpp" />
+    <ClCompile Include="..\src\parser\lexer.cpp" />
+    <ClCompile Include="..\src\parser\parser.cpp" />
+    <ClCompile Include="..\src\parser\token.cpp" />
+    <ClCompile Include="..\src\utility\cmd.cpp" />
+    <ClCompile Include="..\src\utility\file.cpp" />
+    <ClCompile Include="..\src\utility\string.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\info.hpp" />
-    <ClInclude Include="include\parser\ast.hpp" />
-    <ClInclude Include="include\parser\lexer.hpp" />
-    <ClInclude Include="include\parser\parser.hpp" />
-    <ClInclude Include="include\parser\token.hpp" />
-    <ClInclude Include="include\utility\cmd.hpp" />
-    <ClInclude Include="include\utility\file.hpp" />
-    <ClInclude Include="include\utility\string.hpp" />
+    <ClInclude Include="..\include\info.hpp" />
+    <ClInclude Include="..\include\parser\ast.hpp" />
+    <ClInclude Include="..\include\parser\lexer.hpp" />
+    <ClInclude Include="..\include\parser\parser.hpp" />
+    <ClInclude Include="..\include\parser\token.hpp" />
+    <ClInclude Include="..\include\utility\cmd.hpp" />
+    <ClInclude Include="..\include\utility\file.hpp" />
+    <ClInclude Include="..\include\utility\string.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="assets\icon.ico" />
+    <Image Include="..\assets\icon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="assets\Kithare.rc" />
+    <ResourceCompile Include="..\assets\Kithare.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
