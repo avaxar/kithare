@@ -19,19 +19,19 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)\src\parser\ast.cpp" />
-    <ClCompile Include="$(SolutionDir)\src\parser\lexer.cpp" />
-    <ClCompile Include="$(SolutionDir)\src\parser\parser.cpp" />
-    <ClCompile Include="$(SolutionDir)\src\parser\token.cpp" />
-    <ClCompile Include="$(SolutionDir)\src\utility\cmd.cpp" />
-    <ClCompile Include="$(SolutionDir)\src\utility\file.cpp" />
-    <ClCompile Include="$(SolutionDir)\src\utility\string.cpp" />
-    <ClCompile Include="$(SolutionDir)\test\test_lexer.cpp" />
-    <ClCompile Include="$(SolutionDir)\test\test_main.cpp" />
-    <ClCompile Include="$(SolutionDir)\test\test_string.cpp" />
+    <ClCompile Include="$(SolutionDir)src\parser\ast.cpp" />
+    <ClCompile Include="$(SolutionDir)src\parser\lexer.cpp" />
+    <ClCompile Include="$(SolutionDir)src\parser\parser.cpp" />
+    <ClCompile Include="$(SolutionDir)src\parser\token.cpp" />
+    <ClCompile Include="$(SolutionDir)src\utility\cmd.cpp" />
+    <ClCompile Include="$(SolutionDir)src\utility\file.cpp" />
+    <ClCompile Include="$(SolutionDir)src\utility\string.cpp" />
+    <ClCompile Include="$(SolutionDir)test\test_lexer.cpp" />
+    <ClCompile Include="$(SolutionDir)test\test_main.cpp" />
+    <ClCompile Include="$(SolutionDir)test\test_string.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(SolutionDir)\include\test.hpp" />
+    <ClInclude Include="$(SolutionDir)include\test.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

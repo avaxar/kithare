@@ -1,34 +1,34 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)\src\parser\ast.cpp">
+    <ClCompile Include="$(SolutionDir)src\parser\ast.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\src\utility\cmd.cpp">
+    <ClCompile Include="$(SolutionDir)src\utility\cmd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\src\utility\file.cpp">
+    <ClCompile Include="$(SolutionDir)src\utility\file.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\src\parser\lexer.cpp">
+    <ClCompile Include="$(SolutionDir)src\parser\lexer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\src\parser\parser.cpp">
+    <ClCompile Include="$(SolutionDir)src\parser\parser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\src\utility\string.cpp">
+    <ClCompile Include="$(SolutionDir)src\utility\string.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\test\test_lexer.cpp">
+    <ClCompile Include="$(SolutionDir)test\test_lexer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\test\test_main.cpp">
+    <ClCompile Include="$(SolutionDir)test\test_main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\test\test_string.cpp">
+    <ClCompile Include="$(SolutionDir)test\test_string.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)\src\parser\token.cpp">
+    <ClCompile Include="$(SolutionDir)src\parser\token.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -41,7 +41,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(SolutionDir)\include\test.hpp">
+    <ClInclude Include="$(SolutionDir)include\test.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
