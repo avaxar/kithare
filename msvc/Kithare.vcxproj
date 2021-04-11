@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -19,24 +19,24 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)src\main.cpp" />
-    <ClCompile Include="$(SolutionDir)src\parser\ast.cpp" />
-    <ClCompile Include="$(SolutionDir)src\parser\lexer.cpp" />
-    <ClCompile Include="$(SolutionDir)src\parser\parser.cpp" />
-    <ClCompile Include="$(SolutionDir)src\parser\token.cpp" />
-    <ClCompile Include="$(SolutionDir)src\utility\cmd.cpp" />
-    <ClCompile Include="$(SolutionDir)src\utility\file.cpp" />
-    <ClCompile Include="$(SolutionDir)src\utility\string.cpp" />
+    <ClCompile Include="$(SolutionDir)..\src\main.cpp" />
+    <ClCompile Include="$(SolutionDir)..\src\parser\ast.cpp" />
+    <ClCompile Include="$(SolutionDir)..\src\parser\lexer.cpp" />
+    <ClCompile Include="$(SolutionDir)..\src\parser\parser.cpp" />
+    <ClCompile Include="$(SolutionDir)..\src\parser\token.cpp" />
+    <ClCompile Include="$(SolutionDir)..\src\utility\cmd.cpp" />
+    <ClCompile Include="$(SolutionDir)..\src\utility\file.cpp" />
+    <ClCompile Include="$(SolutionDir)..\src\utility\string.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(SolutionDir)include\info.hpp" />
-    <ClInclude Include="$(SolutionDir)include\parser\ast.hpp" />
-    <ClInclude Include="$(SolutionDir)include\parser\lexer.hpp" />
-    <ClInclude Include="$(SolutionDir)include\parser\parser.hpp" />
-    <ClInclude Include="$(SolutionDir)include\parser\token.hpp" />
-    <ClInclude Include="$(SolutionDir)include\utility\cmd.hpp" />
-    <ClInclude Include="$(SolutionDir)include\utility\file.hpp" />
-    <ClInclude Include="$(SolutionDir)include\utility\string.hpp" />
+    <ClInclude Include="$(SolutionDir)..\include\info.hpp" />
+    <ClInclude Include="$(SolutionDir)..\include\parser\ast.hpp" />
+    <ClInclude Include="$(SolutionDir)..\include\parser\lexer.hpp" />
+    <ClInclude Include="$(SolutionDir)..\include\parser\parser.hpp" />
+    <ClInclude Include="$(SolutionDir)..\include\parser\token.hpp" />
+    <ClInclude Include="$(SolutionDir)..\include\utility\cmd.hpp" />
+    <ClInclude Include="$(SolutionDir)..\include\utility\file.hpp" />
+    <ClInclude Include="$(SolutionDir)..\include\utility\string.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\assets\icon.ico" />
@@ -102,9 +102,11 @@
     <TargetName>kcr</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)dist\MSVC-$(PlatformTarget)-$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)build\MSVC-$(PlatformTarget)-$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\dist\MSVC-$(PlatformTarget)-$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\build\MSVC-$(PlatformTarget)-$(Configuration)\</IntDir>
     <TargetName>kcr</TargetName>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)dist\MSVC-$(PlatformTarget)-$(Configuration)\</OutDir>
@@ -166,7 +168,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)deps\SDL-MSVC\SDL2\include;$(SolutionDir)deps\SDL-MSVC\SDL2_image\include;$(SolutionDir)deps\SDL-MSVC\SDL2_mixer\include;$(SolutionDir)deps\SDL-MSVC\SDL2_net\include;$(SolutionDir)deps\SDL-MSVC\SDL2_ttf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\include;$(SolutionDir)..\deps\SDL-MSVC\SDL2\include;$(SolutionDir)..\deps\SDL-MSVC\SDL2_image\include;$(SolutionDir)..\deps\SDL-MSVC\SDL2_mixer\include;$(SolutionDir)..\deps\SDL-MSVC\SDL2_net\include;$(SolutionDir)..\deps\SDL-MSVC\SDL2_ttf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -176,7 +178,7 @@
       <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)deps\SDL-MSVC\SDL2\lib\x64;$(SolutionDir)deps\SDL-MSVC\SDL2_image\lib\x64;$(SolutionDir)deps\SDL-MSVC\SDL2_mixer\lib\x64;$(SolutionDir)deps\SDL-MSVC\SDL2_net\lib\x64;$(SolutionDir)deps\SDL-MSVC\SDL2_ttf\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\deps\SDL-MSVC\SDL2\lib\x64;$(SolutionDir)..\deps\SDL-MSVC\SDL2_image\lib\x64;$(SolutionDir)..\deps\SDL-MSVC\SDL2_mixer\lib\x64;$(SolutionDir)..\deps\SDL-MSVC\SDL2_net\lib\x64;$(SolutionDir)..\deps\SDL-MSVC\SDL2_ttf\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;SDL2_mixer.lib;SDL2_net.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

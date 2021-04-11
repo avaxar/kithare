@@ -1,54 +1,54 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)src\parser\ast.cpp">
+    <ClCompile Include="$(SolutionDir)..\src\parser\ast.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)src\utility\cmd.cpp">
+    <ClCompile Include="$(SolutionDir)..\src\utility\cmd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)src\utility\file.cpp">
+    <ClCompile Include="$(SolutionDir)..\src\parser\token.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)src\parser\lexer.cpp">
+    <ClCompile Include="$(SolutionDir)..\src\utility\string.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)src\parser\token.cpp">
+    <ClCompile Include="$(SolutionDir)..\src\parser\parser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)src\utility\string.cpp">
+    <ClCompile Include="$(SolutionDir)..\src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)src\parser\parser.cpp">
+    <ClCompile Include="$(SolutionDir)..\src\parser\lexer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)src\main.cpp">
+    <ClCompile Include="$(SolutionDir)..\src\utility\file.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(SolutionDir)include\parser\ast.hpp">
+    <ClInclude Include="$(SolutionDir)..\include\parser\ast.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)include\utility\cmd.hpp">
+    <ClInclude Include="$(SolutionDir)..\include\parser\token.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)include\utility\file.hpp">
+    <ClInclude Include="$(SolutionDir)..\include\utility\string.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)include\info.hpp">
+    <ClInclude Include="$(SolutionDir)..\include\parser\parser.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)include\parser\lexer.hpp">
+    <ClInclude Include="$(SolutionDir)..\include\parser\lexer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)include\parser\token.hpp">
+    <ClInclude Include="$(SolutionDir)..\include\info.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)include\utility\string.hpp">
+    <ClInclude Include="$(SolutionDir)..\include\utility\file.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)include\parser\parser.hpp">
+    <ClInclude Include="$(SolutionDir)..\include\utility\cmd.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -64,12 +64,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="$(SolutionDir)assets\icon.ico">
+    <Image Include="..\assets\icon.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="$(SolutionDir)assets\Kithare.rc">
+    <ResourceCompile Include="..\assets\Kithare.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
