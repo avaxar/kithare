@@ -105,8 +105,10 @@ kh::Ast* kh::Parser::parse() {
                     GUARD(0);
                     imports.emplace_back(this->parseImport(true));
                 }
-                else
+                else {
                     this->exceptions.emplace_back(U"Unexpected identifier", token.index);
+                    this->ti++;
+                }
             } break;
 
             case kh::TokenType::SYMBOL:
