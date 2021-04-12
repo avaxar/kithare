@@ -184,8 +184,7 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
             str += U"DO WHILE:";
 
             if (ast_do_while.condition)
-                str +=
-                    U"\n\t" + ind + U"CONDITION:\n\t\t" + kh::repr(*ast_do_while.condition, indent + 2);
+                str += U"\n\t" + ind + U"CONDITION:\n\t\t" + kh::repr(*ast_do_while.condition, indent + 2);
 
             if (!ast_do_while.body.empty()) {
                 str += U"\n\t" + ind + U"BODY:";
@@ -242,8 +241,7 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
             }
 
             if (ast_statement.expression)
-                str += U"\n\t" + ind + U"EXPRESSION:\n\t\t" + ind +
-                       kh::repr(*ast_statement.expression, indent + 2);
+                str += U"\n\t" + ind + U"EXPRESSION:\n\t\t" + ind + kh::repr(*ast_statement.expression, indent + 2);
 
             break;
         }
@@ -304,8 +302,7 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
             str += U"\n\t" + ind + U"OPERATOR: " + kh::repr(expr_unary.operation);
 
             if (expr_unary.rvalue)
-                str +=
-                    U"\n\t" + ind + U"RVALUE:\n\t\t" + ind + kh::repr(*expr_unary.rvalue, indent + 2);
+                str += U"\n\t" + ind + U"RVALUE:\n\t\t" + ind + kh::repr(*expr_unary.rvalue, indent + 2);
 
             break;
         }
@@ -317,11 +314,9 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
             str += U"\n\t" + ind + U"OPERATOR: " + kh::repr(expr_binary.operation);
 
             if (expr_binary.lvalue)
-                str +=
-                    U"\n\t" + ind + U"LVALUE:\n\t\t" + ind + kh::repr(*expr_binary.lvalue, indent + 2);
+                str += U"\n\t" + ind + U"LVALUE:\n\t\t" + ind + kh::repr(*expr_binary.lvalue, indent + 2);
             if (expr_binary.rvalue)
-                str +=
-                    U"\n\t" + ind + U"RVALUE:\n\t\t" + ind + kh::repr(*expr_binary.rvalue, indent + 2);
+                str += U"\n\t" + ind + U"RVALUE:\n\t\t" + ind + kh::repr(*expr_binary.rvalue, indent + 2);
 
             break;
         }
@@ -331,14 +326,11 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
             str += U"TERNARY EXPR:";
 
             if (expr_ternary.condition)
-                str += U"\n\t" + ind + U"CONDITION:\n\t\t" + ind +
-                       kh::repr(*expr_ternary.condition, indent + 2);
+                str += U"\n\t" + ind + U"CONDITION:\n\t\t" + ind + kh::repr(*expr_ternary.condition, indent + 2);
             if (expr_ternary.value)
-                str +=
-                    U"\n\t" + ind + U"VALUE:\n\t\t" + ind + kh::repr(*expr_ternary.value, indent + 2);
+                str += U"\n\t" + ind + U"VALUE:\n\t\t" + ind + kh::repr(*expr_ternary.value, indent + 2);
             if (expr_ternary.otherwise)
-                str += U"\n\t" + ind + U"OTHERWISE:\n\t\t" + ind +
-                       kh::repr(*expr_ternary.otherwise, indent + 2);
+                str += U"\n\t" + ind + U"OTHERWISE:\n\t\t" + ind + kh::repr(*expr_ternary.otherwise, indent + 2);
 
             break;
         }
@@ -348,8 +340,7 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
             str += U"SUBSCRIPT:";
 
             if (expr_subscript.expression)
-                str += U"\n\t" + ind + U"EXPRESSION:\n\t\t" + ind +
-                       kh::repr(*expr_subscript.expression, indent + 2);
+                str += U"\n\t" + ind + U"EXPRESSION:\n\t\t" + ind + kh::repr(*expr_subscript.expression, indent + 2);
 
             for (auto argument : expr_subscript.arguments)
                 if (argument)
@@ -363,8 +354,7 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
             str += U"CALL:";
 
             if (expr_call.expression)
-                str += U"\n\t" + ind + U"EXPRESSION:\n\t\t" + ind +
-                       kh::repr(*expr_call.expression, indent + 2);
+                str += U"\n\t" + ind + U"EXPRESSION:\n\t\t" + ind + kh::repr(*expr_call.expression, indent + 2);
 
             if (!expr_call.arguments.empty()) {
                 str += U"\n\t" + ind + U"ARGUMENTS:";
@@ -381,14 +371,12 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
             str += U"DECLARE:";
 
             if (expr_declare.var_type)
-                str +=
-                    U"\n\t" + ind + U"TYPE:\n\t\t" + ind + kh::repr(*expr_declare.var_type, indent + 2);
+                str += U"\n\t" + ind + U"TYPE:\n\t\t" + ind + kh::repr(*expr_declare.var_type, indent + 2);
 
             str += U"\n\t" + ind + U"NAME: " + expr_declare.var_name;
 
             if (expr_declare.expression)
-                str += U"\n\t" + ind + U"EXPRESSION:\n\t\t" + ind +
-                       kh::repr(*expr_declare.expression, indent + 2);
+                str += U"\n\t" + ind + U"EXPRESSION:\n\t\t" + ind + kh::repr(*expr_declare.expression, indent + 2);
 
             str += U"\n\t" + ind + U"REF DEPTH: " + kh::repr((uint64_t)expr_declare.ref_depth);
             str += U"\n\t" + ind + U"STATIC: " + (expr_declare.is_static ? U"STATIC" : U"NON-STATIC");
@@ -420,12 +408,10 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
             }
 
             if (expr_func.return_ref_depth)
-                str += U"\n\t" + ind + U"RETURN TYPE REF DEPTH: " +
-                       kh::repr((uint64_t)expr_func.return_ref_depth);
+                str += U"\n\t" + ind + U"RETURN TYPE REF DEPTH: " + kh::repr((uint64_t)expr_func.return_ref_depth);
 
             if (expr_func.return_type)
-                str += U"\n\t" + ind + U"RETURN TYPE:\n\t\t" + ind +
-                       kh::repr(*expr_func.return_type, indent + 2);
+                str += U"\n\t" + ind + U"RETURN TYPE:\n\t\t" + ind + kh::repr(*expr_func.return_type, indent + 2);
 
             str += U"\n\t" + ind + U"ARGUMENTS:";
             for (auto arg : expr_func.arguments)
@@ -445,8 +431,7 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
             str += U"SCOPE:";
 
             if (expr_scope.expression)
-                str += U"\n\t" + ind + U"EXPRESSION:\n\t\t" + ind +
-                       kh::repr(*expr_scope.expression, indent + 2);
+                str += U"\n\t" + ind + U"EXPRESSION:\n\t\t" + ind + kh::repr(*expr_scope.expression, indent + 2);
 
             if (!expr_scope.identifiers.empty()) {
                 str += U"\n\t" + ind + U"IDENTIFIERS:";
@@ -464,8 +449,7 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
             switch (expr_const.value_type) {
                 case kh::AstConstValue::ValueType::CHARACTER:
                     str += U"\n\t" + ind + U"TYPE: CHARACTER";
-                    str +=
-                        U"\n\t" + ind + U"VALUE: " + kh::quote(std::u32string() + expr_const.character);
+                    str += U"\n\t" + ind + U"VALUE: " + kh::quote(std::u32string() + expr_const.character);
                     break;
 
                 case kh::AstConstValue::ValueType::UINTEGER:

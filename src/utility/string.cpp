@@ -154,8 +154,7 @@ std::u32string kh::quote(const std::string& str) {
                 else {
                     std::stringstream sstream;
                     sstream << std::hex << (int)((uint8_t)chr);
-                    repr_str +=
-                        U"\\x" + kh::repr((sstream.str().size() == 1 ? "0" : "") + sstream.str());
+                    repr_str += U"\\x" + kh::repr((sstream.str().size() == 1 ? "0" : "") + sstream.str());
                 }
         }
     }

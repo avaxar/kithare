@@ -53,13 +53,13 @@ bool testLexTokenType() {
 
 /* TODO */
 bool testLexNumeralValue() {
-    std::u32string source = U"0 1 2 8 9  " /* Single digit decimal integers */
-                            U"00 10 29U  " /* Multi-digit + Unsigned */
-                            U"0.1 0.2    " /* Floating point */
-                            U"11.1 .123  " /* Several other cases */
-                            U"0xFFF 0x1  " /* Hexadecimal */
-                            U"0o77 0o11  " /* Octal */
-                            U"0b111 0b01 " /* Binary */
+    std::u32string source = U"0 1 2 8 9  "  /* Single digit decimal integers */
+                            U"00 10 29U  "  /* Multi-digit + Unsigned */
+                            U"0.1 0.2    "  /* Floating point */
+                            U"11.1 .123  "  /* Several other cases */
+                            U"0xFFF 0x1  "  /* Hexadecimal */
+                            U"0o77 0o11  "  /* Octal */
+                            U"0b111 0b01 "  /* Binary */
                             U"4i 2i 5.6i "; /* Imaginary */
 
     try {
@@ -117,15 +117,14 @@ bool testLexNumeralValue() {
 
 bool testLexStringsAndBuffers() {
     /* "AB\x42\x88\u1234\u9876\U00001234\U00010000\"\n" */
-    std::u32string source =
-        U"\"AB\\x42\\x88\\u1234\\u9876\\v\\U00001234\\U00010000\\\"\\n\"" /* Escape tests */
-        U"b'' '' b\"aFd\\x87\\x90\\xff\" 'K' b'\\b' b'\\x34''\\U0001AF21' '\\r' "
-        U"\"Hello, world!\" " /* String */
-        U"b\"Hello, world!\" " /* Buffer / byte-string */
-        U"\"\"\"Hello,\n"
-        U"world!\"\"\" " /* Multiline string */
-        U"b\"\"\"Hello,\n"
-        U"world!\"\"\" "; /* Multiline buffer */
+    std::u32string source = U"\"AB\\x42\\x88\\u1234\\u9876\\v\\U00001234\\U00010000\\\"\\n\"" /* Escape tests */
+                            U"b'' '' b\"aFd\\x87\\x90\\xff\" 'K' b'\\b' b'\\x34''\\U0001AF21' '\\r' "
+                            U"\"Hello, world!\" "  /* String */
+                            U"b\"Hello, world!\" " /* Buffer / byte-string */
+                            U"\"\"\"Hello,\n"
+                            U"world!\"\"\" " /* Multiline string */
+                            U"b\"\"\"Hello,\n"
+                            U"world!\"\"\" "; /* Multiline buffer */
 
     try {
         auto tokens = kh::lex(source);
@@ -133,8 +132,7 @@ bool testLexStringsAndBuffers() {
         KH_ASSERT_EQUAL(tokens.size(), 13);
 
         KH_ASSERT_EQUAL(tokens[0].type, kh::TokenType::STRING);
-        KH_ASSERT_EQUAL(tokens[0].value.string,
-                        U"AB\x42\x88\u1234\u9876\v\U00001234\U00010000\"\n");
+        KH_ASSERT_EQUAL(tokens[0].value.string, U"AB\x42\x88\u1234\u9876\v\U00001234\U00010000\"\n");
         KH_ASSERT_EQUAL(tokens[1].type, kh::TokenType::INTEGER);
         KH_ASSERT_EQUAL(tokens[1].value.integer, '\0');
         KH_ASSERT_EQUAL(tokens[2].type, kh::TokenType::CHARACTER);

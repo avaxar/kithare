@@ -58,8 +58,7 @@ static const auto _imbue_wcin_utf8 = std::wcin.imbue(_utf8_locale);
 
 namespace kh {
     struct UnicodeDecodeError {
-        UnicodeDecodeError(const std::u32string& _what, const size_t _index)
-            : what(_what), index(_index) {}
+        UnicodeDecodeError(const std::u32string& _what, const size_t _index) : what(_what), index(_index) {}
 
         std::u32string what;
         size_t index;

@@ -49,10 +49,9 @@
         break;
 
 /* Helper macro */
-#define _HANDLE_ESCAPE_1(chr, echr, _val, _ttype, _len)                          \
-    _HANDLE_ESCAPE(chr, echr, _val, _len,                                        \
-                   if (chAt(i + _len) != '\'')                                   \
-                       KH_RAISE_ERROR(U"Expected a closing single quote", _len); \
+#define _HANDLE_ESCAPE_1(chr, echr, _val, _ttype, _len)                                                  \
+    _HANDLE_ESCAPE(chr, echr, _val, _len,                                                                \
+                   if (chAt(i + _len) != '\'') KH_RAISE_ERROR(U"Expected a closing single quote", _len); \
                    tokens.emplace_back(i, _ttype, value);)
 
 /* Use this to handle string escapes from a switch statement. This is used to handle
@@ -145,8 +144,7 @@ namespace kh {
     }
 
     inline bool isHex(const char32_t chr) {
-        return (U'0' <= chr && chr <= U'9') || (U'a' <= chr && chr <= U'f') ||
-               (U'A' <= chr && chr <= U'F');
+        return (U'0' <= chr && chr <= U'9') || (U'a' <= chr && chr <= U'f') || (U'A' <= chr && chr <= U'F');
     }
 } // namespace kh
 
