@@ -19,7 +19,7 @@ use the build script to achieve more things
 #### MSVC / Visual Studio
 - Make sure you have Visual Studio 2019 with C++ build tools and Windows 10 SDK installed.
 - Run `python3 build.py --msvc-deps`. It'll download the dependencies such as SDL and create the build destination directory with the dependencies' DLLs copied.
-- Open the solution `Kithare.sln`.
+- Open the solution at `msvc/Kithare.sln`.
 - See `Kithare` in the Solution Explorer. If the name's not bolded, right click and click "Set as Startup Project".
 - You can now build it by clicking "Local Windows Debugger".
 
@@ -38,6 +38,7 @@ compile Kithare.
 
 ## Contributing
 - New Contributors are most welcome to come and help us in making Kithare better.
+- Be sure to reformat the code with the given `.clang-format` before submitting a commit/PR.
 - If you want to contribute a major change, it's a good idea to discuss with us
 first, either on our discord server, or on GitHub issues section.
 - It is expected that contributors follow code formatting rules while contributing
