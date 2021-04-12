@@ -272,7 +272,7 @@ def build_exe(builddir, distdir, cflags, testmode=False):
     Generate final exe.
     """
     if COMPILER == "MSVC":
-        build_file = "KithareTest.vcxproj" if testmode else "Kithare.vcxproj"
+        build_file = "msvc\\KithareTest.vcxproj" if testmode else "msvc\\Kithare.vcxproj"
         ecode = os.system(
             f"msbuild /m /p:Configuration={MSVC_CONFIG} " + \
             f"/p:Platform={MACHINE} {build_file}"
