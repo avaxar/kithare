@@ -159,8 +159,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
 
     /* Lambda function which accesses the string, and throws an error directly to the console if it
      * had passed the length */
-    const std::function<const char32_t(const size_t)> chAt =
-        [&](const size_t index) -> const char32_t {
+    const std::function<const char32_t(const size_t)> chAt = [&](const size_t index) -> const char32_t {
         if (index < source.size())
             return source[index];
         else if (index == source.size())
@@ -317,8 +316,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
                                         PLACE_HEXSTR_AS_CHAR();
                                     } break;
 
-                                        HANDLE_ESCAPES_1(value.character, kh::TokenType::CHARACTER,
-                                                         3);
+                                        HANDLE_ESCAPES_1(value.character, kh::TokenType::CHARACTER, 3);
                                 }
                             }
                             else if (chAt(i + 1) == '\'') {

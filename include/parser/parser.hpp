@@ -16,16 +16,14 @@
 
 namespace kh {
     struct ParseException {
-        ParseException(const std::u32string _what, const size_t _index)
-            : what(_what), index(_index) {}
+        ParseException(const std::u32string _what, const size_t _index) : what(_what), index(_index) {}
 
         std::u32string what;
         size_t index;
     };
 
     struct ParseExceptions {
-        ParseExceptions(const std::vector<kh::ParseException>& _exceptions)
-            : exceptions(_exceptions) {}
+        ParseExceptions(const std::vector<kh::ParseException>& _exceptions) : exceptions(_exceptions) {}
 
         std::vector<kh::ParseException> exceptions;
     };

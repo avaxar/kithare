@@ -10,9 +10,9 @@
 #pragma once
 
 
-#define KH_VERSION_MAJOR 0 // Can be from 0-9
-#define KH_VERSION_MINOR 0 // Can be from 0-99
-#define KH_VERSION_PATCH 1 // Can be from 0-99
+#define KH_VERSION_MAJOR 0    // Can be from 0-9
+#define KH_VERSION_MINOR 0    // Can be from 0-99
+#define KH_VERSION_PATCH 1    // Can be from 0-99
 #define KH_VERSION_TAGS "rc1" // Can be a[1-6], b[1-6], rc[1-2]
 
 #define KH_VERSION_STR "v0.0.1rc1"

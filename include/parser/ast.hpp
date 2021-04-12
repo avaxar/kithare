@@ -80,8 +80,8 @@ namespace kh {
         bool is_include;
         std::u32string identifier;
 
-        AstImport(const size_t _index, const std::vector<std::u32string>& _path,
-                  const bool _is_include, const std::u32string& _identifier)
+        AstImport(const size_t _index, const std::vector<std::u32string>& _path, const bool _is_include,
+                  const std::u32string& _identifier)
             : index(_index), path(_path), is_include(_is_include), identifier(_identifier) {}
         virtual ~AstImport() {}
     };
@@ -100,8 +100,8 @@ namespace kh {
                  const std::vector<std::u32string>& _generic_args,
                  const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _members,
                  const std::vector<std::shared_ptr<kh::AstFunctionExpression>>& _methods)
-            : index(_index), name(_name), base(_base), generic_args(_generic_args),
-              members(_members), methods(_methods) {}
+            : index(_index), name(_name), base(_base), generic_args(_generic_args), members(_members),
+              methods(_methods) {}
         virtual ~AstClass() {}
     };
 
@@ -278,10 +278,9 @@ namespace kh {
                                  std::shared_ptr<kh::AstIdentifierExpression>& _var_type,
                                  const std::u32string& _var_name,
                                  std::shared_ptr<kh::AstExpression>& _expression,
-                                 const size_t _ref_depth, const bool _is_static,
-                                 const bool _is_public)
-            : var_type(_var_type), var_name(_var_name), expression(_expression),
-              ref_depth(_ref_depth), is_static(_is_static), is_public(_is_public) {
+                                 const size_t _ref_depth, const bool _is_static, const bool _is_public)
+            : var_type(_var_type), var_name(_var_name), expression(_expression), ref_depth(_ref_depth),
+              is_static(_is_static), is_public(_is_public) {
             this->index = _index;
             this->type = kh::AstBody::Type::EXPRESSION;
             this->expression_type = kh::AstExpression::ExType::DECLARE;
@@ -304,8 +303,7 @@ namespace kh {
         AstFunctionExpression(
             const size_t _index, const std::vector<std::u32string>& _identifiers,
             const std::vector<std::u32string>& _generic_args,
-            std::shared_ptr<kh::AstIdentifierExpression>& _return_type,
-            const size_t _return_ref_depth,
+            std::shared_ptr<kh::AstIdentifierExpression>& _return_type, const size_t _return_ref_depth,
             const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _arguments,
             const std::vector<std::shared_ptr<kh::AstBody>>& _body, const bool _is_static,
             const bool _is_public)
@@ -357,9 +355,9 @@ namespace kh {
         std::string buffer = "";
         std::u32string string = U"";
 
-        AstConstValue(const size_t _index, const char32_t _character,
-                      const kh::AstConstValue::ValueType _value_type =
-                          kh::AstConstValue::ValueType::CHARACTER)
+        AstConstValue(
+            const size_t _index, const char32_t _character,
+            const kh::AstConstValue::ValueType _value_type = kh::AstConstValue::ValueType::CHARACTER)
             : value_type((ValueType)((size_t)_value_type)) {
             this->index = _index;
             this->character = _character;
@@ -444,8 +442,7 @@ namespace kh {
         std::vector<std::vector<std::shared_ptr<kh::AstBody>>> bodies;
         std::vector<std::shared_ptr<kh::AstBody>> else_body;
 
-        AstIf(const size_t _index,
-              const std::vector<std::shared_ptr<kh::AstExpression>>& _conditions,
+        AstIf(const size_t _index, const std::vector<std::shared_ptr<kh::AstExpression>>& _conditions,
               const std::vector<std::vector<std::shared_ptr<kh::AstBody>>>& _bodies,
               const std::vector<std::shared_ptr<kh::AstBody>>& _else_body)
             : conditions(_conditions), bodies(_bodies), else_body(_else_body) {
