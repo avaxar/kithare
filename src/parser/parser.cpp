@@ -518,6 +518,7 @@ kh::AstClass* kh::Parser::parseClass() {
     if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
         this->ti++;
         GUARD(0);
+
         /* Parses base class' identifier */
         base.reset((kh::AstIdentifierExpression*)this->parseIdentifiers());
         GUARD(0);
@@ -644,6 +645,9 @@ kh::AstStruct* kh::Parser::parseStruct() {
 
     /* Optional struct inheritment */
     if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
+        this->ti++;
+        GUARD(0);
+
         /* Parses the base class' identifier */
         base.reset((kh::AstIdentifierExpression*)this->parseIdentifiers());
         GUARD(0);
@@ -733,6 +737,9 @@ kh::AstEnum* kh::Parser::parseEnum() {
 
     /* Optional enum inheritment */
     if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
+        this->ti++;
+        GUARD(0);
+
         /* Parses the base enum identifier */
         base.reset((kh::AstIdentifierExpression*)this->parseIdentifiers());
         GUARD(0);
@@ -1419,7 +1426,7 @@ kh::AstExpression* kh::Parser::parseLiteral() {
     size_t index = token.index;
 
     switch (token.type) {
-        /* For all of these literal values be given the AST constant value instance */
+            /* For all of these literal values be given the AST constant value instance */
 
         case kh::TokenType::CHARACTER:
             expr = new kh::AstConstValue(token.index, token.value.character);
@@ -1600,7 +1607,7 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
         this->ti++;
         GUARD(0);
         token = this->to();
-        
+
         /* Instant close */
         if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::GENERIC_CLOSE)
             this->ti++;
