@@ -1,66 +1,78 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\src\parser\ast.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="$(SolutionDir)..\src\main.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\src\utility\cmd.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="$(SolutionDir)..\src\parser\ast.cpp">
+      <Filter>src\parser</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\src\parser\token.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>src\parser</Filter>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\src\utility\string.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\src\parser\parser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\src\main.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="$(SolutionDir)..\src\utility\cmd.cpp">
+      <Filter>src\utility</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\src\parser\lexer.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>src\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\src\parser\parser.cpp">
+      <Filter>src\parser</Filter>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\src\utility\file.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>src\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\src\utility\string.cpp">
+      <Filter>src\utility</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="$(SolutionDir)..\include\info.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
     <ClInclude Include="$(SolutionDir)..\include\parser\ast.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)..\include\parser\token.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)..\include\utility\string.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)..\include\parser\parser.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>include\parser</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)..\include\parser\lexer.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>include\parser</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)..\include\info.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="$(SolutionDir)..\include\parser\parser.hpp">
+      <Filter>include\parser</Filter>
     </ClInclude>
-    <ClInclude Include="$(SolutionDir)..\include\utility\file.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="$(SolutionDir)..\include\parser\token.hpp">
+      <Filter>include\parser</Filter>
     </ClInclude>
     <ClInclude Include="$(SolutionDir)..\include\utility\cmd.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>include\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)..\include\utility\file.hpp">
+      <Filter>include\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="$(SolutionDir)..\include\utility\string.hpp">
+      <Filter>include\utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{32dbce66-cafa-4c33-99f2-d0ce7c5cb743}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{92088f87-72d0-4a38-88fd-8628aaa277c6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{26183c5e-66ce-477f-ae3e-e96815fe9ebd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{32dbce66-cafa-4c33-99f2-d0ce7c5cb743}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{92088f87-72d0-4a38-88fd-8628aaa277c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\utility">
+      <UniqueIdentifier>{9958d11b-c3f6-4438-b339-153ae9dab1a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\parser">
+      <UniqueIdentifier>{dd682b8f-f029-4d93-89e5-201c4c159061}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\utility">
+      <UniqueIdentifier>{d6647cf1-dc9a-4e32-947a-b308b67282b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\parser">
+      <UniqueIdentifier>{9b0ff7b1-f87f-4d31-b2ff-e8154161dc3b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
