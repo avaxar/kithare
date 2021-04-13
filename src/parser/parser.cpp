@@ -55,28 +55,8 @@ kh::Ast* kh::Parser::parse() {
             case kh::TokenType::IDENTIFIER: {
                 const std::u32string& identifier = token.value.identifier;
 
-                /* Variable declaration initial identifier keywords */
-                if (identifier == U"var" || identifier == U"ref" || identifier == U"static" ||
-                    identifier == U"private" || identifier == U"public") {
-                    /* Gets variable's declaration access type */
-                    bool is_static, is_public;
-                    this->parseAccessAttribs(is_static, is_public);
-                    GUARD(0);
-
-                    /* Parses the variable's return type, name, and assignment value */
-                    variables.emplace_back(this->parseDeclaration(is_static, is_public));
-
-                    /* Makes sure it ends with a semicolon */
-                    GUARD(0);
-                    token = this->to();
-                    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::SEMICOLON)
-                        this->ti++;
-                    else
-                        this->exceptions.emplace_back(U"Was expecting a semicolon after a variable declaration",
-                                                      token.index);
-                }
                 /* Function declaration identifier keyword */
-                else if (identifier == U"def") {
+                if (identifier == U"def") {
                     /* Skips initial keyword */
                     this->ti++;
                     GUARD(0);
@@ -118,10 +98,24 @@ kh::Ast* kh::Parser::parse() {
                     GUARD(0);
                     imports.emplace_back(this->parseImport(true)); /* is_include = true */
                 }
-                /* Unknown identifier keyword */
+                /* If it was none of those above, it's probably a variable declaration */
                 else {
-                    this->exceptions.emplace_back(U"Unexpected identifier while parsing the top scope", token.index);
-                    this->ti++;
+                    /* Gets variable's declaration access type */
+                    bool is_static, is_public;
+                    this->parseAccessAttribs(is_static, is_public);
+                    GUARD(0);
+
+                    /* Parses the variable's return type, name, and assignment value */
+                    variables.emplace_back(this->parseDeclaration(is_static, is_public));
+
+                    /* Makes sure it ends with a semicolon */
+                    GUARD(0);
+                    token = this->to();
+                    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::SEMICOLON)
+                        this->ti++;
+                    else
+                        this->exceptions.emplace_back(U"Was expecting a semicolon after a variable declaration",
+                                                      token.index);
                 }
             } break;
 
@@ -225,12 +219,11 @@ void kh::Parser::parseAccessAttribs(bool& is_static, bool& is_public) {
     is_static = false;
     is_public = true;
 
-    /* It parses these kinds of access types: `var [static private/public] int x = 3` */
+    /* It parses these kinds of access types: `[static | private/public] int x = 3` */
 
     kh::Token token = this->to();
     while (token.type == kh::TokenType::IDENTIFIER) {
-        if (token.value.identifier == U"var") {} /* dummy; Does nothing but a placeholder */
-        else if (token.value.identifier == U"static")
+        if (token.value.identifier == U"static")
             is_static = true;
         else if (token.value.identifier == U"public")
             is_public = true;
@@ -433,10 +426,10 @@ kh::AstDeclarationExpression* kh::Parser::parseDeclaration(const bool is_static,
     GUARD(0);
     token = this->to();
 
-    /* The case where: `var SomeClass x(1, 2, 3)` */
+    /* The case where: `SomeClass x(1, 2, 3)` */
     if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN)
         expression.reset(this->parseTuple());
-    /* The case where: `var int x = 3` */
+    /* The case where: `int x = 3` */
     else if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::ASSIGN) {
         this->ti++;
         GUARD(0);
@@ -548,10 +541,20 @@ kh::AstClass* kh::Parser::parseClass() {
 
             switch (token.type) {
                 case kh::TokenType::IDENTIFIER: {
-                    /* Class (member/static) variable declarations */
-                    if (token.value.identifier == U"var" || token.value.identifier == U"ref" ||
-                        token.value.identifier == U"static" || token.value.identifier == U"private" ||
-                        token.value.identifier == U"public") {
+                    /* Methods */
+                    if (token.value.identifier == U"def") {
+                        this->ti++;
+                        GUARD(0);
+
+                        bool is_static, is_public;
+                        /* Parse access types */
+                        this->parseAccessAttribs(is_static, is_public);
+                        GUARD(0);
+                        /* Parse function declaration */
+                        methods.emplace_back(this->parseFunction(is_static, is_public));
+                    }
+                    /* Member/class variables */
+                    else {
                         bool is_static, is_public;
                         /* Parse access types */
                         this->parseAccessAttribs(is_static, is_public);
@@ -570,23 +573,6 @@ kh::AstClass* kh::Parser::parseClass() {
                                                           U"variable declaration in the class body",
                                                           token.index);
                         }
-                    }
-                    /* Methods */
-                    else if (token.value.identifier == U"def") {
-                        this->ti++;
-                        GUARD(0);
-
-                        bool is_static, is_public;
-                        /* Parse access types */
-                        this->parseAccessAttribs(is_static, is_public);
-                        GUARD(0);
-                        /* Parse function declaration */
-                        methods.emplace_back(this->parseFunction(is_static, is_public));
-                    }
-                    else {
-                        this->ti++;
-                        this->exceptions.emplace_back(U"Unexpected identifier while parsing the class body",
-                                                      token.index);
                     }
                 } break;
 
@@ -1113,17 +1099,8 @@ kh::AstExpression* kh::Parser::parseExpression() {
     kh::Token token = this->to();
     size_t index = token.index;
 
-    /* Variable declaration */
-    if (token.type == kh::TokenType::IDENTIFIER &&
-        (token.value.identifier == U"var" || token.value.identifier == U"ref" || token.value.identifier == U"static" ||
-         token.value.identifier == U"private" || token.value.identifier == U"public")) {
-        bool is_static, is_public;
-        this->parseAccessAttribs(is_static, is_public);
-        GUARD(0);
-        return this->parseDeclaration(is_static, is_public);
-    }
     /* Function expression */
-    else if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"def") {
+    if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"def") {
         bool is_static, is_public;
         this->ti++;
         GUARD(0);
@@ -1459,7 +1436,43 @@ kh::AstExpression* kh::Parser::parseLiteral() {
             break;
 
         case kh::TokenType::IDENTIFIER:
-            expr = this->parseIdentifiers();
+            if (token.value.identifier == U"ref" || token.value.identifier == U"static" ||
+                token.value.identifier == U"private" || token.value.identifier == U"public") {
+                bool is_static, is_public;
+                this->parseAccessAttribs(is_static, is_public);
+                GUARD(0);
+                return this->parseDeclaration(is_static, is_public);
+            }
+            else {
+                expr = this->parseIdentifiers();
+
+                GUARD(0);
+                token = this->to();
+
+                if (token.type == kh::TokenType::IDENTIFIER) {
+                    std::shared_ptr<kh::AstIdentifierExpression> var_type((kh::AstIdentifierExpression*)expr);
+                    std::u32string var_name = token.value.identifier;
+                    std::shared_ptr<kh::AstExpression> expression;
+
+                    this->ti++;
+                    GUARD(0);
+                    token = this->to();
+
+                    /* The case where: `SomeClass x(1, 2, 3)` */
+                    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN)
+                        expression.reset(this->parseTuple());
+                    /* The case where: `int x = 3` */
+                    else if (token.type == kh::TokenType::OPERATOR &&
+                             token.value.operator_type == kh::Operator::ASSIGN) {
+                        this->ti++;
+                        GUARD(0);
+                        expression.reset(this->parseExpression());
+                    }
+
+                    return new kh::AstDeclarationExpression(index, var_type, var_name, expression, (size_t)0, false,
+                                                            true);
+                }
+            }
             break;
 
         case kh::TokenType::SYMBOL:

@@ -1,4 +1,11 @@
-def int sum(int a, int b) { return a + b; }
+struct A {
+	int i;
+}
 
-/* If no return type is provided, it'll be void */
-def main() {}
+static int i;
+
+def main() {
+	for int i : std.range(30) {
+
+	}
+}
