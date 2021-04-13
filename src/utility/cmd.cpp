@@ -20,6 +20,11 @@ int kh::run(const std::vector<std::u32string>& args) {
     for (const std::u32string& arg : args) {
         if (exargs.empty() && !arg.compare(0, 1, U"-")) {
             /* A Kithare command line option, handle all those here */
+            if (arg == U"-h" || arg == U"--help") {
+                khPrintln(KH_HELP_STR);
+                return 0;
+            }
+
             if (arg == U"-v") {
                 khPrintln("Kithare " KH_VERSION_STR);
                 return 0;
