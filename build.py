@@ -63,8 +63,12 @@ import tarfile
 import urllib.request as urllib
 import zipfile
 
-EXE = "kcr.exe" if platform.system() == "Windows" else "kcr"
-TEST_EXE = "test_kcr.exe" if platform.system() == "Windows" else "test_kcr"
+EXE = "kcr"
+TEST_EXE = "test_kcr"
+
+if platform.system() == "Windows":
+    EXE += ".exe"
+    TEST_EXE += ".exe"
 
 # While we recursively search for include files, we don't want to seach
 # the whole file, because that would waste a lotta time. So, we just take
@@ -80,41 +84,6 @@ SDL_DEPS = {
     "SDL2_net": "2.0.1",
 }
 
-IS_32_BIT = "--arch=x86" in sys.argv
-
-for arch in ["--arch=x86", "--arch=x64"]:
-    if arch in sys.argv:
-        sys.argv.remove(arch)
-
-MACHINE = platform.machine()
-if MACHINE.endswith("86"):
-    MACHINE = "x86"
-    MACHINE_ALT = "i686"
-
-elif MACHINE.lower() in ["x86_64", "amd64"]:
-    MACHINE = "x86" if IS_32_BIT else "x64"
-    MACHINE_ALT = "i686" if IS_32_BIT else "x86_64"
-
-elif MACHINE.lower() in ["armv8l", "arm64", "aarch64"]:
-    MACHINE = "ARM" if IS_32_BIT else "ARM64"
-
-elif MACHINE.lower().startswith("arm"):
-    MACHINE = "ARM"
-
-elif not MACHINE:
-    MACHINE = "None"
-
-MSVC_NO_COMPILE = False
-if platform.system() == "Windows":
-    MSVC_NO_COMPILE = "--msvc-deps" in sys.argv
-    MSVC_CONFIG = "Debug" if "--debug" in sys.argv else "Release"
-    COMPILER = "MSVC" if "--msvc" in sys.argv or MSVC_NO_COMPILE else "MinGW"
-
-else:
-    COMPILER = "GCC"
-
-DOWNLOAD_DIR = f"deps/SDL-{COMPILER}"
-
 
 def mkdir(file):
     """
@@ -126,6 +95,7 @@ def mkdir(file):
 def find_includes(file):
     """
     Recursively find include files for a given file
+    Returns an iterator
     """
     with open(file, "r") as fobj:
         for cnt, line in enumerate(fobj.read().splitlines()):
@@ -164,237 +134,299 @@ def should_build(file, ofile):
     return False
 
 
-def copy_sdl_dll(download_path):
+class KithareBuilder:
     """
-    Copy SDL dll's into the dist folder, and also return the cflags to include
-    the SDL library
+    Kithare builder class
     """
-    if COMPILER == "MSVC":
-        for i in ["x86", "x64"]:
-            for j in ["Debug", "Release"]:
-                distdir = f"dist/MSVC-{i}-{j}"
-                mkdir(distdir)
-                for dll in glob.iglob(f"{download_path}/lib/{i}/*.dll"):
-                    shutil.copyfile(
-                        dll,
-                        os.path.join(distdir, os.path.basename(dll))
-                    )
-        return tuple()
 
-    for dll in glob.iglob(
-        f"{download_path}/{MACHINE_ALT}-w64-mingw32/bin/*.dll"
-    ):
-        shutil.copyfile(
-            dll,
-            os.path.join(f"dist/MinGW-{MACHINE}", os.path.basename(dll))
+    def __init__(self, args, basepath="."):
+        """
+        Initialise kithare builder
+        """
+        self.args = args
+        self.basepath = basepath
+        self.set_machine()
+        self.parse_args()
+        self.init_cflags()
+
+    def set_machine(self):
+        """
+        Set machine type
+        """
+        self.is_32_bit = "--arch=x86" in self.args
+        self.machine = platform.machine()
+
+        if self.machine.endswith("86"):
+            self.machine = "x86"
+            self.machine_alt = "i686"
+
+        elif self.machine.lower() in ["x86_64", "amd64"]:
+            self.machine = "x86" if self.is_32_bit else "x64"
+            self.machine_alt = "i686" if self.is_32_bit else "x86_64"
+
+        elif self.machine.lower() in ["armv8l", "arm64", "aarch64"]:
+            self.machine = "ARM" if self.is_32_bit else "ARM64"
+
+        elif self.machine.lower().startswith("arm"):
+            self.machine = "ARM"
+
+        elif not self.machine:
+            self.machine = "None"
+
+    def parse_args(self):
+        """
+        Parse any arguments into respective flags
+        """
+        self.msvc_no_compile = False
+        self.compiler = "GCC"
+        if platform.system() == "Windows":
+            self.msvc_no_compile = "--msvc-deps" in self.args
+            self.msvc_config = "Debug" if "--debug" in self.args else "Release"
+            if "--msvc" in self.args or self.msvc_no_compile:
+                self.compiler = "MSVC"
+            else:
+                self.compiler = "MinGW"
+
+        self.download_dir = f"{self.basepath}/deps/SDL-{self.compiler}"
+
+        msvc_tags = ""
+        if self.compiler == "MSVC":
+            msvc_tags += "-" + self.msvc_config
+        dirname = f"{self.compiler}-{self.machine}{msvc_tags}"
+
+        self.builddir = f"{self.basepath}/build/{dirname}"
+        self.distdir = f"{self.basepath}/dist/{dirname}"
+
+        self.build_tests = "--build-tests" in self.args
+        self.run_tests = "--run-tests" in self.args
+
+        # Prune unneeded args
+        for i in self.args:
+            if i.startswith("--arch=") or i == "--build-tests":
+                self.args.remove(i)
+
+    def init_cflags(self):
+        """
+        Initailise compiler flags into a list
+        """
+        self.cflags = ["-O3", "-std=c++14", f"-I {self.basepath}/include"]
+        self.cflags.extend(
+            [
+                "-lSDL2", "-lSDL2main", "-lSDL2_image", "-lSDL2_ttf",
+                "-lSDL2_mixer", "-lSDL2_net"
+            ]
         )
-    return (
-        f"-I {download_path}/{MACHINE_ALT}-w64-mingw32/include/SDL2",
-        f"-L {download_path}/{MACHINE_ALT}-w64-mingw32/lib"
-    )
 
+        if self.compiler == "MinGW":
+            self.cflags.append("-municode")
 
-def download_sdl_deps(name, version):
-    """
-    SDL Dependency download utility for windows
-    """
-    download_link = "https://www.libsdl.org/"
-    if name != "SDL2":
-        download_link += f"projects/{name}/".replace("2", "")
+        if self.is_32_bit and "-m32" not in self.args:
+            self.cflags.append("-m32")
 
-    download_link += f"release/{name}-devel-{version}-"
-    download_link += "VC.zip" if COMPILER == "MSVC" else "mingw.tar.gz"
+        self.cflags.extend(self.args)
 
-    download_path = f"{DOWNLOAD_DIR}/{name}"
+    def copy_sdl_dll(self, download_path):
+        """
+        Copy SDL dll's into the dist folder, and also return the cflags to 
+        include the SDL library
+        """
+        if self.compiler == "MSVC":
+            for i in ["x86", "x64"]:
+                for j in ["Debug", "Release"]:
+                    distdir = f"{self.basepath}/dist/MSVC-{i}-{j}"
+                    mkdir(distdir)
+                    for dll in glob.iglob(f"{download_path}/lib/{i}/*.dll"):
+                        shutil.copyfile(
+                            dll,
+                            os.path.join(distdir, os.path.basename(dll))
+                        )
+            return
 
-    if os.path.isdir(download_path):
-        print(f"Skipping {name} download because it already exists")
+        for dll in glob.iglob(
+            f"{download_path}/{self.machine_alt}-w64-mingw32/bin/*.dll"
+        ):
+            shutil.copyfile(
+                dll,
+                os.path.join(
+                    f"{self.basepath}/dist/MinGW-{self.machine}",
+                    os.path.basename(dll)
+                )
+            )
+        self.cflags.extend([
+            f"-I {download_path}/{self.machine_alt}-w64-mingw32/include/SDL2",
+            f"-L {download_path}/{self.machine_alt}-w64-mingw32/lib"
+        ])
 
-    else:
-        print(f"Downloading {name} from {download_link}")
-        request = urllib.Request(
-            download_link, headers={
-                'User-Agent': 'Chrome/35.0.1916.47 Safari/537.36'
-            }
-        )
-        with urllib.urlopen(request) as download:
-            response = download.read()
+    def download_sdl_deps(self, name, version):
+        """
+        SDL Dependency download utility for windows
+        """
+        download_link = "https://www.libsdl.org/"
+        if name != "SDL2":
+            download_link += f"projects/{name}/".replace("2", "")
 
-        print("Extracting compressed files")
-        if COMPILER == "MSVC":
-            with zipfile.ZipFile(io.BytesIO(response), 'r') as zipped:
-                zipped.extractall(DOWNLOAD_DIR)
+        download_link += f"release/{name}-devel-{version}-"
+        download_link += "VC.zip" if self.compiler == "MSVC" else "mingw.tar.gz"
+
+        download_path = f"{self.download_dir}/{name}"
+
+        if os.path.isdir(download_path):
+            print(f"Skipping {name} download because it already exists")
 
         else:
-            # Tarfile does not support bytes IO, so use temp file
-            try:
-                with open("temp", "wb") as tar:
-                    tar.write(response)
+            print(f"Downloading {name} from {download_link}")
+            request = urllib.Request(
+                download_link, headers={
+                    'User-Agent': 'Chrome/35.0.1916.47 Safari/537.36'
+                }
+            )
+            with urllib.urlopen(request) as download:
+                response = download.read()
 
-                with tarfile.open("temp", 'r:gz') as tarred:
-                    tarred.extractall(DOWNLOAD_DIR)
-            finally:
-                if os.path.exists("temp"):
-                    os.remove("temp")
+            print("Extracting compressed files")
+            if self.compiler == "MSVC":
+                with zipfile.ZipFile(io.BytesIO(response), 'r') as zipped:
+                    zipped.extractall(self.download_dir)
 
-        os.rename(f"{download_path}-{version}", download_path)
-        print(f"Finished downloading {name}")
+            else:
+                # Tarfile does not support bytes IO, so use temp file
+                try:
+                    with open("temp", "wb") as tar:
+                        tar.write(response)
 
-    return copy_sdl_dll(download_path)
+                    with tarfile.open("temp", 'r:gz') as tarred:
+                        tarred.extractall(self.download_dir)
+                finally:
+                    if os.path.exists("temp"):
+                        os.remove("temp")
 
+            os.rename(f"{download_path}-{version}", download_path)
+            print(f"Finished downloading {name}")
 
-def compile_gpp(src, output, srcflag="-c ", cflags=()):
-    """
-    Used to execute g++ commands
-    """
-    cmd = f"g++ -o {output} {srcflag}{src} {' '.join(cflags)}"
-    print(cmd)
-    return os.system(cmd)
+        self.copy_sdl_dll(download_path)
 
+    def compile_gpp(self, src, output, srcflag="-c "):
+        """
+        Used to execute g++ commands
+        """
+        cmd = f"g++ -o {output} {srcflag}{src} {' '.join(self.cflags)}"
+        print(cmd)
+        return os.system(cmd)
 
-def build_sources(builddir, testmode, cflags):
-    """
-    Generate obj files from source files
-    """
-    isfailed = 0
-    globpattern = "test/**/test_*.cpp" if testmode else "src/**/*.cpp"
+    def build_sources(self, testmode):
+        """
+        Generate obj files from source files
+        """
+        isfailed = 0
+        globpattern = self.basepath + "/"
+        globpattern += "test/**/test_*.cpp" if testmode else "src/**/*.cpp"
 
-    for file in glob.iglob(globpattern, recursive=True):
-        ofile = f"{builddir}/{os.path.basename(file)}".replace(".cpp", ".o")
-        if should_build(file, ofile):
-            print("\nBuilding file:", file)
-            isfailed = compile_gpp(file, ofile, cflags=cflags)
-            if isfailed:
-                print("g++ command exited with an error code:", isfailed)
+        for file in glob.iglob(globpattern, recursive=True):
+            cfile = f"{self.builddir}/{os.path.basename(file)}"
+            ofile = cfile.replace(".cpp", ".o")
+            if should_build(file, ofile):
+                print("\nBuilding file:", file.replace("\\", "/"))
+                isfailed = self.compile_gpp(file, ofile)
+                if isfailed:
+                    print("g++ command exited with an error code:", isfailed)
 
-    if isfailed:
-        print("Skipped building executable, because all files didn't build")
-        sys.exit(isfailed)
+        if isfailed:
+            print("Skipped building executable, because all files didn't build")
+            sys.exit(isfailed)
 
+    def build_exe(self, testmode=False):
+        """
+        Generate final exe.
+        """
+        # This MSVC block is handling stupid MSVC stuff. This shit is so useless
+        # that im tempted to remove it ASAP, That would make mah life soo much
+        # easier
+        if self.compiler == "MSVC":
+            build_file = f"{self.basepath}\\msvc"
+            build_file += "KithareTest" if testmode else "Kithare"
+            build_file += ".vcxproj"
+            ecode = os.system(
+                f"msbuild /m /p:Configuration={self.msvc_config} " +
+                f"/p:Platform={self.machine} {build_file}"
+            )
 
-def build_exe(builddir, distdir, cflags, testmode=False):
-    """
-    Generate final exe.
-    """
-    if COMPILER == "MSVC":
-        build_file = "msvc\\KithareTest.vcxproj" if testmode else "msvc\\Kithare.vcxproj"
-        ecode = os.system(
-            f"msbuild /m /p:Configuration={MSVC_CONFIG} " + \
-            f"/p:Platform={MACHINE} {build_file}"
-        )
-
-        if ecode:
-            sys.exit(ecode)
-        return
-
-    build_sources(builddir, testmode, cflags)
-
-    exepath = f"{distdir}/{TEST_EXE if testmode else EXE}"
-    objfiles = glob.glob(f"{builddir}/*.o")
-
-    if testmode:
-        # remove main in testmode, to remove 'main' redefination
-        objfiles.remove(os.path.join(builddir, "main.o"))
-    else:
-        # prune away test files if we are not in testmode
-        for i in list(objfiles):
-            if os.path.basename(i).startswith("test_"):
-                objfiles.remove(i)
-
-    args = " ".join(objfiles).replace("\\", "/")
-
-    icores = "icon.res"
-    if not testmode and COMPILER == "MinGW":
-        os.system(f"windres assets/Kithare.rc -O coff -o {icores}")
-        args += f" {icores}"
-
-    if os.path.exists(exepath):
-        dist_m = os.stat(exepath).st_mtime
-
-    for ofile in objfiles:
-        if not os.path.exists(exepath) or os.stat(ofile).st_mtime > dist_m:
-            print("\nBuilding exe")
-
-            ecode = compile_gpp(args, exepath, "", cflags=cflags)
             if ecode:
                 sys.exit(ecode)
-            break
+            return
 
-    if os.path.exists(icores):
-        os.remove(icores)
+        self.build_sources(testmode)
 
+        exepath = f"{self.distdir}/{TEST_EXE if testmode else EXE}"
+        objfiles = glob.glob(f"{self.builddir}/*.o")
 
-def init_cflags():
-    """
-    Return an initialized cflags instance
-    """
-    cflags = ["-O3", "-std=c++14", "-I include"]
-    cflags.extend(
-        [
-            "-lSDL2", "-lSDL2main", "-lSDL2_image", "-lSDL2_ttf",
-            "-lSDL2_mixer", "-lSDL2_net"
-        ]
-    )
+        if testmode:
+            # remove main in testmode, to remove 'main' redefination
+            objfiles.remove(os.path.join(self.builddir, "main.o"))
+        else:
+            # prune away test files if we are not in testmode
+            for i in list(objfiles):
+                if os.path.basename(i).startswith("test_"):
+                    objfiles.remove(i)
 
-    if COMPILER == "MinGW":
-        cflags.append("-municode")
+        args = " ".join(objfiles).replace("\\", "/")
 
-    if IS_32_BIT and "-m32" not in sys.argv:
-        cflags.append("-m32")
+        # Handle exe icon
+        icores = "icon.res"
+        if not testmode and self.compiler == "MinGW":
+            assetfile = f"{self.basepath}/assets/Kithare.rc"
+            os.system(f"windres {assetfile} -O coff -o {icores}")
+            args += f" {icores}"
 
-    cflags.extend(sys.argv[1:])
-    return cflags
+        if os.path.exists(exepath):
+            dist_m = os.stat(exepath).st_mtime
 
-
-def main():
-    """
-    Main code, that runs on startup
-    """
-    build_tests = "--build-tests" in sys.argv
-    if build_tests:
-        sys.argv.remove("--build-tests")
-
-    run_tests = "--run-tests" in sys.argv
-    if run_tests:
-        sys.argv.remove("--run-tests")
-
-    cflags = init_cflags()
-
-    if COMPILER == "MSVC":
-        distdir = f"dist/MSVC-{MACHINE}-{MSVC_CONFIG}"
-        builddir = ""  # For a dummy argument, that goes unused
-    else:
-        builddir = f"build/{COMPILER}-{MACHINE}"
-        distdir = f"dist/{COMPILER}-{MACHINE}"
-        mkdir(builddir)
-        mkdir(distdir)
-
-    if run_tests:
-        sys.exit(os.system(os.path.normpath(f"{distdir}/{TEST_EXE}")))
-
-    # Prepare dependencies and cflags with SDL flags
-    if platform.system() == "Windows":
-        mkdir(DOWNLOAD_DIR)
-
-        for package, ver in SDL_DEPS.items():
-            cflags.extend(download_sdl_deps(package, ver))
-
-    else:
-        for inc_dir in ["/usr/include/SDL2", "/usr/local/include/SDL2"]:
-            if os.path.isdir(inc_dir):
-                cflags.append(f"-I {inc_dir}")
+        for ofile in objfiles:
+            if not os.path.exists(exepath) or os.stat(ofile).st_mtime > dist_m:
+                print("\nBuilding exe")
+                ecode = self.compile_gpp(args, exepath, "")
+                if ecode:
+                    sys.exit(ecode)
                 break
 
-    # Building in only dependency install mode
-    if MSVC_NO_COMPILE:
-        return
+        if os.path.exists(icores):
+            os.remove(icores)
 
-    build_exe(builddir, distdir, cflags)
-    if build_tests:
-        build_exe(builddir, distdir, cflags, testmode=True)
+    def build(self, basepath="."):
+        """
+        Build Kithare
+        """
+        mkdir(self.builddir)
+        mkdir(self.distdir)
 
-    print("Done!")
+        if self.run_tests:
+            sys.exit(os.system(os.path.normpath(f"{self.distdir}/{TEST_EXE}")))
+
+        # Prepare dependencies and cflags with SDL flags
+        if platform.system() == "Windows":
+            mkdir(self.download_dir)
+
+            for package, ver in SDL_DEPS.items():
+                self.download_sdl_deps(package, ver)
+
+        else:
+            for inc_dir in ["/usr/include/SDL2", "/usr/local/include/SDL2"]:
+                if os.path.isdir(inc_dir):
+                    self.cflags.append(f"-I {inc_dir}")
+                    break
+
+        # Building in only dependency install mode
+        if self.msvc_no_compile:
+            return
+
+        self.build_exe()
+        if self.build_tests:
+            self.build_exe(testmode=True)
+
+        print("Done!")
 
 
 if __name__ == "__main__":
-    main()
+    args = sys.argv.copy()
+    args.pop(0)
+    kithare = KithareBuilder(args)
+    kithare.build()
