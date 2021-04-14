@@ -27,7 +27,7 @@
 #endif
 
 
-#define khPrint(val)                                           \
+#define kprint(val)                                            \
     do {                                                       \
         std::u32string str = kh::repr(val);                    \
         for (const char32_t chr : str) {                       \
@@ -39,9 +39,9 @@
         }                                                      \
     } while (false)
 
-#define khPrintln(val)        \
+#define kprintln(val)         \
     do {                      \
-        khPrint(val);         \
+        kprint(val);          \
         std::putwchar(L'\n'); \
     } while (false)
 

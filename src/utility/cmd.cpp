@@ -21,20 +21,20 @@ int kh::run(const std::vector<std::u32string>& args) {
         if (exargs.empty() && !arg.compare(0, 1, U"-")) {
             /* A Kithare command line option, handle all those here */
             if (arg == U"-h" || arg == U"--help") {
-                khPrintln(KH_HELP_STR);
+                kprintln(KH_HELP_STR);
                 return 0;
             }
 
             if (arg == U"-v") {
-                khPrintln("Kithare " KH_VERSION_STR);
+                kprintln("Kithare " KH_VERSION_STR);
                 return 0;
             }
 
             if (arg == U"-V") {
-                khPrintln("Kithare " KH_VERSION_STR);
-                khPrintln("OS: " KH_OS);
-                khPrintln("Compiler: " KH_COMPILER);
-                khPrintln("Compiled on " __DATE__ " at " __TIME__);
+                kprintln("Kithare " KH_VERSION_STR);
+                kprintln("OS: " KH_OS);
+                kprintln("Compiler: " KH_COMPILER);
+                kprintln("Compiled on " __DATE__ " at " __TIME__);
                 return 0;
             }
 
@@ -46,7 +46,7 @@ int kh::run(const std::vector<std::u32string>& args) {
     }
 
     if (exargs.empty()) {
-        khPrintln(U"Path to file to be executed was not passed");
+        kprintln(U"Path to file to be executed was not passed");
         return 1;
     }
 
@@ -62,45 +62,45 @@ int kh::run(const std::vector<std::u32string>& args) {
         return 1;
     }
     catch (const kh::UnicodeDecodeError& exc) {
-        khPrint(U"UnicodeDecodeError: ");
-        khPrint(exc.what);
-        khPrint(U" at ");
-        khPrintln((uint64_t)exc.index);
+        kprint(U"UnicodeDecodeError: ");
+        kprint(exc.what);
+        kprint(U" at ");
+        kprintln((uint64_t)exc.index);
         return 1;
     }
     catch (const kh::LexException& exc) {
         size_t column, line;
         kh::strIndexPos(source, exc.index, column, line);
 
-        khPrint(U"SyntaxError: ");
-        khPrint(exc.what);
-        khPrint(U" at ");
-        khPrint((uint64_t)column);
-        khPrint(U", ");
-        khPrintln((uint64_t)line);
+        kprint(U"SyntaxError: ");
+        kprint(exc.what);
+        kprint(U" at ");
+        kprint((uint64_t)column);
+        kprint(U", ");
+        kprintln((uint64_t)line);
         return 1;
     }
     catch (const kh::ParseExceptions& exc) {
-        khPrintln(U"SyntaxError(s)");
+        kprintln(U"SyntaxError(s)");
         for (const kh::ParseException& ex : exc.exceptions) {
             size_t column, line;
             kh::strIndexPos(source, ex.index, column, line);
 
-            khPrint(ex.what);
-            khPrint(U" at ");
-            khPrint((uint64_t)column);
-            khPrint(U", ");
-            khPrintln((uint64_t)line);
+            kprint(ex.what);
+            kprint(U" at ");
+            kprint((uint64_t)column);
+            kprint(U", ");
+            kprintln((uint64_t)line);
         }
         return 1;
     }
 
     if (lex) {
-        khPrintln(U"Lexicated the source and generated tokens...");
+        kprintln(U"Lexicated the source and generated tokens...");
         for (auto token : tokens)
-            khPrintln(token);
-        khPrintln(U"\n\nParsed the tokens and generated an AST tree...");
-        khPrintln(*ast);
+            kprintln(token);
+        kprintln(U"\n\nParsed the tokens and generated an AST tree...");
+        kprintln(*ast);
     }
 
     delete ast;

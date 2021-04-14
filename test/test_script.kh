@@ -1,11 +1,5 @@
-struct A {
-	int i;
-}
-
-static int i;
-
 def main() {
-	for int i : std.range(30) {
-
-	}
+	function[<void>] lambda = def &() {
+		std.println("Test!");
+	}; 
 }

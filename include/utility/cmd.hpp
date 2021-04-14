@@ -11,6 +11,7 @@
 
 #include "info.hpp"
 
+#include "utility/string.hpp"
 #include "utility/file.hpp"
 
 #include "parser/lexer.hpp"

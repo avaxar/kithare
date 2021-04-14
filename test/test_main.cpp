@@ -20,11 +20,13 @@ int main(const int argc, char* argv[])
 #endif
 {
     int failures = 0;
-    std::cout << "Running Kithare Unit tests!\n";
+    kprintln("Running Kithare Unit tests!");
 
     failures += testString();
     failures += testLexer();
 
-    std::cout << "Total number of failures are " << failures << "\n";
+    kprint("Total number of failures are ");
+    kprintln((uint64_t)failures);
+
     return failures;
 }
