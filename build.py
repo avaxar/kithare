@@ -93,32 +93,37 @@ def mkdir(file):
     os.makedirs(file, exist_ok=True)
 
 
-def find_includes(file):
+def find_includes(file, basedir):
     """
     Recursively find include files for a given file
     Returns an iterator
     """
     with open(file, "r") as fobj:
         for cnt, line in enumerate(fobj.read().splitlines()):
-            if line.startswith("#include "):
-                retfile = line[len("#include "):]
+            words = line.split()
+            if len(words) < 2:
+                continue
+
+            if words[0] == "#include":
+                retfile = words[1]
                 for char in ['"', '<', '>']:
                     retfile = retfile.replace(char, "")
 
                 retfile = os.path.join(
+                    basedir,
                     "include",
                     os.path.normcase(retfile.strip())
                 )
 
                 if os.path.isfile(retfile):
                     yield retfile
-                    yield from find_includes(retfile)
+                    yield from find_includes(retfile, basedir)
 
             if cnt >= INC_FILE_LINE_LIMIT:
                 break
 
 
-def should_build(file, ofile):
+def should_build(file, ofile, basedir):
     """
     Determines whether a particular cpp file should be rebuilt
     """
@@ -129,7 +134,7 @@ def should_build(file, ofile):
     if os.stat(file).st_mtime > ofile_m:
         return True
 
-    for incfile in find_includes(file):
+    for incfile in find_includes(file, basedir):
         if os.stat(incfile).st_mtime > ofile_m:
             return True
     return False
@@ -140,7 +145,7 @@ class KithareBuilder:
     Kithare builder class
     """
 
-    def __init__(self, args, basepath="."):
+    def __init__(self, args, basepath):
         """
         Initialise kithare builder
         """
@@ -253,6 +258,7 @@ class KithareBuilder:
                     os.path.basename(dll)
                 )
             )
+
         self.cflags.extend([
             f"-I {download_path}/{self.machine_alt}-w64-mingw32/include/SDL2",
             f"-L {download_path}/{self.machine_alt}-w64-mingw32/lib"
@@ -325,7 +331,7 @@ class KithareBuilder:
         for file in glob.iglob(globpattern, recursive=True):
             cfile = f"{self.builddir}/{os.path.basename(file)}"
             ofile = cfile.replace(".cpp", ".o")
-            if should_build(file, ofile):
+            if should_build(file, ofile, self.basepath):
                 print("\nBuilding file:", file.replace("\\", "/"))
                 isfailed = self.compile_gpp(file, ofile)
                 if isfailed:
@@ -425,6 +431,9 @@ class KithareBuilder:
 
 if __name__ == "__main__":
     argv = sys.argv.copy()
-    argv.pop(0)
-    kithare = KithareBuilder(argv)
+    dname = os.path.dirname(argv.pop(0))
+    if not dname:
+        dname = "."
+
+    kithare = KithareBuilder(argv, dname)
     kithare.build()
