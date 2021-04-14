@@ -1,6 +1,7 @@
 """
 This file is a part of the Kithare programming language source code.
-The source code for Kithare programming language is distributed under the MIT license.
+The source code for Kithare programming language is distributed under the MIT
+license.
 Copyright (C) 2021 Kithare Organization
 
 build.py
@@ -201,7 +202,7 @@ class KithareBuilder:
         self.run_tests = "--run-tests" in self.args
 
         # Prune unneeded args
-        for i in self.args:
+        for i in list(self.args):
             if i.startswith("--arch=") or i == "--build-tests":
                 self.args.remove(i)
 
@@ -227,7 +228,7 @@ class KithareBuilder:
 
     def copy_sdl_dll(self, download_path):
         """
-        Copy SDL dll's into the dist folder, and also return the cflags to 
+        Copy SDL dll's into the dist folder, and also update the cflags to
         include the SDL library
         """
         if self.compiler == "MSVC":
@@ -310,7 +311,7 @@ class KithareBuilder:
         Used to execute g++ commands
         """
         cmd = f"g++ -o {output} {srcflag}{src} {' '.join(self.cflags)}"
-        print(cmd)
+        print(cmd.replace("\\", "/"))
         return os.system(cmd)
 
     def build_sources(self, testmode):
@@ -388,7 +389,7 @@ class KithareBuilder:
         if os.path.exists(icores):
             os.remove(icores)
 
-    def build(self, basepath="."):
+    def build(self):
         """
         Build Kithare
         """
@@ -423,7 +424,7 @@ class KithareBuilder:
 
 
 if __name__ == "__main__":
-    args = sys.argv.copy()
-    args.pop(0)
-    kithare = KithareBuilder(args)
+    argv = sys.argv.copy()
+    argv.pop(0)
+    kithare = KithareBuilder(argv)
     kithare.build()
