@@ -338,11 +338,8 @@ class KithareBuilder:
         """
         Generate final exe.
         """
-        # This MSVC block is handling stupid MSVC stuff. This shit is so useless
-        # that im tempted to remove it ASAP, That would make mah life soo much
-        # easier
         if self.compiler == "MSVC":
-            build_file = f"{self.basepath}\\msvc"
+            build_file = f"{self.basepath}\\msvc\\"
             build_file += "KithareTest" if testmode else "Kithare"
             build_file += ".vcxproj"
             ecode = os.system(
