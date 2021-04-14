@@ -1,7 +1,7 @@
 /*
  * This file is a part of the Kithare programming language source code.
  * The source code for Kithare programming language is distributed under the MIT license.
- * Copyright (C) 2021 Avaxar (AvaxarXapaxa)
+ * Copyright (C) 2021 Kithare Organization
  *
  * include/info.hpp
  * Header that contains info about the Kithare build. Such as version, compiler, and OS.
