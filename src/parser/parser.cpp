@@ -34,7 +34,10 @@ kh::Ast* kh::parse(const std::vector<kh::Token>& tokens) {
 }
 
 kh::Parser::Parser(const std::vector<kh::Token>& _tokens) {
-    this->tokens = _tokens;
+    this->tokens.reserve(_tokens.size());
+    for (const kh::Token& token : _tokens)
+        if (token.type != kh::TokenType::COMMENT)
+            this->tokens.push_back(token);
 }
 
 kh::Parser::~Parser() {}

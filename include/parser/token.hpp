@@ -88,7 +88,8 @@ namespace kh {
         UINTEGER,
         INTEGER,
         FLOATING,
-        IMAGINARY
+        IMAGINARY,
+        COMMENT
     };
 
     struct TokenValue {
@@ -112,12 +113,13 @@ namespace kh {
 
     struct Token {
         size_t index;
-        /* size_t length; */
+        size_t length;
         kh::TokenType type;
         kh::TokenValue value;
 
         Token() {}
-        Token(const size_t _index, const kh::TokenType _type, const kh::TokenValue& _value)
-            : index(_index), type(_type), value(_value) {}
+        Token(const size_t _index, const size_t _end, const kh::TokenType _type,
+              const kh::TokenValue& _value)
+            : index(_index), length(_end - index), type(_type), value(_value) {}
     };
 }

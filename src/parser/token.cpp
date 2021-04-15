@@ -47,6 +47,9 @@ std::u32string kh::repr(const kh::Token& token) {
             str += kh::repr(token.value.imaginary) + U"i";
             break;
 
+        case kh::TokenType::COMMENT:
+            break;
+
         default:
             str = U"UNKNOWN";
     }
@@ -78,6 +81,9 @@ std::u32string kh::repr(const kh::TokenType type) {
             return U"FLOATING";
         case kh::TokenType::IMAGINARY:
             return U"IMAGINARY";
+
+        case kh::TokenType::COMMENT:
+            return U"COMMENT";
 
         default:
             return U"UNKNOWN";

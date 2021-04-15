@@ -30,5 +30,5 @@ namespace kh {
     /// </summary>
     /// <param name="source">Input source string</param>
     /// <returns></returns>
-    std::vector<kh::Token> lex(const std::u32string& source);
+    std::vector<kh::Token> lex(const std::u32string& source, const bool lex_comments = false);
 }

@@ -20,12 +20,11 @@ int main(const int argc, char* argv[])
 {
     std::vector<std::u32string> args;
 
-/* Ignore first argument */
-#ifdef _WIN32
+    /* Ignore first argument */
     for (int arg = 1; arg < argc; arg++)
+#ifdef _WIN32
         args.push_back(kh::repr(std::wstring(argv[arg])));
 #else
-    for (int arg = 1; arg < argc; arg++)
         args.push_back(kh::decodeUtf8(std::string(argv[arg])));
 #endif
 
