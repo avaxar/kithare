@@ -56,3 +56,4 @@
 
 int testString();
 int testLexer();
+int testParser();

@@ -20,7 +20,7 @@ bool testLexTokenType() {
                             U"}                                      \n";
 
     try {
-        auto tokens = kh::lex(source);
+        std::vector<kh::Token> tokens = kh::lex(source);
 
         KH_ASSERT_EQUAL(tokens.size(), 21);
         KH_ASSERT_EQUAL(tokens[0].type, kh::TokenType::IDENTIFIER);

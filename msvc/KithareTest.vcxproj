@@ -28,6 +28,7 @@
     <ClCompile Include="..\src\utility\string.cpp" />
     <ClCompile Include="..\test\test_lexer.cpp" />
     <ClCompile Include="..\test\test_main.cpp" />
+    <ClCompile Include="..\test\test_parser.cpp" />
     <ClCompile Include="..\test\test_string.cpp" />
   </ItemGroup>
   <ItemGroup>

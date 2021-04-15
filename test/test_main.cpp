@@ -24,6 +24,7 @@ int main(const int argc, char* argv[])
 
     failures += testString();
     failures += testLexer();
+    failures += testParser();
 
     kprint("Total number of failures are ");
     kprintln((uint64_t)failures);

@@ -48,6 +48,9 @@
     <ClCompile Include="..\src\utility\file.cpp">
       <Filter>src\utility</Filter>
     </ClCompile>
+    <ClCompile Include="..\test\test_parser.cpp">
+      <Filter>src\tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\test.hpp">
