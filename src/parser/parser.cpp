@@ -1482,11 +1482,33 @@ kh::AstExpression* kh::Parser::parseLiteral() {
         case kh::TokenType::STRING:
             expr = new kh::AstConstValue(token.index, token.value.string);
             this->ti++;
+
+            GUARD(0);
+            token = this->to();
+
+            while (token.type == kh::TokenType::STRING) {
+                ((kh::AstConstValue*)expr)->string += token.value.string;
+                this->ti++;
+                GUARD(0);
+                token = this->to();
+            }
+
             break;
 
         case kh::TokenType::BUFFER:
             expr = new kh::AstConstValue(token.index, token.value.buffer);
             this->ti++;
+
+            GUARD(0);
+            token = this->to();
+
+            while (token.type == kh::TokenType::BUFFER) {
+                ((kh::AstConstValue*)expr)->buffer += token.value.buffer;
+                this->ti++;
+                GUARD(0);
+                token = this->to();
+            }
+
             break;
 
         case kh::TokenType::IDENTIFIER:
