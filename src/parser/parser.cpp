@@ -1168,41 +1168,43 @@ end:
     return nullptr;
 }
 
+#define RECURSIVE_DESCENT_SINGULAR_OP(lower)                                                        \
+    do {                                                                                            \
+        kh::AstExpression* expr = lower();                                                          \
+        kh::Token token;                                                                            \
+        size_t index;                                                                               \
+        GUARD(0);                                                                                   \
+        token = this->to();                                                                         \
+        index = token.index;                                                                        \
+        while (token.type == kh::TokenType::OPERATOR) {                                             \
+            bool has_op = false;                                                                    \
+            for (const kh::Operator op : operators) {                                               \
+                if (token.value.operator_type == op) {                                              \
+                    has_op = true;                                                                  \
+                    break;                                                                          \
+                }                                                                                   \
+            }                                                                                       \
+            if (!has_op)                                                                            \
+                break;                                                                              \
+            this->ti++;                                                                             \
+            GUARD(0);                                                                               \
+            std::shared_ptr<kh::AstExpression> lval(expr);                                          \
+            std::shared_ptr<kh::AstExpression> rval(lower());                                       \
+            expr = new kh::AstBinaryExpression(token.index, token.value.operator_type, lval, rval); \
+            GUARD(0);                                                                               \
+            token = this->to();                                                                     \
+        }                                                                                           \
+        GUARD(0);                                                                                   \
+        token = this->to();                                                                         \
+    end:                                                                                            \
+        return expr;                                                                                \
+    } while (false)
+
 kh::AstExpression* kh::Parser::parseAssignOps() {
-    kh::AstExpression* expr = this->parseTernary();
-    kh::Token token;
-    size_t index;
-
-    GUARD(0);
-    token = this->to();
-    index = token.index;
-
-    while (token.type == kh::TokenType::OPERATOR) {
-        switch (token.value.operator_type) {
-            case kh::Operator::ASSIGN:
-            case kh::Operator::IADD:
-            case kh::Operator::ISUB:
-            case kh::Operator::IMUL:
-            case kh::Operator::IDIV:
-            case kh::Operator::IMOD:
-            case kh::Operator::IPOW: {
-                this->ti++;
-                GUARD(0);
-
-                std::shared_ptr<kh::AstExpression> lval(expr);
-                std::shared_ptr<kh::AstExpression> rval(this->parseTernary());
-                expr = new kh::AstBinaryExpression(token.index, token.value.operator_type, lval, rval);
-            } break;
-
-            default:
-                goto end;
-        }
-
-        GUARD(0);
-        token = this->to();
-    }
-end:
-    return expr;
+    static std::vector<kh::Operator> operators = {
+        kh::Operator::ASSIGN, kh::Operator::IADD, kh::Operator::ISUB, kh::Operator::IMUL,
+        kh::Operator::IDIV,   kh::Operator::IMOD, kh::Operator::IPOW};
+    RECURSIVE_DESCENT_SINGULAR_OP(this->parseTernary);
 }
 
 kh::AstExpression* kh::Parser::parseTernary() {
@@ -1245,177 +1247,47 @@ end:
     return expr;
 }
 
-#define RECURSIVE_DESCENT_SINGULAR_OP(lower, op)                                                    \
-    do {                                                                                            \
-        kh::AstExpression* expr = lower();                                                          \
-        kh::Token token;                                                                            \
-        size_t index;                                                                               \
-        GUARD(0);                                                                                   \
-        token = this->to();                                                                         \
-        index = token.index;                                                                        \
-        while (token.type == kh::TokenType::OPERATOR && token.value.operator_type == op) {          \
-            this->ti++;                                                                             \
-            GUARD(0);                                                                               \
-            std::shared_ptr<kh::AstExpression> lval(expr);                                          \
-            std::shared_ptr<kh::AstExpression> rval(lower());                                       \
-            expr = new kh::AstBinaryExpression(token.index, token.value.operator_type, lval, rval); \
-            GUARD(0);                                                                               \
-            token = this->to();                                                                     \
-        }                                                                                           \
-        GUARD(0);                                                                                   \
-        token = this->to();                                                                         \
-    end:                                                                                            \
-        return expr;                                                                                \
-    } while (false)
-
 kh::AstExpression* kh::Parser::parseOr() {
-    RECURSIVE_DESCENT_SINGULAR_OP(this->parseAnd, kh::Operator::OR);
+    static std::vector<kh::Operator> operators = {kh::Operator::OR};
+    RECURSIVE_DESCENT_SINGULAR_OP(this->parseAnd);
 }
 
 kh::AstExpression* kh::Parser::parseAnd() {
-    RECURSIVE_DESCENT_SINGULAR_OP(this->parseComparison, kh::Operator::AND);
+    static std::vector<kh::Operator> operators = {kh::Operator::AND};
+    RECURSIVE_DESCENT_SINGULAR_OP(this->parseComparison);
 }
 
 kh::AstExpression* kh::Parser::parseComparison() {
-    kh::AstExpression* expr = this->parseBitwiseOr();
-    kh::Token token;
-    size_t index;
-
-    GUARD(0);
-    token = this->to();
-    index = token.index;
-
-    while (token.type == kh::TokenType::OPERATOR) {
-        switch (token.value.operator_type) {
-            case kh::Operator::EQUAL:
-            case kh::Operator::NOT_EQUAL:
-            case kh::Operator::LESS:
-            case kh::Operator::LESS_EQUAL:
-            case kh::Operator::MORE:
-            case kh::Operator::MORE_EQUAL: {
-                this->ti++;
-                GUARD(0);
-
-                std::shared_ptr<kh::AstExpression> lval(expr);
-                std::shared_ptr<kh::AstExpression> rval(this->parseBitwiseOr());
-                expr = new kh::AstBinaryExpression(token.index, token.value.operator_type, lval, rval);
-            } break;
-
-            default:
-                goto end;
-        }
-
-        GUARD(0);
-        token = this->to();
-    }
-end:
-    return expr;
+    static std::vector<kh::Operator> operators = {kh::Operator::EQUAL, kh::Operator::NOT_EQUAL,
+                                                  kh::Operator::LESS,  kh::Operator::LESS_EQUAL,
+                                                  kh::Operator::MORE,  kh::Operator::MORE_EQUAL};
+    RECURSIVE_DESCENT_SINGULAR_OP(this->parseBitwiseOr);
 }
 
 kh::AstExpression* kh::Parser::parseBitwiseOr() {
-    RECURSIVE_DESCENT_SINGULAR_OP(this->parseBitwiseAnd, kh::Operator::BIT_OR);
+    static std::vector<kh::Operator> operators = {kh::Operator::BIT_OR};
+    RECURSIVE_DESCENT_SINGULAR_OP(this->parseBitwiseAnd);
 }
 
 kh::AstExpression* kh::Parser::parseBitwiseAnd() {
-    RECURSIVE_DESCENT_SINGULAR_OP(this->parseBitwiseShift, kh::Operator::BIT_AND);
+    static std::vector<kh::Operator> operators = {kh::Operator::BIT_OR};
+    RECURSIVE_DESCENT_SINGULAR_OP(this->parseBitwiseShift);
 }
 
 kh::AstExpression* kh::Parser::parseBitwiseShift() {
-    kh::AstExpression* expr = this->parseAddSub();
-    kh::Token token;
-    size_t index;
-
-    GUARD(0);
-    token = this->to();
-    index = token.index;
-
-    while (token.type == kh::TokenType::OPERATOR) {
-        switch (token.value.operator_type) {
-            case kh::Operator::BIT_LSHIFT:
-            case kh::Operator::BIT_RSHIFT: {
-                this->ti++;
-                GUARD(0);
-
-                std::shared_ptr<kh::AstExpression> lval(expr);
-                std::shared_ptr<kh::AstExpression> rval(this->parseAddSub());
-                expr = new kh::AstBinaryExpression(token.index, token.value.operator_type, lval, rval);
-            } break;
-
-            default:
-                goto end;
-        }
-
-        GUARD(0);
-        token = this->to();
-    }
-end:
-    return expr;
+    static std::vector<kh::Operator> operators = {kh::Operator::BIT_LSHIFT, kh::Operator::BIT_RSHIFT};
+    RECURSIVE_DESCENT_SINGULAR_OP(this->parseAddSub);
 }
 
 kh::AstExpression* kh::Parser::parseAddSub() {
-    kh::AstExpression* expr = this->parseMulDivMod();
-    kh::Token token;
-    size_t index;
-
-    GUARD(0);
-    token = this->to();
-    index = token.index;
-
-    while (token.type == kh::TokenType::OPERATOR) {
-        switch (token.value.operator_type) {
-            case kh::Operator::ADD:
-            case kh::Operator::SUB: {
-                this->ti++;
-                GUARD(0);
-
-                std::shared_ptr<kh::AstExpression> lval(expr);
-                std::shared_ptr<kh::AstExpression> rval(this->parseMulDivMod());
-                expr = new kh::AstBinaryExpression(token.index, token.value.operator_type, lval, rval);
-            } break;
-
-            default:
-                goto end;
-        }
-
-        GUARD(0);
-        token = this->to();
-    }
-end:
-    return expr;
+    static std::vector<kh::Operator> operators = {kh::Operator::ADD, kh::Operator::SUB};
+    RECURSIVE_DESCENT_SINGULAR_OP(this->parseMulDivMod);
 }
 
 kh::AstExpression* kh::Parser::parseMulDivMod() {
-    kh::AstExpression* expr = this->parseUnary();
-    kh::Token token;
-    size_t index;
-
-    GUARD(0);
-    token = this->to();
-    index = token.index;
-
-    while (token.type == kh::TokenType::OPERATOR) {
-        switch (token.value.operator_type) {
-            case kh::Operator::MUL:
-            case kh::Operator::DIV:
-            case kh::Operator::MOD: {
-                this->ti++;
-                GUARD(0);
-
-                std::shared_ptr<kh::AstExpression> lval(expr);
-                std::shared_ptr<kh::AstExpression> rval(this->parseUnary());
-
-                expr = new kh::AstBinaryExpression(token.index, token.value.operator_type, lval, rval);
-            } break;
-
-            default:
-                goto end;
-        }
-
-        GUARD(0);
-        token = this->to();
-    }
-end:
-    return expr;
+    static std::vector<kh::Operator> operators = {kh::Operator::MUL, kh::Operator::DIV,
+                                                  kh::Operator::MOD};
+    RECURSIVE_DESCENT_SINGULAR_OP(this->parseUnary);
 }
 
 kh::AstExpression* kh::Parser::parseUnary() {
@@ -1448,7 +1320,8 @@ end:
 }
 
 kh::AstExpression* kh::Parser::parseExponentiation() {
-    RECURSIVE_DESCENT_SINGULAR_OP(this->parseLiteral, kh::Operator::POW);
+    static std::vector<kh::Operator> operators = {kh::Operator::POW};
+    RECURSIVE_DESCENT_SINGULAR_OP(this->parseLiteral);
 }
 
 kh::AstExpression* kh::Parser::parseLiteral() {
