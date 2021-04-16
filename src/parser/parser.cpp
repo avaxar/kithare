@@ -483,7 +483,7 @@ kh::AstClass* kh::Parser::parseClass() {
     token = this->to();
 
     /* Optional generic arguments */
-    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::GENERIC_OPEN) {
+    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_OPEN) {
         this->ti++;
         GUARD(0);
         token = this->to();
@@ -493,9 +493,9 @@ kh::AstClass* kh::Parser::parseClass() {
             /* Appends generic argument's identifier name */
             if (token.type == kh::TokenType::IDENTIFIER)
                 generic_args.push_back(token.value.identifier);
-            /* Stops parsing generic argument(s) once there's a generic close */
+            /* Stops parsing generic argument(s) once there's a closing curly bracket */
             else if (token.type == kh::TokenType::SYMBOL &&
-                     token.value.symbol_type == kh::Symbol::GENERIC_CLOSE) {
+                     token.value.symbol_type == kh::Symbol::CURLY_CLOSE) {
                 this->ti++;
                 break;
             }
@@ -504,9 +504,9 @@ kh::AstClass* kh::Parser::parseClass() {
             GUARD(0);
             token = this->to();
 
-            /* Stops parsing generic argument(s) once there's a generic close */
+            /* Stops parsing generic argument(s) once there's a closing curly bracket */
             if (token.type == kh::TokenType::SYMBOL &&
-                token.value.symbol_type == kh::Symbol::GENERIC_CLOSE) {
+                token.value.symbol_type == kh::Symbol::CURLY_CLOSE) {
                 this->ti++;
                 break;
             }
@@ -514,9 +514,10 @@ kh::AstClass* kh::Parser::parseClass() {
              * negated) */
             else if (!(token.type == kh::TokenType::SYMBOL &&
                        token.value.symbol_type == kh::Symbol::COMMA)) {
-                this->exceptions.emplace_back(U"Was expecting a comma or a generic close in the "
-                                              U"generic argument(s') class declaration",
-                                              token.index);
+                this->exceptions.emplace_back(
+                    U"Was expecting a comma or a closing curly bracket in the "
+                    U"generic argument(s') class declaration",
+                    token.index);
                 break;
             }
 
@@ -1572,13 +1573,13 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
     }
 
     /* Optional generic-sation */
-    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::GENERIC_OPEN) {
+    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_OPEN) {
         this->ti++;
         GUARD(0);
         token = this->to();
 
         /* Instant close */
-        if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::GENERIC_CLOSE)
+        if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_CLOSE)
             this->ti++;
         else {
             /* Parses the generic-sation type arguments */
@@ -1598,10 +1599,10 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
             }
 
             if (token.type == kh::TokenType::SYMBOL &&
-                token.value.symbol_type == kh::Symbol::GENERIC_CLOSE)
+                token.value.symbol_type == kh::Symbol::CURLY_CLOSE)
                 this->ti++;
             else
-                this->exceptions.emplace_back(U"Was expecting a generic close", token.index);
+                this->exceptions.emplace_back(U"Was expecting a closing curly bracket", token.index);
         }
     }
 end:

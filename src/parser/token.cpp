@@ -193,11 +193,6 @@ std::u32string kh::repr(const kh::Symbol sym) {
         case kh::Symbol::SQUARE_CLOSE:
             return U"]";
 
-        case kh::Symbol::GENERIC_OPEN:
-            return U"[<";
-        case kh::Symbol::GENERIC_CLOSE:
-            return U">]";
-
         default:
             return U"UNKNOWN";
     }
