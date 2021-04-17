@@ -1,3 +1,11 @@
+class List!{T} {
+	
+}
+
+def test{T, U}() {
+	
+}
+
 def main() {
-	int x = 3 * 2 + 3 * 4;
+	List{int} x;
 }

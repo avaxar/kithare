@@ -483,55 +483,64 @@ kh::AstClass* kh::Parser::parseClass() {
     token = this->to();
 
     /* Optional generic arguments */
-    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::GENERIC_OPEN) {
+    if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::NOT) {
         this->ti++;
         GUARD(0);
         token = this->to();
 
-        /* Parses the generic argument(s') identifier */
-        while (true) {
-            /* Appends generic argument's identifier name */
-            if (token.type == kh::TokenType::IDENTIFIER)
-                generic_args.push_back(token.value.identifier);
-            /* Stops parsing generic argument(s) once there's a generic close */
-            else if (token.type == kh::TokenType::SYMBOL &&
-                     token.value.symbol_type == kh::Symbol::GENERIC_CLOSE) {
-                this->ti++;
-                break;
-            }
-
+        /* Ensure there's a curly bracket */
+        if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_OPEN) {
             this->ti++;
             GUARD(0);
             token = this->to();
 
-            /* Stops parsing generic argument(s) once there's a generic close */
-            if (token.type == kh::TokenType::SYMBOL &&
-                token.value.symbol_type == kh::Symbol::GENERIC_CLOSE) {
-                this->ti++;
-                break;
-            }
-            /* Continues parsing generic argument(s) when there's a comma (The statement below is
-             * negated) */
-            else if (!(token.type == kh::TokenType::SYMBOL &&
-                       token.value.symbol_type == kh::Symbol::COMMA)) {
-                this->exceptions.emplace_back(U"Was expecting a comma or a generic close in the "
-                                              U"generic argument(s') class declaration",
-                                              token.index);
-                break;
-            }
+            /* Parses the generic argument(s') identifier */
+            while (true) {
+                /* Appends generic argument's identifier name */
+                if (token.type == kh::TokenType::IDENTIFIER)
+                    generic_args.push_back(token.value.identifier);
+                /* Stops parsing generic argument(s) once there's a closing curly bracket */
+                else if (token.type == kh::TokenType::SYMBOL &&
+                         token.value.symbol_type == kh::Symbol::CURLY_CLOSE) {
+                    this->ti++;
+                    break;
+                }
 
+                this->ti++;
+                GUARD(0);
+                token = this->to();
+
+                /* Stops parsing generic argument(s) once there's a closing curly bracket */
+                if (token.type == kh::TokenType::SYMBOL &&
+                    token.value.symbol_type == kh::Symbol::CURLY_CLOSE) {
+                    this->ti++;
+                    break;
+                }
+                /* Continues parsing generic argument(s) when there's a comma (The statement below is
+                 * negated) */
+                else if (!(token.type == kh::TokenType::SYMBOL &&
+                           token.value.symbol_type == kh::Symbol::COMMA)) {
+                    this->exceptions.emplace_back(
+                        U"Was expecting a comma or a closing curly bracket in the "
+                        U"generic argument(s') class declaration",
+                        token.index);
+                    break;
+                }
+
+                this->ti++;
+                GUARD(0);
+                token = this->to();
+            }
+        }
+        else {
+            this->exceptions.emplace_back(
+                U"Was expecting an opening curly bracket for generic argument(s)", token.index);
             this->ti++;
-            GUARD(0);
-            token = this->to();
         }
     }
-
-    GUARD(0);
-    token = this->to();
-
     /* Optional inheriting */
-    if (token.type == kh::TokenType::SYMBOL &&
-        token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
+    else if (token.type == kh::TokenType::SYMBOL &&
+             token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
         this->ti++;
         GUARD(0);
 
@@ -576,6 +585,13 @@ kh::AstClass* kh::Parser::parseClass() {
                         GUARD(0);
                         /* Parse function declaration */
                         methods.emplace_back(this->parseFunction(is_static, is_public));
+                        
+                        /* Ensures that methods don't have generic argument(s) */
+                        if (methods.back() && !methods.back()->generic_args.empty()) {
+                            this->exceptions.emplace_back(
+                                U"Could not have generic argument(s) for methods",
+                                token.index);
+                        }
                     }
                     /* Member/class variables */
                     else {
@@ -1572,13 +1588,13 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
     }
 
     /* Optional generic-sation */
-    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::GENERIC_OPEN) {
+    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_OPEN) {
         this->ti++;
         GUARD(0);
         token = this->to();
 
         /* Instant close */
-        if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::GENERIC_CLOSE)
+        if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_CLOSE)
             this->ti++;
         else {
             /* Parses the generic-sation type arguments */
@@ -1598,10 +1614,10 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
             }
 
             if (token.type == kh::TokenType::SYMBOL &&
-                token.value.symbol_type == kh::Symbol::GENERIC_CLOSE)
+                token.value.symbol_type == kh::Symbol::CURLY_CLOSE)
                 this->ti++;
             else
-                this->exceptions.emplace_back(U"Was expecting a generic close", token.index);
+                this->exceptions.emplace_back(U"Was expecting a closing curly bracket", token.index);
         }
     }
 end:
