@@ -19,8 +19,7 @@ int main(const int argc, char* argv[])
 #endif
 {
     std::vector<std::u32string> args;
-    args.reserve(argc - 1);
-    
+
     /* Ignore first argument */
     for (int arg = 1; arg < argc; arg++)
 #ifdef _WIN32
