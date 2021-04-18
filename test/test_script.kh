@@ -1,3 +1,20 @@
-def main() {
-	int x = 3 * 2 + 3 * 4;
+import std;
+
+
+class List[<T>] {
+	Test test;
+
+	def a() {
+		std.println("Hello, world!");
+	}
+}
+
+class Another(SomeClass) {
+	def static staticMethod() {
+
+	}
+}
+
+def func[<A, B>]() {
+	
 }

@@ -164,8 +164,8 @@ kh::AstImport* kh::Parser::parseImport(const bool is_include) {
         this->ti++;
     }
     else {
-        this->exceptions.emplace_back(U"Was expecting an identifier in the import/include statement",
-                                      token.index);
+        this->exceptions.emplace_back(
+            U"Was expecting an identifier after the `import` / `include` keyword", token.index);
         this->ti++;
     }
 
@@ -187,7 +187,7 @@ kh::AstImport* kh::Parser::parseImport(const bool is_include) {
         }
         else {
             this->exceptions.emplace_back(
-                U"Was expecting an identifier after the top in the import/include statement",
+                U"Was expecting an identifier after the dot in the import/include statement",
                 token.index);
             break;
         }
@@ -209,7 +209,7 @@ kh::AstImport* kh::Parser::parseImport(const bool is_include) {
         }
         else {
             this->exceptions.emplace_back(
-                U"Was expecting an identifier after `as` in the import statement", token.index);
+                U"Was expecting an identifier after `as` keyword in the import statement", token.index);
             this->ti++;
         }
     }
@@ -525,13 +525,9 @@ kh::AstClass* kh::Parser::parseClass() {
             token = this->to();
         }
     }
-
-    GUARD(0);
-    token = this->to();
-
     /* Optional inheriting */
-    if (token.type == kh::TokenType::SYMBOL &&
-        token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
+    else if (token.type == kh::TokenType::SYMBOL &&
+             token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
         this->ti++;
         GUARD(0);
 
@@ -576,6 +572,12 @@ kh::AstClass* kh::Parser::parseClass() {
                         GUARD(0);
                         /* Parse function declaration */
                         methods.emplace_back(this->parseFunction(is_static, is_public));
+
+                        /* Ensures that methods don't have generic argument(s) */
+                        if (methods.back() && !methods.back()->generic_args.empty()) {
+                            this->exceptions.emplace_back(
+                                U"A method cannot have (a) generic argument(s)", token.index);
+                        }
                     }
                     /* Member/class variables */
                     else {
