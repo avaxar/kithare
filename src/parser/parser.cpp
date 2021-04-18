@@ -209,7 +209,7 @@ kh::AstImport* kh::Parser::parseImport(const bool is_include) {
         }
         else {
             this->exceptions.emplace_back(
-                U"Was expecting an identifier after `as` keyword in the import statement", token.index);
+                U"Was expecting an identifier after the `as` keyword in the import statement", token.index);
             this->ti++;
         }
     }
