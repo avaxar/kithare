@@ -778,9 +778,13 @@ kh::AstEnum* kh::Parser::parseEnum() {
             else if (token.type == kh::TokenType::IDENTIFIER)
                 members.push_back(token.value.identifier);
             else {
-                members.push_back(U"");
                 this->exceptions.emplace_back(U"Unexpected token while parsing the enum body",
                                               token.index);
+
+                this->ti++;
+                GUARD(0);
+                token = this->to();
+                continue;
             }
 
             this->ti++;
