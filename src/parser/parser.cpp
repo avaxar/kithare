@@ -1440,20 +1440,10 @@ kh::AstExpression* kh::Parser::parseLiteral() {
         case kh::TokenType::SYMBOL:
             switch (token.value.symbol_type) {
                 /* Parentheses/tuple expression */
-                case kh::Symbol::PARENTHESES_OPEN: {
-                    kh::AstTupleExpression* tuple = (kh::AstTupleExpression*)this->parseTuple();
-
-                    if (tuple->elements.size() == 1) {
-                        expr = tuple->elements[0].get();
-
-                        /* Sketchy solution but hope this works */
-                        std::shared_ptr<kh::AstExpression>* dummy_ptr =
-                            new std::shared_ptr<kh::AstExpression>(tuple->elements[0]);
-                        std::free((void*)dummy_ptr);
-                    }
-                    else
-                        expr = tuple;
-                } break;
+                case kh::Symbol::PARENTHESES_OPEN:
+                    expr = this->parseTuple(kh::Symbol::PARENTHESES_OPEN, kh::Symbol::PARENTHESES_CLOSE,
+                                            false);
+                    break;
 
                 default:
                     this->exceptions.emplace_back(U"Unexpected token for a literal", token.index);
@@ -1616,8 +1606,9 @@ end:
     return new kh::AstIdentifierExpression(index, identifiers, generics);
 }
 
-kh::AstExpression* kh::Parser::parseTuple(const kh::Symbol opening, const kh::Symbol closing) {
-    std::vector<std::shared_ptr<kh::AstExpression>> elements;
+kh::AstExpression* kh::Parser::parseTuple(const kh::Symbol opening, const kh::Symbol closing,
+                                          const bool can_contain_one_element) {
+    std::vector<kh::AstExpression*> elements;
 
     kh::Token token = this->to();
     size_t index = token.index;
@@ -1631,7 +1622,7 @@ kh::AstExpression* kh::Parser::parseTuple(const kh::Symbol opening, const kh::Sy
         bool skip_parentheses = true;
         while (!(token.type == kh::TokenType::SYMBOL && token.value.symbol_type == closing)) {
             /* Parses the element expression */
-            elements.emplace_back(this->parseExpression());
+            elements.push_back(this->parseExpression());
             GUARD(0);
             token = this->to();
 
@@ -1664,5 +1655,19 @@ kh::AstExpression* kh::Parser::parseTuple(const kh::Symbol opening, const kh::Sy
                                       token.index);
 
 end:
-    return new kh::AstTupleExpression(index, elements);
+    if ((!can_contain_one_element) && elements.size() == 1) {
+        for (size_t i = 1; i < elements.size(); i++)
+            delete elements[i];
+
+        return elements[0];
+    }
+    else {
+        std::vector<std::shared_ptr<kh::AstExpression>> _elements;
+        _elements.reserve(elements.size());
+
+        for (kh::AstExpression* element : elements)
+            _elements.emplace_back(element);
+
+        return new kh::AstTupleExpression(index, _elements);
+    }
 }
