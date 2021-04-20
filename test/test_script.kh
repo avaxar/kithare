@@ -1,23 +1,6 @@
-def bool isPrime(int x) {
-    /* I think you haven't implemented range thing yet, I'ma use while loop */
-    int i = 2;
-    while i < x {
-        if x % i == 0 {
-            return false;
-        }
-
-        i += 1;
-    }
-    return true;
-}
-
-def int main() {
-    int i = 2;
-    while i < 100 {
-        print(i); print(" is "); print("not" if !isPrime(i) else "");
-        print(" a prime number!");
-        i += 1;
-    }    
-
-    return 0;
+enum Enum {
+	A = 0,
+	B, C, D,
+	E = 2,
+	F, G, H
 }

@@ -123,13 +123,12 @@ namespace kh {
     public:
         size_t index;
         std::u32string name;
-        std::shared_ptr<kh::AstIdentifierExpression> base;
         std::vector<std::u32string> members;
+        std::vector<uint64_t> values;
 
         AstEnum(const size_t _index, const std::u32string& _name,
-                std::shared_ptr<kh::AstIdentifierExpression>& _base,
-                const std::vector<std::u32string>& _members)
-            : index(_index), name(_name), base(_base), members(_members) {}
+                const std::vector<std::u32string>& _members, const std::vector<uint64_t>& _values)
+            : index(_index), name(_name), members(_members), values(_values) {}
         virtual ~AstEnum() {}
     };
 

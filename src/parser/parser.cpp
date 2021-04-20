@@ -739,8 +739,8 @@ end:
 
 kh::AstEnum* kh::Parser::parseEnum() {
     std::u32string name;
-    std::shared_ptr<kh::AstIdentifierExpression> base;
     std::vector<std::u32string> members;
+    std::vector<uint64_t> values;
 
     kh::Token token = this->to();
     size_t index = token.index;
@@ -757,28 +757,8 @@ kh::AstEnum* kh::Parser::parseEnum() {
     GUARD(0);
     token = this->to();
 
-    /* Optional enum inheritment */
-    if (token.type == kh::TokenType::SYMBOL &&
-        token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
-        this->ti++;
-        GUARD(0);
-
-        /* Parses the base enum identifier */
-        base.reset((kh::AstIdentifierExpression*)this->parseIdentifiers());
-        GUARD(0);
-        token = this->to();
-        /* Ensures it's ended with a closing parentheses */
-        if (token.type == kh::TokenType::SYMBOL &&
-            token.value.symbol_type == kh::Symbol::PARENTHESES_CLOSE)
-            this->ti++;
-        else
-            this->exceptions.emplace_back(U"Was expecting a closing parentheses after the "
-                                          U"inheritment argument in the enum declaration",
-                                          token.index);
-    }
-
-    GUARD(0);
-    token = this->to();
+    /* Internal enum counter */
+    uint64_t counter = 0;
 
     /* Opens with a curly bracket */
     if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_OPEN) {
@@ -797,10 +777,62 @@ kh::AstEnum* kh::Parser::parseEnum() {
             /* Appends member */
             else if (token.type == kh::TokenType::IDENTIFIER)
                 members.push_back(token.value.identifier);
+            else {
+                members.push_back(U"");
+                this->exceptions.emplace_back(U"Unexpected token while parsing the enum body",
+                                              token.index);
+            }
 
             this->ti++;
             GUARD(0);
             token = this->to();
+
+            /* Checks if there's an assignment operation on an enum member */
+            if (token.type == kh::TokenType::OPERATOR &&
+                token.value.operator_type == kh::Operator::ASSIGN) {
+                this->ti++;
+                GUARD(0);
+                token = this->to();
+
+                /* Ensures there's an integer constant */
+                if (token.type == kh::TokenType::INTEGER || token.type == kh::TokenType::UINTEGER) {
+                    /* Don't worry about this line as it's a union */
+                    values.push_back(token.value.uinteger);
+                    counter = token.value.uinteger + 1;
+
+                    this->ti++;
+                    GUARD(0);
+                    token = this->to();
+                }
+                else {
+                    this->exceptions.emplace_back(U"Was expecting an integer constant after the "
+                                                  U"assignment operation on the enum member",
+                                                  token.index);
+
+                    values.push_back(counter);
+                    counter++;
+                }
+            }
+            else {
+                values.push_back(counter);
+                counter++;
+            }
+
+            /* Ensures there's no enum member with the same name or index value */
+            for (size_t member = 0; member < members.size() - 1; member++) {
+                if (members[member] == members.back()) {
+                    this->exceptions.emplace_back(U"This enum member has the same name as #" +
+                                                      kh::repr((uint64_t)member + 1),
+                                                  token.index);
+                    break;
+                }
+
+                if (values[member] == values.back()) {
+                    this->exceptions.emplace_back(
+                        U"This enum member has a same index value as " + members[member], token.index);
+                    break;
+                }
+            }
 
             /* Stops parsing enum body */
             if (token.type == kh::TokenType::SYMBOL &&
@@ -824,7 +856,7 @@ kh::AstEnum* kh::Parser::parseEnum() {
         this->exceptions.emplace_back(
             U"Was expecting an opening curly bracket after the enum declaration", token.index);
 end:
-    return new kh::AstEnum(index, name, base, members);
+    return new kh::AstEnum(index, name, members, values);
 }
 
 std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {

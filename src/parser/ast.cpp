@@ -108,12 +108,9 @@ std::u32string kh::repr(const kh::AstEnum& enum_ast, const size_t indent) {
     std::u32string str = U"ENUM:";
     str += U"\n\t" + ind + U"NAME: " + enum_ast.name;
 
-    if (enum_ast.base)
-        str += U"\n\t" + ind + U"BASE:\n\t\t" + ind + kh::repr(*enum_ast.base, indent + 2);
-
     str += U"\n\t" + ind + U"MEMBERS:";
-    for (const std::u32string& member : enum_ast.members)
-        str += U"\n\t\t" + ind + member;
+    for (size_t member = 0; member < enum_ast.members.size(); member++)
+        str += U"\n\t\t" + ind + enum_ast.members[member] + U": " + kh::repr(enum_ast.values[member]);
 
     return str;
 }
@@ -166,7 +163,8 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
             str += U"WHILE:";
 
             if (ast_while.condition) {
-                str += U"\n\t" + ind + U"CONDITION:\n\t\t" + ind + kh::repr(*ast_while.condition, indent + 2);
+                str += U"\n\t" + ind + U"CONDITION:\n\t\t" + ind +
+                       kh::repr(*ast_while.condition, indent + 2);
             }
 
             if (!ast_while.body.empty()) {
