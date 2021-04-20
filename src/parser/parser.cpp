@@ -9,7 +9,6 @@
 
 #include "parser/parser.hpp"
 
-
 #define GUARD(offset)                                                                   \
     do {                                                                                \
         if (this->ti + offset >= this->tokens.size()) {                                 \
@@ -19,6 +18,7 @@
             goto end;                                                                   \
         }                                                                               \
     } while (false)
+
 
 kh::Ast* kh::parse(const std::vector<kh::Token>& tokens) {
     kh::Parser parser(tokens);
@@ -209,7 +209,8 @@ kh::AstImport* kh::Parser::parseImport(const bool is_include) {
         }
         else {
             this->exceptions.emplace_back(
-                U"Was expecting an identifier after the `as` keyword in the import statement", token.index);
+                U"Was expecting an identifier after the `as` keyword in the import statement",
+                token.index);
             this->ti++;
         }
     }
@@ -1221,27 +1222,27 @@ kh::AstExpression* kh::Parser::parseTernary() {
     token = this->to();
     index = token.index;
 
-    while (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::QUESTION) {
+    while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"if") {
         index = token.index;
 
         this->ti++;
         GUARD(0);
 
-        std::shared_ptr<kh::AstExpression> value(this->parseOr());
+        std::shared_ptr<kh::AstExpression> condition(this->parseOr());
 
         GUARD(0);
         token = this->to();
 
-        if (!(token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::COLON)) {
-            this->exceptions.emplace_back(U"Was expecting a colon to continue the ternary expression",
-                                          token.index);
+        if (!(token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"else")) {
+            this->exceptions.emplace_back(
+                U"Was expecting an `else` identifier to continue the ternary expression", token.index);
             goto end;
         }
 
         this->ti++;
         GUARD(0);
 
-        std::shared_ptr<kh::AstExpression> condition(expr);
+        std::shared_ptr<kh::AstExpression> value(expr);
         std::shared_ptr<kh::AstExpression> otherwise(this->parseOr());
         expr = new kh::AstTernaryExpression(index, condition, value, otherwise);
 
@@ -1403,7 +1404,8 @@ kh::AstExpression* kh::Parser::parseLiteral() {
                 GUARD(0);
                 token = this->to();
 
-                if (token.type == kh::TokenType::IDENTIFIER) {
+                if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier != U"if" &&
+                    token.value.identifier != U"else") {
                     std::shared_ptr<kh::AstIdentifierExpression> var_type(
                         (kh::AstIdentifierExpression*)expr);
                     std::u32string var_name = token.value.identifier;

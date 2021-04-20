@@ -10,6 +10,8 @@ class List[<T>] {
 }
 
 class Another(SomeClass) {
+	Test test = 3 if true else 4;
+
 	def static staticMethod() {
 
 	}

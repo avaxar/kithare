@@ -368,7 +368,6 @@ std::vector<kh::Token> kh::lex(const std::u32string& source, const bool lex_comm
                             /* Symbol handling */
                             HANDLE_SIMPLE_SYMBOL(';', kh::Symbol::SEMICOLON);
                             HANDLE_SIMPLE_SYMBOL(',', kh::Symbol::COMMA);
-                            HANDLE_SIMPLE_SYMBOL('?', kh::Symbol::QUESTION);
                             HANDLE_SIMPLE_SYMBOL(':', kh::Symbol::COLON);
                             HANDLE_SIMPLE_SYMBOL('$', kh::Symbol::DOLLAR);
                             HANDLE_SIMPLE_SYMBOL('(', kh::Symbol::PARENTHESES_OPEN);

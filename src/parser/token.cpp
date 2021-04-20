@@ -171,8 +171,6 @@ std::u32string kh::repr(const kh::Symbol sym) {
         case kh::Symbol::COMMA:
             return U",";
 
-        case kh::Symbol::QUESTION:
-            return U"?";
         case kh::Symbol::COLON:
             return U":";
         case kh::Symbol::DOLLAR:

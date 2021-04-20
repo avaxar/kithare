@@ -23,6 +23,9 @@
     <ClCompile Include="..\src\parser\lexer.cpp" />
     <ClCompile Include="..\src\parser\parser.cpp" />
     <ClCompile Include="..\src\parser\token.cpp" />
+    <ClCompile Include="..\src\runtime\bytecode.cpp" />
+    <ClCompile Include="..\src\runtime\instruction.cpp" />
+    <ClCompile Include="..\src\runtime\vm.cpp" />
     <ClCompile Include="..\src\utility\cmd.cpp" />
     <ClCompile Include="..\src\utility\file.cpp" />
     <ClCompile Include="..\src\utility\string.cpp" />

@@ -63,7 +63,6 @@ namespace kh {
         SEMICOLON,
         DOT,
         COMMA,
-        QUESTION,
         COLON,
         DOLLAR,
 
