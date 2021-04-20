@@ -1305,6 +1305,9 @@ kh::AstExpression* kh::Parser::parseUnary() {
         switch (token.value.operator_type) {
             case kh::Operator::ADD:
             case kh::Operator::SUB:
+            case kh::Operator::BIT_NOT:
+            case kh::Operator::NOT:
+            case kh::Operator::SIZEOF:
             case kh::Operator::ADDRESS: {
                 this->ti++;
                 GUARD(0);
@@ -1314,6 +1317,7 @@ kh::AstExpression* kh::Parser::parseUnary() {
             } break;
 
             default:
+                this->ti++;
                 this->exceptions.emplace_back(U"Unexpected operator after a unary operator",
                                               token.index);
         }

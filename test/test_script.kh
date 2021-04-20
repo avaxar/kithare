@@ -1,22 +1,23 @@
-import std;
+def bool isPrime(int x) {
+    /* I think you haven't implemented range thing yet, I'ma use while loop */
+    int i = 2;
+    while i < x {
+        if x % i == 0 {
+            return false;
+        }
 
-
-class List[<T>] {
-	Test test;
-
-	def a() {
-		std.println("Hello, world!");
-	}
+        i += 1;
+    }
+    return true;
 }
 
-class Another(SomeClass) {
-	Test test = 3 if true else 4;
+def int main() {
+    int i = 2;
+    while i < 100 {
+        print(i); print(" is "); print("not" if !isPrime(i) else "");
+        print(" a prime number!");
+        i += 1;
+    }    
 
-	def static staticMethod() {
-
-	}
-}
-
-def func[<A, B>]() {
-	
+    return 0;
 }
