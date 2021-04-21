@@ -742,6 +742,9 @@ kh::AstEnum* kh::Parser::parseEnum() {
     std::vector<std::u32string> members;
     std::vector<uint64_t> values;
 
+    /* Internal enum counter */
+    uint64_t counter = 0;
+
     kh::Token token = this->to();
     size_t index = token.index;
 
@@ -756,9 +759,6 @@ kh::AstEnum* kh::Parser::parseEnum() {
 
     GUARD(0);
     token = this->to();
-
-    /* Internal enum counter */
-    uint64_t counter = 0;
 
     /* Opens with a curly bracket */
     if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_OPEN) {
