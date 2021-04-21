@@ -1105,63 +1105,6 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {
                         goto end;
                     } break;
 
-                    /* VM instruction statement */
-                    case kh::Symbol::DOLLAR: {
-                        this->ti++;
-                        GUARD(0);
-                        token = this->to();
-
-                        std::u32string op_name;
-                        std::vector<std::shared_ptr<kh::AstExpression>> op_args;
-
-                        /* Expects instruction op-name identifier */
-                        if (token.type == kh::TokenType::IDENTIFIER)
-                            op_name = token.value.identifier;
-                        else
-                            this->exceptions.emplace_back(U"Was expecting an identifier of the op-name "
-                                                          U"of the instruction statement",
-                                                          token.index);
-
-                        this->ti++;
-                        GUARD(0);
-                        token = this->to();
-
-                        /* Parses through the arguments of the VM instruction */
-                        while (true) {
-                            /* Ends */
-                            if (token.type == kh::TokenType::SYMBOL &&
-                                token.value.symbol_type == kh::Symbol::SEMICOLON)
-                                break;
-
-                            /* Parses the argument expression */
-                            op_args.emplace_back(this->parseExpression());
-
-                            GUARD(0);
-                            token = this->to();
-
-                            /* Ends */
-                            if (token.type == kh::TokenType::SYMBOL &&
-                                token.value.symbol_type == kh::Symbol::SEMICOLON)
-                                break;
-                            /* Continues to parse arguments if there's a comma (This statement below
-                             * negates it) */
-                            else if (!(token.type == kh::TokenType::SYMBOL &&
-                                       token.value.symbol_type == kh::Symbol::COMMA)) {
-                                this->exceptions.emplace_back(U"Was expecting a semicolon or a comma",
-                                                              token.index);
-                                break;
-                            }
-
-                            this->ti++;
-                            GUARD(0);
-                            token = this->to();
-                        }
-
-                        this->ti++;
-
-                        body.emplace_back(new kh::AstInstruction(index, op_name, op_args));
-                    } break;
-
                     default:
                         goto parse_expr;
                 }

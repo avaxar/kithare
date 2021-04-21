@@ -64,7 +64,6 @@ namespace kh {
         DOT,
         COMMA,
         COLON,
-        DOLLAR,
 
         PARENTHESES_OPEN,
         PARENTHESES_CLOSE,
