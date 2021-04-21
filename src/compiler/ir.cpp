@@ -3,15 +3,8 @@
  * The source code for Kithare programming language is distributed under the MIT license.
  * Copyright (C) 2021 Kithare Organization
  *
- * include/runtime/instruction.hpp
- * Declares VM instruction codes/types and its overloads.
+ * src/compiler/ir.cpp
+ * Defines include/compiler/ir.hpp.
  */
 
-#pragma once
-
-
-namespace kh {
-    enum class Op {
-
-    };
-}
+#include "compiler/ir.hpp"

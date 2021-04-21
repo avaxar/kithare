@@ -34,6 +34,9 @@
     <ClCompile Include="..\src\runtime\bytecode.cpp">
       <Filter>src\runtime</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\compiler\ir.cpp">
+      <Filter>src\compiler</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SolutionDir)..\include\info.hpp">
@@ -69,6 +72,9 @@
     <ClInclude Include="..\include\runtime\bytecode.hpp">
       <Filter>include\runtime</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\compiler\ir.hpp">
+      <Filter>include\compiler</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">
@@ -97,6 +103,12 @@
     </Filter>
     <Filter Include="src\runtime">
       <UniqueIdentifier>{9ce9d447-770f-4996-b6fc-c11536707aaa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\compiler">
+      <UniqueIdentifier>{12da5e58-9882-4345-ab67-0f3c279b084e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\compiler">
+      <UniqueIdentifier>{fd0074c5-caeb-4312-bd86-64f7f7d0f0a1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

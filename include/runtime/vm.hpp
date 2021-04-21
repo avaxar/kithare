@@ -22,8 +22,8 @@ namespace kh {
     };
 
     struct Block {
-        bool free = true;
         uint64_t size = sizeof(Block);
+        bool free = true;
     };
 
     class VM {
@@ -37,7 +37,11 @@ namespace kh {
             return this->vmemsize;
         }
 
+        uint64_t malloc(const uint64_t size);
+        void free(const uint64_t addr);
+
     private:
+        Block* origin;
         size_t vmemsize;
         uint8_t* vmem;
     };

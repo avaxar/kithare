@@ -19,6 +19,9 @@
     <Filter Include="src\runtime">
       <UniqueIdentifier>{71ecaec0-da0a-4b7e-a80f-0e8bd0b20c1c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\compiler">
+      <UniqueIdentifier>{18ff9b31-61ea-4cc9-853a-4f400629bdd2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\parser\ast.cpp">
@@ -62,6 +65,9 @@
     </ClCompile>
     <ClCompile Include="..\src\runtime\bytecode.cpp">
       <Filter>src\runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\compiler\ir.cpp">
+      <Filter>src\compiler</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

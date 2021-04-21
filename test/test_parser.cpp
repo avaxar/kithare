@@ -28,7 +28,7 @@ bool testImportParse() {
         KH_ASSERT_EQUAL(ast->imports[0]->identifier, U"stuff");
         KH_ASSERT_EQUAL(ast->imports[1]->identifier, U"other");
         KH_ASSERT_EQUAL(ast->imports[2]->identifier, U"other");
-        
+
         KH_ASSERT_EQUAL(ast->imports[0]->is_include, false);
         KH_ASSERT_EQUAL(ast->imports[1]->is_include, false);
         KH_ASSERT_EQUAL(ast->imports[2]->is_include, false);
