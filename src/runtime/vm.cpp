@@ -57,7 +57,7 @@ void kh::VM::resizeMem(const size_t mem_size) {
 }
 
 uint64_t kh::VM::malloc(const uint64_t size) {
-    return 0; /* Placeholder */
+
 }
 
 void kh::VM::free(const uint64_t addr) {

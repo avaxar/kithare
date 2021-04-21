@@ -246,6 +246,19 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
             break;
         }
 
+        case kh::AstBody::Type::INSTRUCTION: {
+            const kh::AstInstruction& ast_inst = *(kh::AstInstruction*)&ast;
+            str += U"INSTRUCTION:";
+
+            str += U"\n\t" + ind + U"OP NAME: " + ast_inst.op_name;
+
+            for (auto& op_arg : ast_inst.op_arguments)
+                if (op_arg)
+                    str += U"\n\t" + ind + U"OP ARGUMENT:\n\t\t" + ind + kh::repr(*op_arg, indent + 2);
+
+            break;
+        }
+
         default:
             str += U"[UNKNOWN BODY]";
     }

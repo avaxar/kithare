@@ -30,6 +30,7 @@ namespace kh {
     class AstWhile;
     class AstDoWhile;
     class AstFor;
+    class AstStatement;
 
     class AstExpression;
     class AstIdentifierExpression;
@@ -141,7 +142,8 @@ namespace kh {
             WHILE,
             DO_WHILE,
             FOR,
-            STATEMENT
+            STATEMENT,
+            INSTRUCTION
         } type = Type::NONE;
 
         virtual ~AstBody() {}
@@ -506,4 +508,18 @@ namespace kh {
         }
         virtual ~AstStatement() {}
     };
-}
+
+    class AstInstruction : public kh::AstBody {
+    public:
+        std::u32string op_name;
+        std::vector<std::shared_ptr<kh::AstExpression>> op_arguments;
+
+        AstInstruction(const size_t _index, const std::u32string& _op_name,
+                       const std::vector<std::shared_ptr<kh::AstExpression>>& _op_arguments)
+            : op_name(_op_name), op_arguments(_op_arguments) {
+            this->index = _index;
+            this->type = kh::AstBody::Type::INSTRUCTION;
+        }
+        virtual ~AstInstruction() {}
+    };
+} // namespace kh
