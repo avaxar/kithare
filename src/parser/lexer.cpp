@@ -358,7 +358,6 @@ std::vector<kh::Token> kh::lex(const std::u32string& source, const bool lex_comm
                             HANDLE_OP_COMBO('%', kh::Operator::MOD, '=', kh::Operator::IMOD);
                             HANDLE_OP_COMBO('^', kh::Operator::POW, '=', kh::Operator::IPOW);
                             HANDLE_OP_COMBO('=', kh::Operator::ASSIGN, '=', kh::Operator::EQUAL);
-                            HANDLE_OP_COMBO('!', kh::Operator::NOT, '=', kh::Operator::NOT_EQUAL);
                             HANDLE_OP_COMBO('&', kh::Operator::BIT_AND, '&', kh::Operator::AND);
                             HANDLE_OP_COMBO('|', kh::Operator::BIT_OR, '|', kh::Operator::OR);
                             HANDLE_SIMPLE_OP('~', kh::Operator::BIT_NOT);
@@ -369,11 +368,11 @@ std::vector<kh::Token> kh::lex(const std::u32string& source, const bool lex_comm
                             HANDLE_SIMPLE_SYMBOL(';', kh::Symbol::SEMICOLON);
                             HANDLE_SIMPLE_SYMBOL(',', kh::Symbol::COMMA);
                             HANDLE_SIMPLE_SYMBOL(':', kh::Symbol::COLON);
-                            HANDLE_SIMPLE_SYMBOL('$', kh::Symbol::DOLLAR);
                             HANDLE_SIMPLE_SYMBOL('(', kh::Symbol::PARENTHESES_OPEN);
                             HANDLE_SIMPLE_SYMBOL(')', kh::Symbol::PARENTHESES_CLOSE);
                             HANDLE_SIMPLE_SYMBOL('{', kh::Symbol::CURLY_OPEN);
                             HANDLE_SIMPLE_SYMBOL('}', kh::Symbol::CURLY_CLOSE);
+                            HANDLE_SIMPLE_SYMBOL('[', kh::Symbol::SQUARE_OPEN);
                             HANDLE_SIMPLE_SYMBOL(']', kh::Symbol::SQUARE_CLOSE);
 
                         /* Some operators and symbols have more complicated handling, and
@@ -414,6 +413,25 @@ std::vector<kh::Token> kh::lex(const std::u32string& source, const bool lex_comm
                             tokens.emplace_back(start, i + 1, kh::TokenType::OPERATOR, value);
                         } break;
 
+                        case '!': {
+                            kh::TokenValue value;
+                            value.operator_type = kh::Operator::NOT;
+
+                            if (chAt(i + 1) == '=') {
+                                value.operator_type = kh::Operator::NOT_EQUAL;
+                                i++;
+                            }
+                            else if (chAt(i + 1) == '[') {
+                                value.symbol_type = kh::Symbol::GENERIC_BRACKET;
+                                i++;
+
+                                tokens.emplace_back(start, i + 1, kh::TokenType::SYMBOL, value);
+                                continue;
+                            }
+
+                            tokens.emplace_back(start, i + 1, kh::TokenType::OPERATOR, value);
+                        } break;
+
                         case '<': {
                             kh::TokenValue value;
                             value.operator_type = kh::Operator::LESS;
@@ -442,13 +460,6 @@ std::vector<kh::Token> kh::lex(const std::u32string& source, const bool lex_comm
                                 value.operator_type = kh::Operator::BIT_RSHIFT;
                                 i++;
                             }
-                            else if (chAt(i + 1) == ']') {
-                                value.symbol_type = kh::Symbol::GENERIC_CLOSE;
-                                i++;
-
-                                tokens.emplace_back(start, i + 1, kh::TokenType::SYMBOL, value);
-                                continue;
-                            }
 
                             tokens.emplace_back(start, i + 1, kh::TokenType::OPERATOR, value);
                         } break;
@@ -461,18 +472,6 @@ std::vector<kh::Token> kh::lex(const std::u32string& source, const bool lex_comm
                                 state = kh::TokenizeState::FLOATING;
                                 temp_str = U"0.";
                                 continue;
-                            }
-
-                            tokens.emplace_back(start, i + 1, kh::TokenType::SYMBOL, value);
-                        } break;
-
-                        case '[': {
-                            kh::TokenValue value;
-                            value.symbol_type = kh::Symbol::SQUARE_OPEN;
-
-                            if (chAt(i + 1) == '<') {
-                                value.symbol_type = kh::Symbol::GENERIC_OPEN;
-                                i++;
                             }
 
                             tokens.emplace_back(start, i + 1, kh::TokenType::SYMBOL, value);

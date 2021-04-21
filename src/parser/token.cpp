@@ -170,11 +170,8 @@ std::u32string kh::repr(const kh::Symbol sym) {
             return U".";
         case kh::Symbol::COMMA:
             return U",";
-
         case kh::Symbol::COLON:
             return U":";
-        case kh::Symbol::DOLLAR:
-            return U"$";
 
         case kh::Symbol::PARENTHESES_OPEN:
             return U"(";
@@ -191,10 +188,8 @@ std::u32string kh::repr(const kh::Symbol sym) {
         case kh::Symbol::SQUARE_CLOSE:
             return U"]";
 
-        case kh::Symbol::GENERIC_OPEN:
-            return U"[<";
-        case kh::Symbol::GENERIC_CLOSE:
-            return U">]";
+        case kh::Symbol::GENERIC_BRACKET:
+            return U"![";
 
         default:
             return U"UNKNOWN";

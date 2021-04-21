@@ -64,7 +64,6 @@ namespace kh {
         DOT,
         COMMA,
         COLON,
-        DOLLAR,
 
         PARENTHESES_OPEN,
         PARENTHESES_CLOSE,
@@ -73,8 +72,7 @@ namespace kh {
         SQUARE_OPEN,
         SQUARE_CLOSE,
 
-        GENERIC_OPEN,
-        GENERIC_CLOSE
+        GENERIC_BRACKET
     };
 
     enum class TokenType {

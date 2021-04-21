@@ -484,7 +484,7 @@ kh::AstClass* kh::Parser::parseClass() {
     token = this->to();
 
     /* Optional generic arguments */
-    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::GENERIC_OPEN) {
+    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::GENERIC_BRACKET) {
         this->ti++;
         GUARD(0);
         token = this->to();
@@ -494,9 +494,9 @@ kh::AstClass* kh::Parser::parseClass() {
             /* Appends generic argument's identifier name */
             if (token.type == kh::TokenType::IDENTIFIER)
                 generic_args.push_back(token.value.identifier);
-            /* Stops parsing generic argument(s) once there's a generic close */
+            /* Stops parsing generic argument(s) once there's a closing square bracket */
             else if (token.type == kh::TokenType::SYMBOL &&
-                     token.value.symbol_type == kh::Symbol::GENERIC_CLOSE) {
+                     token.value.symbol_type == kh::Symbol::SQUARE_CLOSE) {
                 this->ti++;
                 break;
             }
@@ -505,9 +505,9 @@ kh::AstClass* kh::Parser::parseClass() {
             GUARD(0);
             token = this->to();
 
-            /* Stops parsing generic argument(s) once there's a generic close */
+            /* Stops parsing generic argument(s) once there's a closing square bracket */
             if (token.type == kh::TokenType::SYMBOL &&
-                token.value.symbol_type == kh::Symbol::GENERIC_CLOSE) {
+                token.value.symbol_type == kh::Symbol::SQUARE_CLOSE) {
                 this->ti++;
                 break;
             }
@@ -1105,63 +1105,6 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {
                         goto end;
                     } break;
 
-                    /* VM instruction statement */
-                    case kh::Symbol::DOLLAR: {
-                        this->ti++;
-                        GUARD(0);
-                        token = this->to();
-
-                        std::u32string op_name;
-                        std::vector<std::shared_ptr<kh::AstExpression>> op_args;
-
-                        /* Expects instruction op-name identifier */
-                        if (token.type == kh::TokenType::IDENTIFIER)
-                            op_name = token.value.identifier;
-                        else
-                            this->exceptions.emplace_back(U"Was expecting an identifier of the op-name "
-                                                          U"of the instruction statement",
-                                                          token.index);
-
-                        this->ti++;
-                        GUARD(0);
-                        token = this->to();
-
-                        /* Parses through the arguments of the VM instruction */
-                        while (true) {
-                            /* Ends */
-                            if (token.type == kh::TokenType::SYMBOL &&
-                                token.value.symbol_type == kh::Symbol::SEMICOLON)
-                                break;
-
-                            /* Parses the argument expression */
-                            op_args.emplace_back(this->parseExpression());
-
-                            GUARD(0);
-                            token = this->to();
-
-                            /* Ends */
-                            if (token.type == kh::TokenType::SYMBOL &&
-                                token.value.symbol_type == kh::Symbol::SEMICOLON)
-                                break;
-                            /* Continues to parse arguments if there's a comma (This statement below
-                             * negates it) */
-                            else if (!(token.type == kh::TokenType::SYMBOL &&
-                                       token.value.symbol_type == kh::Symbol::COMMA)) {
-                                this->exceptions.emplace_back(U"Was expecting a semicolon or a comma",
-                                                              token.index);
-                                break;
-                            }
-
-                            this->ti++;
-                            GUARD(0);
-                            token = this->to();
-                        }
-
-                        this->ti++;
-
-                        body.emplace_back(new kh::AstInstruction(index, op_name, op_args));
-                    } break;
-
                     default:
                         goto parse_expr;
                 }
@@ -1605,14 +1548,14 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
         token = this->to();
     }
 
-    /* Optional generic-sation */
-    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::GENERIC_OPEN) {
+    /* Optional genericization */
+    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::GENERIC_BRACKET) {
         this->ti++;
         GUARD(0);
         token = this->to();
 
         /* Instant close */
-        if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::GENERIC_CLOSE)
+        if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::SQUARE_CLOSE)
             this->ti++;
         else {
             /* Parses the generic-sation type arguments */
@@ -1632,10 +1575,10 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
             }
 
             if (token.type == kh::TokenType::SYMBOL &&
-                token.value.symbol_type == kh::Symbol::GENERIC_CLOSE)
+                token.value.symbol_type == kh::Symbol::SQUARE_CLOSE)
                 this->ti++;
             else
-                this->exceptions.emplace_back(U"Was expecting a generic close", token.index);
+                this->exceptions.emplace_back(U"Was expecting a closing square bracket", token.index);
         }
     }
 end:

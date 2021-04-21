@@ -1,6 +1,16 @@
-enum Enum {
-	A = 0,
-	B, C, D,
-	E = 999,
-	F, G, H
+/* Is this much more better? */
+class A![B, C, D] {
+
+}
+
+def func![E]() {
+
+}
+
+def A![Yes] test![Test]() {
+	
+}
+
+def main() {
+    A![int, int, list![float]] x = func![int](3);
 }
