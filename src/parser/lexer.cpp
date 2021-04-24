@@ -230,7 +230,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source, const bool lex_comm
                         }
                         /* Possible byte-string/buffer */
                         else if (chAt(i + 1) == '"') {
-                            if (chAt(i + 2) == '"' && chAt(i + 3)) {
+                            if (chAt(i + 2) == '"' && chAt(i + 3) == '"') {
                                 state = kh::TokenizeState::IN_MULTILINE_BUF;
                                 i += 3;
                             }
