@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\compiler\ir.cpp" />
+    <ClCompile Include="..\src\compiler\nast.cpp" />
     <ClCompile Include="..\src\parser\ast.cpp" />
     <ClCompile Include="..\src\parser\lexer.cpp" />
     <ClCompile Include="..\src\parser\parser.cpp" />

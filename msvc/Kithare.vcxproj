@@ -27,7 +27,7 @@
     <ClCompile Include="$(SolutionDir)..\src\utility\cmd.cpp" />
     <ClCompile Include="$(SolutionDir)..\src\utility\file.cpp" />
     <ClCompile Include="$(SolutionDir)..\src\utility\string.cpp" />
-    <ClCompile Include="..\src\compiler\ir.cpp" />
+    <ClCompile Include="..\src\compiler\nast.cpp" />
     <ClCompile Include="..\src\runtime\bytecode.cpp" />
     <ClCompile Include="..\src\runtime\instruction.cpp" />
     <ClCompile Include="..\src\runtime\vm.cpp" />
@@ -41,7 +41,7 @@
     <ClInclude Include="$(SolutionDir)..\include\utility\cmd.hpp" />
     <ClInclude Include="$(SolutionDir)..\include\utility\file.hpp" />
     <ClInclude Include="$(SolutionDir)..\include\utility\string.hpp" />
-    <ClInclude Include="..\include\compiler\ir.hpp" />
+    <ClInclude Include="..\include\compiler\nast.hpp" />
     <ClInclude Include="..\include\runtime\bytecode.hpp" />
     <ClInclude Include="..\include\runtime\instruction.hpp" />
     <ClInclude Include="..\include\runtime\vm.hpp" />
