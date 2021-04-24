@@ -3,8 +3,8 @@
  * The source code for Kithare programming language is distributed under the MIT license.
  * Copyright (C) 2021 Kithare Organization
  *
- * src/compiler/ir.cpp
- * Defines include/compiler/ir.hpp.
+ * src/compiler/nast.cpp
+ * Defines include/compiler/nast.hpp.
  */
 
-#include "compiler/ir.hpp"
+#include "compiler/nast.hpp"
