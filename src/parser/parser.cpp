@@ -484,46 +484,75 @@ kh::AstClass* kh::Parser::parseClass() {
     token = this->to();
 
     /* Optional generic arguments */
-    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::GENERIC_OPEN) {
+    if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::NOT) {
         this->ti++;
         GUARD(0);
         token = this->to();
 
-        /* Parses the generic argument(s') identifier */
-        while (true) {
-            /* Appends generic argument's identifier name */
+        /* class SomeList!(A, B, C) */
+        if (token.type == kh::TokenType::SYMBOL &&
+            token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
+            this->ti++;
+            GUARD(0);
+            token = this->to();
+
+            /* Parses the first generic argument */
             if (token.type == kh::TokenType::IDENTIFIER)
                 generic_args.push_back(token.value.identifier);
-            /* Stops parsing generic argument(s) once there's a generic close */
-            else if (token.type == kh::TokenType::SYMBOL &&
-                     token.value.symbol_type == kh::Symbol::GENERIC_CLOSE) {
-                this->ti++;
-                break;
+            else {
+                this->exceptions.emplace_back(
+                    U"Was expecting an identifier after the opening parentheses for the generic "
+                    U"argument(s) in the class declaration",
+                    token.index);
             }
 
             this->ti++;
             GUARD(0);
             token = this->to();
 
-            /* Stops parsing generic argument(s) once there's a generic close */
+            /* Continues for more generic arguments after a comma */
+            while (token.type == kh::TokenType::SYMBOL &&
+                   token.value.symbol_type == kh::Symbol::COMMA) {
+                this->ti++;
+                GUARD(0);
+                token = this->to();
+
+                if (token.type == kh::TokenType::IDENTIFIER)
+                    generic_args.push_back(token.value.identifier);
+                else {
+                    this->exceptions.emplace_back(
+                        U"Was expecting an identifier after the comma for the generic "
+                        U"argument(s) in the class declaration",
+                        token.index);
+                    break;
+                }
+
+                this->ti++;
+                GUARD(0);
+                token = this->to();
+            }
+
+            /* Expects a closing parentheses */
             if (token.type == kh::TokenType::SYMBOL &&
-                token.value.symbol_type == kh::Symbol::GENERIC_CLOSE) {
+                token.value.symbol_type == kh::Symbol::PARENTHESES_CLOSE)
                 this->ti++;
-                break;
-            }
-            /* Continues parsing generic argument(s) when there's a comma (The statement below is
-             * negated) */
-            else if (!(token.type == kh::TokenType::SYMBOL &&
-                       token.value.symbol_type == kh::Symbol::COMMA)) {
-                this->exceptions.emplace_back(U"Was expecting a comma or a generic close in the "
-                                              U"generic argument(s') class declaration",
+            else {
+                this->exceptions.emplace_back(U"Was expecting a closing parentheses after the generic "
+                                              U"argument(s) in the class declaration",
                                               token.index);
-                break;
             }
-
+        }
+        /* class SomeList!A */
+        else if (token.type == kh::TokenType::IDENTIFIER) {
+            generic_args.push_back(token.value.identifier);
             this->ti++;
-            GUARD(0);
-            token = this->to();
+        }
+        else {
+            this->exceptions.emplace_back(
+                U"Was either an identifier or an opening parentheses for generic argument(s) after the "
+                U"exclamation mark in the class declaration",
+                token.index);
+            this->ti++;
         }
     }
     /* Optional inheriting */
@@ -1548,17 +1577,18 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
         token = this->to();
     }
 
-    /* Optional generic-sation */
-    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::GENERIC_OPEN) {
+    /* Optional genericization */
+    if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::NOT) {
         this->ti++;
         GUARD(0);
         token = this->to();
 
-        /* Instant close */
-        if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::GENERIC_CLOSE)
+        if (token.type == kh::TokenType::SYMBOL &&
+            token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
             this->ti++;
-        else {
-            /* Parses the generic-sation type arguments */
+            GUARD(0);
+
+            /* Parses the genericization type arguments */
             generics.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
             GUARD(0);
             token = this->to();
@@ -1574,11 +1604,21 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
                 token = this->to();
             }
 
+            /* Expects closing parentheses */
             if (token.type == kh::TokenType::SYMBOL &&
-                token.value.symbol_type == kh::Symbol::GENERIC_CLOSE)
+                token.value.symbol_type == kh::Symbol::PARENTHESES_CLOSE)
                 this->ti++;
             else
-                this->exceptions.emplace_back(U"Was expecting a generic close", token.index);
+                this->exceptions.emplace_back(U"Was expecting a closing parentheses", token.index);
+        }
+        else if (token.type == kh::TokenType::IDENTIFIER)
+            generics.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
+        else {
+            this->exceptions.emplace_back(
+                U"Was either an identifier or an opening parentheses for genericization after the "
+                U"exclamation mark ",
+                token.index);
+            this->ti++;
         }
     }
 end:
