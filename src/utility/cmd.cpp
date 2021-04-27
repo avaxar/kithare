@@ -15,7 +15,7 @@ int kh::run(const std::vector<std::u32string>& args) {
     std::u32string source;
     std::vector<kh::Token> tokens;
     kh::Ast* ast;
-    bool lex = false;
+    bool lex = false, parse = false;
 
     for (const std::u32string& arg : args) {
         if (exargs.empty() && !arg.compare(0, 1, U"-")) {
@@ -38,11 +38,11 @@ int kh::run(const std::vector<std::u32string>& args) {
                 return 0;
             }
 
-            lex = arg == U"--lex";
+            lex = lex ? true : arg == U"--lex";
+            parse = parse ? true : arg == U"--ast";
         }
-        else {
+        else
             exargs.emplace_back(arg);
-        }
     }
 
     if (exargs.empty()) {
@@ -99,7 +99,11 @@ int kh::run(const std::vector<std::u32string>& args) {
         kprintln(U"Lexicated the source and generated tokens...");
         for (auto token : tokens)
             kprintln(token);
-        kprintln(U"\n\nParsed the tokens and generated an AST tree...");
+        kprint(U"\n");
+    }
+
+    if (parse) {
+        kprintln(U"Parsed the tokens and generated an AST tree...");
         kprintln(*ast);
     }
 

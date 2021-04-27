@@ -33,8 +33,7 @@ jobs:
     strategy:
       fail-fast: false  # if a particular matrix build fails, don't skip the rest
       matrix:
-        arch: ["x64"]  # disable x86 build for now, because it's too time consuming
-        #arch: ["x86", "x64"]
+        arch: ["x86", "x64"]
 
     steps:
     - uses: actions/checkout@v2
@@ -58,7 +57,7 @@ jobs:
     - name: Check dist
       run: |
         .\\dist\\MinGW-${{matrix.arch}}\\kcr.exe -V
-        .\\dist\\MinGW-${{matrix.arch}}\\kcr.exe --lex test\\test_script.kh
+        .\\dist\\MinGW-${{matrix.arch}}\\kcr.exe --lex --ast test\\test_script.kh
 
     #- name: Upload dist
       #uses: actions/upload-artifact@v2

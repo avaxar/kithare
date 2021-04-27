@@ -55,7 +55,7 @@ jobs:
     - name: Check dist
       run: |
         ./dist/GCC-x64/kcr -V
-        ./dist/GCC-x64/kcr --lex test/test_script.kh
+        ./dist/GCC-x64/kcr --lex --ast test/test_script.kh
 
     #- name: Upload dist
       #uses: actions/upload-artifact@v2

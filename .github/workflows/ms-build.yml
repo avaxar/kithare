@@ -56,10 +56,10 @@ jobs:
     - name: Check dist
       run: |
         .\\dist\\MSVC-${{matrix.arch}}-Release\\kcr.exe -V
-        .\\dist\\MSVC-${{matrix.arch}}-Release\\kcr.exe --lex test\\test_script.kh
+        .\\dist\\MSVC-${{matrix.arch}}-Release\\kcr.exe --lex --ast test\\test_script.kh
 
-    - name: Upload dist
-      uses: actions/upload-artifact@v2
-      with:
-        name: dist-MSVC
-        path: dist/MSVC-${{matrix.arch}}-Release
+    # - name: Upload dist
+    # uses: actions/upload-artifact@v2
+    # with:
+    #   name: dist-MSVC
+    #   path: dist/MSVC-${{matrix.arch}}-Release
