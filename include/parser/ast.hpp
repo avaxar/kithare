@@ -135,15 +135,7 @@ namespace kh {
     class AstBody {
     public:
         size_t index;
-        enum class Type {
-            NONE,
-            EXPRESSION,
-            IF,
-            WHILE,
-            DO_WHILE,
-            FOR,
-            STATEMENT
-        } type = Type::NONE;
+        enum class Type { NONE, EXPRESSION, IF, WHILE, DO_WHILE, FOR, STATEMENT } type = Type::NONE;
 
         virtual ~AstBody() {}
     };
@@ -172,11 +164,13 @@ namespace kh {
     public:
         std::vector<std::u32string> identifiers;
         std::vector<std::shared_ptr<kh::AstIdentifierExpression>> generics;
+        std::vector<std::vector<uint64_t>> generics_array;
 
         AstIdentifierExpression(
             const size_t _index, const std::vector<std::u32string>& _identifiers,
-            const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _generics)
-            : identifiers(_identifiers), generics(_generics) {
+            const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _generics,
+            const std::vector<std::vector<uint64_t>>& _generics_array)
+            : identifiers(_identifiers), generics(_generics), generics_array(_generics_array) {
             this->index = _index;
             this->type = kh::AstBody::Type::EXPRESSION;
             this->expression_type = kh::AstExpression::ExType::IDENTIFIER;
@@ -266,6 +260,7 @@ namespace kh {
     class AstDeclarationExpression : public kh::AstExpression {
     public:
         std::shared_ptr<kh::AstIdentifierExpression> var_type;
+        std::vector<uint64_t> var_array;
         std::u32string var_name;
         std::shared_ptr<kh::AstExpression> expression;
         size_t ref_depth;
@@ -274,11 +269,12 @@ namespace kh {
 
         AstDeclarationExpression(const size_t _index,
                                  std::shared_ptr<kh::AstIdentifierExpression>& _var_type,
+                                 const std::vector<uint64_t>& _var_array,
                                  const std::u32string& _var_name,
                                  std::shared_ptr<kh::AstExpression>& _expression,
                                  const size_t _ref_depth, const bool _is_static, const bool _is_public)
-            : var_type(_var_type), var_name(_var_name), expression(_expression), ref_depth(_ref_depth),
-              is_static(_is_static), is_public(_is_public) {
+            : var_type(_var_type), var_array(_var_array), var_name(_var_name), expression(_expression),
+              ref_depth(_ref_depth), is_static(_is_static), is_public(_is_public) {
             this->index = _index;
             this->type = kh::AstBody::Type::EXPRESSION;
             this->expression_type = kh::AstExpression::ExType::DECLARE;
@@ -291,8 +287,11 @@ namespace kh {
         size_t index;
         std::vector<std::u32string> identifiers;
         std::vector<std::u32string> generic_args;
+
         std::shared_ptr<kh::AstIdentifierExpression> return_type;
+        std::vector<uint64_t> return_array;
         size_t return_ref_depth;
+
         std::vector<std::shared_ptr<kh::AstDeclarationExpression>> arguments;
         std::vector<std::shared_ptr<kh::AstBody>> body;
         bool is_static;
@@ -301,13 +300,15 @@ namespace kh {
         AstFunctionExpression(
             const size_t _index, const std::vector<std::u32string>& _identifiers,
             const std::vector<std::u32string>& _generic_args,
+            const std::vector<uint64_t>& _return_array,
             std::shared_ptr<kh::AstIdentifierExpression>& _return_type, const size_t _return_ref_depth,
             const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _arguments,
             const std::vector<std::shared_ptr<kh::AstBody>>& _body, const bool _is_static,
             const bool _is_public)
             : index(_index), identifiers(_identifiers), generic_args(_generic_args),
-              return_type(_return_type), return_ref_depth(_return_ref_depth), arguments(_arguments),
-              body(_body), is_static(_is_static), is_public(_is_public) {
+              return_array(_return_array), return_type(_return_type),
+              return_ref_depth(_return_ref_depth), arguments(_arguments), body(_body),
+              is_static(_is_static), is_public(_is_public) {
             this->index = _index;
             this->type = kh::AstBody::Type::EXPRESSION;
             this->expression_type = kh::AstExpression::ExType::FUNCTION;

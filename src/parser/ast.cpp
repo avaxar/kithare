@@ -274,9 +274,23 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
 
             if (!expr_id.generics.empty()) {
                 str += U"\n\t" + ind + U"GENERICS:";
-                for (auto generic_ : expr_id.generics)
-                    if (generic_)
-                        str += U"\n\t\t" + ind + kh::repr(*generic_, indent + 2);
+                for (size_t generic_ = 0; generic_ < expr_id.generics.size(); generic_++)
+                    if (expr_id.generics[generic_]) {
+                        if (expr_id.generics_array[generic_].size() &&
+                            expr_id.generics_array[generic_][0] != 0) {
+                            str += U"\n\t\t" + ind + U'[';
+
+                            for (const uint64_t dimension : expr_id.generics_array[generic_])
+                                str += kh::repr(dimension) + U", ";
+
+                            str.pop_back();
+                            str.pop_back();
+
+                            str += U']';
+                        }
+
+                        str += U"\n\t\t" + ind + kh::repr(*expr_id.generics[generic_], indent + 2);
+                    }
             }
 
             break;
@@ -365,6 +379,17 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
             const kh::AstDeclarationExpression& expr_declare = *(kh::AstDeclarationExpression*)&expr;
             str += U"DECLARE:";
 
+            if (expr_declare.var_array.size() && expr_declare.var_array[0] != 0) {
+                str += U"\n\t" + ind + U'[';
+
+                for (const uint64_t dimension : expr_declare.var_array)
+                    str += kh::repr(dimension) += U", ";
+
+                str.pop_back();
+                str.pop_back();
+                str += U']';
+            }
+
             if (expr_declare.var_type)
                 str +=
                     U"\n\t" + ind + U"TYPE:\n\t\t" + ind + kh::repr(*expr_declare.var_type, indent + 2);
@@ -407,6 +432,17 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
             if (expr_func.return_ref_depth)
                 str += U"\n\t" + ind + U"RETURN TYPE REF DEPTH: " +
                        kh::repr((uint64_t)expr_func.return_ref_depth);
+
+            if (expr_func.return_array.size() && expr_func.return_array[0] != 0) {
+                str += U"\n\t" + ind + U'[';
+
+                for (const uint64_t dimension : expr_func.return_array)
+                    str += kh::repr(dimension) += U", ";
+
+                str.pop_back();
+                str.pop_back();
+                str += U']';
+            }
 
             if (expr_func.return_type)
                 str += U"\n\t" + ind + U"RETURN TYPE:\n\t\t" + ind +

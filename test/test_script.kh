@@ -1,19 +1,8 @@
-class A!(B, C, D) {
-
-}
-
-class A!(E, B) {
+def int[3] test() {
 	
 }
 
-def func!E() {
-
-}
-
-def A!Yes test!Test() {
-
-}
-
 def main() {
-    A!(int, int, list!float) x = func!int(3);
+    yay a[][3][4][];
+    dict!(int, str[3]) some_map;
 }
