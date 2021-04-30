@@ -66,8 +66,11 @@
     <ClCompile Include="..\src\runtime\bytecode.cpp">
       <Filter>src\runtime</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\compiler\ir.cpp">
+    <ClCompile Include="..\src\compiler\nast.cpp">
       <Filter>src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\parser\json.cpp">
+      <Filter>src\parser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

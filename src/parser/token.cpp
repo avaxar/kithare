@@ -51,7 +51,7 @@ std::u32string kh::repr(const kh::Token& token) {
             break;
 
         default:
-            str = U"UNKNOWN";
+            str = U"unknown";
     }
 
     return str;
@@ -60,33 +60,33 @@ std::u32string kh::repr(const kh::Token& token) {
 std::u32string kh::repr(const kh::TokenType type) {
     switch (type) {
         case kh::TokenType::IDENTIFIER:
-            return U"IDENTIFIER";
+            return U"identifier";
         case kh::TokenType::OPERATOR:
-            return U"OPERATOR";
+            return U"operator";
         case kh::TokenType::SYMBOL:
-            return U"SYMBOL";
+            return U"symbol";
 
         case kh::TokenType::CHARACTER:
-            return U"CHARACTER";
+            return U"character";
         case kh::TokenType::STRING:
-            return U"STRING";
+            return U"string";
         case kh::TokenType::BUFFER:
-            return U"BUFFER";
+            return U"buffer";
 
         case kh::TokenType::UINTEGER:
-            return U"UINTEGER";
+            return U"uinteger";
         case kh::TokenType::INTEGER:
-            return U"INTEGER";
+            return U"integer";
         case kh::TokenType::FLOATING:
-            return U"FLOATING";
+            return U"floating";
         case kh::TokenType::IMAGINARY:
-            return U"IMAGINARY";
+            return U"imaginary";
 
         case kh::TokenType::COMMENT:
-            return U"COMMENT";
+            return U"comment";
 
         default:
-            return U"UNKNOWN";
+            return U"unknown";
     }
 }
 
@@ -158,7 +158,7 @@ std::u32string kh::repr(const kh::Operator op) {
             return U"@";
 
         default:
-            return U"UNKNOWN";
+            return U"unknown";
     }
 }
 
@@ -189,6 +189,6 @@ std::u32string kh::repr(const kh::Symbol sym) {
             return U"]";
 
         default:
-            return U"UNKNOWN";
+            return U"unknown";
     }
 }

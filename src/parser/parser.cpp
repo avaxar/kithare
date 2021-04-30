@@ -265,6 +265,8 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
     kh::Token token = this->to();
     size_t index = token.index;
 
+    bool is_array = false;
+
     /* Checks for the return type's ref depth: `def ref ref int a() {}` which returns a reference of
      * a reference of an int */
     while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
@@ -289,7 +291,6 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
     token = this->to();
 
     /* Array return type */
-    bool is_array = false;
     if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::SQUARE_OPEN) {
         return_array = this->parseArrayDimensionList(return_type_or_identifiers);
         is_array = true;

@@ -34,8 +34,11 @@
     <ClCompile Include="..\src\runtime\bytecode.cpp">
       <Filter>src\runtime</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\compiler\ir.cpp">
+    <ClCompile Include="..\src\compiler\nast.cpp">
       <Filter>src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\parser\json.cpp">
+      <Filter>src\parser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -72,8 +75,11 @@
     <ClInclude Include="..\include\runtime\bytecode.hpp">
       <Filter>include\runtime</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\compiler\ir.hpp">
+    <ClInclude Include="..\include\compiler\nast.hpp">
       <Filter>include\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\parser\json.hpp">
+      <Filter>include\parser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

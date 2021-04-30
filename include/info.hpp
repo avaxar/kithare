@@ -39,18 +39,15 @@
 #define KH_OS "Unknown"
 #endif
 
-#define KH_HELP_STR                                                                                 \
-    U"This is the Kithare programming language.\n\n"                                                \
-    U"Kithare is a general purpose statically-typed cross-platform interpreted Python and C like "  \
-    U"programming language.\n"                                                                      \
-    U"The source code for Kithare programming language is open sourced, and distributed under the " \
-    U"MIT license.\n"                                                                               \
-    U"Copyright(C) 2021 Avaxar(AvaxarXapaxa)\n\n"                                                   \
-    U"The 'kcr' command has the following command signature:\n"                                     \
-    U"kcr [-hvV] [--lex] filename\n\n"                                                              \
-    U"'kcr -h' or 'kcr --help' displays this message.\n"                                            \
-    U"'kcr -v' and 'kcr -V' display version info, the latter prints more info.\n"                   \
-    U"'--lex' is an optional (temporary) argument, that prints the lexed and parsed output of a "   \
-    U"Kithare source file.\n\n"                                                                     \
-    U"'filename' is the path to the kithare source file, and any arguments after this will be "     \
-    U"forwarded to the Kithare app\n"
+const char32_t KH_HELP_STR[] =
+    U"This is the Kithare compiler-runtime executable (`kcr`).\n"
+    U"The Kithare programming language with this `kcr` is distributed "
+    U"under the MIT license. Meaning that you can use it for commercial and "
+    U"non-commercial projects freely! A credit to Kithare would be nice.\n\n"
+    U"`kcr -h` or `kcr --help` shows this help message!\n"
+    U"`kcr -v` or `kcr --version` shows the version of this `kcr` build.\n"
+    U"`kcr -l [-j] filename` or `kcr --lex [--json] filename` shows the "
+    U"lexicated output of the source file, with an option to print it as JSON.\n"
+    U"`kcr -a filename` or `kcr --ast filename` shows the generated AST tree from the "
+    U"parsed source file.\n"
+    U"`kcr -s [...]` silents any print output or error messages.\n";

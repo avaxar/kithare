@@ -100,6 +100,9 @@ std::u32string kh::quote(const std::u32string& str) {
             case U'\\':
                 repr_str += U"\\\\";
                 break;
+            case ' ':
+                repr_str += U" ";
+                break;
             case U'\t':
                 repr_str += U"\\t";
                 break;
@@ -113,7 +116,28 @@ std::u32string kh::quote(const std::u32string& str) {
                 repr_str += U"\\r";
                 break;
             default:
-                repr_str += chr;
+                if (chr > 32 && chr < 127)
+                    repr_str += (char32_t)chr;
+                else {
+                    std::stringstream sstream;
+                    sstream << std::hex << (uint32_t)chr;
+
+                    if (chr <= 0xff)
+                        repr_str +=
+                            U"\\x" + kh::repr((sstream.str().size() == 1 ? "0" : "") + sstream.str());
+                    else if (chr <= 0xfff)
+                        repr_str += U"\\u0" + kh::repr(sstream.str());
+                    else if (chr <= 0xffff)
+                        repr_str += U"\\u" + kh::repr(sstream.str());
+                    else if (chr <= 0xfffff)
+                        repr_str += U"\\U000" + kh::repr(sstream.str());
+                    else if (chr <= 0xffffff)
+                        repr_str += U"\\U00" + kh::repr(sstream.str());
+                    else if (chr <= 0xfffffff)
+                        repr_str += U"\\U0" + kh::repr(sstream.str());
+                    else if (chr <= 0xffffffff)
+                        repr_str += U"\\U" + kh::repr(sstream.str());
+                }
         }
     }
 
@@ -151,7 +175,7 @@ std::u32string kh::quote(const std::string& str) {
             default:
                 if (chr > 32 && chr < 127)
                     repr_str += (char32_t)chr;
-                else {
+                else if (chr <= 0xff) {
                     std::stringstream sstream;
                     sstream << std::hex << (int)((uint8_t)chr);
                     repr_str +=

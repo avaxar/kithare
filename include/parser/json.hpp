@@ -3,8 +3,8 @@
  * The source code for Kithare programming language is distributed under the MIT license.
  * Copyright (C) 2021 Kithare Organization
  *
- * include/utility/cmd.hpp
- * Implements argument parsing for kithare commandline interface
+ * include/parser/json.hpp
+ * Provides functions to represent parser types' instances as JSON string.
  */
 
 #pragma once
@@ -12,8 +12,9 @@
 #include <vector>
 
 #include "utility/string.hpp"
+#include "parser/token.hpp"
 
 
 namespace kh {
-    int run(const std::vector<std::u32string>& args);
+    std::u32string json(const std::vector<kh::Token>& tokens);
 }
