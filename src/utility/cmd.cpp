@@ -27,6 +27,7 @@ int kh::run(const std::vector<std::u32string>& args) {
         std::u32string arg = _arg;
         bool is_flag = false;
 
+        /* Indicates that it is a flag argument (which starts with `-`. `--`, or `/`) */
         if (arg.size() > 1 && arg[0] == '-' && arg[1] == '-') {
             arg = std::u32string(arg.begin() + 2, arg.end());
             is_flag = true;
@@ -35,6 +36,7 @@ int kh::run(const std::vector<std::u32string>& args) {
             arg = std::u32string(arg.begin() + 1, arg.end());
             is_flag = true;
         }
+        /* Excess arguments */
         else
             excess_args.push_back(arg);
 
@@ -42,6 +44,7 @@ int kh::run(const std::vector<std::u32string>& args) {
             for (char32_t& chr : arg)
                 chr = std::towlower(chr);
 
+            /* Marks up the booleans of the indicated flag */
             if (arg == U"lex" || arg == U"l")
                 lex = true;
             else if (arg == U"ast" || arg == U"a")
@@ -67,9 +70,11 @@ int kh::run(const std::vector<std::u32string>& args) {
             excess_args.push_back(arg);
     }
 
+    /* `kcr -h` */
     if ((help || args.empty()) && !silent)
         kprintln(KH_HELP_STR);
 
+    /* `kcr -v` */
     if (version && !silent) {
         kprintln("Kithare " KH_VERSION_STR);
         kprintln("OS: " KH_OS);
@@ -77,107 +82,174 @@ int kh::run(const std::vector<std::u32string>& args) {
         kprintln("Compiled on " __DATE__ " at " __TIME__);
     }
 
+    /* `kcr [...] some_file_name.kh` */
     if (excess_args.size() > 0) {
         std::u32string source;
         std::vector<kh::Token> tokens;
         kh::Ast* ast_tree = nullptr;
 
+        /* Opening dictionary bracket of the JSON */
+        if (json)
+            std::cout << '{';
+
+        /* Tries to open the file and read its content in UTF-8 */
         try {
             source = kh::readFile(excess_args[0]);
         }
+        /* If the file was not found or something */
         catch (const kh::FileError& exc) {
             if (!silent) {
-                std::cerr << "FileError: ";
-                kprintln(exc.fname);
+                if (json) {
+                    std::cout << "\"file_error\":";
+                    kprint(kh::quote(exc.fname));
+                    std::cout << "}";
+                }
+                else {
+                    std::cerr << "FileError: ";
+                    kprintln(exc.fname);
+                }
             }
 
             return 1;
         }
+        /* Failed to decode with a UTF-8 encoding */
         catch (const kh::UnicodeDecodeError& exc) {
             if (!silent) {
-                std::cerr << "UnicodeDecodeError: ";
-                kprint(exc.what);
-                std::cerr << " at index ";
-                kprintln((uint64_t)exc.index);
+                if (json) {
+                    std::cout << "\"unicode_decode_error\":[";
+                    kprint(kh::quote(exc.what));
+                    std::cout << "," << exc.index << "]}";
+                }
+                else {
+                    std::cerr << "UnicodeDecodeError: ";
+                    kprint(exc.what);
+                    std::cerr << " at index " << exc.index;
+                }
             }
 
             return 1;
         }
 
-        try {
-            tokens = kh::lex(source, true);
-        }
-        catch (const kh::LexException& exc) {
+        /* Lexicates the source */
+        kh::LexExceptions lex_exceptions({});
+        tokens = kh::lex(source, true, &lex_exceptions);
+
+        /* If there's any exceptions from the lexicating process */
+        if (!lex_exceptions.exceptions.empty()) {
             if (!silent) {
-                std::cerr << "LexException: ";
-                kprint(exc.what);
-                std::cerr << " at index ";
-                kprint((uint64_t)exc.index);
+                if (json)
+                    std::cout << "\"lex_exceptions\":[";
 
-                size_t column, line;
-                kh::strIndexPos(source, exc.index, column, line);
+                for (const kh::LexException& exc : lex_exceptions.exceptions) {
+                    if (json) {
+                        std::cout << "[";
+                        kprint(kh::quote(exc.what));
+                        std::cout << "," << exc.index << "]";
 
-                std::cerr << " of column ";
-                kprint((uint64_t)column);
-                std::cerr << " line ";
-                kprintln((uint64_t)line);
+                        if (&exc != &lex_exceptions.exceptions.back())
+                            std::cout << ",";
+                    }
+                    else {
+                        std::cerr << "LexException: ";
+                        kprint(exc.what);
+                        std::cerr << " at index " << exc.index;
+
+                        size_t column, line;
+                        kh::strIndexPos(source, exc.index, column, line);
+
+                        std::cerr << " of column " << column << " line " << line << '\n';
+                    }
+                }
+
+                if (json)
+                    std::cout << "]}";
             }
 
             return 1;
         }
 
-        if (lex && !ast) {
+        /* Prints the tokens */
+        if (lex) {
             if (silent)
                 return 0;
 
-            if (json)
+            if (json) {
+                std::cout << "\"tokens\":";
                 kprint(kh::json(tokens));
+                std::cout << "}";
+
+                if (ast)
+                    std::cout << ",";
+            }
             else {
                 for (const kh::Token& token : tokens) {
                     std::cout << token.index << ':' << token.length << ' ';
                     kprintln(token);
                 }
+
+                if (ast)
+                    std::cout << '\n';
             }
 
-            return 0;
+            if (!ast)
+                return 0;
         }
 
+        /* Tries to parse the tokens */
         try {
             ast_tree = kh::parse(tokens);
         }
         catch (const kh::ParseExceptions& exc) {
-            for (const kh::ParseException& ex : exc.exceptions) {
-                std::cerr << "ParseException: ";
-                kprint(ex.what);
-                std::cerr << " at index ";
-                kprint((uint64_t)ex.index);
+            if (!silent) {
+                if (json)
+                    std::cout << "\"parse_exceptions\":[";
 
-                size_t column, line;
-                kh::strIndexPos(source, ex.index, column, line);
+                for (const kh::ParseException& ex : exc.exceptions) {
+                    if (json) {
+                        std::cout << "[";
+                        kprint(kh::quote(ex.what));
+                        std::cout << "," << ex.index << "]";
 
-                std::cerr << " of column ";
-                kprint((uint64_t)column);
-                std::cerr << " line ";
-                kprintln((uint64_t)line);
+                        if (&ex != &exc.exceptions.back())
+                            std::cout << ",";
+                    }
+                    else {
+                        std::cerr << "ParseException: ";
+                        kprint(ex.what);
+                        std::cerr << " at index ";
+                        kprint((uint64_t)ex.index);
+
+                        size_t column, line;
+                        kh::strIndexPos(source, ex.index, column, line);
+
+                        std::cerr << " of column ";
+                        kprint((uint64_t)column);
+                        std::cerr << " line ";
+                        kprintln((uint64_t)line);
+                    }
+                }
+
+                if (json)
+                    std::cout << "]}";
             }
 
             return 1;
         }
 
+        /* Prints the AST tree */
         if (ast) {
             if (silent)
                 return 0;
 
-            if (lex) {
-                for (const kh::Token& token : tokens) {
-                    std::cout << token.index << ':' << token.length << ' ';
-                    kprintln(token);
-                }
-
-                std::cout << '\n';
+            if (json) {
+                /* placeholder */
+                std::cout << "\"ast\":null";
             }
+            else
+                kprintln(*ast_tree);
 
-            kprintln(*ast_tree);
+            if (json)
+                std::cout << '}';
 
             return 0;
         }
