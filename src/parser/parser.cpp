@@ -20,6 +20,17 @@
     } while (false)
 
 
+namespace kh {
+    inline bool isReservedKeyword(const std::u32string& identifier) {
+        return identifier == U"public" || identifier == U"private" || identifier == U"static" ||
+               identifier == U"def" || identifier == U"class" || identifier == U"struct" ||
+               identifier == U"enum" || identifier == U"import" || identifier == U"include" ||
+               identifier == U"if" || identifier == U"for" || identifier == U"while" ||
+               identifier == U"break" || identifier == U"continue" || identifier == U"return" ||
+               identifier == U"ref";
+    }
+}
+
 kh::Ast* kh::parse(const std::vector<kh::Token>& tokens) {
     kh::Parser parser(tokens);
     kh::Ast* ast;
@@ -160,6 +171,10 @@ kh::AstImport* kh::Parser::parseImport(const bool is_include) {
     /* Making sure that it starts with an identifier (an import/include statement must has at least
      * one identifier to be imported) */
     if (token.type == kh::TokenType::IDENTIFIER) {
+        if (kh::isReservedKeyword(token.value.identifier))
+            this->exceptions.emplace_back(U"Was trying to `import` / `include` with a reserved keyword",
+                                          token.index);
+
         path.push_back(token.value.identifier);
         this->ti++;
     }
@@ -180,6 +195,10 @@ kh::AstImport* kh::Parser::parseImport(const bool is_include) {
 
         /* Appends the identifier */
         if (token.type == kh::TokenType::IDENTIFIER) {
+            if (kh::isReservedKeyword(token.value.identifier))
+                this->exceptions.emplace_back(
+                    U"Was trying to `import` / `include` with a reserved keyword", token.index);
+
             path.push_back(token.value.identifier);
             this->ti++;
             GUARD(0);
@@ -201,6 +220,10 @@ kh::AstImport* kh::Parser::parseImport(const bool is_include) {
 
         /* Gets the set namespace identifier */
         if (token.type == kh::TokenType::IDENTIFIER) {
+            if (kh::isReservedKeyword(token.value.identifier))
+                this->exceptions.emplace_back(
+                    U"Could not use a reserved keyword to change the alias of the import", token.index);
+
             identifier = token.value.identifier;
 
             this->ti++;
@@ -452,6 +475,9 @@ kh::AstDeclarationExpression* kh::Parser::parseDeclaration(const bool is_static,
         goto end;
     }
 
+    if (kh::isReservedKeyword(token.value.identifier))
+        this->exceptions.emplace_back(U"Cannot use a reserved keyword as a variable name", token.index);
+
     var_name = token.value.identifier;
     this->ti++;
     GUARD(0);
@@ -491,6 +517,10 @@ kh::AstClass* kh::Parser::parseClass() {
 
     /* Gets the class name */
     if (token.type == kh::TokenType::IDENTIFIER) {
+        if (kh::isReservedKeyword(token.value.identifier))
+            this->exceptions.emplace_back(U"Could not use a reserved keyword for a class name",
+                                          token.index);
+
         name = token.value.identifier;
         this->ti++;
     }
@@ -515,8 +545,13 @@ kh::AstClass* kh::Parser::parseClass() {
             token = this->to();
 
             /* Parses the first generic argument */
-            if (token.type == kh::TokenType::IDENTIFIER)
+            if (token.type == kh::TokenType::IDENTIFIER) {
+                if (kh::isReservedKeyword(token.value.identifier))
+                    this->exceptions.emplace_back(
+                        U"Could not use a reserved keyword as a generic argument name", token.index);
+
                 generic_args.push_back(token.value.identifier);
+            }
             else {
                 this->exceptions.emplace_back(
                     U"Was expecting an identifier after the opening parentheses for the generic "
@@ -535,8 +570,14 @@ kh::AstClass* kh::Parser::parseClass() {
                 GUARD(0);
                 token = this->to();
 
-                if (token.type == kh::TokenType::IDENTIFIER)
+                if (token.type == kh::TokenType::IDENTIFIER) {
+                    if (kh::isReservedKeyword(token.value.identifier))
+                        this->exceptions.emplace_back(
+                            U"Could not use a reserved keyword as a generic argument name",
+                            token.index);
+
                     generic_args.push_back(token.value.identifier);
+                }
                 else {
                     this->exceptions.emplace_back(
                         U"Was expecting an identifier after the comma for the generic "
@@ -562,6 +603,10 @@ kh::AstClass* kh::Parser::parseClass() {
         }
         /* class SomeList!A */
         else if (token.type == kh::TokenType::IDENTIFIER) {
+            if (kh::isReservedKeyword(token.value.identifier))
+                this->exceptions.emplace_back(
+                    U"Could not use a reserved keyword as a generic argument name", token.index);
+
             generic_args.push_back(token.value.identifier);
             this->ti++;
         }
@@ -695,6 +740,10 @@ kh::AstStruct* kh::Parser::parseStruct() {
 
     /* Gets the struct name */
     if (token.type == kh::TokenType::IDENTIFIER) {
+        if (kh::isReservedKeyword(token.value.identifier))
+            this->exceptions.emplace_back(U"Could not use a reserved keyword as a struct name",
+                                          token.index);
+
         name = token.value.identifier;
         this->ti++;
     }
@@ -797,6 +846,10 @@ kh::AstEnum* kh::Parser::parseEnum() {
 
     /* Gets the enum name */
     if (token.type == kh::TokenType::IDENTIFIER) {
+        if (kh::isReservedKeyword(token.value.identifier))
+            this->exceptions.emplace_back(U"Could not use a reserved keyword as an enum name",
+                                          token.index);
+
         name = token.value.identifier;
         this->ti++;
     }
@@ -1435,8 +1488,8 @@ kh::AstExpression* kh::Parser::parseLiteral() {
                 GUARD(0);
                 token = this->to();
 
-                if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier != U"if" &&
-                    token.value.identifier != U"else") {
+                if (token.type == kh::TokenType::IDENTIFIER &&
+                    !kh::isReservedKeyword(token.value.identifier)) {
                     this->ti = _ti;
                     delete expr;
                     expr = this->parseDeclaration(false, true);
@@ -1550,6 +1603,10 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
 
     /* Expects an identifier */
     if (token.type == kh::TokenType::IDENTIFIER) {
+        if (kh::isReservedKeyword(token.value.identifier))
+            this->exceptions.emplace_back(U"Could not use a reserved keyword as an identifier",
+                                          token.index);
+
         identifiers.push_back(token.value.identifier);
         this->ti++;
     }
@@ -1568,8 +1625,13 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
         token = this->to();
 
         /* Appends the identifier */
-        if (token.type == kh::TokenType::IDENTIFIER)
+        if (token.type == kh::TokenType::IDENTIFIER) {
+            if (kh::isReservedKeyword(token.value.identifier))
+                this->exceptions.emplace_back(U"Could not use a reserved keyword as an identifier",
+                                              token.index);
+
             identifiers.push_back(token.value.identifier);
+        }
         else {
             this->exceptions.emplace_back(U"Was expecting an identifier after the dot", token.index);
             goto end;
@@ -1718,6 +1780,11 @@ kh::Parser::parseArrayDimensionList(std::shared_ptr<kh::AstIdentifierExpression>
         }
         else if (token.type == kh::TokenType::INTEGER || token.type == kh::TokenType::UINTEGER) {
             dimension.push_back(token.value.uinteger);
+
+            if (token.type == kh::TokenType::INTEGER && token.value.integer < 0)
+                this->exceptions.emplace_back(U"An array could not have a negative size", token.index);
+            else if (token.value.uinteger == 0)
+                this->exceptions.emplace_back(U"An array could not be zero sized", token.index);
 
             this->ti++;
             GUARD(0);
