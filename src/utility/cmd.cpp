@@ -72,9 +72,18 @@ int kh::run(const std::vector<std::u32string>& args) {
 
     bool error = false;
 
-    /* Opening dictionary bracket of the JSON */
-    if (json)
-        std::cout << "{\"placeholder\":\"placeholder\"";
+    /* Opening dictionary bracket of the JSON plus the argument(s) data */
+    if (json) {
+        std::cout << "{\"arguments\":[";
+
+        for (const std::u32string& arg : args) {
+            kprint(kh::quote(arg));
+            if (&arg != &args.back())
+                std::cout << ',';
+        }
+
+        std::cout << "]";
+    }
 
     /* `kcr -h` */
     if ((help || args.empty()) && !silent)
