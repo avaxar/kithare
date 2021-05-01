@@ -9,3 +9,10 @@
 /deps/SDL-MSVC/
 /deps/SDL-MinGW/
 /dist
+*.o
+*.obj
+*.exe
+*.out
+*.dll
+*.a
+*.lib

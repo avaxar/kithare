@@ -178,6 +178,9 @@ int kh::run(const std::vector<std::u32string>& args) {
                         std::cout << "[";
                         kprint(kh::quote(exc.what));
                         std::cout << "," << exc.index << "]";
+
+                        if (&exc != &lex_exceptions.exceptions.back())
+                            std::cout << ",";
                     }
                     else {
                         std::cerr << "LexException: ";
@@ -198,61 +201,64 @@ int kh::run(const std::vector<std::u32string>& args) {
             error = true;
         }
 
-        /* Tries to parse the tokens */
-        try {
-            ast_tree = kh::parse(tokens);
-        }
-        catch (const kh::ParseExceptions& exc) {
-            if (!silent) {
-                if (json)
-                    std::cout << ",\"parse_exceptions\":[";
+        if (!lex || (lex && ast)) {
+            /* Tries to parse the tokens */
+            try {
+                ast_tree = kh::parse(tokens);
+            }
+            catch (const kh::ParseExceptions& exc) {
+                if (!silent) {
+                    if (json)
+                        std::cout << ",\"parse_exceptions\":[";
 
-                for (const kh::ParseException& ex : exc.exceptions) {
-                    if (json) {
-                        std::cout << "[";
-                        kprint(kh::quote(ex.what));
-                        std::cout << "," << ex.index << "]";
+                    for (const kh::ParseException& ex : exc.exceptions) {
+                        if (json) {
+                            std::cout << "[";
+                            kprint(kh::quote(ex.what));
+                            std::cout << "," << ex.index << "]";
 
-                        if (&ex != &exc.exceptions.back())
-                            std::cout << ",";
+                            if (&ex != &exc.exceptions.back())
+                                std::cout << ",";
+                        }
+                        else {
+                            std::cerr << "ParseException: ";
+                            kprint(ex.what);
+                            std::cerr << " at index ";
+                            kprint((uint64_t)ex.index);
+
+                            size_t column, line;
+                            kh::strIndexPos(source, ex.index, column, line);
+
+                            std::cerr << " of column ";
+                            kprint((uint64_t)column);
+                            std::cerr << " line ";
+                            kprintln((uint64_t)line);
+                        }
                     }
-                    else {
-                        std::cerr << "ParseException: ";
-                        kprint(ex.what);
-                        std::cerr << " at index ";
-                        kprint((uint64_t)ex.index);
 
-                        size_t column, line;
-                        kh::strIndexPos(source, ex.index, column, line);
-
-                        std::cerr << " of column ";
-                        kprint((uint64_t)column);
-                        std::cerr << " line ";
-                        kprintln((uint64_t)line);
-                    }
+                    if (json)
+                        std::cout << "]";
                 }
 
-                if (json)
-                    std::cout << "]";
+                error = true;
             }
 
-            error = true;
-        }
+            /* Prints the AST tree */
+            if (ast && ast_tree) {
+                if (silent)
+                    return 0;
 
-        /* Prints the AST tree */
-        if (ast && ast_tree) {
-            if (silent)
-                return 0;
-
-            if (json) {
-                /* placeholder */
-                std::cout << ",\"ast\":null";
+                if (json) {
+                    /* placeholder */
+                    std::cout << ",\"ast\":null";
+                }
+                else
+                    kprintln(*ast_tree);
             }
-            else
-                kprintln(*ast_tree);
-        }
 
-        delete ast_tree;
+            if (ast_tree)
+                delete ast_tree;
+        }
     }
 
     if (json)
