@@ -51,7 +51,6 @@ bool testLexTokenType() {
     }
 }
 
-/* TODO */
 bool testLexNumeralValue() {
     std::u32string source = U"0 1 2 8 9  "  /* Single digit decimal integers */
                             U"00 10 29U  "  /* Multi-digit + Unsigned */

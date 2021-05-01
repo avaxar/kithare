@@ -930,10 +930,12 @@ std::vector<kh::Token> kh::lex(const std::u32string& source, const bool lex_comm
     if (state != kh::TokenizeState::NONE)
         exceptions.exceptions.emplace_back(U"Got unexpected EOF", source.size());
 
-    if (exc)
-        *exc = exceptions;
-    else
-        throw exceptions;
+    if (!exceptions.exceptions.empty()) {
+        if (exc)
+            *exc = exceptions;
+        else
+            throw exceptions;
+    }
 
     return tokens;
 }
