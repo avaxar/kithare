@@ -1455,12 +1455,14 @@ kh::AstExpression* kh::Parser::parseLiteral() {
 
                 default:
                     this->exceptions.emplace_back(U"Unexpected token for a literal", token.index);
+                    this->ti++;
                     goto end;
             }
             break;
 
         default:
             this->exceptions.emplace_back(U"Unexpected token for a literal", token.index);
+            this->ti++;
             goto end;
     }
 
