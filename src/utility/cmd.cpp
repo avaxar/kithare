@@ -134,6 +134,30 @@ int kh::run(const std::vector<std::u32string>& args) {
         kh::LexExceptions lex_exceptions({});
         tokens = kh::lex(source, true, &lex_exceptions);
 
+        /* Prints the tokens */
+        if (lex && !silent) {
+            if (json) {
+                std::cout << "\"tokens\":";
+                kprint(kh::json(tokens));
+                std::cout << "}";
+
+                if (ast || !lex_exceptions.exceptions.empty())
+                    std::cout << ",";
+            }
+            else {
+                for (const kh::Token& token : tokens) {
+                    std::cout << token.index << ':' << token.length << ' ';
+                    kprintln(token);
+                }
+
+                if (ast)
+                    std::cout << '\n';
+            }
+
+            if (ast && lex_exceptions.exceptions.empty())
+                return 0;
+        }
+
         /* If there's any exceptions from the lexicating process */
         if (!lex_exceptions.exceptions.empty()) {
             if (!silent) {
@@ -166,33 +190,6 @@ int kh::run(const std::vector<std::u32string>& args) {
             }
 
             return 1;
-        }
-
-        /* Prints the tokens */
-        if (lex) {
-            if (silent)
-                return 0;
-
-            if (json) {
-                std::cout << "\"tokens\":";
-                kprint(kh::json(tokens));
-                std::cout << "}";
-
-                if (ast)
-                    std::cout << ",";
-            }
-            else {
-                for (const kh::Token& token : tokens) {
-                    std::cout << token.index << ':' << token.length << ' ';
-                    kprintln(token);
-                }
-
-                if (ast)
-                    std::cout << '\n';
-            }
-
-            if (!ast)
-                return 0;
         }
 
         /* Tries to parse the tokens */
