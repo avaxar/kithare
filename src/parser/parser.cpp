@@ -963,7 +963,7 @@ end:
     return new kh::AstEnum(index, name, members, values);
 }
 
-std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {
+std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break_continue_allowed) {
     std::vector<std::shared_ptr<kh::AstBody>> body;
     kh::Token token = this->to();
 
@@ -1006,7 +1006,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {
                         GUARD(0);
                         conditions.emplace_back(this->parseExpression());
                         GUARD(0);
-                        bodies.emplace_back(this->parseBody());
+                        bodies.emplace_back(this->parseBody(break_continue_allowed));
                         GUARD(0);
                         token = this->to();
 
@@ -1018,7 +1018,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {
                     if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"else") {
                         this->ti++;
                         GUARD(0);
-                        else_body = this->parseBody();
+                        else_body = this->parseBody(break_continue_allowed);
                     }
 
                     body.emplace_back(new kh::AstIf(index, conditions, bodies, else_body));
@@ -1030,7 +1030,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {
 
                     /* Parses the expression and body */
                     std::shared_ptr<kh::AstExpression> condition(this->parseExpression());
-                    std::vector<std::shared_ptr<kh::AstBody>> while_body = this->parseBody();
+                    std::vector<std::shared_ptr<kh::AstBody>> while_body = this->parseBody(true);
 
                     body.emplace_back(new kh::AstWhile(index, condition, while_body));
                 }
@@ -1040,7 +1040,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {
                     GUARD(0);
 
                     /* Parses the body */
-                    std::vector<std::shared_ptr<kh::AstBody>> do_while_body = this->parseBody();
+                    std::vector<std::shared_ptr<kh::AstBody>> do_while_body = this->parseBody(true);
                     std::shared_ptr<kh::AstExpression> condition;
 
                     GUARD(0);
@@ -1114,7 +1114,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {
 
                     /* Parses the iterator expression and for body */
                     iterator.reset(this->parseExpression());
-                    for_body = this->parseBody();
+                    for_body = this->parseBody(true);
 
                     body.emplace_back(new kh::AstFor(index, targets, iterator, for_body));
                 }
@@ -1122,6 +1122,11 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {
                 else if (token.value.identifier == U"continue") {
                     this->ti++;
                     GUARD(0);
+
+                    if (!break_continue_allowed)
+                        exceptions.emplace_back(
+                            U"`continue` cannot be used outside of `while` or `for` loops",
+                            token.index);
 
                     /* Placeholder expression */
                     std::shared_ptr<kh::AstExpression> expression((kh::AstExpression*)nullptr);
@@ -1142,6 +1147,10 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody() {
                 else if (token.value.identifier == U"break") {
                     this->ti++;
                     GUARD(0);
+
+                    if (!break_continue_allowed)
+                        exceptions.emplace_back(
+                            U"`break` cannot be used outside of `while` or `for` loops", token.index);
 
                     /* Placeholder expression */
                     std::shared_ptr<kh::AstExpression> expression((kh::AstExpression*)nullptr);

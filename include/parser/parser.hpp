@@ -64,7 +64,7 @@ namespace kh {
         kh::AstStruct* parseStruct();
         kh::AstEnum* parseEnum();
 
-        std::vector<std::shared_ptr<kh::AstBody>> parseBody();
+        std::vector<std::shared_ptr<kh::AstBody>> parseBody(const bool break_continue_allowed = false);
 
         /* These parse expressions below are ordered based from their precedence from lowest to
          * highest */
