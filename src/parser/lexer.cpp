@@ -63,6 +63,7 @@
     _HANDLE_ESCAPE_1('t', '\t', _val, _valc, _len)  \
     _HANDLE_ESCAPE_1('v', '\v', _val, _valc, _len)  \
     _HANDLE_ESCAPE_1('b', '\b', _val, _valc, _len)  \
+    _HANDLE_ESCAPE_1('a', '\a', _val, _valc, _len)  \
     _HANDLE_ESCAPE_1('f', '\f', _val, _valc, _len)  \
     _HANDLE_ESCAPE_1('\\', '\\', _val, _valc, _len) \
     _HANDLE_ESCAPE_1('"', '\"', _val, _valc, _len)  \
@@ -79,6 +80,7 @@
     _HANDLE_ESCAPE('t', '\t', value, 1, code)  \
     _HANDLE_ESCAPE('v', '\v', value, 1, code)  \
     _HANDLE_ESCAPE('b', '\b', value, 1, code)  \
+    _HANDLE_ESCAPE('a', '\a', value, 1, code)  \
     _HANDLE_ESCAPE('f', '\f', value, 1, code)  \
     _HANDLE_ESCAPE('\\', '\\', value, 1, code) \
     _HANDLE_ESCAPE('"', '\"', value, 1, code)  \
