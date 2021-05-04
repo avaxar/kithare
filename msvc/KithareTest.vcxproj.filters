@@ -72,6 +72,18 @@
     <ClCompile Include="..\src\parser\json.cpp">
       <Filter>src\parser</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\parser\repr.cpp">
+      <Filter>src\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\compiler\ctranspiler.cpp">
+      <Filter>src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\compiler\repr.cpp">
+      <Filter>src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\compiler\semanticizer.cpp">
+      <Filter>src\compiler</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\test.hpp">

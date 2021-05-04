@@ -4,7 +4,7 @@
  * Copyright (C) 2021 Kithare Organization
  *
  * include/compiler/nast.hpp
- * Declares non-abstract syntax tree types 
+ * Declares non-abstract syntax tree node types
  * (Compiler's second stage AST. Just can't think of a better name -.-).
  */
 
@@ -14,5 +14,21 @@
 
 
 namespace kh {
-    
+    /*
+    class Nast;
+    class NastModule;
+
+    class NastFunctionTemplate;
+    class NastFunction;
+
+    class NastType;
+    class NastClassTemplate;
+    class NastClass;
+    class NastStruct;
+    class NastEnum;
+    class NastBuiltinType;
+
+    class NastExpression;
+    class Nast
+    */
 }

@@ -12,9 +12,11 @@
 #include "utility/cmd.hpp"
 #include "utility/file.hpp"
 
+#include "parser/ast.hpp"
 #include "parser/json.hpp"
 #include "parser/lexer.hpp"
 #include "parser/parser.hpp"
+#include "parser/repr.hpp"
 
 #include "info.hpp"
 

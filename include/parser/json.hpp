@@ -16,5 +16,10 @@
 
 
 namespace kh {
+    /// <summary>
+    /// Generates a JSON list of a list (std::vector) of `kh::Token`s
+    /// </summary>
+    /// <param name="tokens">Tokens</param>
+    /// <returns></returns>
     std::u32string json(const std::vector<kh::Token>& tokens);
 }

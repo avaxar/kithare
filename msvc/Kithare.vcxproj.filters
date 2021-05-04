@@ -40,6 +40,18 @@
     <ClCompile Include="..\src\parser\json.cpp">
       <Filter>src\parser</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\parser\repr.cpp">
+      <Filter>src\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\compiler\ctranspiler.cpp">
+      <Filter>src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\compiler\repr.cpp">
+      <Filter>src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\compiler\semanticizer.cpp">
+      <Filter>src\compiler</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SolutionDir)..\include\info.hpp">
@@ -80,6 +92,18 @@
     </ClInclude>
     <ClInclude Include="..\include\parser\json.hpp">
       <Filter>include\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\parser\repr.hpp">
+      <Filter>include\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\compiler\ctranspiler.hpp">
+      <Filter>include\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\compiler\repr.hpp">
+      <Filter>include\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\compiler\semanticizer.hpp">
+      <Filter>include\compiler</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

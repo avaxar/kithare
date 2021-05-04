@@ -15,51 +15,53 @@
 #define aligned_alloc _aligned_malloc
 #endif
 
+#define ALIGNMENT 256
+
 
 kh::VM::VM(const size_t mem_size) {
-    this->vmem = (uint8_t*)aligned_alloc(mem_size, sizeof(size_t));
-    this->vmemsize = mem_size;
+    this->origin_block = (kh::Block*)aligned_alloc(mem_size, ALIGNMENT);
+    this->free_block = this->origin_block;
+    this->last_block = this->origin_block;
+    this->mem_size = mem_size;
 
-    if (!this->vmem)
-        throw kh::VMException(U"Unable to allocate virtual memory");
-}
-
-kh::VM::VM(const kh::VM& copy) {
-    this->vmem = (uint8_t*)aligned_alloc(copy.vmemsize, sizeof(size_t));
-    this->vmemsize = copy.vmemsize;
-
-    if (this->vmem)
-        memcpy(this->vmem, copy.vmem, copy.vmemsize);
-    else
+    if (!this->origin_block)
         throw kh::VMException(U"Unable to allocate virtual memory");
 }
 
 kh::VM::~VM() {
-    if (this->vmem)
-        std::free(this->vmem);
+    if (this->origin_block)
+        std::free(this->origin_block);
 }
 
-void kh::VM::resizeMem(const size_t mem_size) {
+void kh::VM::resizeMemory(const size_t size) {
 #ifdef _WIN32
-    uint8_t* resized_mem = this->vmem ? (uint8_t*)_aligned_realloc(this->vmem, mem_size, sizeof(size_t))
-                                      : (uint8_t*)aligned_alloc(mem_size, sizeof(size_t));
+    kh::Block* resized_mem = this->origin_block
+                                 ? (kh::Block*)_aligned_realloc(this->origin_block, size, ALIGNMENT)
+                                 : (kh::Block*)aligned_alloc(size, ALIGNMENT);
 #else
-    uint8_t* resized_mem = (uint8_t*)aligned_alloc(mem_size, sizeof(size_t));
+    kh::Block* resized_mem = (kh::Block*)aligned_alloc(mem_size, ALIGNMENT);
 #endif
 
+    /*
     if (!resized_mem)
         throw kh::VMException(U"Unable to resize virtual memory");
 
-    if (this->vmem)
-        memcpy(resized_mem, this->vmem, this->vmemsize);
+    if (this->origin_block)
+        memcpy(resized_mem, this->origin_block, this->mem_size);
 
-    this->vmem = resized_mem;
+    this->mem_size = size;
+    this->origin_block = resized_mem;
+    
+    if (this->last_block) {
+        
+    }
+    else
+        this->last_block = resized_mem;
+    */
 }
 
 uint64_t kh::VM::malloc(const uint64_t size) {
     return 0; /* Placeholder */
 }
 
-void kh::VM::free(const uint64_t addr) {
-
-}
+void kh::VM::free(const uint64_t addr) {}

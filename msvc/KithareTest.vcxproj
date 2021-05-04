@@ -19,11 +19,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\compiler\ctranspiler.cpp" />
     <ClCompile Include="..\src\compiler\nast.cpp" />
+    <ClCompile Include="..\src\compiler\repr.cpp" />
+    <ClCompile Include="..\src\compiler\semanticizer.cpp" />
     <ClCompile Include="..\src\parser\ast.cpp" />
     <ClCompile Include="..\src\parser\json.cpp" />
     <ClCompile Include="..\src\parser\lexer.cpp" />
     <ClCompile Include="..\src\parser\parser.cpp" />
+    <ClCompile Include="..\src\parser\repr.cpp" />
     <ClCompile Include="..\src\parser\token.cpp" />
     <ClCompile Include="..\src\runtime\bytecode.cpp" />
     <ClCompile Include="..\src\runtime\instruction.cpp" />

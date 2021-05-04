@@ -29,20 +29,23 @@ namespace kh {
     class VM {
     public:
         VM(const size_t mem_size);
-        VM(const kh::VM& copy);
         ~VM();
 
-        void resizeMem(const size_t mem_size);
-        inline size_t memSize() const {
-            return this->vmemsize;
+        void resizeMemory(const size_t size);
+        inline size_t memory() const {
+            return this->mem_size;
         }
 
         uint64_t malloc(const uint64_t size);
         void free(const uint64_t addr);
 
     private:
-        Block* origin;
-        size_t vmemsize;
-        uint8_t* vmem;
+        /* Unable to be copied */
+        VM(const kh::VM& copy) {}
+
+        kh::Block* origin_block = nullptr;
+        kh::Block* free_block = nullptr;
+        kh::Block* last_block = nullptr;
+        size_t mem_size;
     };
 }
