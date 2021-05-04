@@ -51,9 +51,9 @@ void kh::VM::resizeMemory(const size_t size) {
 
     this->mem_size = size;
     this->origin_block = resized_mem;
-    
+
     if (this->last_block) {
-        
+
     }
     else
         this->last_block = resized_mem;
