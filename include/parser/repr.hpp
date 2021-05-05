@@ -11,6 +11,7 @@
 
 #include <string>
 
+#include "utility/string.hpp"
 #include "parser/ast.hpp"
 
 

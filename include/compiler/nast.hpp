@@ -14,21 +14,5 @@
 
 
 namespace kh {
-    /*
-    class Nast;
-    class NastModule;
 
-    class NastFunctionTemplate;
-    class NastFunction;
-
-    class NastType;
-    class NastClassTemplate;
-    class NastClass;
-    class NastStruct;
-    class NastEnum;
-    class NastBuiltinType;
-
-    class NastExpression;
-    class Nast
-    */
 }

@@ -8,6 +8,7 @@
  */
 
 #include <cwctype>
+#include <memory>
 
 #include "utility/cmd.hpp"
 #include "utility/file.hpp"
@@ -117,7 +118,7 @@ int kh::run(const std::vector<std::u32string>& args) {
     if (excess_args.size() > 0) {
         std::u32string source;
         std::vector<kh::Token> tokens;
-        kh::Ast* ast_tree = nullptr;
+        std::shared_ptr<kh::Ast> ast_tree;
 
         /* Tries to open the file and read its content in UTF-8 */
         try {
@@ -215,7 +216,7 @@ int kh::run(const std::vector<std::u32string>& args) {
         if (!lex || (lex && ast)) {
             /* Tries to parse the tokens */
             try {
-                ast_tree = kh::parse(tokens);
+                ast_tree.reset(kh::parse(tokens));
             }
             catch (const kh::ParseExceptions& exc) {
                 if (!silent) {
@@ -266,9 +267,6 @@ int kh::run(const std::vector<std::u32string>& args) {
                 else
                     kprintln(*ast_tree);
             }
-
-            if (ast_tree)
-                delete ast_tree;
         }
     }
 

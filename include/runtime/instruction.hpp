@@ -4,7 +4,7 @@
  * Copyright (C) 2021 Kithare Organization
  *
  * include/runtime/instruction.hpp
- * Declares VM instruction codes/types and its overloads.
+ * Declares VM instruction codes/types and its kh::repr overloads.
  */
 
 #pragma once
