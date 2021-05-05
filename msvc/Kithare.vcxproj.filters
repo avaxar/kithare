@@ -46,9 +46,6 @@
     <ClCompile Include="..\src\compiler\ctranspiler.cpp">
       <Filter>src\compiler</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\compiler\repr.cpp">
-      <Filter>src\compiler</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\compiler\semanticizer.cpp">
       <Filter>src\compiler</Filter>
     </ClCompile>
@@ -97,9 +94,6 @@
       <Filter>include\parser</Filter>
     </ClInclude>
     <ClInclude Include="..\include\compiler\ctranspiler.hpp">
-      <Filter>include\compiler</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\compiler\repr.hpp">
       <Filter>include\compiler</Filter>
     </ClInclude>
     <ClInclude Include="..\include\compiler\semanticizer.hpp">

@@ -78,9 +78,6 @@
     <ClCompile Include="..\src\compiler\ctranspiler.cpp">
       <Filter>src\compiler</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\compiler\repr.cpp">
-      <Filter>src\compiler</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\compiler\semanticizer.cpp">
       <Filter>src\compiler</Filter>
     </ClCompile>
