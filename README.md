@@ -46,7 +46,7 @@ to Kithare. If any *unclean* code is opened up in a PR, that PR will be waited f
 
 ### Naming convention
 - `snake_case` for variable, namespace, file, and folder names.
-- `SCREAMING_SNAKE_CASE` for constants, enum members, and macros (An exception for `khPrint` and `khPrintln` as they are intended to be like functions).
+- `SCREAMING_SNAKE_CASE` for constants, enum members, and macros (An exception for `kprint` and `kprintln` as they are intended to be like functions).
 - `camelCase` (Or some call `lowerCamelCase`) for function, method, and label names.
 - `PascalCase` for classes, structs, and enums.
 
