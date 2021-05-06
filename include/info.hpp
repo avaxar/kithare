@@ -17,23 +17,23 @@
 
 #define KH_VERSION_STR "v0.0.1rc1"
 
-#ifdef _MSC_VER
+#if   defined(_MSC_VER)
 #define KH_COMPILER "MSVC"
-#elif __MINGW64__
+#elif defined(__MINGW64__)
 #define KH_COMPILER "MinGW-x64"
-#elif __MINGW32__
+#elif defined(__MINGW32__)
 #define KH_COMPILER "MinGW"
-#elif __GNUC__
+#elif defined(__GNUC__)
 #define KH_COMPILER "GCC"
 #else
 #define KH_COMPILER "Unknown"
 #endif
 
-#ifdef _WIN32
+#if   defined(_WIN32)
 #define KH_OS "Windows"
-#elif __APPLE__
+#elif defined(__APPLE__)
 #define KH_OS "Mac OS"
-#elif __linux__
+#elif defined(__linux__)
 #define KH_OS "Linux"
 #else
 #define KH_OS "Unknown"
