@@ -21,7 +21,7 @@ std::u32string kh::repr(const kh::Ast& module_ast, const size_t indent) {
     for (size_t i = 0; i < indent; i++)
         ind += '\t';
 
-    std::u32string str = U"AST:";
+    std::u32string str = U"ast:";
 
     REPR_ALL_IN(module_ast.imports);
     REPR_ALL_IN(module_ast.functions);
@@ -38,14 +38,14 @@ std::u32string kh::repr(const kh::AstImport& import_ast, const size_t indent) {
     for (size_t i = 0; i < indent; i++)
         ind += '\t';
 
-    std::u32string str = import_ast.is_include ? U"INCLUDE:" : U"IMPORT:";
+    std::u32string str = import_ast.is_include ? U"include:" : U"import:";
 
-    str += U"\n\t" + ind + U"PATH:";
+    str += U"\n\t" + ind + U"path: ";
     for (const std::u32string& dir : import_ast.path)
-        str += U"\n\t\t" + ind + dir;
+        str += dir + (&dir == &import_ast.path.back() ? U"" : U".");
 
     if (!import_ast.is_include)
-        str += U"\n\t" + ind + U"IDENTIFIER: " + import_ast.identifier;
+        str += U"\n\t" + ind + U"identifier: " + import_ast.identifier;
 
     return str;
 }
@@ -56,24 +56,24 @@ std::u32string kh::repr(const kh::AstClass& class_ast, const size_t indent) {
     for (size_t i = 0; i < indent; i++)
         ind += '\t';
 
-    std::u32string str = U"CLASS:";
-    str += U"\n\t" + ind + U"NAME: " + class_ast.name;
+    std::u32string str = U"class:";
+    str += U"\n\t" + ind + U"name: " + class_ast.name;
 
     if (class_ast.base)
-        str += U"\n\t" + ind + U"BASE:\n\t\t" + ind + kh::repr(*class_ast.base, indent + 2);
+        str += U"\n\t" + ind + U"base: " + kh::repr(*class_ast.base, indent + 2);
 
     if (!class_ast.generic_args.empty()) {
-        str += U"\n\t" + ind + U"GENERICS:";
+        str += U"\n\t" + ind + U"generic argument(s): ";
         for (const std::u32string& generic_ : class_ast.generic_args)
-            str += U"\n\t\t" + ind + generic_;
+            str += generic_ + (&generic_ == &class_ast.generic_args.back() ? U"" : U", ");
     }
 
-    str += U"\n\t" + ind + U"MEMBERS:";
+    str += U"\n\t" + ind + U"member(s):";
 
     for (auto member : class_ast.members)
         str += U"\n\t\t" + ind + kh::repr(*member, indent + 2);
 
-    str += U"\n\t" + ind + U"METHODS:";
+    str += U"\n\t" + ind + U"method(s):";
     for (auto method : class_ast.methods)
         str += U"\n\t\t" + ind + kh::repr(*method, indent + 2);
 
@@ -86,13 +86,13 @@ std::u32string kh::repr(const kh::AstStruct& struct_ast, const size_t indent) {
     for (size_t i = 0; i < indent; i++)
         ind += '\t';
 
-    std::u32string str = U"STRUCT:";
-    str += U"\n\t" + ind + U"NAME: " + struct_ast.name;
+    std::u32string str = U"struct:";
+    str += U"\n\t" + ind + U"name: " + struct_ast.name;
 
     if (struct_ast.base)
-        str += U"\n\t" + ind + U"BASE:\n\t\t" + ind + kh::repr(*struct_ast.base, indent + 3);
+        str += U"\n\t" + ind + U"base: " + kh::repr(*struct_ast.base, indent + 2);
 
-    str += U"\n\t" + ind + U"MEMBERS:";
+    str += U"\n\t" + ind + U"member(s):";
     for (auto member : struct_ast.members)
         str += U"\n\t\t" + ind + kh::repr(*member, indent + 2);
 
@@ -105,10 +105,10 @@ std::u32string kh::repr(const kh::AstEnum& enum_ast, const size_t indent) {
     for (size_t i = 0; i < indent; i++)
         ind += '\t';
 
-    std::u32string str = U"ENUM:";
-    str += U"\n\t" + ind + U"NAME: " + enum_ast.name;
+    std::u32string str = U"enum:";
+    str += U"\n\t" + ind + U"name: " + enum_ast.name;
 
-    str += U"\n\t" + ind + U"MEMBERS:";
+    str += U"\n\t" + ind + U"member(s):";
     for (size_t member = 0; member < enum_ast.members.size(); member++)
         str += U"\n\t\t" + ind + enum_ast.members[member] + U": " + kh::repr(enum_ast.values[member]);
 
@@ -131,17 +131,17 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
 
         case kh::AstBody::Type::IF: {
             const kh::AstIf& ast_if = *(kh::AstIf*)&ast;
-            str += U"IF:";
+            str += U"if:";
 
             for (size_t clause = 0; clause < ast_if.conditions.size(); clause++) {
-                str += U"\n\t" + ind + U"IF CLAUSE:";
+                str += U"\n\t" + ind + U"if clause:";
 
                 if (ast_if.conditions[clause])
-                    str += U"\n\t\t" + ind + U"CONDITION:\n\t\t\t" + ind +
+                    str += U"\n\t\t" + ind + U"condition:\n\t\t\t" + ind +
                            kh::repr(*ast_if.conditions[clause], indent + 3);
 
                 if (!ast_if.bodies[clause].empty()) {
-                    str += U"\n\t\t" + ind + U"BODY:";
+                    str += U"\n\t\t" + ind + U"body:";
                     for (auto part : ast_if.bodies[clause])
                         if (part)
                             str += U"\n\t\t" + ind + kh::repr(*part, indent + 3);
@@ -149,7 +149,7 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
             }
 
             if (!ast_if.else_body.empty()) {
-                str += U"\n\t" + ind + U"ELSE CLAUSE:";
+                str += U"\n\t" + ind + U"else body:";
                 for (auto part : ast_if.else_body)
                     if (part)
                         str += U"\n\t\t" + ind + kh::repr(*part, indent + 2);
@@ -160,15 +160,15 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
 
         case kh::AstBody::Type::WHILE: {
             const kh::AstWhile& ast_while = *(kh::AstWhile*)&ast;
-            str += U"WHILE:";
+            str += U"while:";
 
             if (ast_while.condition) {
-                str += U"\n\t" + ind + U"CONDITION:\n\t\t" + ind +
+                str += U"\n\t" + ind + U"condition:\n\t\t" + ind +
                        kh::repr(*ast_while.condition, indent + 2);
             }
 
             if (!ast_while.body.empty()) {
-                str += U"\n\t" + ind + U"BODY:";
+                str += U"\n\t" + ind + U"body:";
                 for (auto part : ast_while.body)
                     if (part)
                         str += U"\n\t\t" + ind + kh::repr(*part, indent + 2);
@@ -179,14 +179,14 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
 
         case kh::AstBody::Type::DO_WHILE: {
             const kh::AstDoWhile& ast_do_while = *(kh::AstDoWhile*)&ast;
-            str += U"DO WHILE:";
+            str += U"do while:";
 
             if (ast_do_while.condition)
                 str +=
-                    U"\n\t" + ind + U"CONDITION:\n\t\t" + kh::repr(*ast_do_while.condition, indent + 2);
+                    U"\n\t" + ind + U"condition:\n\t\t" + kh::repr(*ast_do_while.condition, indent + 2);
 
             if (!ast_do_while.body.empty()) {
-                str += U"\n\t" + ind + U"BODY:";
+                str += U"\n\t" + ind + U"body:";
                 for (auto part : ast_do_while.body)
                     if (part)
                         str += U"\n\t\t" + ind + kh::repr(*part, indent + 2);
@@ -197,20 +197,20 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
 
         case kh::AstBody::Type::FOR: {
             const kh::AstFor& ast_for = *(kh::AstFor*)&ast;
-            str += U"FOR:";
+            str += U"for:";
 
             if (!ast_for.targets.empty()) {
-                str += U"\n\t" + ind + U"TARGETS:";
+                str += U"\n\t" + ind + U"target(s):";
                 for (auto target : ast_for.targets)
                     if (target)
                         str += U"\n\t\t" + ind + kh::repr(*target, indent + 2);
             }
 
             if (ast_for.iterator)
-                str += U"\n\t" + ind + kh::repr(*ast_for.iterator, indent + 1);
+                str += U"\n\t" + ind + U"iterator:\n\t\t" + ind + kh::repr(*ast_for.iterator, indent + 2);
 
             if (!ast_for.body.empty()) {
-                str += U"\n\t" + ind + U"BODY:";
+                str += U"\n\t" + ind + U"body:";
                 for (auto part : ast_for.body)
                     if (part)
                         str += U"\n\t\t" + ind + kh::repr(*part, indent + 2);
@@ -221,33 +221,31 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
 
         case kh::AstBody::Type::STATEMENT: {
             const kh::AstStatement& ast_statement = *(kh::AstStatement*)&ast;
-            str += U"STATEMENT:";
+            str += U"statement: ";
 
-            str += U"\n\t" + ind + U"TYPE: ";
             switch (ast_statement.statement_type) {
                 case kh::AstStatement::Type::CONTINUE:
-                    str += U"CONTINUE";
+                    str += U"continue";
                     break;
                 case kh::AstStatement::Type::BREAK:
-                    str += U"BREAK";
+                    str += U"break";
                     break;
                 case kh::AstStatement::Type::RETURN:
-                    str += U"RETURN";
+                    str += U"return";
                     break;
                 default:
-                    str += U"UNKNOWN";
+                    str += U"unknown";
                     break;
             }
 
             if (ast_statement.expression)
-                str += U"\n\t" + ind + U"EXPRESSION:\n\t\t" + ind +
-                       kh::repr(*ast_statement.expression, indent + 2);
+                str += U"\n\t" + ind + kh::repr(*ast_statement.expression, indent + 1);
 
             break;
         }
 
         default:
-            str += U"[UNKNOWN BODY]";
+            str += U"[unknown body]";
     }
 
     return str;
@@ -264,33 +262,27 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
     switch (expr.expression_type) {
         case kh::AstExpression::ExType::IDENTIFIER: {
             const kh::AstIdentifierExpression& expr_id = *(kh::AstIdentifierExpression*)&expr;
-            str += U"IDENTIFIER EXPR:";
-
-            if (!expr_id.identifiers.empty()) {
-                str += U"\n\t" + ind + U"IDENTIFIERS:";
-                for (const std::u32string& identifier : expr_id.identifiers)
-                    str += U"\n\t\t" + ind + identifier;
-            }
+            
+            for (const std::u32string& identifier : expr_id.identifiers)
+                str += identifier + (&identifier == &expr_id.identifiers.back() ? U"" : U".");
 
             if (!expr_id.generics.empty()) {
-                str += U"\n\t" + ind + U"GENERICS:";
-                for (size_t generic_ = 0; generic_ < expr_id.generics.size(); generic_++)
-                    if (expr_id.generics[generic_]) {
-                        if (expr_id.generics_array[generic_].size() &&
-                            expr_id.generics_array[generic_][0] != 0) {
-                            str += U"\n\t\t" + ind + U'[';
+                str += U"!(";
+                for (size_t i = 0; i < expr_id.generics.size(); i++) {
+                    if (!expr_id.generics[i])
+                        continue;
 
-                            for (const uint64_t dimension : expr_id.generics_array[generic_])
-                                str += kh::repr(dimension) + U", ";
+                    str += kh::repr(*expr_id.generics[i], indent);
 
-                            str.pop_back();
-                            str.pop_back();
-
-                            str += U']';
-                        }
-
-                        str += U"\n\t\t" + ind + kh::repr(*expr_id.generics[generic_], indent + 2);
+                    if (expr_id.generics_array[i].size() && expr_id.generics_array[i][0] != 0) {
+                        for (size_t d = 0; d < expr_id.generics_array[i].size(); d++)
+                            str += U"[" + kh::repr(expr_id.generics_array[i][d]) + U"]";
                     }
+
+                    if (i != expr_id.generics.size() - 1)
+                        str += U", ";
+                }
+                str += U")";
             }
 
             break;
@@ -298,45 +290,45 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
 
         case kh::AstExpression::ExType::UNARY: {
             const kh::AstUnaryExpression& expr_unary = *(kh::AstUnaryExpression*)&expr;
-            str += U"UNARY EXPR:";
+            str += U"unary expression:";
 
-            str += U"\n\t" + ind + U"OPERATOR: " + kh::repr(expr_unary.operation);
+            str += U"\n\t" + ind + U"operator: " + kh::repr(expr_unary.operation);
 
             if (expr_unary.rvalue)
                 str +=
-                    U"\n\t" + ind + U"RVALUE:\n\t\t" + ind + kh::repr(*expr_unary.rvalue, indent + 2);
+                    U"\n\t" + ind + U"rvalue:\n\t\t" + ind + kh::repr(*expr_unary.rvalue, indent + 2);
 
             break;
         }
 
         case kh::AstExpression::ExType::BINARY: {
             const kh::AstBinaryExpression& expr_binary = *(kh::AstBinaryExpression*)&expr;
-            str += U"BINARY EXPR:";
+            str += U"binary expression:";
 
-            str += U"\n\t" + ind + U"OPERATOR: " + kh::repr(expr_binary.operation);
+            str += U"\n\t" + ind + U"operator: " + kh::repr(expr_binary.operation);
 
             if (expr_binary.lvalue)
                 str +=
-                    U"\n\t" + ind + U"LVALUE:\n\t\t" + ind + kh::repr(*expr_binary.lvalue, indent + 2);
+                    U"\n\t" + ind + U"lvalue:\n\t\t" + ind + kh::repr(*expr_binary.lvalue, indent + 2);
             if (expr_binary.rvalue)
                 str +=
-                    U"\n\t" + ind + U"RVALUE:\n\t\t" + ind + kh::repr(*expr_binary.rvalue, indent + 2);
+                    U"\n\t" + ind + U"rvalue:\n\t\t" + ind + kh::repr(*expr_binary.rvalue, indent + 2);
 
             break;
         }
 
         case kh::AstExpression::ExType::TERNARY: {
             const kh::AstTernaryExpression& expr_ternary = *(kh::AstTernaryExpression*)&expr;
-            str += U"TERNARY EXPR:";
+            str += U"ternary expression:";
 
             if (expr_ternary.condition)
-                str += U"\n\t" + ind + U"CONDITION:\n\t\t" + ind +
+                str += U"\n\t" + ind + U"condition:\n\t\t" + ind +
                        kh::repr(*expr_ternary.condition, indent + 2);
             if (expr_ternary.value)
                 str +=
-                    U"\n\t" + ind + U"VALUE:\n\t\t" + ind + kh::repr(*expr_ternary.value, indent + 2);
+                    U"\n\t" + ind + U"value:\n\t\t" + ind + kh::repr(*expr_ternary.value, indent + 2);
             if (expr_ternary.otherwise)
-                str += U"\n\t" + ind + U"OTHERWISE:\n\t\t" + ind +
+                str += U"\n\t" + ind + U"otherwise:\n\t\t" + ind +
                        kh::repr(*expr_ternary.otherwise, indent + 2);
 
             break;
@@ -344,29 +336,32 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
 
         case kh::AstExpression::ExType::SUBSCRIPT: {
             const kh::AstSubscriptExpression& expr_subscript = *(kh::AstSubscriptExpression*)&expr;
-            str += U"SUBSCRIPT:";
+            str += U"subscript:";
 
             if (expr_subscript.expression)
-                str += U"\n\t" + ind + U"EXPRESSION:\n\t\t" + ind +
+                str += U"\n\t" + ind + U"expression:\n\t\t" + ind +
                        kh::repr(*expr_subscript.expression, indent + 2);
 
-            for (auto argument : expr_subscript.arguments)
-                if (argument)
-                    str += U"\n\t" + ind + U"ARGUMENT:\n\t\t" + ind + kh::repr(*argument, indent + 2);
+            if (!expr_subscript.arguments.empty()) {
+                str += U"\n\t" + ind + U"argument(s):";
+                for (auto argument : expr_subscript.arguments)
+                    if (argument)
+                        str += U"\n\t\t" + ind + kh::repr(*argument, indent + 2);
+            }
 
             break;
         }
 
         case kh::AstExpression::ExType::CALL: {
             const kh::AstCallExpression& expr_call = *(kh::AstCallExpression*)&expr;
-            str += U"CALL:";
+            str += U"call:";
 
             if (expr_call.expression)
-                str += U"\n\t" + ind + U"EXPRESSION:\n\t\t" + ind +
+                str += U"\n\t" + ind + U"expression:\n\t\t" + ind +
                        kh::repr(*expr_call.expression, indent + 2);
 
             if (!expr_call.arguments.empty()) {
-                str += U"\n\t" + ind + U"ARGUMENTS:";
+                str += U"\n\t" + ind + U"argument(s):";
                 for (auto argument : expr_call.arguments)
                     if (argument)
                         str += U"\n\t\t" + ind + kh::repr(*argument, indent + 2);
@@ -377,32 +372,31 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
 
         case kh::AstExpression::ExType::DECLARE: {
             const kh::AstDeclarationExpression& expr_declare = *(kh::AstDeclarationExpression*)&expr;
-            str += U"DECLARE:";
+            str += U"declare:";
 
-            if (expr_declare.var_array.size() && expr_declare.var_array[0] != 0) {
-                str += U"\n\t" + ind + U'[';
+            if (expr_declare.var_type) {
+                str += U"\n\t" + ind + U"type: ";
+                
+                if (expr_declare.is_static)
+                    str += U"static ";
+                if (!expr_declare.is_public)
+                    str += U"private ";
 
-                for (const uint64_t dimension : expr_declare.var_array)
-                    str += kh::repr(dimension) += U", ";
+                for (size_t refs = 0; refs < expr_declare.ref_depth; refs++)
+                    str += U"ref ";
+                str += kh::repr(*expr_declare.var_type, indent + 1);
 
-                str.pop_back();
-                str.pop_back();
-                str += U']';
+                if (expr_declare.var_array.size() && expr_declare.var_array[0] != 0) {
+                    for (const uint64_t dimension : expr_declare.var_array)
+                        str += U'[' + kh::repr(dimension) + U']';
+                }
             }
 
-            if (expr_declare.var_type)
-                str +=
-                    U"\n\t" + ind + U"TYPE:\n\t\t" + ind + kh::repr(*expr_declare.var_type, indent + 2);
-
-            str += U"\n\t" + ind + U"NAME: " + expr_declare.var_name;
+            str += U"\n\t" + ind + U"name: " + expr_declare.var_name;
 
             if (expr_declare.expression)
-                str += U"\n\t" + ind + U"EXPRESSION:\n\t\t" + ind +
+                str += U"\n\t" + ind + U"initializer expression:\n\t\t" + ind +
                        kh::repr(*expr_declare.expression, indent + 2);
-
-            str += U"\n\t" + ind + U"REF DEPTH: " + kh::repr((uint64_t)expr_declare.ref_depth);
-            str += U"\n\t" + ind + U"STATIC: " + (expr_declare.is_static ? U"STATIC" : U"NON-STATIC");
-            str += U"\n\t" + ind + U"ACCESS: " + (expr_declare.is_public ? U"PUBLIC" : U"PRIVATE");
 
             break;
         }
@@ -410,50 +404,46 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
         case kh::AstExpression::ExType::FUNCTION: {
             const kh::AstFunctionExpression& expr_func = *(kh::AstFunctionExpression*)&expr;
 
-            str += U"FUNCTION:";
+            str += U"function:";
 
-            str += U"\n\t" + ind + U"STATIC: " + (expr_func.is_static ? U"STATIC" : U"NON-STATIC");
-            str += U"\n\t" + ind + U"ACCESS: " + (expr_func.is_public ? U"PUBLIC" : U"PRIVATE");
+            str += U"\n\t" + ind + U"static: " + (expr_func.is_static ? U"true" : U"false");
+            str += U"\n\t" + ind + U"access: " + (expr_func.is_public ? U"public" : U"private");
 
             if (expr_func.identifiers.empty())
-                str += U"\n\t" + ind + U"IDENTIFIERS: (lambda)";
+                str += U"\n\t" + ind + U"name: (lambda)";
             else {
-                str += U"\n\t" + ind + U"IDENTIFIERS:";
+                str += U"\n\t" + ind + U"name: ";
                 for (const std::u32string& identifier : expr_func.identifiers)
-                    str += U"\n\t\t" + ind + identifier;
+                    str += identifier + (&identifier == &expr_func.identifiers.back() ? U"" : U".");
 
                 if (!expr_func.generic_args.empty()) {
-                    str += U"\n\t" + ind + U"GENERICS:";
+                    str += U"\n\t" + ind + U"generic argument(s): ";
                     for (const std::u32string& generic_ : expr_func.generic_args)
-                        str += U"\n\t\t" + ind + generic_;
+                        str += generic_ + (&generic_ == &expr_func.generic_args.back() ? U"" : U", ");
                 }
             }
 
-            if (expr_func.return_ref_depth)
-                str += U"\n\t" + ind + U"RETURN TYPE REF DEPTH: " +
-                       kh::repr((uint64_t)expr_func.return_ref_depth);
+            if (expr_func.return_type) {
+                str += U"\n\t" + ind + U"return type: ";
 
-            if (expr_func.return_array.size() && expr_func.return_array[0] != 0) {
-                str += U"\n\t" + ind + U'[';
+                for (size_t refs = 0; refs < expr_func.return_ref_depth; refs++)
+                    str += U"ref ";
+                str += kh::repr(*expr_func.return_type, indent + 1);
 
-                for (const uint64_t dimension : expr_func.return_array)
-                    str += kh::repr(dimension) += U", ";
-
-                str.pop_back();
-                str.pop_back();
-                str += U']';
+                if (expr_func.return_array.size() && expr_func.return_array[0] != 0) {
+                    for (const uint64_t dimension : expr_func.return_array)
+                        str += U'[' + kh::repr(dimension) + U']';
+                }
             }
 
-            if (expr_func.return_type)
-                str += U"\n\t" + ind + U"RETURN TYPE:\n\t\t" + ind +
-                       kh::repr(*expr_func.return_type, indent + 2);
-
-            str += U"\n\t" + ind + U"ARGUMENTS:";
+            str += U"\n\t" + ind + U"argument(s):";
+            if (expr_func.arguments.empty())
+                str += U" [none]";
             for (auto arg : expr_func.arguments)
                 if (arg)
                     str += U"\n\t\t" + ind + kh::repr(*arg, indent + 2);
 
-            str += U"\n\t" + ind + U"BODY:";
+            str += U"\n\t" + ind + U"body:";
             for (auto part : expr_func.body)
                 if (part)
                     str += U"\n\t\t" + ind + kh::repr(*part, indent + 2);
@@ -463,16 +453,16 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
 
         case kh::AstExpression::ExType::SCOPE: {
             const kh::AstScopeExpression& expr_scope = *(kh::AstScopeExpression*)&expr;
-            str += U"SCOPE:";
+            str += U"scoping:";
 
             if (expr_scope.expression)
-                str += U"\n\t" + ind + U"EXPRESSION:\n\t\t" + ind +
+                str += U"\n\t" + ind + U"expression:\n\t\t" + ind +
                        kh::repr(*expr_scope.expression, indent + 2);
 
             if (!expr_scope.identifiers.empty()) {
-                str += U"\n\t" + ind + U"IDENTIFIERS:";
+                str += U"\n\t" + ind + U"scoping: [expr]";
                 for (const std::u32string& identifier : expr_scope.identifiers)
-                    str += U"\n\t\t" + ind + identifier;
+                    str += U'.' + identifier;
             }
 
             break;
@@ -480,47 +470,38 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
 
         case kh::AstExpression::ExType::CONSTANT: {
             const kh::AstConstValue& expr_const = *(kh::AstConstValue*)&expr;
-            str += U"CONSTANT:";
 
             switch (expr_const.value_type) {
                 case kh::AstConstValue::ValueType::CHARACTER:
-                    str += U"\n\t" + ind + U"TYPE: CHARACTER";
-                    str +=
-                        U"\n\t" + ind + U"VALUE: " + kh::quote(std::u32string() + expr_const.character);
+                    str += U"character: " + expr_const.character;
                     break;
 
                 case kh::AstConstValue::ValueType::UINTEGER:
-                    str += U"\n\t" + ind + U"TYPE: UINTEGER";
-                    str += U"\n\t" + ind + U"VALUE: " + kh::repr(expr_const.uinteger);
+                    str += U"unsigned integer: " + kh::repr(expr_const.uinteger);
                     break;
 
                 case kh::AstConstValue::ValueType::INTEGER:
-                    str += U"\n\t" + ind + U"TYPE: INTEGER";
-                    str += U"\n\t" + ind + U"VALUE: " + kh::repr(expr_const.integer);
+                    str += U"integer: " + kh::repr(expr_const.integer);
                     break;
 
                 case kh::AstConstValue::ValueType::FLOATING:
-                    str += U"\n\t" + ind + U"TYPE: FLOATING";
-                    str += U"\n\t" + ind + U"VALUE: " + kh::repr(expr_const.floating);
+                    str += U"floating: " + kh::repr(expr_const.floating);
                     break;
 
                 case kh::AstConstValue::ValueType::COMPLEX:
-                    str += U"\n\t" + ind + U"TYPE: COMPLEX";
-                    str += U"\n\t" + ind + U"VALUE: " + kh::repr(expr_const.complex);
+                    str += U"complex: " + kh::repr(expr_const.complex);
                     break;
 
                 case kh::AstConstValue::ValueType::BUFFER:
-                    str += U"\n\t" + ind + U"TYPE: BUFFER";
-                    str += U"\n\t" + ind + U"VALUE: " + kh::quote(expr_const.buffer);
+                    str += U"buffer: " + kh::quote(expr_const.buffer);
                     break;
 
                 case kh::AstConstValue::ValueType::STRING:
-                    str += U"\n\t" + ind + U"TYPE: STRING";
-                    str += U"\n\t" + ind + U"VALUE: " + kh::quote(expr_const.string);
+                    str += U"string: " + kh::quote(expr_const.string);
                     break;
 
                 default:
-                    str += U"\n\t" + ind + U"TYPE: UNKNOWN";
+                    str += U"[unknown constant]";
             }
 
             break;
@@ -528,7 +509,12 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
 
         case kh::AstExpression::ExType::TUPLE: {
             const kh::AstTupleExpression& expr_const = *(kh::AstTupleExpression*)&expr;
-            str += U"TUPLE:";
+            str += U"tuple:";
+
+            if (expr_const.elements.empty()) {
+                str += U" [no elements]";
+                break;
+            }
 
             for (auto element : expr_const.elements)
                 if (element)
@@ -538,7 +524,7 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
         }
 
         default:
-            str += U"[UNKNOWN EXPRESSION]";
+            str += U"[unknown expression]";
     }
 
     return str;
