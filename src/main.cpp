@@ -7,9 +7,13 @@
  * The main entry point of the Kithare programming language compiler and runtime.
  */
 
-#include <iostream>
+#include <SDL_endian.h>
 
 #include "utility/cmd.hpp"
+
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#error big endian platforms are not supported in Kithare
+#endif
 
 
 #undef main
@@ -20,13 +24,6 @@ int wmain(const int argc, wchar_t* argv[])
 int main(const int argc, char* argv[])
 #endif
 {
-    /* Yes, this causes a memory leak but it doesn't matter anyway.
-     * Using a local variable would still sit around in the memory. */
-    if (!*(char*)new long(1)) {
-        std::cerr << "Big endian platforms are not supported in Kithare\n";
-        return 1;
-    }
-
     std::vector<std::u32string> args;
     args.reserve(argc - 1);
 
