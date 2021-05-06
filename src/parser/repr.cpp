@@ -199,15 +199,11 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
             const kh::AstFor& ast_for = *(kh::AstFor*)&ast;
             str += U"for:";
 
-            if (!ast_for.targets.empty()) {
-                str += U"\n\t" + ind + U"target(s):";
-                for (auto target : ast_for.targets)
-                    if (target)
-                        str += U"\n\t\t" + ind + kh::repr(*target, indent + 2);
-            }
-
+            if (ast_for.target)
+                str += U"\n\t" + ind + U"target:\n\t\t" + ind + kh::repr(*ast_for.target, indent + 2);
             if (ast_for.iterator)
-                str += U"\n\t" + ind + U"iterator:\n\t\t" + ind + kh::repr(*ast_for.iterator, indent + 2);
+                str +=
+                    U"\n\t" + ind + U"iterator:\n\t\t" + ind + kh::repr(*ast_for.iterator, indent + 2);
 
             if (!ast_for.body.empty()) {
                 str += U"\n\t" + ind + U"body:";
@@ -262,7 +258,7 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
     switch (expr.expression_type) {
         case kh::AstExpression::ExType::IDENTIFIER: {
             const kh::AstIdentifierExpression& expr_id = *(kh::AstIdentifierExpression*)&expr;
-            
+
             for (const std::u32string& identifier : expr_id.identifiers)
                 str += identifier + (&identifier == &expr_id.identifiers.back() ? U"" : U".");
 
@@ -376,15 +372,14 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
 
             if (expr_declare.var_type) {
                 str += U"\n\t" + ind + U"type: ";
-                
+
                 if (expr_declare.is_static)
                     str += U"static ";
                 if (!expr_declare.is_public)
                     str += U"private ";
 
-                for (size_t refs = 0; refs < expr_declare.ref_depth; refs++)
-                    str += U"ref ";
-                str += kh::repr(*expr_declare.var_type, indent + 1);
+                str += (expr_declare.is_ref ? U"ref " : U"") +
+                       kh::repr(*expr_declare.var_type, indent + 1);
 
                 if (expr_declare.var_array.size() && expr_declare.var_array[0] != 0) {
                     for (const uint64_t dimension : expr_declare.var_array)
@@ -424,11 +419,8 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
             }
 
             if (expr_func.return_type) {
-                str += U"\n\t" + ind + U"return type: ";
-
-                for (size_t refs = 0; refs < expr_func.return_ref_depth; refs++)
-                    str += U"ref ";
-                str += kh::repr(*expr_func.return_type, indent + 1);
+                str += U"\n\t" + ind + U"return type: " + (expr_func.is_return_ref ? U"ref " : U"") +
+                       kh::repr(*expr_func.return_type, indent + 1);
 
                 if (expr_func.return_array.size() && expr_func.return_array[0] != 0) {
                     for (const uint64_t dimension : expr_func.return_array)

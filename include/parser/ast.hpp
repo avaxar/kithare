@@ -218,7 +218,7 @@ namespace kh {
         std::vector<uint64_t> var_array;
         std::u32string var_name;
         std::shared_ptr<kh::AstExpression> expression;
-        size_t ref_depth;
+        bool is_ref;
         bool is_static;
         bool is_public;
 
@@ -226,8 +226,8 @@ namespace kh {
                                  std::shared_ptr<kh::AstIdentifierExpression>& _var_type,
                                  const std::vector<uint64_t>& _var_array,
                                  const std::u32string& _var_name,
-                                 std::shared_ptr<kh::AstExpression>& _expression,
-                                 const size_t _ref_depth, const bool _is_static, const bool _is_public);
+                                 std::shared_ptr<kh::AstExpression>& _expression, const bool _is_ref,
+                                 const bool _is_static, const bool _is_public);
         virtual ~AstDeclarationExpression() {}
     };
 
@@ -239,7 +239,7 @@ namespace kh {
 
         std::shared_ptr<kh::AstIdentifierExpression> return_type;
         std::vector<uint64_t> return_array;
-        size_t return_ref_depth;
+        bool is_return_ref;
 
         std::vector<std::shared_ptr<kh::AstDeclarationExpression>> arguments;
         std::vector<std::shared_ptr<kh::AstBody>> body;
@@ -250,7 +250,7 @@ namespace kh {
             const size_t _index, const std::vector<std::u32string>& _identifiers,
             const std::vector<std::u32string>& _generic_args,
             const std::vector<uint64_t>& _return_array,
-            std::shared_ptr<kh::AstIdentifierExpression>& _return_type, const size_t _return_ref_depth,
+            std::shared_ptr<kh::AstIdentifierExpression>& _return_type, const bool _is_return_ref,
             const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _arguments,
             const std::vector<std::shared_ptr<kh::AstBody>>& _body, const bool _is_static,
             const bool _is_public);
@@ -358,11 +358,11 @@ namespace kh {
 
     class AstFor : public kh::AstBody {
     public:
-        std::vector<std::shared_ptr<kh::AstExpression>> targets;
+        std::shared_ptr<kh::AstExpression> target;
         std::shared_ptr<kh::AstExpression> iterator;
         std::vector<std::shared_ptr<kh::AstBody>> body;
 
-        AstFor(const size_t _index, const std::vector<std::shared_ptr<kh::AstExpression>>& _targets,
+        AstFor(const size_t _index, std::shared_ptr<kh::AstExpression>& _target,
                std::shared_ptr<kh::AstExpression>& _iterator,
                const std::vector<std::shared_ptr<kh::AstBody>>& _body);
         virtual ~AstFor() {}

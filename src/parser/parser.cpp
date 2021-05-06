@@ -280,7 +280,7 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
     std::vector<std::u32string> generic_args;
     std::shared_ptr<kh::AstIdentifierExpression> return_type;
     std::vector<uint64_t> return_array = {0};
-    size_t return_ref_depth = 0;
+    bool is_return_ref = false;
     std::vector<std::shared_ptr<kh::AstDeclarationExpression>> arguments;
     std::vector<std::shared_ptr<kh::AstBody>> body;
 
@@ -290,10 +290,9 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
 
     bool is_array = false;
 
-    /* Checks for the return type's ref depth: `def ref ref int a() {}` which returns a reference of
-     * a reference of an int */
-    while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
-        return_ref_depth++;
+    /* Checks if the return type is a `ref`erence type */
+    if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
+        is_return_ref = true;
         this->ti++;
         GUARD(0);
         token = this->to();
@@ -441,7 +440,7 @@ parseArgs:
     body = this->parseBody();
 end:
     return new kh::AstFunctionExpression(index, identifiers, generic_args, return_array, return_type,
-                                         return_ref_depth, arguments, body, is_static, is_public);
+                                         is_return_ref, arguments, body, is_static, is_public);
 }
 
 kh::AstDeclarationExpression* kh::Parser::parseDeclaration(const bool is_static, const bool is_public) {
@@ -449,15 +448,14 @@ kh::AstDeclarationExpression* kh::Parser::parseDeclaration(const bool is_static,
     std::vector<uint64_t> var_array = {0};
     std::u32string var_name;
     std::shared_ptr<kh::AstExpression> expression = nullptr;
-    size_t ref_depth = 0;
+    bool is_ref = false;
 
     kh::Token token = this->to();
     size_t index = token.index;
 
-    /* Counts the variable's type ref depth: `ref ref int x = 3` Declares a reference of a reference
-     * of an int variable */
-    while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
-        ref_depth++;
+    /* Checks if the variable type is a `ref`erence type */
+    if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
+        is_ref = true;
         this->ti++;
         GUARD(0);
         token = this->to();
@@ -501,7 +499,7 @@ kh::AstDeclarationExpression* kh::Parser::parseDeclaration(const bool is_static,
     else
         goto end;
 end:
-    return new kh::AstDeclarationExpression(index, var_type, var_array, var_name, expression, ref_depth,
+    return new kh::AstDeclarationExpression(index, var_type, var_array, var_name, expression, is_ref,
                                             is_static, is_public);
 }
 
@@ -1074,49 +1072,26 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                     this->ti++;
                     GUARD(0);
 
-                    std::vector<std::shared_ptr<kh::AstExpression>> targets;
-                    std::shared_ptr<kh::AstExpression> iterator;
-                    std::vector<std::shared_ptr<kh::AstBody>> for_body;
+                    std::shared_ptr<kh::AstExpression> target(this->parseExpression());
 
-                    /* Parses the iterator target(s) */
-                    while (true) {
-                        /* Parses target expression */
-                        targets.emplace_back(this->parseExpression());
-
+                    GUARD(0);
+                    token = this->to();
+                    if (token.type == kh::TokenType::SYMBOL &&
+                        token.value.symbol_type == kh::Symbol::COLON) {
+                        this->ti++;
                         GUARD(0);
-                        kh::Token token = this->to();
-                        if (token.type == kh::TokenType::SYMBOL) {
-                            switch (token.value.symbol_type) {
-                                /* Another target */
-                                case kh::Symbol::COMMA:
-                                    this->ti++;
-                                    GUARD(0);
-                                    break;
-
-                                /* Now expecting iterator expression */
-                                case kh::Symbol::COLON:
-                                    this->ti++;
-                                    GUARD(0);
-                                    goto _break_while;
-
-                                default:
-                                    this->exceptions.emplace_back(U"Was expecting a colon after "
-                                                                  U"the iterator target expression",
-                                                                  token.index);
-                            }
-                        }
-                        else
-                            this->exceptions.emplace_back(
-                                U"Was expecting a colon after the iterator target expression",
-                                token.index);
+                        token = this->to();
                     }
-                _break_while:
+                    else
+                        exceptions.emplace_back(
+                            U"Was expecting a colon after the `for` target",
+                            token.index);
+                    
+                    std::shared_ptr<kh::AstExpression> iterator(this->parseExpression());
+                    GUARD(0);
+                    std::vector<std::shared_ptr<kh::AstBody>> for_body = this->parseBody(true);
 
-                    /* Parses the iterator expression and for body */
-                    iterator.reset(this->parseExpression());
-                    for_body = this->parseBody(true);
-
-                    body.emplace_back(new kh::AstFor(index, targets, iterator, for_body));
+                    body.emplace_back(new kh::AstFor(index, target, iterator, for_body));
                 }
                 /* `continue` statement */
                 else if (token.value.identifier == U"continue") {

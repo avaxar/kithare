@@ -98,10 +98,10 @@ kh::AstCallExpression::AstCallExpression(
 kh::AstDeclarationExpression::AstDeclarationExpression(
     const size_t _index, std::shared_ptr<kh::AstIdentifierExpression>& _var_type,
     const std::vector<uint64_t>& _var_array, const std::u32string& _var_name,
-    std::shared_ptr<kh::AstExpression>& _expression, const size_t _ref_depth, const bool _is_static,
+    std::shared_ptr<kh::AstExpression>& _expression, const bool _is_ref, const bool _is_static,
     const bool _is_public)
     : var_type(_var_type), var_array(_var_array), var_name(_var_name), expression(_expression),
-      ref_depth(_ref_depth), is_static(_is_static), is_public(_is_public) {
+      is_ref(_is_ref), is_static(_is_static), is_public(_is_public) {
     this->index = _index;
     this->type = kh::AstBody::Type::EXPRESSION;
     this->expression_type = kh::AstExpression::ExType::DECLARE;
@@ -110,12 +110,12 @@ kh::AstDeclarationExpression::AstDeclarationExpression(
 kh::AstFunctionExpression::AstFunctionExpression(
     const size_t _index, const std::vector<std::u32string>& _identifiers,
     const std::vector<std::u32string>& _generic_args, const std::vector<uint64_t>& _return_array,
-    std::shared_ptr<kh::AstIdentifierExpression>& _return_type, const size_t _return_ref_depth,
+    std::shared_ptr<kh::AstIdentifierExpression>& _return_type, const bool _is_return_ref,
     const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _arguments,
     const std::vector<std::shared_ptr<kh::AstBody>>& _body, const bool _is_static,
     const bool _is_public)
     : index(_index), identifiers(_identifiers), generic_args(_generic_args),
-      return_array(_return_array), return_type(_return_type), return_ref_depth(_return_ref_depth),
+      return_array(_return_array), return_type(_return_type), is_return_ref(_is_return_ref),
       arguments(_arguments), body(_body), is_static(_is_static), is_public(_is_public) {
     this->index = _index;
     this->type = kh::AstBody::Type::EXPRESSION;
@@ -225,10 +225,10 @@ kh::AstDoWhile::AstDoWhile(const size_t _index, std::shared_ptr<kh::AstExpressio
     this->type = kh::AstBody::Type::DO_WHILE;
 }
 
-kh::AstFor::AstFor(const size_t _index, const std::vector<std::shared_ptr<kh::AstExpression>>& _targets,
+kh::AstFor::AstFor(const size_t _index, std::shared_ptr<kh::AstExpression>& _target,
                    std::shared_ptr<kh::AstExpression>& _iterator,
                    const std::vector<std::shared_ptr<kh::AstBody>>& _body)
-    : targets(_targets), iterator(_iterator), body(_body) {
+    : target(_target), iterator(_iterator), body(_body) {
     this->index = _index;
     this->type = kh::AstBody::Type::FOR;
 }
