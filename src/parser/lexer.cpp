@@ -153,10 +153,10 @@ namespace kh {
 }
 
 std::vector<kh::Token> kh::lex(const std::u32string& source, const bool lex_comments,
-                               kh::LexExceptions* exc) {
+                               std::vector<kh::LexException>* exc) {
     std::vector<kh::Token> tokens;
     kh::TokenizeState state = kh::TokenizeState::NONE;
-    kh::LexExceptions exceptions({});
+    std::vector<kh::LexException> exceptions;
 
     size_t start = 0;
     std::u32string temp_str;
@@ -922,7 +922,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source, const bool lex_comm
             }
         }
         catch (const kh::LexException& exc) {
-            exceptions.exceptions.push_back(exc);
+            exceptions.push_back(exc);
             state = kh::TokenizeState::NONE;
         }
     }
@@ -930,9 +930,9 @@ std::vector<kh::Token> kh::lex(const std::u32string& source, const bool lex_comm
      * This usually happens if the user has forgotten to close a multiline comment,
      * string or buffer */
     if (state != kh::TokenizeState::NONE)
-        exceptions.exceptions.emplace_back(U"Got unexpected EOF", source.size());
+        exceptions.emplace_back(U"Got unexpected EOF", source.size());
 
-    if (!exceptions.exceptions.empty()) {
+    if (!exceptions.empty()) {
         if (exc)
             *exc = exceptions;
         else

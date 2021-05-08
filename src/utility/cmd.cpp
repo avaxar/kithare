@@ -159,7 +159,7 @@ int kh::run(const std::vector<std::u32string>& args) {
         }
 
         /* Lexicates the source */
-        kh::LexExceptions lex_exceptions({});
+        std::vector<kh::LexException> lex_exceptions;
         tokens = kh::lex(source, true, &lex_exceptions);
 
         /* Prints the tokens */
@@ -180,18 +180,18 @@ int kh::run(const std::vector<std::u32string>& args) {
         }
 
         /* If there's any exceptions from the lexicating process */
-        if (!lex_exceptions.exceptions.empty()) {
+        if (!lex_exceptions.empty()) {
             if (!silent) {
                 if (json)
                     std::cout << ",\"lex_exceptions\":[";
 
-                for (const kh::LexException& exc : lex_exceptions.exceptions) {
+                for (const kh::LexException& exc : lex_exceptions) {
                     if (json) {
                         std::cout << "[";
                         kprint(kh::quote(exc.what));
                         std::cout << "," << exc.index << "]";
 
-                        if (&exc != &lex_exceptions.exceptions.back())
+                        if (&exc != &lex_exceptions.back())
                             std::cout << ",";
                     }
                     else {
@@ -218,18 +218,18 @@ int kh::run(const std::vector<std::u32string>& args) {
             try {
                 ast_tree.reset(kh::parse(tokens));
             }
-            catch (const kh::ParseExceptions& exc) {
+            catch (const std::vector<kh::ParseException>& exc) {
                 if (!silent) {
                     if (json)
                         std::cout << ",\"parse_exceptions\":[";
 
-                    for (const kh::ParseException& ex : exc.exceptions) {
+                    for (const kh::ParseException& ex : exc) {
                         if (json) {
                             std::cout << "[";
                             kprint(kh::quote(ex.what));
                             std::cout << "," << ex.index << "]";
 
-                            if (&ex != &exc.exceptions.back())
+                            if (&ex != &exc.back())
                                 std::cout << ",";
                         }
                         else {

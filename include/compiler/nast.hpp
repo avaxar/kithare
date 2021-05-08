@@ -14,5 +14,7 @@
 
 
 namespace kh {
+	class Nast {
 
+	};
 }

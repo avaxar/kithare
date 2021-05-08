@@ -25,17 +25,11 @@ namespace kh {
         size_t index;
     };
 
-    struct LexExceptions {
-        LexExceptions(const std::vector<kh::LexException>& _exceptions) : exceptions(_exceptions) {}
-
-        std::vector<kh::LexException> exceptions;
-    };
-
     /// <summary>
     /// Lexicate/tokenize a source string into a list/std::vector of tokens.
     /// </summary>
     /// <param name="source">Input source string</param>
     /// <returns></returns>
     std::vector<kh::Token> lex(const std::u32string& source, const bool lex_comments = false,
-        kh::LexExceptions* exc = nullptr);
+        std::vector<kh::LexException>* exc = nullptr);
 }

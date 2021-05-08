@@ -20,12 +20,6 @@ namespace kh {
         size_t index;
     };
 
-    struct ParseExceptions {
-        ParseExceptions(const std::vector<kh::ParseException>& _exceptions) : exceptions(_exceptions) {}
-
-        std::vector<kh::ParseException> exceptions;
-    };
-
     /// <summary>
     /// Parses the given tokens and returns an AST module tree.
     /// </summary>

@@ -33,14 +33,13 @@ namespace kh {
 
 kh::Ast* kh::parse(const std::vector<kh::Token>& tokens) {
     kh::Parser parser(tokens);
-    kh::Ast* ast;
+    kh::Ast* ast = parser.parse();
 
-    ast = parser.parse();
     if (parser.exceptions.empty())
         return ast;
     else {
         delete ast;
-        throw kh::ParseExceptions(parser.exceptions);
+        throw parser.exceptions;
     }
 }
 
