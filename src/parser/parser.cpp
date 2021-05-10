@@ -163,23 +163,34 @@ end:
 
 kh::AstImport* kh::Parser::parseImport(const bool is_include) {
     std::vector<std::u32string> path;
+    bool is_relative = false;
     std::u32string identifier;
     kh::Token token = this->to();
     size_t index = token.index;
+
+    std::u32string type = is_include ? U"include" : U"import";
+
+    /* Check if an import/include is relative */
+    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::DOT) {
+        is_relative = true;
+        this->ti++;
+        GUARD(0);
+        token = this->to();
+    }
 
     /* Making sure that it starts with an identifier (an import/include statement must has at least
      * one identifier to be imported) */
     if (token.type == kh::TokenType::IDENTIFIER) {
         if (kh::isReservedKeyword(token.value.identifier))
-            this->exceptions.emplace_back(U"Was trying to `import` / `include` with a reserved keyword",
+            this->exceptions.emplace_back(U"Was trying to `" + type + U"` with a reserved keyword",
                                           token.index);
 
         path.push_back(token.value.identifier);
         this->ti++;
     }
     else {
-        this->exceptions.emplace_back(
-            U"Was expecting an identifier after the `import` / `include` keyword", token.index);
+        this->exceptions.emplace_back(U"Was expecting an identifier after the `" + type + U"` keyword",
+                                      token.index);
         this->ti++;
     }
 
@@ -195,8 +206,8 @@ kh::AstImport* kh::Parser::parseImport(const bool is_include) {
         /* Appends the identifier */
         if (token.type == kh::TokenType::IDENTIFIER) {
             if (kh::isReservedKeyword(token.value.identifier))
-                this->exceptions.emplace_back(
-                    U"Was trying to `import` / `include` with a reserved keyword", token.index);
+                this->exceptions.emplace_back(U"Was trying to " + type + U" a reserved keyword",
+                                              token.index);
 
             path.push_back(token.value.identifier);
             this->ti++;
@@ -204,15 +215,15 @@ kh::AstImport* kh::Parser::parseImport(const bool is_include) {
             token = this->to();
         }
         else {
-            this->exceptions.emplace_back(
-                U"Was expecting an identifier after the dot in the import/include statement",
-                token.index);
+            this->exceptions.emplace_back(U"Was expecting an identifier after the dot in the " + type +
+                                              U" statement",
+                                          token.index);
             break;
         }
     }
 
     /* An optional `as` for changing the namespace name in import statements */
-    if ((!is_include) && token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"as") {
+    if (!is_include && token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"as") {
         this->ti++;
         GUARD(0);
         token = this->to();
@@ -221,30 +232,29 @@ kh::AstImport* kh::Parser::parseImport(const bool is_include) {
         if (token.type == kh::TokenType::IDENTIFIER) {
             if (kh::isReservedKeyword(token.value.identifier))
                 this->exceptions.emplace_back(
-                    U"Could not use a reserved keyword to change the alias of the import", token.index);
+                    U"Could not use a reserved keyword as the alias of the import", token.index);
 
             identifier = token.value.identifier;
-
-            this->ti++;
-            GUARD(0);
-            token = this->to();
         }
         else {
             this->exceptions.emplace_back(
                 U"Was expecting an identifier after the `as` keyword in the import statement",
                 token.index);
-            this->ti++;
         }
+
+        this->ti++;
+        GUARD(0);
+        token = this->to();
     }
 
     /* Ensure that it ends with a semicolon */
     if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::SEMICOLON)
         this->ti++;
     else
-        this->exceptions.emplace_back(U"Was expecting a semicolon after the import/include statement",
+        this->exceptions.emplace_back(U"Was expecting a semicolon after the " + type + U" statement",
                                       token.index);
 end:
-    return new kh::AstImport(index, path, is_include,
+    return new kh::AstImport(index, path, is_include, is_relative,
                              path.empty() ? U"" : (identifier.empty() ? path.back() : identifier));
 }
 
@@ -1082,10 +1092,9 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                         token = this->to();
                     }
                     else
-                        exceptions.emplace_back(
-                            U"Was expecting a colon after the `for` target",
-                            token.index);
-                    
+                        exceptions.emplace_back(U"Was expecting a colon after the `for` target",
+                                                token.index);
+
                     std::shared_ptr<kh::AstExpression> iterator(this->parseExpression());
                     GUARD(0);
                     std::vector<std::shared_ptr<kh::AstBody>> for_body = this->parseBody(true);

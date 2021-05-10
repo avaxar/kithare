@@ -39,6 +39,7 @@ std::u32string kh::repr(const kh::AstImport& import_ast, const size_t indent) {
         ind += '\t';
 
     std::u32string str = import_ast.is_include ? U"include:" : U"import:";
+    str += U"\n\t" + ind + U"type: " + (import_ast.is_relative ? U"relative" : U"absolute");
 
     str += U"\n\t" + ind + U"path: ";
     for (const std::u32string& dir : import_ast.path)

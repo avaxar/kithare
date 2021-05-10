@@ -10,11 +10,42 @@
 
 #pragma once
 
+#include <memory>
+#include <vector>
 #include <stdint.h>
 
 
 namespace kh {
-	class Nast {
+    class Nast;
 
-	};
+    class NastModule;
+    class NastScope;
+
+    class NastBody;
+    class NastIf;
+    class NastWhile;
+    class NastStatement;
+
+    class NastExpression;
+    class NastConst;
+    class NastVariable;
+    class NastAssignExpression;
+    class NastCallExpression;
+    class NastReinterpret;
+    class NastScopeExpression;
+    class NastPointerScopeExpression;
+
+    class NastFunction;
+    class NastUserFunction;
+    class NastBuiltinFunction;
+    class NastFunctionTemplate;
+
+    class NastType;
+    class NastRefType;
+    class NastUserEnum;
+    class NastUserStruct;
+    class NastUserClass;
+    class NastClassTemplate;
+    class NastPrimitiveType;
+    class NastBuiltinType;
 }

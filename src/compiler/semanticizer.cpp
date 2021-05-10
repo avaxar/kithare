@@ -28,7 +28,7 @@ kh::Semanticizer::~Semanticizer() {}
 
 kh::Nast* kh::Semanticizer::semanticize() {
     this->exceptions.clear();
-    
+
     /* Placeholder */
     return nullptr;
 }

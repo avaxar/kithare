@@ -1,3 +1,7 @@
+import std;
+import .std as another_std;
+include std;
+
 class A!T {
 	def test() {}
 }

@@ -20,8 +20,10 @@ kh::Ast::Ast(const std::vector<std::shared_ptr<kh::AstImport>>& _imports,
       structs(_structs), enums(_enums) {}
 
 kh::AstImport::AstImport(const size_t _index, const std::vector<std::u32string>& _path,
-                         const bool _is_include, const std::u32string& _identifier)
-    : index(_index), path(_path), is_include(_is_include), identifier(_identifier) {}
+                         const bool _is_include, const bool _is_relative,
+                         const std::u32string& _identifier)
+    : index(_index), path(_path), is_include(_is_include), is_relative(_is_relative),
+      identifier(_identifier) {}
 
 kh::AstClass::AstClass(const size_t _index, const std::u32string& _name,
                        std::shared_ptr<kh::AstIdentifierExpression>& _base,

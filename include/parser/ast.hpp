@@ -68,10 +68,11 @@ namespace kh {
         size_t index;
         std::vector<std::u32string> path;
         bool is_include;
+        bool is_relative;
         std::u32string identifier;
 
         AstImport(const size_t _index, const std::vector<std::u32string>& _path, const bool _is_include,
-                  const std::u32string& _identifier);
+                  const bool _is_relative, const std::u32string& _identifier);
         virtual ~AstImport() {}
     };
 
