@@ -41,7 +41,7 @@ namespace kh {
     public:
         std::vector<SemanticizeException> exceptions;
 
-        Semanticizer(kh::Ast* _ast);
+        Semanticizer(kh::Ast* ast);
         ~Semanticizer();
 
         /// <summary>
@@ -53,7 +53,6 @@ namespace kh {
     private:
         kh::Ast* ast_tree;
 
-        /*
         std::u32string locateModule(const std::vector<std::u32string>& path, const bool is_relative);
         kh::NastModule* makeModule(kh::Ast* ast);
 
@@ -72,6 +71,5 @@ namespace kh {
                                                  const std::vector<std::u32string>& identifiers);
         std::vector<kh::NastExpression*> resolve(kh::NastExpression* expr,
                                                  const std::u32string& identifier);
-        */
     };
 }

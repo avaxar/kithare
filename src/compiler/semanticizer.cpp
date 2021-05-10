@@ -22,7 +22,7 @@ kh::Nast* kh::semanticize(kh::Ast* ast) {
     }
 }
 
-kh::Semanticizer::Semanticizer(kh::Ast* _ast) : ast(_ast) {}
+kh::Semanticizer::Semanticizer(kh::Ast* ast) : ast_tree(ast) {}
 
 kh::Semanticizer::~Semanticizer() {}
 
