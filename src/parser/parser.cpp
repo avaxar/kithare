@@ -1081,7 +1081,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                     this->ti++;
                     GUARD(0);
 
-                    std::shared_ptr<kh::AstExpression> target(this->parseExpression());
+                    std::shared_ptr<kh::AstExpression> target_or_initializer(this->parseExpression());
 
                     GUARD(0);
                     token = this->to();
@@ -1090,16 +1090,42 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                         this->ti++;
                         GUARD(0);
                         token = this->to();
+
+                        std::shared_ptr<kh::AstExpression> iterator(this->parseExpression());
+                        GUARD(0);
+                        std::vector<std::shared_ptr<kh::AstBody>> foreach_body = this->parseBody(true);
+
+                        body.emplace_back(
+                            new kh::AstForEach(index, target_or_initializer, iterator, foreach_body));
+                    }
+                    else if (token.type == kh::TokenType::SYMBOL &&
+                             token.value.symbol_type == kh::Symbol::COMMA) {
+                        this->ti++;
+                        GUARD(0);
+                        std::shared_ptr<kh::AstExpression> condition(this->parseExpression());
+                        GUARD(0);
+                        token = this->to();
+
+                        if (token.type == kh::TokenType::SYMBOL &&
+                            token.value.symbol_type == kh::Symbol::COMMA) {
+                            this->ti++;
+                            GUARD(0);
+                        }
+                        else
+                            exceptions.emplace_back(
+                                U"Was expecting a comma after the `for` condition expression",
+                                token.index);
+
+                        std::shared_ptr<kh::AstExpression> step(this->parseExpression());
+                        GUARD(0);
+                        std::vector<std::shared_ptr<kh::AstBody>> for_body = this->parseBody(true);
+
+                        body.emplace_back(
+                            new kh::AstFor(index, target_or_initializer, condition, step, for_body));
                     }
                     else
-                        exceptions.emplace_back(U"Was expecting a colon after the `for` target",
+                        exceptions.emplace_back(U"Was expecting a colon or a comma after the `for` target/initializer",
                                                 token.index);
-
-                    std::shared_ptr<kh::AstExpression> iterator(this->parseExpression());
-                    GUARD(0);
-                    std::vector<std::shared_ptr<kh::AstBody>> for_body = this->parseBody(true);
-
-                    body.emplace_back(new kh::AstFor(index, target, iterator, for_body));
                 }
                 /* `continue` statement */
                 else if (token.value.identifier == U"continue") {
@@ -1675,8 +1701,10 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
             else
                 this->exceptions.emplace_back(U"Was expecting a closing parentheses", token.index);
         }
-        else if (token.type == kh::TokenType::IDENTIFIER)
+        else if (token.type == kh::TokenType::IDENTIFIER) {
             generics.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
+            generics_array.push_back({0});
+        }
         else {
             this->exceptions.emplace_back(
                 U"Was either an identifier or an opening parentheses for genericization after the "

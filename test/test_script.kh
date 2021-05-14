@@ -1,21 +1,11 @@
-import std;
-import .std as another_std;
-include std;
-
-class A!T {
-	def test() {}
-}
-
-enum E {
-	Z, Y, X = 100,
-	W, V, U
-}
-
-def int[3] test() {
-	
-}
-
 def main() {
-    yay a[][3][4][];
-    dict!(int, str[3]) some_map;
+	list!int a;
+
+	for int i, i < a.len(), i += 1 {
+
+	}
+
+	for int e : a /* sports */ {
+
+	}
 }

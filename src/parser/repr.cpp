@@ -200,15 +200,39 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
             const kh::AstFor& ast_for = *(kh::AstFor*)&ast;
             str += U"for:";
 
-            if (ast_for.target)
-                str += U"\n\t" + ind + U"target:\n\t\t" + ind + kh::repr(*ast_for.target, indent + 2);
-            if (ast_for.iterator)
-                str +=
-                    U"\n\t" + ind + U"iterator:\n\t\t" + ind + kh::repr(*ast_for.iterator, indent + 2);
+            if (ast_for.initialize)
+                str += U"\n\t" + ind + U"initialize expression:\n\t\t" + ind +
+                       kh::repr(*ast_for.initialize, indent + 2);
+            if (ast_for.condition)
+                str += U"\n\t" + ind + U"condition:\n\t\t" + ind +
+                       kh::repr(*ast_for.condition, indent + 2);
+            if (ast_for.step)
+                str += U"\n\t" + ind + U"step expression:\n\t\t" + ind +
+                       kh::repr(*ast_for.condition, indent + 2);
 
             if (!ast_for.body.empty()) {
                 str += U"\n\t" + ind + U"body:";
                 for (auto part : ast_for.body)
+                    if (part)
+                        str += U"\n\t\t" + ind + kh::repr(*part, indent + 2);
+            }
+
+            break;
+        }
+
+        case kh::AstBody::Type::FOREACH: {
+            const kh::AstForEach& ast_foreach = *(kh::AstForEach*)&ast;
+            str += U"foreach:";
+
+            if (ast_foreach.target)
+                str += U"\n\t" + ind + U"target:\n\t\t" + ind + kh::repr(*ast_foreach.target, indent + 2);
+            if (ast_foreach.iterator)
+                str +=
+                    U"\n\t" + ind + U"iterator:\n\t\t" + ind + kh::repr(*ast_foreach.iterator, indent + 2);
+
+            if (!ast_foreach.body.empty()) {
+                str += U"\n\t" + ind + U"body:";
+                for (auto part : ast_foreach.body)
                     if (part)
                         str += U"\n\t\t" + ind + kh::repr(*part, indent + 2);
             }
@@ -269,7 +293,7 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
                     if (!expr_id.generics[i])
                         continue;
 
-                    str += kh::repr(*expr_id.generics[i], indent);
+                    str += kh::repr(*(expr_id.generics[i]), indent);
 
                     if (expr_id.generics_array[i].size() && expr_id.generics_array[i][0] != 0) {
                         for (size_t d = 0; d < expr_id.generics_array[i].size(); d++)

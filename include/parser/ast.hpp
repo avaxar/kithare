@@ -30,6 +30,7 @@ namespace kh {
     class AstWhile;
     class AstDoWhile;
     class AstFor;
+    class AstForEach;
     class AstStatement;
 
     class AstExpression;
@@ -121,7 +122,7 @@ namespace kh {
     class AstBody {
     public:
         size_t index;
-        enum class Type { NONE, EXPRESSION, IF, WHILE, DO_WHILE, FOR, STATEMENT } type = Type::NONE;
+        enum class Type { NONE, EXPRESSION, IF, WHILE, DO_WHILE, FOR, FOREACH, STATEMENT } type = Type::NONE;
 
         virtual ~AstBody() {}
     };
@@ -359,14 +360,27 @@ namespace kh {
 
     class AstFor : public kh::AstBody {
     public:
+        std::shared_ptr<kh::AstExpression> initialize;
+        std::shared_ptr<kh::AstExpression> condition;
+        std::shared_ptr<kh::AstExpression> step;
+        std::vector<std::shared_ptr<kh::AstBody>> body;
+
+        AstFor(const size_t _index, std::shared_ptr<kh::AstExpression>& initialize,
+               std::shared_ptr<kh::AstExpression>& condition, std::shared_ptr<kh::AstExpression>& step,
+               const std::vector<std::shared_ptr<kh::AstBody>>& _body);
+        virtual ~AstFor() {}
+    };
+
+    class AstForEach : public kh::AstBody {
+    public:
         std::shared_ptr<kh::AstExpression> target;
         std::shared_ptr<kh::AstExpression> iterator;
         std::vector<std::shared_ptr<kh::AstBody>> body;
 
-        AstFor(const size_t _index, std::shared_ptr<kh::AstExpression>& _target,
+        AstForEach(const size_t _index, std::shared_ptr<kh::AstExpression>& _target,
                std::shared_ptr<kh::AstExpression>& _iterator,
                const std::vector<std::shared_ptr<kh::AstBody>>& _body);
-        virtual ~AstFor() {}
+        virtual ~AstForEach() {}
     };
 
     class AstStatement : public kh::AstBody {

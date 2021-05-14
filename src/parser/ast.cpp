@@ -227,12 +227,20 @@ kh::AstDoWhile::AstDoWhile(const size_t _index, std::shared_ptr<kh::AstExpressio
     this->type = kh::AstBody::Type::DO_WHILE;
 }
 
-kh::AstFor::AstFor(const size_t _index, std::shared_ptr<kh::AstExpression>& _target,
+kh::AstFor::AstFor(const size_t _index, std::shared_ptr<kh::AstExpression>& _initialize,
+    std::shared_ptr<kh::AstExpression>& _condition, std::shared_ptr<kh::AstExpression>& _step,
+    const std::vector<std::shared_ptr<kh::AstBody>>& _body)
+    : initialize(_initialize), condition(_condition), step(_step) {
+    this->index = _index;
+    this->type = kh::AstBody::Type::FOR;
+}
+
+kh::AstForEach::AstForEach(const size_t _index, std::shared_ptr<kh::AstExpression>& _target,
                    std::shared_ptr<kh::AstExpression>& _iterator,
                    const std::vector<std::shared_ptr<kh::AstBody>>& _body)
     : target(_target), iterator(_iterator), body(_body) {
     this->index = _index;
-    this->type = kh::AstBody::Type::FOR;
+    this->type = kh::AstBody::Type::FOREACH;
 }
 
 kh::AstStatement::AstStatement(const size_t _index, const kh::AstStatement::Type _statement_type,
