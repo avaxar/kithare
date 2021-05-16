@@ -45,8 +45,10 @@ kh::AstEnum::AstEnum(const size_t _index, const std::u32string& _name,
 kh::AstIdentifierExpression::AstIdentifierExpression(
     const size_t _index, const std::vector<std::u32string>& _identifiers,
     const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _generics,
+    const std::vector<bool>& _are_generics_refs,
     const std::vector<std::vector<uint64_t>>& _generics_array)
-    : identifiers(_identifiers), generics(_generics), generics_array(_generics_array) {
+    : identifiers(_identifiers), generics(_generics), are_generics_refs(_are_generics_refs),
+      generics_array(_generics_array) {
     this->index = _index;
     this->type = kh::AstBody::Type::EXPRESSION;
     this->expression_type = kh::AstExpression::ExType::IDENTIFIER;
@@ -228,16 +230,17 @@ kh::AstDoWhile::AstDoWhile(const size_t _index, std::shared_ptr<kh::AstExpressio
 }
 
 kh::AstFor::AstFor(const size_t _index, std::shared_ptr<kh::AstExpression>& _initialize,
-    std::shared_ptr<kh::AstExpression>& _condition, std::shared_ptr<kh::AstExpression>& _step,
-    const std::vector<std::shared_ptr<kh::AstBody>>& _body)
+                   std::shared_ptr<kh::AstExpression>& _condition,
+                   std::shared_ptr<kh::AstExpression>& _step,
+                   const std::vector<std::shared_ptr<kh::AstBody>>& _body)
     : initialize(_initialize), condition(_condition), step(_step) {
     this->index = _index;
     this->type = kh::AstBody::Type::FOR;
 }
 
 kh::AstForEach::AstForEach(const size_t _index, std::shared_ptr<kh::AstExpression>& _target,
-                   std::shared_ptr<kh::AstExpression>& _iterator,
-                   const std::vector<std::shared_ptr<kh::AstBody>>& _body)
+                           std::shared_ptr<kh::AstExpression>& _iterator,
+                           const std::vector<std::shared_ptr<kh::AstBody>>& _body)
     : target(_target), iterator(_iterator), body(_body) {
     this->index = _index;
     this->type = kh::AstBody::Type::FOREACH;

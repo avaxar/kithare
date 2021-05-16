@@ -122,7 +122,16 @@ namespace kh {
     class AstBody {
     public:
         size_t index;
-        enum class Type { NONE, EXPRESSION, IF, WHILE, DO_WHILE, FOR, FOREACH, STATEMENT } type = Type::NONE;
+        enum class Type {
+            NONE,
+            EXPRESSION,
+            IF,
+            WHILE,
+            DO_WHILE,
+            FOR,
+            FOREACH,
+            STATEMENT
+        } type = Type::NONE;
 
         virtual ~AstBody() {}
     };
@@ -151,11 +160,13 @@ namespace kh {
     public:
         std::vector<std::u32string> identifiers;
         std::vector<std::shared_ptr<kh::AstIdentifierExpression>> generics;
+        std::vector<bool> are_generics_refs;
         std::vector<std::vector<uint64_t>> generics_array;
 
         AstIdentifierExpression(
             const size_t _index, const std::vector<std::u32string>& _identifiers,
             const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _generics,
+            const std::vector<bool>& _are_generics_refs,
             const std::vector<std::vector<uint64_t>>& _generics_array);
         virtual ~AstIdentifierExpression() {}
     };
@@ -378,8 +389,8 @@ namespace kh {
         std::vector<std::shared_ptr<kh::AstBody>> body;
 
         AstForEach(const size_t _index, std::shared_ptr<kh::AstExpression>& _target,
-               std::shared_ptr<kh::AstExpression>& _iterator,
-               const std::vector<std::shared_ptr<kh::AstBody>>& _body);
+                   std::shared_ptr<kh::AstExpression>& _iterator,
+                   const std::vector<std::shared_ptr<kh::AstBody>>& _body);
         virtual ~AstForEach() {}
     };
 

@@ -310,7 +310,7 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
     /* No return type anonymous/no-name functions/lambdas `def &() {}` */
     if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::BIT_AND) {
         this->ti++;
-        return_type.reset(new kh::AstIdentifierExpression(token.index, {U"void"}, {}, {}));
+        return_type.reset(new kh::AstIdentifierExpression(token.index, {U"void"}, {}, {}, {}));
         goto parseArgs;
     }
 
@@ -335,7 +335,7 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
         token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN && !is_array) {
         /* Sets the return type to `void` */
         return_type.reset(
-            new kh::AstIdentifierExpression(return_type_or_identifiers->index, {U"void"}, {}, {}));
+            new kh::AstIdentifierExpression(return_type_or_identifiers->index, {U"void"}, {}, {}, {}));
         /* Passes the `return_type_or_identifiers` as the function identifier */
         identifiers = return_type_or_identifiers->identifiers;
 
@@ -412,7 +412,7 @@ parseArgs:
             break;
 
         /* Parses the argument */
-        arguments.emplace_back(this->parseDeclaration(false, false));
+        arguments.emplace_back(this->parseDeclaration(false, true));
 
         GUARD(0);
         token = this->to();
@@ -1124,8 +1124,9 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                             new kh::AstFor(index, target_or_initializer, condition, step, for_body));
                     }
                     else
-                        exceptions.emplace_back(U"Was expecting a colon or a comma after the `for` target/initializer",
-                                                token.index);
+                        exceptions.emplace_back(
+                            U"Was expecting a colon or a comma after the `for` target/initializer",
+                            token.index);
                 }
                 /* `continue` statement */
                 else if (token.value.identifier == U"continue") {
@@ -1619,6 +1620,7 @@ end:
 kh::AstExpression* kh::Parser::parseIdentifiers() {
     std::vector<std::u32string> identifiers;
     std::vector<std::shared_ptr<kh::AstIdentifierExpression>> generics;
+    std::vector<bool> are_generics_refs;
     std::vector<std::vector<uint64_t>> generics_array;
 
     kh::Token token = this->to();
@@ -1675,6 +1677,15 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
             token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
             this->ti++;
             GUARD(0);
+            token = this->to();
+
+            if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
+                are_generics_refs.push_back(true);
+                this->ti++;
+                GUARD(0);
+            }
+            else
+                are_generics_refs.push_back(false);
 
             /* Parses the genericization type arguments */
             generics.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
@@ -1686,6 +1697,15 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
                    token.value.symbol_type == kh::Symbol::COMMA) {
                 this->ti++;
                 GUARD(0);
+                token = this->to();
+
+                if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
+                    are_generics_refs.push_back(true);
+                    this->ti++;
+                    GUARD(0);
+                }
+                else
+                    are_generics_refs.push_back(false);
 
                 generics.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
                 generics_array.push_back(this->parseArrayDimensionList(generics.back()));
@@ -1703,6 +1723,7 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
         }
         else if (token.type == kh::TokenType::IDENTIFIER) {
             generics.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
+            are_generics_refs.push_back(false);
             generics_array.push_back({0});
         }
         else {
@@ -1714,7 +1735,8 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
         }
     }
 end:
-    return new kh::AstIdentifierExpression(index, identifiers, generics, generics_array);
+    return new kh::AstIdentifierExpression(index, identifiers, generics, are_generics_refs,
+                                           generics_array);
 }
 
 kh::AstExpression* kh::Parser::parseTuple(const kh::Symbol opening, const kh::Symbol closing,
@@ -1798,7 +1820,7 @@ kh::Parser::parseArrayDimensionList(std::shared_ptr<kh::AstIdentifierExpression>
         if (token.type == kh::TokenType::SYMBOL &&
             token.value.symbol_type == kh::Symbol::SQUARE_CLOSE) {
             type.reset(new kh::AstIdentifierExpression(
-                token.index, {U"list"}, {type},
+                token.index, {U"list"}, {type}, {false},
                 dimension.size() ? std::vector<std::vector<uint64_t>>{dimension}
                                  : std::vector<std::vector<uint64_t>>{{0}}));
             dimension.clear();

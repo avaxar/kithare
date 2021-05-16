@@ -293,6 +293,7 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
                     if (!expr_id.generics[i])
                         continue;
 
+                    str += expr_id.are_generics_refs[i] ? U"ref " : U"";
                     str += kh::repr(*(expr_id.generics[i]), indent);
 
                     if (expr_id.generics_array[i].size() && expr_id.generics_array[i][0] != 0) {
