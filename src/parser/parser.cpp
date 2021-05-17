@@ -1623,6 +1623,8 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
     std::vector<bool> are_generics_refs;
     std::vector<std::vector<uint64_t>> generics_array;
 
+    bool is_function = false;
+
     kh::Token token = this->to();
     size_t index = token.index;
 
@@ -1667,6 +1669,9 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
         token = this->to();
     }
 
+    if (identifiers.size() == 1 && identifiers[0] == U"func")
+        is_function = true;
+
     /* Optional genericization */
     if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::NOT) {
         this->ti++;
@@ -1680,6 +1685,10 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
             token = this->to();
 
             if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
+                if (!is_function)
+                    this->exceptions.emplace_back(
+                        U"`ref` cannot be used in genericization except for `func` type", token.index);
+
                 are_generics_refs.push_back(true);
                 this->ti++;
                 GUARD(0);
@@ -1693,13 +1702,30 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
             GUARD(0);
             token = this->to();
 
+            if (is_function) {
+                if (token.type == kh::TokenType::SYMBOL &&
+                    token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN)
+                    goto forceIn;
+                else {
+                    this->exceptions.emplace_back(U"Was expecting an opening parentheses after the "
+                                                  U"return type in the genericization of `func` type",
+                                                  token.index);
+                }
+            }
+
             while (token.type == kh::TokenType::SYMBOL &&
                    token.value.symbol_type == kh::Symbol::COMMA) {
+            forceIn:
                 this->ti++;
                 GUARD(0);
                 token = this->to();
 
                 if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
+                    if (!is_function)
+                        this->exceptions.emplace_back(
+                            U"`ref` cannot be used in genericization except for `func` type",
+                            token.index);
+
                     are_generics_refs.push_back(true);
                     this->ti++;
                     GUARD(0);
@@ -1716,24 +1742,44 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
 
             /* Expects closing parentheses */
             if (token.type == kh::TokenType::SYMBOL &&
-                token.value.symbol_type == kh::Symbol::PARENTHESES_CLOSE)
+                token.value.symbol_type == kh::Symbol::PARENTHESES_CLOSE) {
                 this->ti++;
+
+                if (is_function) {
+                    GUARD(0);
+                    token = this->to();
+
+                    if (token.type == kh::TokenType::SYMBOL &&
+                        token.value.symbol_type == kh::Symbol::PARENTHESES_CLOSE)
+                        this->ti++;
+                    else
+                        this->exceptions.emplace_back(U"Was expecting a closing parentheses",
+                                                      token.index);
+                }
+            }
             else
                 this->exceptions.emplace_back(U"Was expecting a closing parentheses", token.index);
         }
         else if (token.type == kh::TokenType::IDENTIFIER) {
+            if (is_function)
+                this->exceptions.emplace_back(
+                    U"Was expecting an opening parentheses for genericization of `func` type",
+                    token.index);
+
             generics.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
             are_generics_refs.push_back(false);
             generics_array.push_back({0});
         }
         else {
-            this->exceptions.emplace_back(
-                U"Was either an identifier or an opening parentheses for genericization after the "
-                U"exclamation mark ",
-                token.index);
+            this->exceptions.emplace_back(U"Was expecting either an identifier or an opening "
+                                          U"parentheses for genericization after the "
+                                          U"exclamation mark ",
+                                          token.index);
             this->ti++;
         }
     }
+    else if (is_function)
+        this->exceptions.emplace_back(U"`func` type requires genericization", token.index);
 end:
     return new kh::AstIdentifierExpression(index, identifiers, generics, are_generics_refs,
                                            generics_array);

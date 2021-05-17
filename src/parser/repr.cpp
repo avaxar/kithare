@@ -287,6 +287,10 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
             for (const std::u32string& identifier : expr_id.identifiers)
                 str += identifier + (&identifier == &expr_id.identifiers.back() ? U"" : U".");
 
+            bool is_function = false;
+            if (expr_id.identifiers.size() == 1 && expr_id.identifiers[0] == U"func")
+                is_function = true;
+
             if (!expr_id.generics.empty()) {
                 str += U"!(";
                 for (size_t i = 0; i < expr_id.generics.size(); i++) {
@@ -301,10 +305,12 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
                             str += U"[" + kh::repr(expr_id.generics_array[i][d]) + U"]";
                     }
 
-                    if (i != expr_id.generics.size() - 1)
+                    if (is_function && i == 0)
+                        str += U"(";
+                    else if (i != expr_id.generics.size() - 1)
                         str += U", ";
                 }
-                str += U")";
+                str += is_function ? U"))" : U")";
             }
 
             break;

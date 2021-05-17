@@ -1,7 +1,8 @@
 def main() {
 	list!int a;
 
-	function!(void, ref list, ulong) some_lambda = def &(ref list self, ulong yes) {};
+	tuple!(void, list, ulong) e;
+	func!(void(ref list, ulong)) some_lambda = def &(ref list self, ulong yes) {};
 
 	for int i, i < a.len(), i += 1 {}
 	for int e : a /* sports */ {}
