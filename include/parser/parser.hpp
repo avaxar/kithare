@@ -35,6 +35,11 @@ namespace kh {
         ~Parser();
 
         /// <summary>
+        /// Remove duplicate errors that lie in the same index.
+        /// </summary>
+        void cleanExceptions();
+
+        /// <summary>
         /// Parses the provided tokens and returns an AST module tree.
         /// </summary>
         /// <returns></returns>

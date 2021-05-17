@@ -59,15 +59,15 @@ namespace kh {
         kh::IrStruct* makeStruct(std::shared_ptr<kh::AstStruct>& ast);
         kh::IrClassTemplate* makeClass(kh::IrModule* context, std::shared_ptr<kh::AstClass>& ast);
         kh::IrClass* templatizeClass(kh::IrClassTemplate* class_template,
-                                       const std::vector<kh::IrType*>& arguments);
+                                     const std::vector<kh::IrType*>& arguments);
         kh::IrFunctionTemplate* makeFunction(kh::IrModule* context,
-                                               std::shared_ptr<kh::AstFunctionExpression>& ast);
+                                             std::shared_ptr<kh::AstFunctionExpression>& ast);
         kh::IrFunction* templatizeFunction(kh::IrFunctionTemplate* function_template,
-                                             const std::vector<kh::IrType*>& arguments);
+                                           const std::vector<kh::IrType*>& arguments);
 
         std::vector<kh::IrExpression*> resolve(kh::IrModule* gcontext, kh::IrScope* lcontext,
-                                                 const std::vector<std::u32string>& identifiers);
+                                               const std::vector<std::u32string>& identifiers);
         std::vector<kh::IrExpression*> resolve(kh::IrExpression* expr,
-                                                 const std::u32string& identifier);
+                                               const std::u32string& identifier);
     };
 }

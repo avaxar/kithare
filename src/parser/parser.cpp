@@ -52,6 +52,21 @@ kh::Parser::Parser(const std::vector<kh::Token>& _tokens) {
 
 kh::Parser::~Parser() {}
 
+void kh::Parser::cleanExceptions() {
+    size_t last_index = -1;
+    std::vector<kh::ParseException> cleaned_exceptions;
+    cleaned_exceptions.reserve(this->exceptions.size());
+
+    for (kh::ParseException& exc : this->exceptions) {
+        if (last_index != exc.index)
+            cleaned_exceptions.push_back(exc);
+
+        last_index = exc.index;
+    }
+
+    this->exceptions = cleaned_exceptions;
+}
+
 kh::Ast* kh::Parser::parse() {
     this->exceptions.clear();
 
@@ -158,6 +173,9 @@ kh::Ast* kh::Parser::parse() {
     }
 
 end:
+    if (this->exceptions.size() > 1)
+        this->cleanExceptions();
+
     return new kh::Ast(imports, functions, classes, structs, enums, variables);
 }
 
@@ -374,6 +392,7 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
     GUARD(0);
     token = this->to();
 
+    /* Specifying return type `def function() -> int {}` */
     if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::SUB) {
         this->ti++;
         GUARD(0);
@@ -396,13 +415,12 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
 
             /* Array return type */
             if (token.type == kh::TokenType::SYMBOL &&
-                                  token.value.symbol_type == kh::Symbol::SQUARE_OPEN) {
+                token.value.symbol_type == kh::Symbol::SQUARE_OPEN) {
                 return_array = this->parseArrayDimensionList(return_type);
             }
         }
         else {
-            return_type.reset(new kh::AstIdentifierExpression(token.index,
-                                                              {U"void"}, {}, {}, {}));
+            return_type.reset(new kh::AstIdentifierExpression(token.index, {U"void"}, {}, {}, {}));
 
             this->exceptions.emplace_back(U"Was expecting an arrow specifying a return type",
                                           token.index);

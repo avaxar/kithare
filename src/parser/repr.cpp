@@ -225,10 +225,11 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
             str += U"foreach:";
 
             if (ast_foreach.target)
-                str += U"\n\t" + ind + U"target:\n\t\t" + ind + kh::repr(*ast_foreach.target, indent + 2);
-            if (ast_foreach.iterator)
                 str +=
-                    U"\n\t" + ind + U"iterator:\n\t\t" + ind + kh::repr(*ast_foreach.iterator, indent + 2);
+                    U"\n\t" + ind + U"target:\n\t\t" + ind + kh::repr(*ast_foreach.target, indent + 2);
+            if (ast_foreach.iterator)
+                str += U"\n\t" + ind + U"iterator:\n\t\t" + ind +
+                       kh::repr(*ast_foreach.iterator, indent + 2);
 
             if (!ast_foreach.body.empty()) {
                 str += U"\n\t" + ind + U"body:";
