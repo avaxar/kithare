@@ -4,8 +4,8 @@
  * Copyright (C) 2021 Kithare Organization
  *
  * include/compiler/semanticizer.hpp.
- * Declares the kh::Semanticizer class and its methods which semanticizes the source AST
- * making it into a NAST.
+ * Declares the kh::Semanticizer class and its methods which analyzes the source AST tree,
+ * and outputs an IR.
  */
 
 #pragma once
@@ -13,10 +13,9 @@
 #include <string>
 #include <vector>
 
-#include "compiler/nast.hpp"
+#include "compiler/ir.hpp"
 #include "parser/ast.hpp"
 #include "utility/string.hpp"
-
 
 
 namespace kh {
@@ -31,11 +30,11 @@ namespace kh {
     };
 
     /// <summary>
-    /// Does semantic analysis from the given AST tree and returns an NAST tree.
+    /// Does semantic analysis from the given AST tree and returns an Ir tree.
     /// </summary>
     /// <param name="ast">AST tree to be analyzed</param>
     /// <returns></returns>
-    kh::Nast* semanticize(kh::Ast* ast);
+    kh::Ir* semanticize(kh::Ast* ast);
 
     class Semanticizer {
     public:
@@ -45,31 +44,30 @@ namespace kh {
         ~Semanticizer();
 
         /// <summary>
-        /// Does semantic analysis from the provided AST tree and returns an NAST tree.
+        /// Does semantic analysis from the provided AST tree and returns an Ir tree.
         /// </summary>
         /// <returns></returns>
-        kh::Nast* semanticize();
+        kh::Ir* semanticize();
 
     private:
         kh::Ast* ast_tree;
 
         std::u32string locateModule(const std::vector<std::u32string>& path, const bool is_relative);
-        kh::NastModule* makeModule(kh::Ast* ast);
+        kh::IrModule* makeModule(kh::Ast* ast);
 
-        kh::NastUserEnum* makeEnum(std::shared_ptr<kh::AstEnum>& ast);
-        kh::NastUserStruct* makeStruct(std::shared_ptr<kh::AstStruct>& ast);
-        kh::NastClassTemplate* makeClass(kh::NastModule* context,
-                                         std::shared_ptr<kh::AstClass>& ast);
-        kh::NastUserClass* templatizeClass(kh::NastClassTemplate* class_template,
-                                           const std::vector<kh::NastType*>& arguments);
-        kh::NastFunctionTemplate* makeFunction(kh::NastModule* context,
+        kh::IrEnum* makeEnum(std::shared_ptr<kh::AstEnum>& ast);
+        kh::IrStruct* makeStruct(std::shared_ptr<kh::AstStruct>& ast);
+        kh::IrClassTemplate* makeClass(kh::IrModule* context, std::shared_ptr<kh::AstClass>& ast);
+        kh::IrClass* templatizeClass(kh::IrClassTemplate* class_template,
+                                       const std::vector<kh::IrType*>& arguments);
+        kh::IrFunctionTemplate* makeFunction(kh::IrModule* context,
                                                std::shared_ptr<kh::AstFunctionExpression>& ast);
-        kh::NastUserFunction* templatizeFunction(kh::NastFunctionTemplate* function_template,
-                                                 const std::vector<kh::NastType*>& arguments);
+        kh::IrFunction* templatizeFunction(kh::IrFunctionTemplate* function_template,
+                                             const std::vector<kh::IrType*>& arguments);
 
-        std::vector<kh::NastExpression*> resolve(kh::NastModule* gcontext, kh::NastScope* lcontext,
+        std::vector<kh::IrExpression*> resolve(kh::IrModule* gcontext, kh::IrScope* lcontext,
                                                  const std::vector<std::u32string>& identifiers);
-        std::vector<kh::NastExpression*> resolve(kh::NastExpression* expr,
+        std::vector<kh::IrExpression*> resolve(kh::IrExpression* expr,
                                                  const std::u32string& identifier);
     };
 }

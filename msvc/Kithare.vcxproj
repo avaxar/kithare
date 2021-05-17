@@ -28,7 +28,7 @@
     <ClCompile Include="$(SolutionDir)..\src\utility\file.cpp" />
     <ClCompile Include="$(SolutionDir)..\src\utility\string.cpp" />
     <ClCompile Include="..\src\compiler\ctranspiler.cpp" />
-    <ClCompile Include="..\src\compiler\nast.cpp" />
+    <ClCompile Include="..\src\compiler\ir.cpp" />
     <ClCompile Include="..\src\compiler\semanticizer.cpp" />
     <ClCompile Include="..\src\parser\json.cpp" />
     <ClCompile Include="..\src\parser\repr.cpp" />
@@ -46,7 +46,7 @@
     <ClInclude Include="$(SolutionDir)..\include\utility\file.hpp" />
     <ClInclude Include="$(SolutionDir)..\include\utility\string.hpp" />
     <ClInclude Include="..\include\compiler\ctranspiler.hpp" />
-    <ClInclude Include="..\include\compiler\nast.hpp" />
+    <ClInclude Include="..\include\compiler\ir.hpp" />
     <ClInclude Include="..\include\compiler\semanticizer.hpp" />
     <ClInclude Include="..\include\parser\json.hpp" />
     <ClInclude Include="..\include\parser\repr.hpp" />

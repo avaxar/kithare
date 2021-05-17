@@ -34,9 +34,6 @@
     <ClCompile Include="..\src\runtime\bytecode.cpp">
       <Filter>src\runtime</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\compiler\nast.cpp">
-      <Filter>src\compiler</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\parser\json.cpp">
       <Filter>src\parser</Filter>
     </ClCompile>
@@ -47,6 +44,9 @@
       <Filter>src\compiler</Filter>
     </ClCompile>
     <ClCompile Include="..\src\compiler\semanticizer.cpp">
+      <Filter>src\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\compiler\ir.cpp">
       <Filter>src\compiler</Filter>
     </ClCompile>
   </ItemGroup>
@@ -84,9 +84,6 @@
     <ClInclude Include="..\include\runtime\bytecode.hpp">
       <Filter>include\runtime</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\compiler\nast.hpp">
-      <Filter>include\compiler</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\parser\json.hpp">
       <Filter>include\parser</Filter>
     </ClInclude>
@@ -97,6 +94,9 @@
       <Filter>include\compiler</Filter>
     </ClInclude>
     <ClInclude Include="..\include\compiler\semanticizer.hpp">
+      <Filter>include\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\compiler\ir.hpp">
       <Filter>include\compiler</Filter>
     </ClInclude>
   </ItemGroup>

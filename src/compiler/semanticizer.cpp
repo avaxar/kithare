@@ -10,14 +10,14 @@
 #include "compiler/semanticizer.hpp"
 
 
-kh::Nast* kh::semanticize(kh::Ast* ast) {
+kh::Ir* kh::semanticize(kh::Ast* ast) {
     kh::Semanticizer semanticizer(ast);
-    kh::Nast* nast = semanticizer.semanticize();
+    kh::Ir* ir = semanticizer.semanticize();
 
     if (semanticizer.exceptions.empty())
-        return nast;
+        return ir;
     else {
-        delete nast;
+        delete ir;
         throw semanticizer.exceptions;
     }
 }
@@ -26,7 +26,7 @@ kh::Semanticizer::Semanticizer(kh::Ast* ast) : ast_tree(ast) {}
 
 kh::Semanticizer::~Semanticizer() {}
 
-kh::Nast* kh::Semanticizer::semanticize() {
+kh::Ir* kh::Semanticizer::semanticize() {
     this->exceptions.clear();
 
     /* Placeholder */
