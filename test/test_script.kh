@@ -1,8 +1,12 @@
+def sum() -> int {
+	
+}
+
 def main() {
 	list!int a;
 
 	tuple!(void, list, ulong) e;
-	func!(void(ref list, ulong)) some_lambda = def &(ref list self, ulong yes) {};
+	func!(int(ref list, ulong)) some_lambda = def &(ref list self, ulong yes) -> int {};
 
 	for int i, i < a.len(), i += 1 {}
 	for int e : a /* sports */ {}

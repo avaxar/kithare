@@ -293,102 +293,30 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
     std::vector<std::shared_ptr<kh::AstDeclarationExpression>> arguments;
     std::vector<std::shared_ptr<kh::AstBody>> body;
 
-    std::shared_ptr<kh::AstIdentifierExpression> return_type_or_identifiers;
     kh::Token token = this->to();
     size_t index = token.index;
 
-    bool is_array = false;
-
-    /* Checks if the return type is a `ref`erence type */
-    if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
-        is_return_ref = true;
+    if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::BIT_AND)
         this->ti++;
-        GUARD(0);
-        token = this->to();
-    }
-
-    /* No return type anonymous/no-name functions/lambdas `def &() {}` */
-    if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::BIT_AND) {
-        this->ti++;
-        return_type.reset(new kh::AstIdentifierExpression(token.index, {U"void"}, {}, {}, {}));
-        goto parseArgs;
-    }
-
-    /* `return_type_or_identifiers`' name is just that questionable to implement later on,
-     * making return types be optional (makes them return `void` by default) */
-    return_type_or_identifiers.reset((kh::AstIdentifierExpression*)this->parseIdentifiers());
-
-    GUARD(0);
-    token = this->to();
-
-    /* Array return type */
-    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::SQUARE_OPEN) {
-        return_array = this->parseArrayDimensionList(return_type_or_identifiers);
-        is_array = true;
-    }
-
-    GUARD(0);
-    token = this->to();
-
-    /* The case where it doesn't specify a return type */
-    if (token.type == kh::TokenType::SYMBOL &&
-        token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN && !is_array) {
-        /* Sets the return type to `void` */
-        return_type.reset(
-            new kh::AstIdentifierExpression(return_type_or_identifiers->index, {U"void"}, {}, {}, {}));
-        /* Passes the `return_type_or_identifiers` as the function identifier */
-        identifiers = return_type_or_identifiers->identifiers;
-
-        /* The generic arguments were funnelled from the parsing of the identifier */
-        for (auto& generic_ : return_type_or_identifiers->generics) {
-            if (generic_->identifiers.size() != 1)
-                this->exceptions.emplace_back(U"Could not have multiple identifiers as a generic "
-                                              U"argument name in the function declaration",
-                                              generic_->index);
-            if (!generic_->generics.empty())
-                this->exceptions.emplace_back(U"Could not have generic arguments in a generic "
-                                              U"argument in the function declaration",
-                                              generic_->generics[0]->index);
-
-            generic_args.push_back(generic_->identifiers.empty() ? U"" : generic_->identifiers[0]);
-        }
-    }
-    /* The case where it does specify a return type */
-    else if (token.type == kh::TokenType::IDENTIFIER) {
-        /* Passes `return_type_or_identifiers` as the return type */
-        return_type = return_type_or_identifiers;
-
-        /* Parses the identifier */
-        std::shared_ptr<kh::AstIdentifierExpression> id_generic_args(
-            (kh::AstIdentifierExpression*)this->parseIdentifiers());
-        identifiers = id_generic_args->identifiers;
-
-        /* The generic arguments were funnelled from the parsing of the identifier */
-        for (auto& generic_ : id_generic_args->generics) {
-            if (generic_->identifiers.size() != 1)
-                this->exceptions.emplace_back(U"Could not have multiple identifiers as a generic "
-                                              U"argument name in the function declaration",
-                                              generic_->index);
-            if (!generic_->generics.empty())
-                this->exceptions.emplace_back(U"Could not have generic arguments in a generic "
-                                              U"argument in the function declaration",
-                                              generic_->generics[0]->index);
-
-            generic_args.push_back(generic_->identifiers.empty() ? U"" : generic_->identifiers[0]);
-        }
-    }
-    /* The case where it's a returning anonymous/no-name functions/lambdas `def int &() {}` */
-    else if (token.type == kh::TokenType::OPERATOR &&
-             token.value.operator_type == kh::Operator::BIT_AND) {
-        return_type = return_type_or_identifiers;
-        this->ti++;
-    }
     else {
-        this->exceptions.emplace_back(U"Unexpected token in the function declaration", token.index);
-        goto end;
+        std::shared_ptr<kh::AstIdentifierExpression> identifiers_with_generics(
+            (kh::AstIdentifierExpression*)this->parseIdentifiers());
+        identifiers = identifiers_with_generics->identifiers;
+
+        for (auto& generic_ : identifiers_with_generics->generics) {
+            if (generic_->identifiers.size() != 1)
+                this->exceptions.emplace_back(U"Could not have multiple identifiers as a generic "
+                                              U"argument name in the function declaration",
+                                              generic_->index);
+            if (!generic_->generics.empty())
+                this->exceptions.emplace_back(U"Could not have generic arguments in a generic "
+                                              U"argument in the function declaration",
+                                              generic_->generics[0]->index);
+
+            generic_args.push_back(generic_->identifiers.empty() ? U"" : generic_->identifiers[0]);
+        }
     }
 
-parseArgs:
     GUARD(0);
     token = this->to();
 
@@ -444,6 +372,45 @@ parseArgs:
 
     this->ti++;
     GUARD(0);
+    token = this->to();
+
+    if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::SUB) {
+        this->ti++;
+        GUARD(0);
+        token = this->to();
+
+        if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::MORE) {
+            this->ti++;
+            GUARD(0);
+            token = this->to();
+
+            /* Checks if the return type is a `ref`erence type */
+            if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
+                is_return_ref = true;
+                this->ti++;
+            }
+
+            return_type.reset((kh::AstIdentifierExpression*)this->parseIdentifiers());
+            GUARD(0);
+            token = this->to();
+
+            /* Array return type */
+            if (token.type == kh::TokenType::SYMBOL &&
+                                  token.value.symbol_type == kh::Symbol::SQUARE_OPEN) {
+                return_array = this->parseArrayDimensionList(return_type);
+            }
+        }
+        else {
+            return_type.reset(new kh::AstIdentifierExpression(token.index,
+                                                              {U"void"}, {}, {}, {}));
+
+            this->exceptions.emplace_back(U"Was expecting an arrow specifying a return type",
+                                          token.index);
+        }
+    }
+    else {
+        return_type.reset(new kh::AstIdentifierExpression(token.index, {U"void"}, {}, {}, {}));
+    }
 
     /* Parses the function's body */
     body = this->parseBody();
