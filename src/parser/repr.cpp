@@ -201,14 +201,14 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
             str += U"for:";
 
             if (ast_for.initialize)
-                str += U"\n\t" + ind + U"initialize expression:\n\t\t" + ind +
+                str += U"\n\t" + ind + U"initializer:\n\t\t" + ind +
                        kh::repr(*ast_for.initialize, indent + 2);
             if (ast_for.condition)
                 str += U"\n\t" + ind + U"condition:\n\t\t" + ind +
                        kh::repr(*ast_for.condition, indent + 2);
             if (ast_for.step)
-                str += U"\n\t" + ind + U"step expression:\n\t\t" + ind +
-                       kh::repr(*ast_for.condition, indent + 2);
+                str += U"\n\t" + ind + U"step:\n\t\t" + ind +
+                       kh::repr(*ast_for.step, indent + 2);
 
             if (!ast_for.body.empty()) {
                 str += U"\n\t" + ind + U"body:";

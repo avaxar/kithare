@@ -233,7 +233,7 @@ kh::AstFor::AstFor(const size_t _index, std::shared_ptr<kh::AstExpression>& _ini
                    std::shared_ptr<kh::AstExpression>& _condition,
                    std::shared_ptr<kh::AstExpression>& _step,
                    const std::vector<std::shared_ptr<kh::AstBody>>& _body)
-    : initialize(_initialize), condition(_condition), step(_step) {
+    : initialize(_initialize), condition(_condition), step(_step), body(_body) {
     this->index = _index;
     this->type = kh::AstBody::Type::FOR;
 }

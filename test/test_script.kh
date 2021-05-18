@@ -1,13 +1,18 @@
-def sum() -> int {
-	
-}
+import std;
+
 
 def main() {
-	list!int a;
-
-	tuple!(void, list, ulong) e;
-	func!(int(ref list, ulong)) some_lambda = def &(ref list self, ulong yes) -> int {};
-
-	for int i, i < a.len(), i += 1 {}
-	for int e : a /* sports */ {}
+    for int i = 0, i < 1500, i += 1 {
+        str string = "";
+        if i % 3 == 0 {
+            string += "Fizz";
+        }
+        if i % 5 == 0 {
+            string += "Buzz";
+        }
+        if i % 3 != 0 && i % 5 != 0 {
+            string += str(i);
+        }
+        std.println(string);
+    }
 }
