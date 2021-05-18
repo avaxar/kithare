@@ -1484,7 +1484,7 @@ kh::AstExpression* kh::Parser::parseLiteral() {
             }
             /* Variable declaration */
             else if (token.value.identifier == U"ref" || token.value.identifier == U"static" ||
-                token.value.identifier == U"private" || token.value.identifier == U"public") {
+                     token.value.identifier == U"private" || token.value.identifier == U"public") {
                 bool is_static, is_public;
                 this->parseAccessAttribs(is_static, is_public);
                 GUARD(0);
@@ -1513,6 +1513,10 @@ kh::AstExpression* kh::Parser::parseLiteral() {
                 case kh::Symbol::PARENTHESES_OPEN:
                     expr = this->parseTuple(kh::Symbol::PARENTHESES_OPEN, kh::Symbol::PARENTHESES_CLOSE,
                                             false);
+                    break;
+
+                case kh::Symbol::SQUARE_OPEN:
+                    expr = this->parseTuple(kh::Symbol::SQUARE_OPEN, kh::Symbol::SQUARE_CLOSE);
                     break;
 
                 default:
