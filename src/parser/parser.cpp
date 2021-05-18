@@ -1240,19 +1240,7 @@ kh::AstExpression* kh::Parser::parseExpression() {
     kh::Token token = this->to();
     size_t index = token.index;
 
-    /* Function expression */
-    if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"def") {
-        bool is_static, is_public;
-        this->ti++;
-        GUARD(0);
-        this->parseAccessAttribs(is_static, is_public);
-        GUARD(0);
-        return this->parseFunction(is_static, is_public);
-    }
-    /* Go through "actual" expression, starts recursive descent */
-    else
-        return this->parseAssignOps();
-
+    return this->parseAssignOps();
 end:
     return nullptr;
 }
@@ -1457,6 +1445,7 @@ kh::AstExpression* kh::Parser::parseLiteral() {
             GUARD(0);
             token = this->to();
 
+            /* Auto concatenation */
             while (token.type == kh::TokenType::STRING) {
                 ((kh::AstConstValue*)expr)->string += token.value.string;
                 this->ti++;
@@ -1473,6 +1462,7 @@ kh::AstExpression* kh::Parser::parseLiteral() {
             GUARD(0);
             token = this->to();
 
+            /* Auto concatenation */
             while (token.type == kh::TokenType::BUFFER) {
                 ((kh::AstConstValue*)expr)->buffer += token.value.buffer;
                 this->ti++;
@@ -1483,7 +1473,17 @@ kh::AstExpression* kh::Parser::parseLiteral() {
             break;
 
         case kh::TokenType::IDENTIFIER:
-            if (token.value.identifier == U"ref" || token.value.identifier == U"static" ||
+            /* Function expression */
+            if (token.value.identifier == U"def") {
+                bool is_static, is_public;
+                this->ti++;
+                GUARD(0);
+                this->parseAccessAttribs(is_static, is_public);
+                GUARD(0);
+                return this->parseFunction(is_static, is_public);
+            }
+            /* Variable declaration */
+            else if (token.value.identifier == U"ref" || token.value.identifier == U"static" ||
                 token.value.identifier == U"private" || token.value.identifier == U"public") {
                 bool is_static, is_public;
                 this->parseAccessAttribs(is_static, is_public);
