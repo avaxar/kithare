@@ -151,7 +151,7 @@ class Vector2!T {
 	def delete() {}
 
 	/* Overloading the + operator */
-	def add(Vector2 other) -> Vector2 {
+	def add(Vector2!T other) -> Vector2!T {
 		return Vector2(self.x + other.x, self.y + other.y);
 	}
 }
