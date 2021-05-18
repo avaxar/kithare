@@ -3,10 +3,11 @@
 ![Version](https://img.shields.io/badge/version-0.0.0-00ffaa.svg)
 
 # Kithare
- An open source general purpose statically-typed cross-platform interpreted Python and C like programming language.
+ An open source general purpose statically-typed cross-platform interpreted/transpiled C++/Python like programming language.
 
 ## Community / Contact
 - [Discord server](https://discord.gg/hXvY8CzS7A)
+- [Channel on /r/ProgrammingLanguages discord](https://discord.gg/sggx9T9xsz)
 
 ## Building
 - Kithare uses a python helper script to make building easier. So in order to
