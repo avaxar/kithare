@@ -307,7 +307,7 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
     std::vector<std::u32string> generic_args;
     std::shared_ptr<kh::AstIdentifierExpression> return_type;
     std::vector<uint64_t> return_array = {0};
-    bool is_return_ref = false;
+    size_t return_refs = 0;
     std::vector<std::shared_ptr<kh::AstDeclarationExpression>> arguments;
     std::vector<std::shared_ptr<kh::AstBody>> body;
 
@@ -404,9 +404,11 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
             token = this->to();
 
             /* Checks if the return type is a `ref`erence type */
-            if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
-                is_return_ref = true;
+            while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
+                return_refs += 1;
                 this->ti++;
+                GUARD(0);
+                token = this->to();
             }
 
             return_type.reset((kh::AstIdentifierExpression*)this->parseIdentifiers());
@@ -434,7 +436,7 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
     body = this->parseBody();
 end:
     return new kh::AstFunctionExpression(index, identifiers, generic_args, return_array, return_type,
-                                         is_return_ref, arguments, body, is_static, is_public);
+                                         return_refs, arguments, body, is_static, is_public);
 }
 
 kh::AstDeclarationExpression* kh::Parser::parseDeclaration(const bool is_static, const bool is_public) {
@@ -442,14 +444,14 @@ kh::AstDeclarationExpression* kh::Parser::parseDeclaration(const bool is_static,
     std::vector<uint64_t> var_array = {0};
     std::u32string var_name;
     std::shared_ptr<kh::AstExpression> expression = nullptr;
-    bool is_ref = false;
+    size_t refs = 0;
 
     kh::Token token = this->to();
     size_t index = token.index;
 
     /* Checks if the variable type is a `ref`erence type */
-    if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
-        is_ref = true;
+    while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
+        refs += 1;
         this->ti++;
         GUARD(0);
         token = this->to();
@@ -493,7 +495,7 @@ kh::AstDeclarationExpression* kh::Parser::parseDeclaration(const bool is_static,
     else
         goto end;
 end:
-    return new kh::AstDeclarationExpression(index, var_type, var_array, var_name, expression, is_ref,
+    return new kh::AstDeclarationExpression(index, var_type, var_array, var_name, expression, refs,
                                             is_static, is_public);
 }
 
@@ -1609,7 +1611,7 @@ end:
 kh::AstExpression* kh::Parser::parseIdentifiers() {
     std::vector<std::u32string> identifiers;
     std::vector<std::shared_ptr<kh::AstIdentifierExpression>> generics;
-    std::vector<bool> are_generics_refs;
+    std::vector<size_t> generics_refs;
     std::vector<std::vector<uint64_t>> generics_array;
 
     bool is_function = false;
@@ -1673,17 +1675,13 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
             GUARD(0);
             token = this->to();
 
-            if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
-                if (!is_function)
-                    this->exceptions.emplace_back(
-                        U"`ref` cannot be used in genericization except for `func` type", token.index);
-
-                are_generics_refs.push_back(true);
+            generics_refs.push_back(0);
+            while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
+                generics_refs.back() += 1;
                 this->ti++;
                 GUARD(0);
+                token = this->to();
             }
-            else
-                are_generics_refs.push_back(false);
 
             /* Parses the genericization type arguments */
             generics.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
@@ -1709,18 +1707,13 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
                 GUARD(0);
                 token = this->to();
 
-                if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
-                    if (!is_function)
-                        this->exceptions.emplace_back(
-                            U"`ref` cannot be used in genericization except for `func` type",
-                            token.index);
-
-                    are_generics_refs.push_back(true);
+                generics_refs.push_back(0);
+                while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
+                    generics_refs.back() += 1;
                     this->ti++;
                     GUARD(0);
+                    token = this->to();
                 }
-                else
-                    are_generics_refs.push_back(false);
 
                 generics.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
                 generics_array.push_back(this->parseArrayDimensionList(generics.back()));
@@ -1756,7 +1749,7 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
                     token.index);
 
             generics.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
-            are_generics_refs.push_back(false);
+            generics_refs.push_back(0);
             generics_array.push_back({0});
         }
         else {
@@ -1770,8 +1763,7 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
     else if (is_function)
         this->exceptions.emplace_back(U"`func` type requires genericization", token.index);
 end:
-    return new kh::AstIdentifierExpression(index, identifiers, generics, are_generics_refs,
-                                           generics_array);
+    return new kh::AstIdentifierExpression(index, identifiers, generics, generics_refs, generics_array);
 }
 
 kh::AstExpression* kh::Parser::parseTuple(const kh::Symbol opening, const kh::Symbol closing,

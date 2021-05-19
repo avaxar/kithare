@@ -297,7 +297,8 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
                     if (!expr_id.generics[i])
                         continue;
 
-                    str += expr_id.are_generics_refs[i] ? U"ref " : U"";
+                    for (size_t refs = 0; refs < expr_id.generics_refs[i]; refs++)
+                        str += U"ref ";
                     str += kh::repr(*(expr_id.generics[i]), indent);
 
                     if (expr_id.generics_array[i].size() && expr_id.generics_array[i][0] != 0) {
@@ -410,8 +411,9 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
                 if (!expr_declare.is_public)
                     str += U"private ";
 
-                str += (expr_declare.is_ref ? U"ref " : U"") +
-                       kh::repr(*expr_declare.var_type, indent + 1);
+                for (size_t refs = 0; refs < expr_declare.refs; refs++)
+                    str += U"ref ";
+                str += kh::repr(*expr_declare.var_type, indent + 1);
 
                 if (expr_declare.var_array.size() && expr_declare.var_array[0] != 0) {
                     for (const uint64_t dimension : expr_declare.var_array)
@@ -451,8 +453,11 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
             }
 
             if (expr_func.return_type) {
-                str += U"\n\t" + ind + U"return type: " + (expr_func.is_return_ref ? U"ref " : U"") +
-                       kh::repr(*expr_func.return_type, indent + 1);
+                str += U"\n\t" + ind + U"return type: ";
+
+                for (size_t refs = 0; refs < expr_func.return_refs; refs++)
+                    str += U"ref ";
+                str += kh::repr(*expr_func.return_type, indent + 1);
 
                 if (expr_func.return_array.size() && expr_func.return_array[0] != 0) {
                     for (const uint64_t dimension : expr_func.return_array)

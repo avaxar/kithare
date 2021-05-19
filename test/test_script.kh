@@ -1,18 +1,8 @@
-import std;
-
+def a(ref ref int i) -> ref ref ref K {
+	
+}
 
 def main() {
-    for int i = 0, i < 1500, i += 1 {
-        str string = "";
-        if i % 3 == 0 {
-            string += "Fizz";
-        }
-        if i % 5 == 0 {
-            string += "Buzz";
-        }
-        if i % 3 != 0 && i % 5 != 0 {
-            string += str(i);
-        }
-        std.println(string);
-    }
+	ref ref ref ref float x;
+	func!(ref ref ref K(ref ref int)) f = a;	
 }

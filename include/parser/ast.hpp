@@ -160,13 +160,13 @@ namespace kh {
     public:
         std::vector<std::u32string> identifiers;
         std::vector<std::shared_ptr<kh::AstIdentifierExpression>> generics;
-        std::vector<bool> are_generics_refs;
+        std::vector<size_t> generics_refs;
         std::vector<std::vector<uint64_t>> generics_array;
 
         AstIdentifierExpression(
             const size_t _index, const std::vector<std::u32string>& _identifiers,
             const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _generics,
-            const std::vector<bool>& _are_generics_refs,
+            const std::vector<size_t>& _generics_refs,
             const std::vector<std::vector<uint64_t>>& _generics_array);
         virtual ~AstIdentifierExpression() {}
     };
@@ -231,7 +231,7 @@ namespace kh {
         std::vector<uint64_t> var_array;
         std::u32string var_name;
         std::shared_ptr<kh::AstExpression> expression;
-        bool is_ref;
+        size_t refs;
         bool is_static;
         bool is_public;
 
@@ -239,7 +239,7 @@ namespace kh {
                                  std::shared_ptr<kh::AstIdentifierExpression>& _var_type,
                                  const std::vector<uint64_t>& _var_array,
                                  const std::u32string& _var_name,
-                                 std::shared_ptr<kh::AstExpression>& _expression, const bool _is_ref,
+                                 std::shared_ptr<kh::AstExpression>& _expression, const size_t _refs,
                                  const bool _is_static, const bool _is_public);
         virtual ~AstDeclarationExpression() {}
     };
@@ -252,7 +252,7 @@ namespace kh {
 
         std::shared_ptr<kh::AstIdentifierExpression> return_type;
         std::vector<uint64_t> return_array;
-        bool is_return_ref;
+        size_t return_refs;
 
         std::vector<std::shared_ptr<kh::AstDeclarationExpression>> arguments;
         std::vector<std::shared_ptr<kh::AstBody>> body;
@@ -263,7 +263,7 @@ namespace kh {
             const size_t _index, const std::vector<std::u32string>& _identifiers,
             const std::vector<std::u32string>& _generic_args,
             const std::vector<uint64_t>& _return_array,
-            std::shared_ptr<kh::AstIdentifierExpression>& _return_type, const bool _is_return_ref,
+            std::shared_ptr<kh::AstIdentifierExpression>& _return_type, const size_t _return_refs,
             const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _arguments,
             const std::vector<std::shared_ptr<kh::AstBody>>& _body, const bool _is_static,
             const bool _is_public);

@@ -45,9 +45,9 @@ kh::AstEnum::AstEnum(const size_t _index, const std::u32string& _name,
 kh::AstIdentifierExpression::AstIdentifierExpression(
     const size_t _index, const std::vector<std::u32string>& _identifiers,
     const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _generics,
-    const std::vector<bool>& _are_generics_refs,
+    const std::vector<size_t>& _generics_refs,
     const std::vector<std::vector<uint64_t>>& _generics_array)
-    : identifiers(_identifiers), generics(_generics), are_generics_refs(_are_generics_refs),
+    : identifiers(_identifiers), generics(_generics), generics_refs(_generics_refs),
       generics_array(_generics_array) {
     this->index = _index;
     this->type = kh::AstBody::Type::EXPRESSION;
@@ -102,10 +102,10 @@ kh::AstCallExpression::AstCallExpression(
 kh::AstDeclarationExpression::AstDeclarationExpression(
     const size_t _index, std::shared_ptr<kh::AstIdentifierExpression>& _var_type,
     const std::vector<uint64_t>& _var_array, const std::u32string& _var_name,
-    std::shared_ptr<kh::AstExpression>& _expression, const bool _is_ref, const bool _is_static,
+    std::shared_ptr<kh::AstExpression>& _expression, const size_t _refs, const bool _is_static,
     const bool _is_public)
     : var_type(_var_type), var_array(_var_array), var_name(_var_name), expression(_expression),
-      is_ref(_is_ref), is_static(_is_static), is_public(_is_public) {
+      refs(_refs), is_static(_is_static), is_public(_is_public) {
     this->index = _index;
     this->type = kh::AstBody::Type::EXPRESSION;
     this->expression_type = kh::AstExpression::ExType::DECLARE;
@@ -114,12 +114,12 @@ kh::AstDeclarationExpression::AstDeclarationExpression(
 kh::AstFunctionExpression::AstFunctionExpression(
     const size_t _index, const std::vector<std::u32string>& _identifiers,
     const std::vector<std::u32string>& _generic_args, const std::vector<uint64_t>& _return_array,
-    std::shared_ptr<kh::AstIdentifierExpression>& _return_type, const bool _is_return_ref,
+    std::shared_ptr<kh::AstIdentifierExpression>& _return_type, const size_t _return_refs,
     const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _arguments,
     const std::vector<std::shared_ptr<kh::AstBody>>& _body, const bool _is_static,
     const bool _is_public)
     : index(_index), identifiers(_identifiers), generic_args(_generic_args),
-      return_array(_return_array), return_type(_return_type), is_return_ref(_is_return_ref),
+      return_array(_return_array), return_type(_return_type), return_refs(_return_refs),
       arguments(_arguments), body(_body), is_static(_is_static), is_public(_is_public) {
     this->index = _index;
     this->type = kh::AstBody::Type::EXPRESSION;
