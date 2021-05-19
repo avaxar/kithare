@@ -16,9 +16,6 @@
     <Filter Include="src\parser">
       <UniqueIdentifier>{6ed4583f-c5ed-4eb5-97e5-af9c3f4a003e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\runtime">
-      <UniqueIdentifier>{71ecaec0-da0a-4b7e-a80f-0e8bd0b20c1c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\compiler">
       <UniqueIdentifier>{18ff9b31-61ea-4cc9-853a-4f400629bdd2}</UniqueIdentifier>
     </Filter>
@@ -56,15 +53,6 @@
     </ClCompile>
     <ClCompile Include="..\test\test_parser.cpp">
       <Filter>src\tests</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\runtime\instruction.cpp">
-      <Filter>src\runtime</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\runtime\vm.cpp">
-      <Filter>src\runtime</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\runtime\bytecode.cpp">
-      <Filter>src\runtime</Filter>
     </ClCompile>
     <ClCompile Include="..\src\parser\json.cpp">
       <Filter>src\parser</Filter>

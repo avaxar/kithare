@@ -25,15 +25,6 @@
     <ClCompile Include="$(SolutionDir)..\src\utility\string.cpp">
       <Filter>src\utility</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\runtime\instruction.cpp">
-      <Filter>src\runtime</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\runtime\vm.cpp">
-      <Filter>src\runtime</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\runtime\bytecode.cpp">
-      <Filter>src\runtime</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\parser\json.cpp">
       <Filter>src\parser</Filter>
     </ClCompile>
@@ -75,15 +66,6 @@
     <ClInclude Include="$(SolutionDir)..\include\utility\string.hpp">
       <Filter>include\utility</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\runtime\instruction.hpp">
-      <Filter>include\runtime</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\runtime\vm.hpp">
-      <Filter>include\runtime</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\runtime\bytecode.hpp">
-      <Filter>include\runtime</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\parser\json.hpp">
       <Filter>include\parser</Filter>
     </ClInclude>
@@ -121,12 +103,6 @@
     </Filter>
     <Filter Include="src\parser">
       <UniqueIdentifier>{9b0ff7b1-f87f-4d31-b2ff-e8154161dc3b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="include\runtime">
-      <UniqueIdentifier>{00bbbf4a-78c7-44ba-9ef3-dd4a7a229f91}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\runtime">
-      <UniqueIdentifier>{9ce9d447-770f-4996-b6fc-c11536707aaa}</UniqueIdentifier>
     </Filter>
     <Filter Include="include\compiler">
       <UniqueIdentifier>{12da5e58-9882-4345-ab67-0f3c279b084e}</UniqueIdentifier>
