@@ -1,7 +1,7 @@
 # Contributing to Kithare
 
 - New Contributors are most welcome to come and help us in making Kithare better.
-- First of all, all contributors are expected to follow the [code of conduct](CODE_OF_CONDUCT.md).
+- First of all, all contributors are expected to follow the [code of conduct](code_of_conduct).
 - To contribute to the repo, feel free to open a PR on Github. The collaborators will review your changes, make suggestions and merge it in when they are happy with it.
 - If you want to contribute a major change, it's a good idea to discuss with us
 first, either on our discord server, or on GitHub issues section.
