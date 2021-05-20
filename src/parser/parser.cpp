@@ -136,6 +136,9 @@ kh::Ast* kh::Parser::parse() {
                     bool is_static, is_public;
                     this->parseAccessAttribs(is_static, is_public);
                     GUARD(0);
+                    if (is_static)
+                        this->exceptions.emplace_back(U"A top scope variable cannot be `static`",
+                                                      token.index);
 
                     /* Parses the variable's return type, name, and assignment value */
                     variables.emplace_back(this->parseDeclaration(is_static, is_public));
@@ -1491,6 +1494,9 @@ kh::AstExpression* kh::Parser::parseLiteral() {
                 bool is_static, is_public;
                 this->parseAccessAttribs(is_static, is_public);
                 GUARD(0);
+                if (!is_public)
+                    this->exceptions.emplace_back(U"A local variable cannot be `private`",
+                                                  token.index);
                 return this->parseDeclaration(is_static, is_public);
             }
             else {
