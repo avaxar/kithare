@@ -93,6 +93,9 @@ kh::Ast* kh::Parser::parse() {
                     /* Parses access type */
                     bool is_static, is_public;
                     this->parseAccessAttribs(is_static, is_public);
+                    if (is_static)
+                        this->exceptions.emplace_back(U"A top scope function cannot be `static`",
+                                                      token.index);
                     GUARD(0);
                     /* Parses return type, name, arguments, and body */
                     functions.emplace_back(this->parseFunction(is_static, is_public));
@@ -1479,8 +1482,6 @@ kh::AstExpression* kh::Parser::parseLiteral() {
             if (token.value.identifier == U"def") {
                 bool is_static, is_public;
                 this->ti++;
-                GUARD(0);
-                this->parseAccessAttribs(is_static, is_public);
                 GUARD(0);
                 return this->parseFunction(is_static, is_public);
             }
