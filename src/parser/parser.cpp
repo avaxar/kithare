@@ -93,12 +93,17 @@ kh::Ast* kh::Parser::parse() {
                     /* Parses access type */
                     bool is_static, is_public;
                     this->parseAccessAttribs(is_static, is_public);
-                    if (is_static)
-                        this->exceptions.emplace_back(U"A top scope function cannot be `static`",
-                                                      token.index);
+
                     GUARD(0);
                     /* Parses return type, name, arguments, and body */
                     functions.emplace_back(this->parseFunction(is_static, is_public));
+
+                    if (!functions.back()->identifiers.size())
+                        this->exceptions.emplace_back(
+                            U"Lambda functions cannot be declared at the top scope", token.index);
+                    if (is_static && functions.back()->identifiers.size() == 1)
+                        this->exceptions.emplace_back(U"A top scope function cannot be `static`",
+                                                      token.index);
                 }
                 /* Parses class declaration */
                 else if (identifier == U"class") {
@@ -966,9 +971,14 @@ end:
 std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break_continue_allowed) {
     std::vector<std::shared_ptr<kh::AstBody>> body;
     kh::Token token = this->to();
+    bool is_single_liner = false;
 
+    /* Checks if it's a single liner statement `if a < b : something();` */
+    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::COLON)
+        is_single_liner = true;
     /* Expects an opening curly bracket */
-    if (!(token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_OPEN)) {
+    else if (!(token.type == kh::TokenType::SYMBOL &&
+               token.value.symbol_type == kh::Symbol::CURLY_OPEN)) {
         this->exceptions.emplace_back(U"Was expecting an opening curly bracket", token.index);
         goto end;
     }
@@ -987,11 +997,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                 if (token.value.identifier == U"def") {
                     this->ti++;
                     GUARD(0);
-
-                    bool is_static, is_public;
-                    this->parseAccessAttribs(is_static, is_public);
-                    GUARD(0);
-                    body.emplace_back(this->parseFunction(is_static, is_public));
+                    body.emplace_back(this->parseFunction(false, true));
                 }
                 /* If statement */
                 else if (token.value.identifier == U"if") {
@@ -1213,6 +1219,11 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
 
                     /* Ends body */
                     case kh::Symbol::CURLY_CLOSE: {
+                        if (is_single_liner)
+                            this->exceptions.emplace_back(
+                                U"Unexpected closing curly bracket in a single liner statement",
+                                token.index);
+
                         this->ti++;
                         goto end;
                     } break;
@@ -1239,6 +1250,9 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                 body.emplace_back(expr);
             }
         }
+
+        if (is_single_liner)
+            break;
     }
 end:
     return body;
@@ -1483,10 +1497,9 @@ kh::AstExpression* kh::Parser::parseLiteral() {
         case kh::TokenType::IDENTIFIER:
             /* Function expression */
             if (token.value.identifier == U"def") {
-                bool is_static, is_public;
                 this->ti++;
                 GUARD(0);
-                return this->parseFunction(is_static, is_public);
+                return this->parseFunction(false, true);
             }
             /* Variable declaration */
             else if (token.value.identifier == U"ref" || token.value.identifier == U"static" ||
@@ -1495,8 +1508,7 @@ kh::AstExpression* kh::Parser::parseLiteral() {
                 this->parseAccessAttribs(is_static, is_public);
                 GUARD(0);
                 if (!is_public)
-                    this->exceptions.emplace_back(U"A local variable cannot be `private`",
-                                                  token.index);
+                    this->exceptions.emplace_back(U"A local variable cannot be `private`", token.index);
                 return this->parseDeclaration(is_static, is_public);
             }
             else {

@@ -1,8 +1,13 @@
-def a(ref ref int i) -> ref ref ref K {
-	
+def f(int a, int b, int c) {
+    if c < 69:
+        doSomething();
+
+    if a == b:
+    	for int i, i < b, i -= 1 {
+
+    	}
 }
 
-def main() {
-	ref ref ref ref float x;
-	func!(ref ref ref K(ref ref int)) f = a;	
-}
+def f()             : f(33, 42, 69);
+def f(int a)        : f(a, 42, 69);
+def f(int a, int b) : f(a, b, 69);
