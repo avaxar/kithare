@@ -26,17 +26,17 @@ kh::AstImport::AstImport(const size_t _index, const std::vector<std::u32string>&
       identifier(_identifier) {}
 
 kh::AstClass::AstClass(const size_t _index, const std::u32string& _name,
-                       std::shared_ptr<kh::AstIdentifierExpression>& _base,
+                       const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _bases,
                        const std::vector<std::u32string>& _generic_args,
                        const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _members,
                        const std::vector<std::shared_ptr<kh::AstFunctionExpression>>& _methods)
-    : index(_index), name(_name), base(_base), generic_args(_generic_args), members(_members),
+    : index(_index), name(_name), bases(_bases), generic_args(_generic_args), members(_members),
       methods(_methods) {}
 
 kh::AstStruct::AstStruct(const size_t _index, const std::u32string& _name,
-                         std::shared_ptr<kh::AstIdentifierExpression>& _base,
+                         const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _bases,
                          const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _members)
-    : index(_index), name(_name), base(_base), members(_members) {}
+    : index(_index), name(_name), bases(_bases), members(_members) {}
 
 kh::AstEnum::AstEnum(const size_t _index, const std::u32string& _name,
                      const std::vector<std::u32string>& _members, const std::vector<uint64_t>& _values)

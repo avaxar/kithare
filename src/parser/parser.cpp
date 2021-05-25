@@ -512,7 +512,7 @@ end:
 
 kh::AstClass* kh::Parser::parseClass() {
     std::u32string name;
-    std::shared_ptr<kh::AstIdentifierExpression> base;
+    std::vector<std::shared_ptr<kh::AstIdentifierExpression>> bases;
     std::vector<std::u32string> generic_args;
     std::vector<std::shared_ptr<kh::AstDeclarationExpression>> members;
     std::vector<std::shared_ptr<kh::AstFunctionExpression>> methods;
@@ -630,9 +630,18 @@ kh::AstClass* kh::Parser::parseClass() {
         GUARD(0);
 
         /* Parses base class' identifier */
-        base.reset((kh::AstIdentifierExpression*)this->parseIdentifiers());
+        bases.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
         GUARD(0);
         token = this->to();
+
+        /* If there is any more bases to inherit */
+        while (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::COMMA) {
+            this->ti++;
+            GUARD(0);
+            bases.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
+            GUARD(0);
+            token = this->to();
+        }
 
         /* Expects a closing parentheses */
         if (token.type == kh::TokenType::SYMBOL &&
@@ -732,12 +741,12 @@ kh::AstClass* kh::Parser::parseClass() {
         this->exceptions.emplace_back(
             U"Was expecting an opening curly bracket after the class declaration", token.index);
 end:
-    return new kh::AstClass(index, name, base, generic_args, members, methods);
+    return new kh::AstClass(index, name, bases, generic_args, members, methods);
 }
 
 kh::AstStruct* kh::Parser::parseStruct() {
     std::u32string name;
-    std::shared_ptr<kh::AstIdentifierExpression> base;
+    std::vector<std::shared_ptr<kh::AstIdentifierExpression>> bases;
     std::vector<std::shared_ptr<kh::AstDeclarationExpression>> members;
 
     kh::Token token = this->to();
@@ -765,10 +774,20 @@ kh::AstStruct* kh::Parser::parseStruct() {
         this->ti++;
         GUARD(0);
 
-        /* Parses the base class' identifier */
-        base.reset((kh::AstIdentifierExpression*)this->parseIdentifiers());
+        /* Parses the base struct's identifier */
+        bases.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
         GUARD(0);
         token = this->to();
+
+        /* If there is any more bases to inherit */
+        while (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::COMMA) {
+            this->ti++;
+            GUARD(0);
+            bases.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
+            GUARD(0);
+            token = this->to();
+        }
+
         if (token.type == kh::TokenType::SYMBOL &&
             token.value.symbol_type == kh::Symbol::PARENTHESES_CLOSE)
             this->ti++;
@@ -835,7 +854,7 @@ kh::AstStruct* kh::Parser::parseStruct() {
         this->exceptions.emplace_back(
             U"Was expecting an opening curly bracket after the struct declaration", token.index);
 end:
-    return new kh::AstStruct(index, name, base, members);
+    return new kh::AstStruct(index, name, bases, members);
 }
 
 kh::AstEnum* kh::Parser::parseEnum() {

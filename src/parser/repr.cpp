@@ -60,8 +60,12 @@ std::u32string kh::repr(const kh::AstClass& class_ast, const size_t indent) {
     std::u32string str = U"class:";
     str += U"\n\t" + ind + U"name: " + class_ast.name;
 
-    if (class_ast.base)
-        str += U"\n\t" + ind + U"base: " + kh::repr(*class_ast.base, indent + 2);
+    if (!class_ast.bases.empty()) {
+        str += U"\n\t" + ind + U"base(s):";
+        for (const std::shared_ptr<kh::AstIdentifierExpression>& base : class_ast.bases)
+            if (base)
+                str += U"\n\t\t" + ind + kh::repr(*base, indent + 3);
+    }
 
     if (!class_ast.generic_args.empty()) {
         str += U"\n\t" + ind + U"generic argument(s): ";
@@ -90,8 +94,12 @@ std::u32string kh::repr(const kh::AstStruct& struct_ast, const size_t indent) {
     std::u32string str = U"struct:";
     str += U"\n\t" + ind + U"name: " + struct_ast.name;
 
-    if (struct_ast.base)
-        str += U"\n\t" + ind + U"base: " + kh::repr(*struct_ast.base, indent + 2);
+    if (!struct_ast.bases.empty()) {
+        str += U"\n\t" + ind + U"base(s):";
+        for (const std::shared_ptr<kh::AstIdentifierExpression>& base : struct_ast.bases)
+            if (base)
+                str += U"\n\t\t" + ind + kh::repr(*base, indent + 3);
+    }
 
     str += U"\n\t" + ind + U"member(s):";
     for (auto member : struct_ast.members)

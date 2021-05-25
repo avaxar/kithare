@@ -81,13 +81,13 @@ namespace kh {
     public:
         size_t index;
         std::u32string name;
-        std::shared_ptr<kh::AstIdentifierExpression> base;
+        std::vector<std::shared_ptr<kh::AstIdentifierExpression>> bases;
         std::vector<std::u32string> generic_args;
         std::vector<std::shared_ptr<kh::AstDeclarationExpression>> members;
         std::vector<std::shared_ptr<kh::AstFunctionExpression>> methods;
 
         AstClass(const size_t _index, const std::u32string& _name,
-                 std::shared_ptr<kh::AstIdentifierExpression>& _base,
+                 const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _bases,
                  const std::vector<std::u32string>& _generic_args,
                  const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _members,
                  const std::vector<std::shared_ptr<kh::AstFunctionExpression>>& _methods);
@@ -98,11 +98,11 @@ namespace kh {
     public:
         size_t index;
         std::u32string name;
-        std::shared_ptr<kh::AstIdentifierExpression> base;
+        std::vector<std::shared_ptr<kh::AstIdentifierExpression>> bases;
         std::vector<std::shared_ptr<kh::AstDeclarationExpression>> members;
 
         AstStruct(const size_t _index, const std::u32string& _name,
-                  std::shared_ptr<kh::AstIdentifierExpression>& _base,
+                  const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _bases,
                   const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _members);
         virtual ~AstStruct() {}
     };
