@@ -144,11 +144,11 @@ std::u32string kh::repr(const kh::Operator op) {
             return U">>";
 
         case kh::Operator::AND:
-            return U"&&";
+            return U"and";
         case kh::Operator::OR:
-            return U"||";
+            return U"or";
         case kh::Operator::NOT:
-            return U"!";
+            return U"not";
 
         case kh::Operator::ASSIGN:
             return U"=";

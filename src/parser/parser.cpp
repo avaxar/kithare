@@ -1353,7 +1353,26 @@ kh::AstExpression* kh::Parser::parseOr() {
 
 kh::AstExpression* kh::Parser::parseAnd() {
     static std::vector<kh::Operator> operators = {kh::Operator::AND};
-    RECURSIVE_DESCENT_SINGULAR_OP(this->parseComparison);
+    RECURSIVE_DESCENT_SINGULAR_OP(this->parseNot);
+}
+
+kh::AstExpression* kh::Parser::parseNot() {
+    kh::AstExpression* expr = nullptr;
+    kh::Token token = this->to();
+    size_t index = token.index;
+
+    if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::NOT) {
+        this->ti++;
+        GUARD(0);
+
+        std::shared_ptr<kh::AstExpression> rval(this->parseNot());
+        expr = new kh::AstUnaryExpression(token.index, token.value.operator_type, rval);
+    }
+    else
+        expr = this->parseComparison();
+
+end:
+    return expr;
 }
 
 kh::AstExpression* kh::Parser::parseComparison() {
@@ -1399,7 +1418,6 @@ kh::AstExpression* kh::Parser::parseUnary() {
             case kh::Operator::ADD:
             case kh::Operator::SUB:
             case kh::Operator::BIT_NOT:
-            case kh::Operator::NOT:
             case kh::Operator::SIZEOF:
             case kh::Operator::ADDRESS: {
                 this->ti++;
@@ -1411,8 +1429,7 @@ kh::AstExpression* kh::Parser::parseUnary() {
 
             default:
                 this->ti++;
-                this->exceptions.emplace_back(U"Unexpected operator after a unary operator",
-                                              token.index);
+                this->exceptions.emplace_back(U"Unexpected operator as a unary operator", token.index);
         }
     }
     else

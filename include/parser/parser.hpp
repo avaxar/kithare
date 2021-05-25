@@ -73,8 +73,9 @@ namespace kh {
         kh::AstExpression* parseAssignOps();      /* Parses assignment operations and in-place
                                                    * operations `=`, `+=`, `-=`, `*=`, ... */
         kh::AstExpression* parseTernary();        /* Parses ternary expressions */
-        kh::AstExpression* parseOr();             /* Parses logical OR `||` */
-        kh::AstExpression* parseAnd();            /* Parses logical AND `&&` */
+        kh::AstExpression* parseOr();             /* Parses logical `or` */
+        kh::AstExpression* parseAnd();            /* Parses logical `and` */
+        kh::AstExpression* parseNot();            /* Parses logical `not` */
         kh::AstExpression* parseComparison();     /* Parses `==` `!=` `<` `>` `<=` `>=` */
         kh::AstExpression* parseBitwiseOr();      /* Parses bitwise OR `|` */
         kh::AstExpression* parseBitwiseAnd();     /* Parses bitwise AND `&` */

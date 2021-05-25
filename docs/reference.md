@@ -23,7 +23,7 @@ def main() {
         if i % 5 == 0 {
             string += "Buzz";
         }
-        if i % 3 != 0 && i % 5 != 0 {
+        if i % 3 != 0 and i % 5 != 0 {
             string += str(i);
         }
         std.println(string);

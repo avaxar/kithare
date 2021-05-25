@@ -365,8 +365,9 @@ std::vector<kh::Token> kh::lex(const std::u32string& source, const bool lex_comm
                                 HANDLE_OP_COMBO('^', kh::Operator::POW, '=', kh::Operator::IPOW);
                                 HANDLE_OP_COMBO('=', kh::Operator::ASSIGN, '=', kh::Operator::EQUAL);
                                 HANDLE_OP_COMBO('!', kh::Operator::NOT, '=', kh::Operator::NOT_EQUAL);
-                                HANDLE_OP_COMBO('&', kh::Operator::BIT_AND, '&', kh::Operator::AND);
-                                HANDLE_OP_COMBO('|', kh::Operator::BIT_OR, '|', kh::Operator::OR);
+
+                                HANDLE_SIMPLE_OP('&', kh::Operator::BIT_AND);
+                                HANDLE_SIMPLE_OP('|', kh::Operator::BIT_OR);
                                 HANDLE_SIMPLE_OP('~', kh::Operator::BIT_NOT);
                                 HANDLE_SIMPLE_OP('#', kh::Operator::SIZEOF);
                                 HANDLE_SIMPLE_OP('@', kh::Operator::ADDRESS);
@@ -477,11 +478,25 @@ std::vector<kh::Token> kh::lex(const std::u32string& source, const bool lex_comm
                     if (std::iswalpha(chAt(i)) > 0 || kh::isDec(chAt(i)) || chAt(i) == '_')
                         temp_str += chAt(i);
                     else {
-                        /* If it's not, reset the state and appends the concatenated identifier
-                         * characters as a token */
                         kh::TokenValue value;
-                        value.identifier = temp_str;
-                        tokens.emplace_back(start, i, kh::TokenType::IDENTIFIER, value);
+                        if (temp_str == U"and") {
+                            value.operator_type = kh::Operator::AND;
+                            tokens.emplace_back(start, i, kh::TokenType::OPERATOR, value);
+                        }
+                        else if (temp_str == U"or") {
+                            value.operator_type = kh::Operator::OR;
+                            tokens.emplace_back(start, i, kh::TokenType::OPERATOR, value);
+                        }
+                        else if (temp_str == U"not") {
+                            value.operator_type = kh::Operator::NOT;
+                            tokens.emplace_back(start, i, kh::TokenType::OPERATOR, value);
+                        }
+                        else {
+                            /* If it's not, reset the state and appends the concatenated identifier
+                             * characters as a token */
+                            value.identifier = temp_str;
+                            tokens.emplace_back(start, i, kh::TokenType::IDENTIFIER, value);
+                        }
 
                         state = kh::TokenizeState::NONE;
                         i--;
