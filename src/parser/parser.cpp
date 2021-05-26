@@ -528,11 +528,11 @@ kh::AstClass* kh::Parser::parseClass() {
     for (auto& generic_ : identifiers_with_generics->generics) {
         if (generic_->identifiers.size() != 1)
             this->exceptions.emplace_back(U"Could not have multiple identifiers as a generic "
-                                          U"argument name in the function declaration",
+                                          U"argument name in the class declaration",
                                           generic_->index);
         if (!generic_->generics.empty())
             this->exceptions.emplace_back(U"Could not have generic arguments in a generic "
-                                          U"argument in the function declaration",
+                                          U"argument in the class declaration",
                                           generic_->generics[0]->index);
 
         generic_args.push_back(generic_->identifiers.empty() ? U"" : generic_->identifiers[0]);
