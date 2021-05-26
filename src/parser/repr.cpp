@@ -57,8 +57,9 @@ std::u32string kh::repr(const kh::AstClass& class_ast, const size_t indent) {
     for (size_t i = 0; i < indent; i++)
         ind += '\t';
 
-    std::u32string str = U"class:";
-    str += U"\n\t" + ind + U"name: " + class_ast.name;
+    std::u32string str = U"class:\n\t" + ind + U"name: ";
+    for (const std::u32string& identifier : class_ast.identifiers)
+        str += identifier + (&identifier == &class_ast.identifiers.back() ? U"" : U".");
 
     if (!class_ast.bases.empty()) {
         str += U"\n\t" + ind + U"base(s):";
@@ -91,8 +92,9 @@ std::u32string kh::repr(const kh::AstStruct& struct_ast, const size_t indent) {
     for (size_t i = 0; i < indent; i++)
         ind += '\t';
 
-    std::u32string str = U"struct:";
-    str += U"\n\t" + ind + U"name: " + struct_ast.name;
+    std::u32string str = U"struct:\n\t" + ind + U"name: ";
+    for (const std::u32string& identifier : struct_ast.identifiers)
+        str += identifier + (&identifier == &struct_ast.identifiers.back() ? U"" : U".");
 
     if (!struct_ast.bases.empty()) {
         str += U"\n\t" + ind + U"base(s):";
@@ -114,8 +116,9 @@ std::u32string kh::repr(const kh::AstEnum& enum_ast, const size_t indent) {
     for (size_t i = 0; i < indent; i++)
         ind += '\t';
 
-    std::u32string str = U"enum:";
-    str += U"\n\t" + ind + U"name: " + enum_ast.name;
+    std::u32string str = U"enum:\n\t" + ind + U"name: ";
+    for (const std::u32string& identifier : enum_ast.identifiers)
+        str += identifier + (&identifier == &enum_ast.identifiers.back() ? U"" : U".");
 
     str += U"\n\t" + ind + U"member(s):";
     for (size_t member = 0; member < enum_ast.members.size(); member++)

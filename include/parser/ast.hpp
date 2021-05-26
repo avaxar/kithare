@@ -80,13 +80,13 @@ namespace kh {
     class AstClass {
     public:
         size_t index;
-        std::u32string name;
+        std::vector<std::u32string> identifiers;
         std::vector<std::shared_ptr<kh::AstIdentifierExpression>> bases;
         std::vector<std::u32string> generic_args;
         std::vector<std::shared_ptr<kh::AstDeclarationExpression>> members;
         std::vector<std::shared_ptr<kh::AstFunctionExpression>> methods;
 
-        AstClass(const size_t _index, const std::u32string& _name,
+        AstClass(const size_t _index, const std::vector<std::u32string>& _identifiers,
                  const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _bases,
                  const std::vector<std::u32string>& _generic_args,
                  const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _members,
@@ -97,11 +97,11 @@ namespace kh {
     class AstStruct {
     public:
         size_t index;
-        std::u32string name;
+        std::vector<std::u32string> identifiers;
         std::vector<std::shared_ptr<kh::AstIdentifierExpression>> bases;
         std::vector<std::shared_ptr<kh::AstDeclarationExpression>> members;
 
-        AstStruct(const size_t _index, const std::u32string& _name,
+        AstStruct(const size_t _index, const std::vector<std::u32string>& _identifiers,
                   const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _bases,
                   const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _members);
         virtual ~AstStruct() {}
@@ -110,11 +110,11 @@ namespace kh {
     class AstEnum {
     public:
         size_t index;
-        std::u32string name;
+        std::vector<std::u32string> identifiers;
         std::vector<std::u32string> members;
         std::vector<uint64_t> values;
 
-        AstEnum(const size_t _index, const std::u32string& _name,
+        AstEnum(const size_t _index, const std::vector<std::u32string>& _identifiers,
                 const std::vector<std::u32string>& _members, const std::vector<uint64_t>& _values);
         virtual ~AstEnum() {}
     };

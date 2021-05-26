@@ -1,13 +1,15 @@
-def f(int a, int b, int c) {
-    if c < 69:
-        doSomething();
-
-    if a == b:
-    	for int i, i < b, i -= 1 {
-
-    	}
+def a.b.c!(a, b, c)() {
+    
 }
 
-def f()             : f(33, 42, 69);
-def f(int a)        : f(a, 42, 69);
-def f(int a, int b) : f(a, b, 69);
+class a.b.C!(a, b, c) {
+    
+}
+
+struct a.b.C {
+    
+}
+
+enum a.b.C {
+    
+}

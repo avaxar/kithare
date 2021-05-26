@@ -511,7 +511,7 @@ end:
 }
 
 kh::AstClass* kh::Parser::parseClass() {
-    std::u32string name;
+    std::vector<std::u32string> identifiers;
     std::vector<std::shared_ptr<kh::AstIdentifierExpression>> bases;
     std::vector<std::u32string> generic_args;
     std::vector<std::shared_ptr<kh::AstDeclarationExpression>> members;
@@ -520,112 +520,30 @@ kh::AstClass* kh::Parser::parseClass() {
     kh::Token token = this->to();
     size_t index = token.index;
 
-    /* Gets the class name */
-    if (token.type == kh::TokenType::IDENTIFIER) {
-        if (kh::isReservedKeyword(token.value.identifier))
-            this->exceptions.emplace_back(U"Could not use a reserved keyword for a class name",
-                                          token.index);
+    /* Gets the class identifiers */
+    std::shared_ptr<kh::AstIdentifierExpression> identifiers_with_generics(
+        (kh::AstIdentifierExpression*)this->parseIdentifiers());
+    identifiers = identifiers_with_generics->identifiers;
 
-        name = token.value.identifier;
-        this->ti++;
+    for (auto& generic_ : identifiers_with_generics->generics) {
+        if (generic_->identifiers.size() != 1)
+            this->exceptions.emplace_back(U"Could not have multiple identifiers as a generic "
+                                          U"argument name in the function declaration",
+                                          generic_->index);
+        if (!generic_->generics.empty())
+            this->exceptions.emplace_back(U"Could not have generic arguments in a generic "
+                                          U"argument in the function declaration",
+                                          generic_->generics[0]->index);
+
+        generic_args.push_back(generic_->identifiers.empty() ? U"" : generic_->identifiers[0]);
     }
-    else
-        this->exceptions.emplace_back(
-            U"Was expecting an identifier of the class name in the class declaration", token.index);
 
     GUARD(0);
     token = this->to();
 
-    /* Optional generic arguments */
-    if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::NOT) {
-        this->ti++;
-        GUARD(0);
-        token = this->to();
-
-        /* class SomeList!(A, B, C) */
-        if (token.type == kh::TokenType::SYMBOL &&
-            token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
-            this->ti++;
-            GUARD(0);
-            token = this->to();
-
-            /* Parses the first generic argument */
-            if (token.type == kh::TokenType::IDENTIFIER) {
-                if (kh::isReservedKeyword(token.value.identifier))
-                    this->exceptions.emplace_back(
-                        U"Could not use a reserved keyword as a generic argument name", token.index);
-
-                generic_args.push_back(token.value.identifier);
-            }
-            else {
-                this->exceptions.emplace_back(
-                    U"Was expecting an identifier after the opening parentheses for the generic "
-                    U"argument(s) in the class declaration",
-                    token.index);
-            }
-
-            this->ti++;
-            GUARD(0);
-            token = this->to();
-
-            /* Continues for more generic arguments after a comma */
-            while (token.type == kh::TokenType::SYMBOL &&
-                   token.value.symbol_type == kh::Symbol::COMMA) {
-                this->ti++;
-                GUARD(0);
-                token = this->to();
-
-                if (token.type == kh::TokenType::IDENTIFIER) {
-                    if (kh::isReservedKeyword(token.value.identifier))
-                        this->exceptions.emplace_back(
-                            U"Could not use a reserved keyword as a generic argument name",
-                            token.index);
-
-                    generic_args.push_back(token.value.identifier);
-                }
-                else {
-                    this->exceptions.emplace_back(
-                        U"Was expecting an identifier after the comma for the generic "
-                        U"argument(s) in the class declaration",
-                        token.index);
-                    break;
-                }
-
-                this->ti++;
-                GUARD(0);
-                token = this->to();
-            }
-
-            /* Expects a closing parentheses */
-            if (token.type == kh::TokenType::SYMBOL &&
-                token.value.symbol_type == kh::Symbol::PARENTHESES_CLOSE)
-                this->ti++;
-            else {
-                this->exceptions.emplace_back(U"Was expecting a closing parentheses after the generic "
-                                              U"argument(s) in the class declaration",
-                                              token.index);
-            }
-        }
-        /* class SomeList!A */
-        else if (token.type == kh::TokenType::IDENTIFIER) {
-            if (kh::isReservedKeyword(token.value.identifier))
-                this->exceptions.emplace_back(
-                    U"Could not use a reserved keyword as a generic argument name", token.index);
-
-            generic_args.push_back(token.value.identifier);
-            this->ti++;
-        }
-        else {
-            this->exceptions.emplace_back(
-                U"Was either an identifier or an opening parentheses for generic argument(s) after the "
-                U"exclamation mark in the class declaration",
-                token.index);
-            this->ti++;
-        }
-    }
     /* Optional inheriting */
-    else if (token.type == kh::TokenType::SYMBOL &&
-             token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
+    if (token.type == kh::TokenType::SYMBOL &&
+        token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
         this->ti++;
         GUARD(0);
 
@@ -741,29 +659,24 @@ kh::AstClass* kh::Parser::parseClass() {
         this->exceptions.emplace_back(
             U"Was expecting an opening curly bracket after the class declaration", token.index);
 end:
-    return new kh::AstClass(index, name, bases, generic_args, members, methods);
+    return new kh::AstClass(index, identifiers, bases, generic_args, members, methods);
 }
 
 kh::AstStruct* kh::Parser::parseStruct() {
-    std::u32string name;
+    std::vector<std::u32string> identifiers;
     std::vector<std::shared_ptr<kh::AstIdentifierExpression>> bases;
     std::vector<std::shared_ptr<kh::AstDeclarationExpression>> members;
 
     kh::Token token = this->to();
     size_t index = token.index;
 
-    /* Gets the struct name */
-    if (token.type == kh::TokenType::IDENTIFIER) {
-        if (kh::isReservedKeyword(token.value.identifier))
-            this->exceptions.emplace_back(U"Could not use a reserved keyword as a struct name",
-                                          token.index);
-
-        name = token.value.identifier;
-        this->ti++;
-    }
-    else
-        this->exceptions.emplace_back(
-            U"Was expecting an identifier of the struct name in the struct declaration", token.index);
+    /* Gets the struct identifiers */
+    std::shared_ptr<kh::AstIdentifierExpression> identifiers_with_generics(
+        (kh::AstIdentifierExpression*)this->parseIdentifiers());
+    identifiers = identifiers_with_generics->identifiers;
+    if (!identifiers_with_generics->generics.empty())
+        this->exceptions.emplace_back(U"A struct could not have generic arguments",
+                                      identifiers_with_generics->generics[0]->index);
 
     GUARD(0);
     token = this->to();
@@ -854,11 +767,11 @@ kh::AstStruct* kh::Parser::parseStruct() {
         this->exceptions.emplace_back(
             U"Was expecting an opening curly bracket after the struct declaration", token.index);
 end:
-    return new kh::AstStruct(index, name, bases, members);
+    return new kh::AstStruct(index, identifiers, bases, members);
 }
 
 kh::AstEnum* kh::Parser::parseEnum() {
-    std::u32string name;
+    std::vector<std::u32string> identifiers;
     std::vector<std::u32string> members;
     std::vector<uint64_t> values;
 
@@ -868,18 +781,13 @@ kh::AstEnum* kh::Parser::parseEnum() {
     kh::Token token = this->to();
     size_t index = token.index;
 
-    /* Gets the enum name */
-    if (token.type == kh::TokenType::IDENTIFIER) {
-        if (kh::isReservedKeyword(token.value.identifier))
-            this->exceptions.emplace_back(U"Could not use a reserved keyword as an enum name",
-                                          token.index);
-
-        name = token.value.identifier;
-        this->ti++;
-    }
-    else
-        this->exceptions.emplace_back(
-            U"Was expecting an identifier of the enum name in the enum declaration", token.index);
+    /* Gets the enum identifiers */
+    std::shared_ptr<kh::AstIdentifierExpression> identifiers_with_generics(
+        (kh::AstIdentifierExpression*)this->parseIdentifiers());
+    identifiers = identifiers_with_generics->identifiers;
+    if (!identifiers_with_generics->generics.empty())
+        this->exceptions.emplace_back(U"An enum could not have generic arguments",
+                                      identifiers_with_generics->generics[0]->index);
 
     GUARD(0);
     token = this->to();
@@ -984,7 +892,7 @@ kh::AstEnum* kh::Parser::parseEnum() {
         this->exceptions.emplace_back(
             U"Was expecting an opening curly bracket after the enum declaration", token.index);
 end:
-    return new kh::AstEnum(index, name, members, values);
+    return new kh::AstEnum(index, identifiers, members, values);
 }
 
 std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break_continue_allowed) {
@@ -1924,9 +1832,8 @@ kh::Parser::parseArrayDimensionList(std::shared_ptr<kh::AstIdentifierExpression>
                 this->exceptions.emplace_back(
                     U"Was expecting a closing square bracket in the array size", token.index);
         }
-        else {
+        else
             this->exceptions.emplace_back(U"Unexpected token while parsing array size", token.index);
-        }
 
         this->ti++;
         GUARD(0);

@@ -25,22 +25,22 @@ kh::AstImport::AstImport(const size_t _index, const std::vector<std::u32string>&
     : index(_index), path(_path), is_include(_is_include), is_relative(_is_relative),
       identifier(_identifier) {}
 
-kh::AstClass::AstClass(const size_t _index, const std::u32string& _name,
+kh::AstClass::AstClass(const size_t _index, const std::vector<std::u32string>& _identifiers,
                        const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _bases,
                        const std::vector<std::u32string>& _generic_args,
                        const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _members,
                        const std::vector<std::shared_ptr<kh::AstFunctionExpression>>& _methods)
-    : index(_index), name(_name), bases(_bases), generic_args(_generic_args), members(_members),
-      methods(_methods) {}
+    : index(_index), identifiers(_identifiers), bases(_bases), generic_args(_generic_args),
+      members(_members), methods(_methods) {}
 
-kh::AstStruct::AstStruct(const size_t _index, const std::u32string& _name,
+kh::AstStruct::AstStruct(const size_t _index, const std::vector<std::u32string>& _identifiers,
                          const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _bases,
                          const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _members)
-    : index(_index), name(_name), bases(_bases), members(_members) {}
+    : index(_index), identifiers(_identifiers), bases(_bases), members(_members) {}
 
-kh::AstEnum::AstEnum(const size_t _index, const std::u32string& _name,
+kh::AstEnum::AstEnum(const size_t _index, const std::vector<std::u32string>& _identifiers,
                      const std::vector<std::u32string>& _members, const std::vector<uint64_t>& _values)
-    : index(_index), name(_name), members(_members), values(_values) {}
+    : index(_index), identifiers(_identifiers), members(_members), values(_values) {}
 
 kh::AstIdentifierExpression::AstIdentifierExpression(
     const size_t _index, const std::vector<std::u32string>& _identifiers,
