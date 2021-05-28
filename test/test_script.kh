@@ -1,15 +1,4 @@
-def a.b.c!(a, b, c)() {
-    
-}
-
-class a.b.C!(a, b, c) {
-    
-}
-
-struct a.b.C {
-    
-}
-
-enum a.b.C {
-    
+def main() {
+    int x = 3;
+    2 < x < 10;
 }

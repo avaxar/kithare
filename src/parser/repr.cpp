@@ -374,6 +374,22 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
             break;
         }
 
+        case kh::AstExpression::ExType::COMPARISON: {
+            const kh::AstComparisonExpression& expr_comparison = *(kh::AstComparisonExpression*)&expr;
+            str += U"comparison expression:\n\t" + ind + U"operation(s): ";
+
+            for (const kh::Operator& operation : expr_comparison.operations)
+                str += kh::repr(operation) +
+                       (&operation == &expr_comparison.operations.back() ? U"" : U",");
+
+            str += U"\n\t" + ind + U"value(s):";
+            for (std::shared_ptr<kh::AstExpression> value : expr_comparison.values)
+                if (value)
+                    str += U"\n\t\t" + ind + kh::repr(*value);
+
+            break;
+        }
+
         case kh::AstExpression::ExType::SUBSCRIPT: {
             const kh::AstSubscriptExpression& expr_subscript = *(kh::AstSubscriptExpression*)&expr;
             str += U"subscript:";

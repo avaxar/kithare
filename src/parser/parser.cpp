@@ -1303,10 +1303,47 @@ end:
 }
 
 kh::AstExpression* kh::Parser::parseComparison() {
-    static std::vector<kh::Operator> operators = {kh::Operator::EQUAL, kh::Operator::NOT_EQUAL,
-                                                  kh::Operator::LESS,  kh::Operator::LESS_EQUAL,
-                                                  kh::Operator::MORE,  kh::Operator::MORE_EQUAL};
-    RECURSIVE_DESCENT_SINGULAR_OP(this->parseBitwiseOr);
+    union {
+        kh::AstExpression* expr;
+        kh::AstComparisonExpression* comparison_expr;
+    };
+
+    expr = this->parseBitwiseOr();
+    kh::Token token;
+    size_t index;
+
+    GUARD(0);
+    token = this->to();
+    index = token.index;
+
+    if (token.type == kh::TokenType::OPERATOR &&
+        (token.value.operator_type == kh::Operator::EQUAL ||
+         token.value.operator_type == kh::Operator::NOT_EQUAL ||
+         token.value.operator_type == kh::Operator::LESS ||
+         token.value.operator_type == kh::Operator::LESS_EQUAL ||
+         token.value.operator_type == kh::Operator::MORE ||
+         token.value.operator_type == kh::Operator::MORE_EQUAL)) {
+        comparison_expr =
+            new kh::AstComparisonExpression(index, {}, {std::shared_ptr<kh::AstExpression>(expr)});
+
+        while (token.type == kh::TokenType::OPERATOR &&
+               (token.value.operator_type == kh::Operator::EQUAL ||
+                token.value.operator_type == kh::Operator::NOT_EQUAL ||
+                token.value.operator_type == kh::Operator::LESS ||
+                token.value.operator_type == kh::Operator::LESS_EQUAL ||
+                token.value.operator_type == kh::Operator::MORE ||
+                token.value.operator_type == kh::Operator::MORE_EQUAL)) {
+            this->ti++;
+            GUARD(0);
+            comparison_expr->operations.push_back(token.value.operator_type);
+            comparison_expr->values.emplace_back(this->parseBitwiseOr());
+            GUARD(0);
+            token = this->to();
+        }
+    }
+
+end:
+    return expr;
 }
 
 kh::AstExpression* kh::Parser::parseBitwiseOr() {

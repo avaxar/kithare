@@ -81,6 +81,15 @@ kh::AstTernaryExpression::AstTernaryExpression(const size_t _index,
     this->expression_type = kh::AstExpression::ExType::TERNARY;
 }
 
+kh::AstComparisonExpression::AstComparisonExpression(
+    const size_t _index, const std::vector<kh::Operator>& _operations,
+    const std::vector<std::shared_ptr<kh::AstExpression>>& _values)
+    : operations(_operations), values(_values) {
+    this->index = _index;
+    this->type = kh::AstBody::Type::EXPRESSION;
+    this->expression_type = kh::AstExpression::ExType::COMPARISON;
+}
+
 kh::AstSubscriptExpression::AstSubscriptExpression(
     const size_t _index, std::shared_ptr<kh::AstExpression>& _expression,
     const std::vector<std::shared_ptr<kh::AstExpression>>& _arguments)

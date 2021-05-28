@@ -38,6 +38,7 @@ namespace kh {
     class AstUnaryExpression;
     class AstBinaryExpression;
     class AstTrinaryExpression;
+    class AstComparisonExpression;
     class AstSubscriptExpression;
     class AstCallExpression;
     class AstDeclarationExpression;
@@ -144,6 +145,7 @@ namespace kh {
             UNARY,
             BINARY,
             TERNARY,
+            COMPARISON,
             SUBSCRIPT,
             CALL,
             DECLARE,
@@ -203,6 +205,16 @@ namespace kh {
                              std::shared_ptr<kh::AstExpression>& _value,
                              std::shared_ptr<kh::AstExpression>& _otherwise);
         virtual ~AstTernaryExpression() {}
+    };
+
+    class AstComparisonExpression : public kh::AstExpression {
+    public:
+        std::vector<kh::Operator> operations;
+        std::vector<std::shared_ptr<kh::AstExpression>> values;
+
+        AstComparisonExpression(const size_t _index, const std::vector<kh::Operator>& _operations,
+                                const std::vector<std::shared_ptr<kh::AstExpression>>& _values);
+        virtual ~AstComparisonExpression() {}
     };
 
     class AstSubscriptExpression : public kh::AstExpression {
