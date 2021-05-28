@@ -85,13 +85,13 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)..\dist\MSVC-$(PlatformTarget)-$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\build\MSVC-$(PlatformTarget)-$(Configuration)-test\</IntDir>
     <TargetName>test_kcr</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)..\dist\MSVC-$(PlatformTarget)-$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\build\MSVC-$(PlatformTarget)-$(Configuration)-test\</IntDir>
     <TargetName>test_kcr</TargetName>
@@ -100,11 +100,13 @@
     <OutDir>$(SolutionDir)..\dist\MSVC-$(PlatformTarget)-$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\build\MSVC-$(PlatformTarget)-$(Configuration)-test\</IntDir>
     <TargetName>test_kcr</TargetName>
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)..\dist\MSVC-$(PlatformTarget)-$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\build\MSVC-$(PlatformTarget)-$(Configuration)-test\</IntDir>
     <TargetName>test_kcr</TargetName>
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -117,9 +119,9 @@
       <LanguageStandard_C>stdc11</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(SolutionDir)..\include;$(SolutionDir)..\deps\SDL-MSVC\SDL2\include;$(SolutionDir)..\deps\SDL-MSVC\SDL2_image\include;$(SolutionDir)..\deps\SDL-MSVC\SDL2_mixer\include;$(SolutionDir)..\deps\SDL-MSVC\SDL2_net\include;$(SolutionDir)..\deps\SDL-MSVC\SDL2_ttf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <TargetMachine>MachineX86</TargetMachine>
@@ -164,11 +166,12 @@
       <AdditionalIncludeDirectories>$(SolutionDir)..\include;$(SolutionDir)..\deps\SDL-MSVC\SDL2\include;$(SolutionDir)..\include;$(SolutionDir)..\deps\SDL-MSVC\SDL2\lib;$(SolutionDir)..\deps\SDL-MSVC\SDL2_image\include;$(SolutionDir)..\deps\SDL-MSVC\SDL2_mixer\include;$(SolutionDir)..\deps\SDL-MSVC\SDL2_net\include;$(SolutionDir)..\deps\SDL-MSVC\SDL2_ttf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
       <PreprocessorDefinitions>UNICODE;_UNICODE</PreprocessorDefinitions>
       <DebugInformationFormat>None</DebugInformationFormat>
+      <OmitFramePointers>false</OmitFramePointers>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)..\deps\SDL-MSVC\SDL2\lib\x64;$(SolutionDir)..\deps\SDL-MSVC\SDL2_image\lib\x64;$(SolutionDir)..\deps\SDL-MSVC\SDL2_mixer\lib\x64;$(SolutionDir)..\deps\SDL-MSVC\SDL2_net\lib\x64;$(SolutionDir)..\deps\SDL-MSVC\SDL2_ttf\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -190,6 +193,7 @@
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <PreprocessorDefinitions>UNICODE;_UNICODE</PreprocessorDefinitions>
       <DebugInformationFormat>None</DebugInformationFormat>
+      <OmitFramePointers>false</OmitFramePointers>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)..\deps\SDL-MSVC\SDL2\lib\x64;$(SolutionDir)..\deps\SDL-MSVC\SDL2_image\lib\x64;$(SolutionDir)..\deps\SDL-MSVC\SDL2_mixer\lib\x64;$(SolutionDir)..\deps\SDL-MSVC\SDL2_net\lib\x64;$(SolutionDir)..\deps\SDL-MSVC\SDL2_ttf\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
