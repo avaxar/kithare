@@ -1,20 +1,11 @@
-/*
- * This file is a part of the Kithare programming language source code.
- * The source code for Kithare programming language is distributed under the MIT license.
- * Copyright (C) 2021 Kithare Organization
- *
- * include/parser/ast.hpp
- * Declares AST node types.
- */
-
 #pragma once
 
 #include <complex>
 #include <memory>
 #include <vector>
 
-#include "parser/token.hpp"
-#include "utility/string.hpp"
+#include <kithare/token.hpp>
+#include <kithare/string.hpp>
 
 
 namespace kh {
@@ -46,6 +37,14 @@ namespace kh {
     class AstScopeExpression;
     class AstConstValue;
     class AstTupleExpression;
+
+    std::u32string repr(const kh::Ast& module_ast, const size_t indent = 0);
+    std::u32string repr(const kh::AstImport& import_ast, const size_t indent = 0);
+    std::u32string repr(const kh::AstClass& class_ast, const size_t indent = 0);
+    std::u32string repr(const kh::AstStruct& struct_ast, const size_t indent = 0);
+    std::u32string repr(const kh::AstEnum& enum_ast, const size_t indent = 0);
+    std::u32string repr(const kh::AstBody& ast, const size_t indent = 0);
+    std::u32string repr(const kh::AstExpression& expr, const size_t indent = 0);
 
     class Ast {
     public:

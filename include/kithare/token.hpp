@@ -1,23 +1,14 @@
-/*
- * This file is a part of the Kithare programming language source code.
- * The source code for Kithare programming language is distributed under the MIT license.
- * Copyright (C) 2021 Kithare Organization
- *
- * include/parser/token.hpp
- * Declares token types and string repr overloads.
- */
-
 #pragma once
 
-#include "utility/string.hpp"
+#include <kithare/string.hpp>
 
 
 namespace kh {
+    struct Token;
+    struct TokenValue;
     enum class Operator;
     enum class Symbol;
     enum class TokenType;
-    struct TokenValue;
-    struct Token;
 
     std::u32string repr(const kh::Token& token);
     std::u32string repr(const kh::TokenType type);

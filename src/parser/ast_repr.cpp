@@ -1,13 +1,5 @@
-/*
- * This file is a part of the Kithare programming language source code.
- * The source code for Kithare programming language is distributed under the MIT license.
- * Copyright (C) 2021 Kithare Organization
- *
- * src/parser/repr.cpp
- * Defines include/parser/repr.hpp.
- */
+#include <kithare/ast.hpp>
 
-#include "parser/repr.hpp"
 
 #define REPR_ALL_IN(var)  \
     for (auto _var : var) \

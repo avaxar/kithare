@@ -18,27 +18,6 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\src\compiler\ctranspiler.cpp" />
-    <ClCompile Include="..\src\compiler\ir.cpp" />
-    <ClCompile Include="..\src\compiler\semanticizer.cpp" />
-    <ClCompile Include="..\src\parser\ast.cpp" />
-    <ClCompile Include="..\src\parser\json.cpp" />
-    <ClCompile Include="..\src\parser\lexer.cpp" />
-    <ClCompile Include="..\src\parser\parser.cpp" />
-    <ClCompile Include="..\src\parser\repr.cpp" />
-    <ClCompile Include="..\src\parser\token.cpp" />
-    <ClCompile Include="..\src\utility\cmd.cpp" />
-    <ClCompile Include="..\src\utility\file.cpp" />
-    <ClCompile Include="..\src\utility\string.cpp" />
-    <ClCompile Include="..\test\test_lexer.cpp" />
-    <ClCompile Include="..\test\test_main.cpp" />
-    <ClCompile Include="..\test\test_parser.cpp" />
-    <ClCompile Include="..\test\test_string.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\include\test.hpp" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{27D4E7FC-16DF-4B64-8B61-4CA11833D067}</ProjectGuid>
