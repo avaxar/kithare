@@ -325,9 +325,8 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
     kh::Token token = this->to();
     size_t index = token.index;
 
-    if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::BIT_AND)
-        this->ti++;
-    else {
+    if (!(token.type == kh::TokenType::SYMBOL &&
+          token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN)) {
         std::shared_ptr<kh::AstIdentifierExpression> identifiers_with_generics(
             (kh::AstIdentifierExpression*)this->parseIdentifiers());
         identifiers = identifiers_with_generics->identifiers;
@@ -344,18 +343,17 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
 
             generic_args.push_back(generic_->identifiers.empty() ? U"" : generic_->identifiers[0]);
         }
-    }
 
-    GUARD(0);
-    token = this->to();
-
-    /* Ensures it has an opening parentheses */
-    if (!(token.type == kh::TokenType::SYMBOL &&
-          token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN)) {
-        this->exceptions.emplace_back(
-            U"Was expecting an opening parentheses of the argument(s) in the function declaration",
-            token.index);
-        goto end;
+        /* Ensures it has an opening parentheses */
+        GUARD(0);
+        token = this->to();
+        if (!(token.type == kh::TokenType::SYMBOL &&
+              token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN)) {
+            this->exceptions.emplace_back(
+                U"Was expecting an opening parentheses of the argument(s) in the function declaration",
+                token.index);
+            goto end;
+        }
     }
 
     this->ti++;
@@ -1691,8 +1689,19 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
 
             if (is_function) {
                 if (token.type == kh::TokenType::SYMBOL &&
-                    token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN)
-                    goto forceIn;
+                    token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
+                    this->ti++;
+                    GUARD(0);
+                    token = this->to();
+
+                    if (token.type == kh::TokenType::SYMBOL &&
+                        token.value.symbol_type == kh::Symbol::PARENTHESES_CLOSE) {
+                        this->ti++;
+                        goto funcFinish;
+                    }
+                    else
+                        goto forceIn;
+                }
                 else {
                     this->exceptions.emplace_back(U"Was expecting an opening parentheses after the "
                                                   U"return type in the genericization of `func` type",
@@ -1702,11 +1711,11 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
 
             while (token.type == kh::TokenType::SYMBOL &&
                    token.value.symbol_type == kh::Symbol::COMMA) {
-            forceIn:
                 this->ti++;
                 GUARD(0);
                 token = this->to();
 
+            forceIn:
                 generics_refs.push_back(0);
                 while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
                     generics_refs.back() += 1;
@@ -1728,6 +1737,7 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
                 this->ti++;
 
                 if (is_function) {
+                funcFinish:
                     GUARD(0);
                     token = this->to();
 

@@ -70,22 +70,22 @@ def main() {
 		func!(int(int, int)) operation;
 
 		if op == "+" {
-			operation = def &(int a, int b) -> int {
+			operation = def(int a, int b) -> int {
 				return a + b;
 			};
 		}
 		elif op == "-" {
-			operation = def &(int a, int b) -> int {
+			operation = def(int a, int b) -> int {
 				return a - b;
 			};
 		}
 		elif op == "*" {
-			operation = def &(int a, int b) -> int {
+			operation = def(int a, int b) -> int {
 				return a * b;
 			};
 		}
 		elif op == "/" {
-			operation = def &(int a, int b) -> int {
+			operation = def(int a, int b) -> int {
 				return a / b;
 			};
 		}
