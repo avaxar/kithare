@@ -2,12 +2,15 @@
  * This file is a part of the Kithare programming language source code.
  * The source code for Kithare programming language is distributed under the MIT license.
  * Copyright (C) 2021 Kithare Organization
- *
- * src/parser/lexer.cpp
- * Defines include/parser/lexer.hpp and declare+define several internal helper stuff.
  */
 
-#include "parser/lexer.hpp"
+#include <chrono>
+#include <cwctype>
+#include <functional>
+
+#include <kithare/parser.hpp>
+#include <kithare/utf8.hpp>
+
 
 /* Helper to raise error at a file */
 #define KH_RAISE_ERROR(msg, n) throw kh::LexException(msg, i + n)
@@ -25,12 +28,12 @@
     i += _start + _len
 
 /* Helper macro */
-#define _PLACE_HEXSTR_AS_TYPE(_var, ttype)               \
-    if (chAt(i) == '\'') {                               \
-        _var = std::stoul(hex_str, nullptr, 16);         \
-        tokens.emplace_back(start, i + 1, ttype, value); \
-    }                                                    \
-    else                                                 \
+#define _PLACE_HEXSTR_AS_TYPE(_var, ttype)                     \
+    if (chAt(i) == '\'') {                                     \
+        _var = std::stoul(hex_str, nullptr, 16);               \
+        this->tokens.emplace_back(start, i + 1, ttype, value); \
+    }                                                          \
+    else                                                       \
         KH_RAISE_ERROR(U"Expected a closing single quote", 0)
 
 /* Place a hex_str as an integer into tokens stack */
@@ -133,30 +136,13 @@ namespace kh {
         IN_INLINE_COMMENT,
         IN_MULTIPLE_LINE_COMMENT
     };
-
-    inline bool isDec(const char32_t chr) {
-        return U'0' <= chr && chr <= U'9';
-    }
-
-    inline bool isBin(const char32_t chr) {
-        return chr == U'0' || chr == U'1';
-    }
-
-    inline bool isOct(const char32_t chr) {
-        return U'0' <= chr && chr <= U'7';
-    }
-
-    inline bool isHex(const char32_t chr) {
-        return (U'0' <= chr && chr <= U'9') || (U'a' <= chr && chr <= U'f') ||
-               (U'A' <= chr && chr <= U'F');
-    }
 }
 
-std::vector<kh::Token> kh::lex(const std::u32string& source, const bool lex_comments,
-                               std::vector<kh::LexException>* exc) {
-    std::vector<kh::Token> tokens;
+void kh::Parser::lex() {
+    this->lex_exceptions.clear();
+    auto lex_start = std::chrono::system_clock::now();
+
     kh::TokenizeState state = kh::TokenizeState::NONE;
-    std::vector<kh::LexException> exceptions;
 
     size_t start = 0;
     std::u32string temp_str;
@@ -164,7 +150,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source, const bool lex_comm
 
     /* Lambda function which accesses the string, and throws an error directly to the console if it
      * had passed the length */
-    const std::function<const char32_t(const size_t)> chAt = [&](const size_t index) -> const char32_t {
+    std::function<char32_t(const size_t)> chAt = [&](const size_t index) -> char32_t {
         if (index < source.size())
             return source[index];
         else if (index == source.size())
@@ -175,7 +161,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source, const bool lex_comm
         }
     };
 
-    for (size_t i = 0; i <= source.size(); i++) {
+    for (size_t i = 0; i <= this->source.size(); i++) {
         try {
             switch (state) {
                 case kh::TokenizeState::NONE:
@@ -912,9 +898,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source, const bool lex_comm
                 case kh::TokenizeState::IN_INLINE_COMMENT:
                     if (chAt(i) == '\n') {
                         state = kh::TokenizeState::NONE;
-
-                        if (lex_comments)
-                            tokens.emplace_back(start, i + 1, kh::TokenType::COMMENT, kh::TokenValue());
+                        tokens.emplace_back(start, i + 1, kh::TokenType::COMMENT, kh::TokenValue());
                     }
                     continue;
 
@@ -923,10 +907,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source, const bool lex_comm
                     if (chAt(i) == '*' && chAt(i + 1) == '/') {
                         /* Close comment */
                         state = kh::TokenizeState::NONE;
-
-                        if (lex_comments)
-                            tokens.emplace_back(start, i + 2, kh::TokenType::COMMENT, kh::TokenValue());
-
+                        tokens.emplace_back(start, i + 2, kh::TokenType::COMMENT, kh::TokenValue());
                         i++;
                     }
                     continue;
@@ -937,22 +918,37 @@ std::vector<kh::Token> kh::lex(const std::u32string& source, const bool lex_comm
             }
         }
         catch (const kh::LexException& exc) {
-            exceptions.push_back(exc);
+            this->lex_exceptions.push_back(exc);
             state = kh::TokenizeState::NONE;
+            kh::getLineColumn(this->source, exc.index, this->lex_exceptions.back().column,
+                              this->lex_exceptions.back().line);
         }
     }
     /* We were expecting to be in a tokenize state, but got EOF, so throw error.
      * This usually happens if the user has forgotten to close a multiline comment,
      * string or buffer */
     if (state != kh::TokenizeState::NONE)
-        exceptions.emplace_back(U"Got unexpected EOF", source.size());
+        this->lex_exceptions.emplace_back(U"Got unexpected EOF", source.size());
 
-    if (!exceptions.empty()) {
-        if (exc)
-            *exc = exceptions;
-        else
-            throw exceptions;
+    /* Fills in the `column` and `line` number attributes of each token */
+    size_t column = 1, line = 1;
+    size_t token_index = 0;
+    for (size_t i = 0; i <= this->source.size(); i++, column++) {
+        if (token_index >= this->tokens.size())
+            break;
+        if (this->source[i] == '\n') {
+            column = 0;
+            line++;
+        }
+
+        if (this->tokens[token_index].index == i) {
+            this->tokens[token_index].column = column;
+            this->tokens[token_index].line = line;
+            token_index++;
+        }
     }
 
-    return tokens;
+    auto lex_end = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed = lex_end - lex_start;
+    this->lex_time = elapsed.count();
 }

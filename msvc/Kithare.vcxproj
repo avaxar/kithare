@@ -19,40 +19,44 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\src\main.cpp" />
-    <ClCompile Include="$(SolutionDir)..\src\parser\ast.cpp" />
-    <ClCompile Include="$(SolutionDir)..\src\parser\lexer.cpp" />
-    <ClCompile Include="$(SolutionDir)..\src\parser\parser.cpp" />
-    <ClCompile Include="$(SolutionDir)..\src\parser\token.cpp" />
-    <ClCompile Include="$(SolutionDir)..\src\utility\cmd.cpp" />
-    <ClCompile Include="$(SolutionDir)..\src\utility\file.cpp" />
-    <ClCompile Include="$(SolutionDir)..\src\utility\string.cpp" />
-    <ClCompile Include="..\src\compiler\ctranspiler.cpp" />
-    <ClCompile Include="..\src\compiler\ir.cpp" />
-    <ClCompile Include="..\src\compiler\semanticizer.cpp" />
-    <ClCompile Include="..\src\parser\json.cpp" />
-    <ClCompile Include="..\src\parser\repr.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="$(SolutionDir)..\include\info.hpp" />
-    <ClInclude Include="$(SolutionDir)..\include\parser\ast.hpp" />
-    <ClInclude Include="$(SolutionDir)..\include\parser\lexer.hpp" />
-    <ClInclude Include="$(SolutionDir)..\include\parser\parser.hpp" />
-    <ClInclude Include="$(SolutionDir)..\include\parser\token.hpp" />
-    <ClInclude Include="$(SolutionDir)..\include\utility\cmd.hpp" />
-    <ClInclude Include="$(SolutionDir)..\include\utility\file.hpp" />
-    <ClInclude Include="$(SolutionDir)..\include\utility\string.hpp" />
-    <ClInclude Include="..\include\compiler\ctranspiler.hpp" />
-    <ClInclude Include="..\include\compiler\ir.hpp" />
-    <ClInclude Include="..\include\compiler\semanticizer.hpp" />
-    <ClInclude Include="..\include\parser\json.hpp" />
-    <ClInclude Include="..\include\parser\repr.hpp" />
-  </ItemGroup>
-  <ItemGroup>
     <Image Include="..\assets\icon.ico" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\assets\Kithare.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\kithare\ast.hpp" />
+    <ClInclude Include="..\include\kithare\builder.hpp" />
+    <ClInclude Include="..\include\kithare\exception.hpp" />
+    <ClInclude Include="..\include\kithare\file.hpp" />
+    <ClInclude Include="..\include\kithare\info.hpp" />
+    <ClInclude Include="..\include\kithare\ir.hpp" />
+    <ClInclude Include="..\include\kithare\parser.hpp" />
+    <ClInclude Include="..\include\kithare\string.hpp" />
+    <ClInclude Include="..\include\kithare\test.hpp" />
+    <ClInclude Include="..\include\kithare\token.hpp" />
+    <ClInclude Include="..\include\kithare\utf8.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\builder\builder.cpp" />
+    <ClCompile Include="..\src\builder\ctranspiler.cpp" />
+    <ClCompile Include="..\src\builder\ir.cpp" />
+    <ClCompile Include="..\src\builder\ir_repr.cpp" />
+    <ClCompile Include="..\src\builder\semanticizer.cpp" />
+    <ClCompile Include="..\src\cli.cpp" />
+    <ClCompile Include="..\src\file.cpp" />
+    <ClCompile Include="..\src\parser\ast.cpp" />
+    <ClCompile Include="..\src\parser\ast_repr.cpp" />
+    <ClCompile Include="..\src\parser\body_parser.cpp" />
+    <ClCompile Include="..\src\parser\expr_parser.cpp" />
+    <ClCompile Include="..\src\parser\lexer.cpp" />
+    <ClCompile Include="..\src\parser\parser.cpp" />
+    <ClCompile Include="..\src\parser\token_repr.cpp" />
+    <ClCompile Include="..\src\string.cpp" />
+    <ClCompile Include="..\src\test\test_lexer.cpp" />
+    <ClCompile Include="..\src\test\test_parser.cpp" />
+    <ClCompile Include="..\src\test\test_utf8.cpp" />
+    <ClCompile Include="..\src\utf8.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

@@ -1,114 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\src\main.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\src\parser\ast.cpp">
-      <Filter>src\parser</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\src\parser\token.cpp">
-      <Filter>src\parser</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\src\utility\cmd.cpp">
-      <Filter>src\utility</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\src\parser\lexer.cpp">
-      <Filter>src\parser</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\src\parser\parser.cpp">
-      <Filter>src\parser</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\src\utility\file.cpp">
-      <Filter>src\utility</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\src\utility\string.cpp">
-      <Filter>src\utility</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\parser\json.cpp">
-      <Filter>src\parser</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\parser\repr.cpp">
-      <Filter>src\parser</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\compiler\ctranspiler.cpp">
-      <Filter>src\compiler</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\compiler\semanticizer.cpp">
-      <Filter>src\compiler</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\compiler\ir.cpp">
-      <Filter>src\compiler</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="$(SolutionDir)..\include\info.hpp">
-      <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)..\include\parser\ast.hpp">
-      <Filter>include\parser</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)..\include\parser\lexer.hpp">
-      <Filter>include\parser</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)..\include\parser\parser.hpp">
-      <Filter>include\parser</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)..\include\parser\token.hpp">
-      <Filter>include\parser</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)..\include\utility\cmd.hpp">
-      <Filter>include\utility</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)..\include\utility\file.hpp">
-      <Filter>include\utility</Filter>
-    </ClInclude>
-    <ClInclude Include="$(SolutionDir)..\include\utility\string.hpp">
-      <Filter>include\utility</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\parser\json.hpp">
-      <Filter>include\parser</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\parser\repr.hpp">
-      <Filter>include\parser</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\compiler\ctranspiler.hpp">
-      <Filter>include\compiler</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\compiler\semanticizer.hpp">
-      <Filter>include\compiler</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\compiler\ir.hpp">
-      <Filter>include\compiler</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
+    <Filter Include="include/kithare">
+      <UniqueIdentifier>{bf09769b-25c4-4745-b3c2-5ac2305d2b57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{e5627a32-dce4-468c-9878-44417de8e64e}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{26183c5e-66ce-477f-ae3e-e96815fe9ebd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src">
-      <UniqueIdentifier>{32dbce66-cafa-4c33-99f2-d0ce7c5cb743}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="include">
-      <UniqueIdentifier>{92088f87-72d0-4a38-88fd-8628aaa277c6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="include\utility">
-      <UniqueIdentifier>{9958d11b-c3f6-4438-b339-153ae9dab1a2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="include\parser">
-      <UniqueIdentifier>{dd682b8f-f029-4d93-89e5-201c4c159061}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\utility">
-      <UniqueIdentifier>{d6647cf1-dc9a-4e32-947a-b308b67282b2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\parser">
-      <UniqueIdentifier>{9b0ff7b1-f87f-4d31-b2ff-e8154161dc3b}</UniqueIdentifier>
+      <UniqueIdentifier>{7a3ba78c-1364-4dcb-a772-12966d2406ac}</UniqueIdentifier>
     </Filter>
-    <Filter Include="include\compiler">
-      <UniqueIdentifier>{12da5e58-9882-4345-ab67-0f3c279b084e}</UniqueIdentifier>
+    <Filter Include="src\builder">
+      <UniqueIdentifier>{eceb88cd-30c4-4a39-80b3-3231aeb72ba5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\compiler">
-      <UniqueIdentifier>{fd0074c5-caeb-4312-bd86-64f7f7d0f0a1}</UniqueIdentifier>
+    <Filter Include="src\test">
+      <UniqueIdentifier>{b7496bb6-050e-4348-8312-20070a76b51b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -120,5 +29,99 @@
     <ResourceCompile Include="..\assets\Kithare.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\kithare\ast.hpp">
+      <Filter>include/kithare</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\kithare\builder.hpp">
+      <Filter>include/kithare</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\kithare\info.hpp">
+      <Filter>include/kithare</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\kithare\ir.hpp">
+      <Filter>include/kithare</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\kithare\parser.hpp">
+      <Filter>include/kithare</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\kithare\string.hpp">
+      <Filter>include/kithare</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\kithare\token.hpp">
+      <Filter>include/kithare</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\kithare\exception.hpp">
+      <Filter>include/kithare</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\kithare\utf8.hpp">
+      <Filter>include/kithare</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\kithare\file.hpp">
+      <Filter>include/kithare</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\kithare\test.hpp">
+      <Filter>include/kithare</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\cli.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\string.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\parser\ast.cpp">
+      <Filter>src\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\parser\ast_repr.cpp">
+      <Filter>src\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\parser\body_parser.cpp">
+      <Filter>src\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\parser\expr_parser.cpp">
+      <Filter>src\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\parser\lexer.cpp">
+      <Filter>src\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\parser\parser.cpp">
+      <Filter>src\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\parser\token_repr.cpp">
+      <Filter>src\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builder\builder.cpp">
+      <Filter>src\builder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builder\ctranspiler.cpp">
+      <Filter>src\builder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builder\ir.cpp">
+      <Filter>src\builder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builder\ir_repr.cpp">
+      <Filter>src\builder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builder\semanticizer.cpp">
+      <Filter>src\builder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utf8.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\file.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\test\test_lexer.cpp">
+      <Filter>src\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\test\test_parser.cpp">
+      <Filter>src\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\test\test_utf8.cpp">
+      <Filter>src\test</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -2,12 +2,9 @@
  * This file is a part of the Kithare programming language source code.
  * The source code for Kithare programming language is distributed under the MIT license.
  * Copyright (C) 2021 Kithare Organization
- *
- * src/parser/ast.cpp
- * Defines include/parser/ast.hpp.
  */
 
-#include "parser/ast.hpp"
+#include <kithare/ast.hpp>
 
 
 kh::Ast::Ast(const std::vector<std::shared_ptr<kh::AstImport>>& _imports,
