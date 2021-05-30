@@ -47,16 +47,11 @@ jobs:
       run: brew install gcc sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf
 
     - name: Build source and tests
-      run: python3 build.py --build-tests
+      run: python3 build.py
     
     - name: Run tests
       run: python3 build.py --run-tests
     
-    - name: Check dist
-      run: |
-        ./dist/GCC-x64/kcr -V
-        ./dist/GCC-x64/kcr --lex --ast test/test_script.kh
-
     #- name: Upload dist
       #uses: actions/upload-artifact@v2
       #with:

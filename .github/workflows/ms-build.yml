@@ -48,15 +48,11 @@ jobs:
         python-version: 3.9
 
     - name: Build source and tests
-      run: python3 build.py --msvc --build-tests --arch=${{matrix.arch}}
+      run: python3 build.py --msvc --arch=${{matrix.arch}}
     
     - name: Run tests
       run: python3 build.py --msvc --run-tests --arch=${{matrix.arch}}
     
-    - name: Check dist
-      run: |
-        .\\dist\\MSVC-${{matrix.arch}}-Release\\kcr.exe -V
-        .\\dist\\MSVC-${{matrix.arch}}-Release\\kcr.exe --lex --ast test\\test_script.kh
 
     # - name: Upload dist
     # uses: actions/upload-artifact@v2

@@ -49,15 +49,10 @@ jobs:
         python-version: 3.9
 
     - name: Build source and tests
-      run: python3 build.py --build-tests --arch=${{matrix.arch}}
+      run: python3 build.py --arch=${{matrix.arch}}
     
     - name: Run tests
       run: python3 build.py --run-tests --arch=${{matrix.arch}}
-    
-    - name: Check dist
-      run: |
-        .\\dist\\MinGW-${{matrix.arch}}\\kcr.exe -V
-        .\\dist\\MinGW-${{matrix.arch}}\\kcr.exe --lex --ast test\\test_script.kh
 
     #- name: Upload dist
       #uses: actions/upload-artifact@v2

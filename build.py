@@ -44,8 +44,6 @@ If you are on a 64-bit system, and want to compile for 32-bit architecture, pass
 '--arch=x86' as an argument to the build script (note that this might not work
 in some cases)
 
-If you want to compile tests too, pass '--build-tests' to this builder.
-
 To just run tests, pass '--run-tests'. Note that this command is only going to
 run the tests, it does not do anything else.
 
@@ -65,11 +63,9 @@ import urllib.request as urllib
 import zipfile
 
 EXE = "kcr"
-TEST_EXE = "test_kcr"
 
 if platform.system() == "Windows":
     EXE += ".exe"
-    TEST_EXE += ".exe"
 
 # While we recursively search for include files, we don't want to seach
 # the whole file, because that would waste a lotta time. So, we just take
@@ -106,13 +102,11 @@ def find_includes(file, basedir):
 
             if words[0] == "#include":
                 retfile = words[1]
-                for char in ['"', '<', '>']:
+                for char in ['"', "<", ">"]:
                     retfile = retfile.replace(char, "")
 
                 retfile = os.path.join(
-                    basedir,
-                    "include",
-                    os.path.normcase(retfile.strip())
+                    basedir, "include", os.path.normcase(retfile.strip())
                 )
 
                 if os.path.isfile(retfile):
@@ -203,12 +197,11 @@ class KithareBuilder:
         self.builddir = f"{self.basepath}/build/{dirname}"
         self.distdir = f"{self.basepath}/dist/{dirname}"
 
-        self.build_tests = "--build-tests" in self.args
         self.run_tests = "--run-tests" in self.args
 
         # Prune unneeded args
         for i in list(self.args):
-            if i.startswith("--arch=") or i == "--build-tests":
+            if i.startswith("--arch="):
                 self.args.remove(i)
 
     def init_cflags(self):
@@ -218,8 +211,12 @@ class KithareBuilder:
         self.cflags = ["-O3", "-std=c++14", f"-I {self.basepath}/include"]
         self.cflags.extend(
             [
-                "-lSDL2", "-lSDL2main", "-lSDL2_image", "-lSDL2_ttf",
-                "-lSDL2_mixer", "-lSDL2_net"
+                "-lSDL2",
+                "-lSDL2main",
+                "-lSDL2_image",
+                "-lSDL2_ttf",
+                "-lSDL2_mixer",
+                "-lSDL2_net",
             ]
         )
 
@@ -243,8 +240,7 @@ class KithareBuilder:
                     mkdir(distdir)
                     for dll in glob.iglob(f"{download_path}/lib/{i}/*.dll"):
                         shutil.copyfile(
-                            dll,
-                            os.path.join(distdir, os.path.basename(dll))
+                            dll, os.path.join(distdir, os.path.basename(dll))
                         )
             return
 
@@ -254,15 +250,16 @@ class KithareBuilder:
             shutil.copyfile(
                 dll,
                 os.path.join(
-                    f"{self.basepath}/dist/MinGW-{self.machine}",
-                    os.path.basename(dll)
-                )
+                    f"{self.basepath}/dist/MinGW-{self.machine}", os.path.basename(dll)
+                ),
             )
 
-        self.cflags.extend([
-            f"-I {download_path}/{self.machine_alt}-w64-mingw32/include/SDL2",
-            f"-L {download_path}/{self.machine_alt}-w64-mingw32/lib"
-        ])
+        self.cflags.extend(
+            [
+                f"-I {download_path}/{self.machine_alt}-w64-mingw32/include/SDL2",
+                f"-L {download_path}/{self.machine_alt}-w64-mingw32/lib",
+            ]
+        )
 
     def download_sdl_deps(self, name, version):
         """
@@ -283,16 +280,15 @@ class KithareBuilder:
         else:
             print(f"Downloading {name} from {download_link}")
             request = urllib.Request(
-                download_link, headers={
-                    'User-Agent': 'Chrome/35.0.1916.47 Safari/537.36'
-                }
+                download_link,
+                headers={"User-Agent": "Chrome/35.0.1916.47 Safari/537.36"},
             )
             with urllib.urlopen(request) as download:
                 response = download.read()
 
             print("Extracting compressed files")
             if self.compiler == "MSVC":
-                with zipfile.ZipFile(io.BytesIO(response), 'r') as zipped:
+                with zipfile.ZipFile(io.BytesIO(response), "r") as zipped:
                     zipped.extractall(self.download_dir)
 
             else:
@@ -301,7 +297,7 @@ class KithareBuilder:
                     with open("temp", "wb") as tar:
                         tar.write(response)
 
-                    with tarfile.open("temp", 'r:gz') as tarred:
+                    with tarfile.open("temp", "r:gz") as tarred:
                         tarred.extractall(self.download_dir)
                 finally:
                     if os.path.exists("temp"):
@@ -320,13 +316,12 @@ class KithareBuilder:
         print(cmd.replace("\\", "/"))
         return os.system(cmd)
 
-    def build_sources(self, testmode):
+    def build_sources(self):
         """
         Generate obj files from source files
         """
         isfailed = 0
-        globpattern = self.basepath + "/"
-        globpattern += "test/**/test_*.cpp" if testmode else "src/**/*.cpp"
+        globpattern = self.basepath + "/src/**/*.cpp"
 
         for file in glob.iglob(globpattern, recursive=True):
             cfile = f"{self.builddir}/{os.path.basename(file)}"
@@ -341,42 +336,30 @@ class KithareBuilder:
             print("Skipped building executable, because all files didn't build")
             sys.exit(isfailed)
 
-    def build_exe(self, testmode=False):
+    def build_exe(self):
         """
         Generate final exe.
         """
         if self.compiler == "MSVC":
-            build_file = f"{self.basepath}\\msvc\\"
-            build_file += "KithareTest" if testmode else "Kithare"
-            build_file += ".vcxproj"
             ecode = os.system(
-                f"msbuild /m /p:Configuration={self.msvc_config} " +
-                f"/p:Platform={self.machine} {build_file}"
+                f"msbuild /m /p:Configuration={self.msvc_config} "
+                + f"/p:Platform={self.machine} {self.basepath}\\msvc\\Kithare.vcxproj"
             )
 
             if ecode:
                 sys.exit(ecode)
             return
 
-        self.build_sources(testmode)
+        self.build_sources()
 
-        exepath = f"{self.distdir}/{TEST_EXE if testmode else EXE}"
+        exepath = f"{self.distdir}/{EXE}"
         objfiles = glob.glob(f"{self.builddir}/*.o")
-
-        if testmode:
-            # remove main in testmode, to remove 'main' redefination
-            objfiles.remove(os.path.join(self.builddir, "main.o"))
-        else:
-            # prune away test files if we are not in testmode
-            for i in list(objfiles):
-                if os.path.basename(i).startswith("test_"):
-                    objfiles.remove(i)
 
         args = " ".join(objfiles).replace("\\", "/")
 
         # Handle exe icon
         icores = "icon.res"
-        if not testmode and self.compiler == "MinGW":
+        if self.compiler == "MinGW":
             assetfile = f"{self.basepath}/assets/Kithare.rc"
             os.system(f"windres {assetfile} -O coff -o {icores}")
             args += f" {icores}"
@@ -403,7 +386,7 @@ class KithareBuilder:
         mkdir(self.distdir)
 
         if self.run_tests:
-            sys.exit(os.system(os.path.normpath(f"{self.distdir}/{TEST_EXE}")))
+            sys.exit(os.system(os.path.normpath(f"{self.distdir}/{EXE} --test")))
 
         # Prepare dependencies and cflags with SDL flags
         if platform.system() == "Windows":
@@ -423,8 +406,6 @@ class KithareBuilder:
             return
 
         self.build_exe()
-        if self.build_tests:
-            self.build_exe(testmode=True)
 
         print("Done!")
 
