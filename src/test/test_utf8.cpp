@@ -14,17 +14,31 @@
 static std::vector<std::string>* errors_ptr;
 
 static void utf8EncodeTest() {
-    KH_TEST_ASSERT(kh::encodeUtf8(KH_TEST_U32STRING) == KH_TEST_U8STRING);
+    try {
+        KH_TEST_ASSERT(kh::encodeUtf8(KH_TEST_U32STRING) == KH_TEST_U8STRING);
+    }
+    catch (...) {
+        errors_ptr->push_back("An exception was thrown in ");
+        goto error;
+    }
+
     return;
 error:
-    errors_ptr->push_back("Assertion error in utf8EncodeTest");
+    errors_ptr->back() += "utf8EncodeTest";
 }
 
 static void utf8DecodeTest() {
-    KH_TEST_ASSERT(kh::decodeUtf8(KH_TEST_U8STRING) == KH_TEST_U32STRING);
+    try {
+        KH_TEST_ASSERT(kh::decodeUtf8(KH_TEST_U8STRING) == KH_TEST_U32STRING);
+    }
+    catch (...) {
+        errors_ptr->push_back("An exception was thrown in ");
+        goto error;
+    }
+
     return;
 error:
-    errors_ptr->push_back("Assertion error in utf8DecodeTest");
+    errors_ptr->back() += "utf8DecodeTest";
 }
 
 void kh_test::utf8Test(std::vector<std::string>& errors) {
