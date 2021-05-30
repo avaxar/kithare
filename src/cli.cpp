@@ -13,6 +13,7 @@
 #endif
 
 #include <kithare/file.hpp>
+#include <kithare/info.hpp>
 #include <kithare/parser.hpp>
 #include <kithare/string.hpp>
 #include <kithare/test.hpp>
@@ -21,7 +22,7 @@
 
 static std::vector<std::u32string> args;
 static bool help = false, show_tokens = false, show_ast = false, show_timer = false, silent = false,
-            test_mode = false;
+            test_mode = false, version = false;
 static std::vector<std::u32string> excess_args;
 
 static void handleArgs() {
@@ -48,8 +49,12 @@ static void handleArgs() {
             show_ast = true;
         else if (arg == U"t" || arg == U"timer")
             show_timer = true;
+        else if (arg == U"s" || arg == U"silent")
+            silent = true;
         else if (arg == U"test")
             test_mode = true;
+        else if (arg == U"v" || arg == U"version")
+            version = true;
         else {
             if (!silent)
                 std::cout << "Unrecognized flag argument: " << kh::encodeUtf8(arg) << '\n';
@@ -60,6 +65,11 @@ static void handleArgs() {
 
 static int execute() {
     int code = 0;
+
+    if (version && !silent) {
+        std::cout << "Kithare " KH_VERSION_STR << "\nOS: " KH_OS << "\nCompiler: " KH_COMPILER
+                  << "\nCompiled on " __DATE__ " at " __TIME__ << '\n';
+    }
 
     if (help && !silent) {
         std::cout << "TODO\n";
