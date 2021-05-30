@@ -85,7 +85,7 @@ static int execute() {
         if (!silent) {
             std::cout << "Unittest: " << errors.size() << " error(s)\n";
             for (const std::string& error : errors)
-                std::cout << error << '\n';
+                std::cerr << error << '\n';
         }
 
         std::exit(errors.size());
@@ -112,7 +112,7 @@ static int execute() {
         if (!parser.lex_exceptions.empty()) {
             if (!silent)
                 for (kh::LexException& exc : parser.lex_exceptions)
-                    std::cout << "LexException: " << kh::encodeUtf8(exc.format()) << '\n';
+                    std::cerr << "LexException: " << kh::encodeUtf8(exc.format()) << '\n';
             code += parser.lex_exceptions.size();
         }
         if (show_tokens && !silent) {
@@ -127,7 +127,7 @@ static int execute() {
         if (!parser.parse_exceptions.empty()) {
             if (!silent)
                 for (kh::ParseException& exc : parser.parse_exceptions)
-                    std::cout << "ParseException: " << kh::encodeUtf8(exc.format()) << '\n';
+                    std::cerr << "ParseException: " << kh::encodeUtf8(exc.format()) << '\n';
             code += parser.parse_exceptions.size();
         }
         if (show_ast && !code && parser.ast && !silent)

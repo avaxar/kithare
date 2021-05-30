@@ -21,7 +21,7 @@ static void lexerTypeTest() {
     parser.lex();
 
     KH_TEST_ASSERT(parser.ok());
-    KH_TEST_ASSERT(tokens.size(), 21);
+    KH_TEST_ASSERT(tokens.size() == 21);
     KH_TEST_ASSERT(tokens[0].type == kh::TokenType::IDENTIFIER);
     KH_TEST_ASSERT(tokens[1].type == kh::TokenType::IDENTIFIER);
     KH_TEST_ASSERT(tokens[2].type == kh::TokenType::SYMBOL);
