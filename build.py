@@ -145,6 +145,7 @@ class KithareBuilder:
         """
         self.args = args
         self.basepath = basepath
+        self.objfiles = []  # populated later by a call to self.build_sources
         self.set_machine()
         self.parse_args()
         self.init_cflags()
@@ -321,11 +322,11 @@ class KithareBuilder:
         Generate obj files from source files
         """
         isfailed = 0
-        globpattern = self.basepath + "/src/**/*.cpp"
 
-        for file in glob.iglob(globpattern, recursive=True):
+        for file in glob.iglob(f"{self.basepath}/src/**/*.cpp", recursive=True):
             cfile = f"{self.builddir}/{os.path.basename(file)}"
             ofile = cfile.replace(".cpp", ".o")
+            self.objfiles.append(ofile)
             if should_build(file, ofile, self.basepath):
                 print("\nBuilding file:", file.replace("\\", "/"))
                 isfailed = self.compile_gpp(file, ofile)
@@ -353,9 +354,8 @@ class KithareBuilder:
         self.build_sources()
 
         exepath = f"{self.distdir}/{EXE}"
-        objfiles = glob.glob(f"{self.builddir}/*.o")
 
-        args = " ".join(objfiles).replace("\\", "/")
+        args = " ".join(self.objfiles).replace("\\", "/")
 
         # Handle exe icon
         icores = "icon.res"
@@ -364,11 +364,12 @@ class KithareBuilder:
             os.system(f"windres {assetfile} -O coff -o {icores}")
             args += f" {icores}"
 
+        dist_m = None
         if os.path.exists(exepath):
             dist_m = os.stat(exepath).st_mtime
 
-        for ofile in objfiles:
-            if not os.path.exists(exepath) or os.stat(ofile).st_mtime > dist_m:
+        for ofile in self.objfiles:
+            if dist_m is None or os.stat(ofile).st_mtime > dist_m:
                 print("\nBuilding exe")
                 ecode = self.compile_gpp(args, exepath, "")
                 if ecode:
@@ -406,7 +407,6 @@ class KithareBuilder:
             return
 
         self.build_exe()
-
         print("Done!")
 
 
