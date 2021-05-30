@@ -1,9 +1,15 @@
-#include <kithare/utf8.hpp>
+/*
+ * This file is a part of the Kithare programming language source code.
+ * The source code for Kithare programming language is distributed under the MIT license.
+ * Copyright (C) 2021 Kithare Organization
+ */
+
 #include <kithare/string.hpp>
+#include <kithare/utf8.hpp>
 
 
 std::u32string kh::Utf8DecodingException::format() const {
-    return this->what + U" at index " + kh::repr(this->index);
+    return this->what + U" at index " + kh::repr((uint64_t)this->index);
 }
 
 std::string kh::encodeUtf8(const std::u32string& str) {

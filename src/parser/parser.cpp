@@ -1,33 +1,32 @@
+/*
+ * This file is a part of the Kithare programming language source code.
+ * The source code for Kithare programming language is distributed under the MIT license.
+ * Copyright (C) 2021 Kithare Organization
+ */
+
 #include <kithare/parser.hpp>
+#include <kithare/string.hpp>
 
 
 std::u32string kh::LexException::format() const {
-    return this->what + U" at index " + kh::repr(this->index);
+    return this->what + U" at line " + kh::repr((uint64_t)this->line) + U" column " +
+           kh::repr((uint64_t)this->column);
 }
 
 std::u32string kh::ParseException::format() const {
-    return this->what + U" at index " + kh::repr(this->index);
+    return this->what + U" at line " + kh::repr((uint64_t)this->token.line) + U" column " +
+           kh::repr((uint64_t)this->token.column);
 }
 
 kh::Parser::Parser() {}
 
 kh::Parser::Parser(const std::u32string& _source) : source(_source) {}
 
-kh::Parser::Parser(const std::vector<kh::Token>& _tokens) : tokens(_tokens) {}
+kh::Parser::Parser(const std::vector<kh::Token>& _tokens) {
+    this->tokens.reserve(_tokens.size());
+    for (const kh::Token& token : _tokens)
+        if (token.type != kh::TokenType::COMMENT)
+            this->tokens.push_back(token);
+}
 
 kh::Parser::~Parser() {}
-
-void kh::Parser::cleanExceptions() {
-    size_t last_index = -1;
-    std::vector<kh::ParseException> cleaned_exceptions;
-    cleaned_exceptions.reserve(this->parse_exceptions.size());
-
-    for (kh::ParseException& exc : this->parse_exceptions) {
-        if (last_index != exc.index)
-            cleaned_exceptions.push_back(exc);
-
-        last_index = exc.index;
-    }
-
-    this->parse_exceptions = cleaned_exceptions;
-}

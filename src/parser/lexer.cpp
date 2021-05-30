@@ -1,3 +1,9 @@
+/*
+ * This file is a part of the Kithare programming language source code.
+ * The source code for Kithare programming language is distributed under the MIT license.
+ * Copyright (C) 2021 Kithare Organization
+ */
+
 #include <chrono>
 #include <cwctype>
 #include <functional>
@@ -155,7 +161,7 @@ void kh::Parser::lex() {
         }
     };
 
-    for (size_t i = 0; i <= source.size(); i++) {
+    for (size_t i = 0; i <= this->source.size(); i++) {
         try {
             switch (state) {
                 case kh::TokenizeState::NONE:
@@ -914,6 +920,8 @@ void kh::Parser::lex() {
         catch (const kh::LexException& exc) {
             this->lex_exceptions.push_back(exc);
             state = kh::TokenizeState::NONE;
+            kh::getLineColumn(this->source, exc.index, this->lex_exceptions.back().column,
+                              this->lex_exceptions.back().line);
         }
     }
     /* We were expecting to be in a tokenize state, but got EOF, so throw error.
@@ -921,6 +929,24 @@ void kh::Parser::lex() {
      * string or buffer */
     if (state != kh::TokenizeState::NONE)
         this->lex_exceptions.emplace_back(U"Got unexpected EOF", source.size());
+
+    /* Fills in the `column` and `line` number attributes of each token */
+    size_t column = 1, line = 1;
+    size_t token_index = 0;
+    for (size_t i = 0; i <= this->source.size(); i++, column++) {
+        if (token_index >= this->tokens.size())
+            break;
+        if (this->source[i] == '\n') {
+            column = 0;
+            line++;
+        }
+
+        if (this->tokens[token_index].index == i) {
+            this->tokens[token_index].column = column;
+            this->tokens[token_index].line = line;
+            token_index++;
+        }
+    }
 
     auto lex_end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed = lex_end - lex_start;

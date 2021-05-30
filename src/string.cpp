@@ -1,5 +1,11 @@
-#include <kithare/utf8.hpp>
+/*
+ * This file is a part of the Kithare programming language source code.
+ * The source code for Kithare programming language is distributed under the MIT license.
+ * Copyright (C) 2021 Kithare Organization
+ */
+
 #include <kithare/string.hpp>
+#include <kithare/utf8.hpp>
 
 
 std::u32string kh::quote(const std::u32string& str) {
@@ -173,7 +179,6 @@ std::u32string kh::repr(const char32_t chr) {
 
 KH_REPR_TO_STRING(int64_t);
 KH_REPR_TO_STRING(uint64_t);
-KH_REPR_TO_STRING(size_t);
 KH_REPR_TO_STRING(float);
 KH_REPR_TO_STRING(double);
 

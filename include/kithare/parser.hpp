@@ -1,3 +1,9 @@
+/*
+ * This file is a part of the Kithare programming language source code.
+ * The source code for Kithare programming language is distributed under the MIT license.
+ * Copyright (C) 2021 Kithare Organization
+ */
+
 #pragma once
 
 #include <kithare/ast.hpp>
@@ -10,6 +16,8 @@ namespace kh {
     class LexException : public kh::Exception {
     public:
         std::u32string what;
+        size_t column;
+        size_t line;
         size_t index;
 
         LexException(const std::u32string _what, const size_t _index) : what(_what), index(_index) {}
@@ -20,9 +28,10 @@ namespace kh {
     class ParseException : public kh::Exception {
     public:
         std::u32string what;
-        size_t index;
+        kh::Token token;
 
-        ParseException(const std::u32string _what, const size_t _index) : what(_what), index(_index) {}
+        ParseException(const std::u32string _what, const kh::Token& _token)
+            : what(_what), token(_token) {}
         virtual ~ParseException() {}
         virtual std::u32string format() const;
     };
@@ -45,7 +54,9 @@ namespace kh {
         void lex();
         void parse();
 
-        void cleanExceptions();
+        inline bool ok() {
+            return this->lex_exceptions.empty() && this->parse_exceptions.empty();
+        }
 
     private:
         size_t ti = 0; /* Token iterator */
@@ -53,6 +64,15 @@ namespace kh {
         /* Gets token of the current iterator index */
         inline kh::Token& to() {
             return this->tokens[this->ti];
+        }
+
+        inline kh::Token& tokFromIndex(const size_t index) {
+            for (kh::Token& token : this->tokens)
+                if (token.index == index)
+                    return token;
+
+            /* placeholder */
+            return *(new kh::Token());
         }
 
         kh::AstImport* parseImport(const bool is_include);
@@ -120,12 +140,11 @@ namespace kh {
     }
 }
 
-#define KH_PARSE_GUARD()                                                                \
-    do {                                                                                \
-        if (this->ti >= this->tokens.size()) {                                          \
-            this->parse_exceptions.emplace_back(                                        \
-                U"Was expecting a token but hit EOF",                                   \
-                this->tokens.size() ? this->tokens[this->tokens.size() - 1].index : 0); \
-            goto end;                                                                   \
-        }                                                                               \
+#define KH_PARSE_GUARD()                                                              \
+    do {                                                                              \
+        if (this->ti >= this->tokens.size()) {                                        \
+            this->parse_exceptions.emplace_back(U"Was expecting a token but hit EOF", \
+                                                this->tokens.back());                 \
+            goto end;                                                                 \
+        }                                                                             \
     } while (false)

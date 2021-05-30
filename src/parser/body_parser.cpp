@@ -1,4 +1,11 @@
+/*
+ * This file is a part of the Kithare programming language source code.
+ * The source code for Kithare programming language is distributed under the MIT license.
+ * Copyright (C) 2021 Kithare Organization
+ */
+
 #include <chrono>
+#include <functional>
 
 #include <kithare/parser.hpp>
 
@@ -25,51 +32,51 @@ void kh::Parser::parse() {
                 if (identifier == U"def") {
                     /* Skips initial keyword */
                     this->ti++;
-                    KH_PARSE_GUARD(0);
+                    KH_PARSE_GUARD();
 
                     /* Parses access type */
                     bool is_static, is_public;
                     this->parseAccessAttribs(is_static, is_public);
 
-                    KH_PARSE_GUARD(0);
+                    KH_PARSE_GUARD();
                     /* Parses return type, name, arguments, and body */
                     functions.emplace_back(this->parseFunction(is_static, is_public));
 
                     if (!functions.back()->identifiers.size())
                         this->parse_exceptions.emplace_back(
-                            U"Lambda functions cannot be declared at the top scope", token.index);
+                            U"Lambda functions cannot be declared at the top scope", token);
                     if (is_static && functions.back()->identifiers.size() == 1)
                         this->parse_exceptions.emplace_back(U"A top scope function cannot be `static`",
-                                                            token.index);
+                                                            token);
                 }
                 /* Parses class declaration */
                 else if (identifier == U"class") {
                     this->ti++;
-                    KH_PARSE_GUARD(0);
+                    KH_PARSE_GUARD();
                     classes.emplace_back(this->parseClass());
                 }
                 /* Parses struct declaration */
                 else if (identifier == U"struct") {
                     this->ti++;
-                    KH_PARSE_GUARD(0);
+                    KH_PARSE_GUARD();
                     structs.emplace_back(this->parseStruct());
                 }
                 /* Parses enum declaration */
                 else if (identifier == U"enum") {
                     this->ti++;
-                    KH_PARSE_GUARD(0);
+                    KH_PARSE_GUARD();
                     enums.emplace_back(this->parseEnum());
                 }
                 /* Parses import statement */
                 else if (identifier == U"import") {
                     this->ti++;
-                    KH_PARSE_GUARD(0);
+                    KH_PARSE_GUARD();
                     imports.emplace_back(this->parseImport(false)); /* is_include = false */
                 }
                 /* Parses include statement */
                 else if (identifier == U"include") {
                     this->ti++;
-                    KH_PARSE_GUARD(0);
+                    KH_PARSE_GUARD();
                     imports.emplace_back(this->parseImport(true)); /* is_include = true */
                 }
                 /* If it was none of those above, it's probably a variable declaration */
@@ -77,23 +84,23 @@ void kh::Parser::parse() {
                     /* Gets variable's declaration access type */
                     bool is_static, is_public;
                     this->parseAccessAttribs(is_static, is_public);
-                    KH_PARSE_GUARD(0);
+                    KH_PARSE_GUARD();
                     if (is_static)
                         this->parse_exceptions.emplace_back(U"A top scope variable cannot be `static`",
-                                                            token.index);
+                                                            token);
 
                     /* Parses the variable's return type, name, and assignment value */
                     variables.emplace_back(this->parseDeclaration(is_static, is_public));
 
                     /* Makes sure it ends with a semicolon */
-                    KH_PARSE_GUARD(0);
+                    KH_PARSE_GUARD();
                     token = this->to();
                     if (token.type == kh::TokenType::SYMBOL &&
                         token.value.symbol_type == kh::Symbol::SEMICOLON)
                         this->ti++;
                     else
                         this->parse_exceptions.emplace_back(
-                            U"Was expecting a semicolon after a variable declaration", token.index);
+                            U"Was expecting a semicolon after a variable declaration", token);
                 }
             } break;
 
@@ -108,7 +115,7 @@ void kh::Parser::parse() {
                     default:
                         this->ti++;
                         this->parse_exceptions.emplace_back(
-                            U"Unexpected token while parsing the top scope", token.index);
+                            U"Unexpected token while parsing the top scope", token);
                 }
                 break;
 
@@ -116,16 +123,29 @@ void kh::Parser::parse() {
             default:
                 this->ti++;
                 this->parse_exceptions.emplace_back(U"Unexpected token while parsing the top scope",
-                                                    token.index);
+                                                    token);
         }
     }
 
 end:
-    if (this->parse_exceptions.size() > 1)
-        this->cleanExceptions();
+    /* Removes exceptions that's got a duplicate index */
+    if (this->parse_exceptions.size() > 1) {
+        size_t last_index = -1;
+        std::vector<kh::ParseException> cleaned_exceptions;
+        cleaned_exceptions.reserve(this->parse_exceptions.size());
+
+        for (kh::ParseException& exc : this->parse_exceptions) {
+            if (last_index != exc.token.index)
+                cleaned_exceptions.push_back(exc);
+
+            last_index = exc.token.index;
+        }
+
+        this->parse_exceptions = cleaned_exceptions;
+    }
 
     this->ast.reset(new kh::Ast(imports, functions, classes, structs, enums, variables));
-    
+
     auto parse_end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed = parse_end - parse_start;
     this->parse_time = elapsed.count();
@@ -144,7 +164,7 @@ kh::AstImport* kh::Parser::parseImport(const bool is_include) {
     if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::DOT) {
         is_relative = true;
         this->ti++;
-        KH_PARSE_GUARD(0);
+        KH_PARSE_GUARD();
         token = this->to();
     }
 
@@ -153,41 +173,40 @@ kh::AstImport* kh::Parser::parseImport(const bool is_include) {
     if (token.type == kh::TokenType::IDENTIFIER) {
         if (kh::isReservedKeyword(token.value.identifier))
             this->parse_exceptions.emplace_back(
-                U"Was trying to `" + type + U"` with a reserved keyword", token.index);
+                U"Was trying to `" + type + U"` with a reserved keyword", token);
 
         path.push_back(token.value.identifier);
         this->ti++;
     }
     else {
         this->parse_exceptions.emplace_back(
-            U"Was expecting an identifier after the `" + type + U"` keyword", token.index);
+            U"Was expecting an identifier after the `" + type + U"` keyword", token);
         this->ti++;
     }
 
-    KH_PARSE_GUARD(0);
+    KH_PARSE_GUARD();
     token = this->to();
 
     /* Parses each identifier after a dot `import a.b.c.d ...` */
     while (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::DOT) {
         this->ti++;
-        KH_PARSE_GUARD(0);
+        KH_PARSE_GUARD();
         token = this->to();
 
         /* Appends the identifier */
         if (token.type == kh::TokenType::IDENTIFIER) {
             if (kh::isReservedKeyword(token.value.identifier))
                 this->parse_exceptions.emplace_back(U"Was trying to " + type + U" a reserved keyword",
-                                                    token.index);
+                                                    token);
 
             path.push_back(token.value.identifier);
             this->ti++;
-            KH_PARSE_GUARD(0);
+            KH_PARSE_GUARD();
             token = this->to();
         }
         else {
-            this->parse_exceptions.emplace_back(U"Was expecting an identifier after the dot in the " +
-                                                    type + U" statement",
-                                                token.index);
+            this->parse_exceptions.emplace_back(
+                U"Was expecting an identifier after the dot in the " + type + U" statement", token);
             break;
         }
     }
@@ -195,25 +214,24 @@ kh::AstImport* kh::Parser::parseImport(const bool is_include) {
     /* An optional `as` for changing the namespace name in import statements */
     if (!is_include && token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"as") {
         this->ti++;
-        KH_PARSE_GUARD(0);
+        KH_PARSE_GUARD();
         token = this->to();
 
         /* Gets the set namespace identifier */
         if (token.type == kh::TokenType::IDENTIFIER) {
             if (kh::isReservedKeyword(token.value.identifier))
                 this->parse_exceptions.emplace_back(
-                    U"Could not use a reserved keyword as the alias of the import", token.index);
+                    U"Could not use a reserved keyword as the alias of the import", token);
 
             identifier = token.value.identifier;
         }
         else {
             this->parse_exceptions.emplace_back(
-                U"Was expecting an identifier after the `as` keyword in the import statement",
-                token.index);
+                U"Was expecting an identifier after the `as` keyword in the import statement", token);
         }
 
         this->ti++;
-        KH_PARSE_GUARD(0);
+        KH_PARSE_GUARD();
         token = this->to();
     }
 
@@ -222,7 +240,7 @@ kh::AstImport* kh::Parser::parseImport(const bool is_include) {
         this->ti++;
     else
         this->parse_exceptions.emplace_back(
-            U"Was expecting a semicolon after the " + type + U" statement", token.index);
+            U"Was expecting a semicolon after the " + type + U" statement", token);
 end:
     return new kh::AstImport(index, path, is_include, is_relative,
                              path.empty() ? U"" : (identifier.empty() ? path.back() : identifier));
@@ -246,7 +264,7 @@ void kh::Parser::parseAccessAttribs(bool& is_static, bool& is_public) {
             break;
 
         this->ti++;
-        KH_PARSE_GUARD(0);
+        KH_PARSE_GUARD();
         token = this->to();
     }
 
@@ -276,29 +294,29 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
             if (generic_->identifiers.size() != 1)
                 this->parse_exceptions.emplace_back(U"Could not have multiple identifiers as a generic "
                                                     U"argument name in the function declaration",
-                                                    generic_->index);
+                                                    this->tokFromIndex(generic_->index));
             if (!generic_->generics.empty())
                 this->parse_exceptions.emplace_back(U"Could not have generic arguments in a generic "
                                                     U"argument in the function declaration",
-                                                    generic_->generics[0]->index);
+                                                    this->tokFromIndex(generic_->generics[0]->index));
 
             generic_args.push_back(generic_->identifiers.empty() ? U"" : generic_->identifiers[0]);
         }
 
         /* Ensures it has an opening parentheses */
-        KH_PARSE_GUARD(0);
+        KH_PARSE_GUARD();
         token = this->to();
         if (!(token.type == kh::TokenType::SYMBOL &&
               token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN)) {
             this->parse_exceptions.emplace_back(
                 U"Was expecting an opening parentheses of the argument(s) in the function declaration",
-                token.index);
+                token);
             goto end;
         }
     }
 
     this->ti++;
-    KH_PARSE_GUARD(0);
+    KH_PARSE_GUARD();
     token = this->to();
 
     /* Loops until it reaches a closing parentheses */
@@ -310,14 +328,14 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
         /* Parses the argument */
         arguments.emplace_back(this->parseDeclaration(false, true));
 
-        KH_PARSE_GUARD(0);
+        KH_PARSE_GUARD();
         token = this->to();
 
         if (token.type == kh::TokenType::SYMBOL) {
             /* Continues on parsing an argument if there's a comma */
             if (token.value.symbol_type == kh::Symbol::COMMA) {
                 this->ti++;
-                KH_PARSE_GUARD(0);
+                KH_PARSE_GUARD();
                 continue;
             }
             /* Stops parsing arguments */
@@ -327,7 +345,7 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
                 this->parse_exceptions.emplace_back(
                     U"Was expecting a closing parentheses or a comma in "
                     U"the function declaration's argument(s)",
-                    token.index);
+                    token);
                 goto end;
             }
         }
@@ -335,36 +353,36 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
             this->parse_exceptions.emplace_back(
                 U"Was expecting a closing parentheses or a comma in the "
                 U"function declaration's argument(s)",
-                token.index);
+                token);
             goto end;
         }
     }
 
     this->ti++;
-    KH_PARSE_GUARD(0);
+    KH_PARSE_GUARD();
     token = this->to();
 
     /* Specifying return type `def function() -> int {}` */
     if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::SUB) {
         this->ti++;
-        KH_PARSE_GUARD(0);
+        KH_PARSE_GUARD();
         token = this->to();
 
         if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::MORE) {
             this->ti++;
-            KH_PARSE_GUARD(0);
+            KH_PARSE_GUARD();
             token = this->to();
 
             /* Checks if the return type is a `ref`erence type */
             while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
                 return_refs += 1;
                 this->ti++;
-                KH_PARSE_GUARD(0);
+                KH_PARSE_GUARD();
                 token = this->to();
             }
 
             return_type.reset((kh::AstIdentifierExpression*)this->parseIdentifiers());
-            KH_PARSE_GUARD(0);
+            KH_PARSE_GUARD();
             token = this->to();
 
             /* Array return type */
@@ -377,7 +395,7 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
             return_type.reset(new kh::AstIdentifierExpression(token.index, {U"void"}, {}, {}, {}));
 
             this->parse_exceptions.emplace_back(U"Was expecting an arrow specifying a return type",
-                                                token.index);
+                                                token);
         }
     }
     else {
@@ -405,7 +423,7 @@ kh::AstDeclarationExpression* kh::Parser::parseDeclaration(const bool is_static,
     while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
         refs += 1;
         this->ti++;
-        KH_PARSE_GUARD(0);
+        KH_PARSE_GUARD();
         token = this->to();
     }
 
@@ -413,25 +431,24 @@ kh::AstDeclarationExpression* kh::Parser::parseDeclaration(const bool is_static,
     var_type.reset((kh::AstIdentifierExpression*)this->parseIdentifiers());
 
     /* Gets the variable's name */
-    KH_PARSE_GUARD(0);
+    KH_PARSE_GUARD();
     token = this->to();
     if (token.type != kh::TokenType::IDENTIFIER) {
         this->parse_exceptions.emplace_back(
-            U"Was expecting an identifier of the variable declaration's name", token.index);
+            U"Was expecting an identifier of the variable declaration's name", token);
         goto end;
     }
 
     if (kh::isReservedKeyword(token.value.identifier))
-        this->parse_exceptions.emplace_back(U"Cannot use a reserved keyword as a variable name",
-                                            token.index);
+        this->parse_exceptions.emplace_back(U"Cannot use a reserved keyword as a variable name", token);
 
     var_name = token.value.identifier;
     this->ti++;
-    KH_PARSE_GUARD(0);
+    KH_PARSE_GUARD();
     token = this->to();
 
     /* Possible array type */
-    KH_PARSE_GUARD(0);
+    KH_PARSE_GUARD();
     token = this->to();
     var_array = this->parseArrayDimensionList(var_type);
 
@@ -442,7 +459,7 @@ kh::AstDeclarationExpression* kh::Parser::parseDeclaration(const bool is_static,
     else if (token.type == kh::TokenType::OPERATOR &&
              token.value.operator_type == kh::Operator::ASSIGN) {
         this->ti++;
-        KH_PARSE_GUARD(0);
+        KH_PARSE_GUARD();
         expression.reset(this->parseExpression());
     }
     else
@@ -471,35 +488,35 @@ kh::AstClass* kh::Parser::parseClass() {
         if (generic_->identifiers.size() != 1)
             this->parse_exceptions.emplace_back(U"Could not have multiple identifiers as a generic "
                                                 U"argument name in the class declaration",
-                                                generic_->index);
+                                                this->tokFromIndex(generic_->index));
         if (!generic_->generics.empty())
             this->parse_exceptions.emplace_back(U"Could not have generic arguments in a generic "
                                                 U"argument in the class declaration",
-                                                generic_->generics[0]->index);
+                                                this->tokFromIndex(generic_->generics[0]->index));
 
         generic_args.push_back(generic_->identifiers.empty() ? U"" : generic_->identifiers[0]);
     }
 
-    KH_PARSE_GUARD(0);
+    KH_PARSE_GUARD();
     token = this->to();
 
     /* Optional inheriting */
     if (token.type == kh::TokenType::SYMBOL &&
         token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
         this->ti++;
-        KH_PARSE_GUARD(0);
+        KH_PARSE_GUARD();
 
         /* Parses base class' identifier */
         bases.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
-        KH_PARSE_GUARD(0);
+        KH_PARSE_GUARD();
         token = this->to();
 
         /* If there is any more bases to inherit */
         while (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::COMMA) {
             this->ti++;
-            KH_PARSE_GUARD(0);
+            KH_PARSE_GUARD();
             bases.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
-            KH_PARSE_GUARD(0);
+            KH_PARSE_GUARD();
             token = this->to();
         }
 
@@ -511,20 +528,20 @@ kh::AstClass* kh::Parser::parseClass() {
             this->parse_exceptions.emplace_back(
                 U"Was expecting a closing parentheses after inheritment "
                 U"argument in the class declaration",
-                token.index);
+                token);
     }
 
-    KH_PARSE_GUARD(0);
+    KH_PARSE_GUARD();
     token = this->to();
 
     /* Parses the body */
     if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_OPEN) {
         this->ti++;
-        KH_PARSE_GUARD(0);
+        KH_PARSE_GUARD();
         token = this->to();
 
         while (true) {
-            KH_PARSE_GUARD(0);
+            KH_PARSE_GUARD();
             kh::Token& token = this->to();
 
             switch (token.type) {
@@ -532,19 +549,19 @@ kh::AstClass* kh::Parser::parseClass() {
                     /* Methods */
                     if (token.value.identifier == U"def") {
                         this->ti++;
-                        KH_PARSE_GUARD(0);
+                        KH_PARSE_GUARD();
 
                         bool is_static, is_public;
                         /* Parse access types */
                         this->parseAccessAttribs(is_static, is_public);
-                        KH_PARSE_GUARD(0);
+                        KH_PARSE_GUARD();
                         /* Parse function declaration */
                         methods.emplace_back(this->parseFunction(is_static, is_public));
 
                         /* Ensures that methods don't have generic argument(s) */
                         if (methods.back() && !methods.back()->generic_args.empty()) {
                             this->parse_exceptions.emplace_back(
-                                U"A method cannot have (a) generic argument(s)", token.index);
+                                U"A method cannot have (a) generic argument(s)", token);
                         }
                     }
                     /* Member/class variables */
@@ -552,11 +569,11 @@ kh::AstClass* kh::Parser::parseClass() {
                         bool is_static, is_public;
                         /* Parse access types */
                         this->parseAccessAttribs(is_static, is_public);
-                        KH_PARSE_GUARD(0);
+                        KH_PARSE_GUARD();
                         /* Parse variable declaration */
                         members.emplace_back(this->parseDeclaration(is_static, is_public));
 
-                        KH_PARSE_GUARD(0);
+                        KH_PARSE_GUARD();
                         token = this->to();
                         /* Expects semicolon */
                         if (token.type == kh::TokenType::SYMBOL &&
@@ -567,7 +584,7 @@ kh::AstClass* kh::Parser::parseClass() {
                             this->parse_exceptions.emplace_back(
                                 U"Was expecting a semicolon after a "
                                 U"variable declaration in the class body",
-                                token.index);
+                                token);
                         }
                     }
                 } break;
@@ -588,20 +605,20 @@ kh::AstClass* kh::Parser::parseClass() {
                         default:
                             this->ti++;
                             this->parse_exceptions.emplace_back(
-                                U"Unexpected symbol while parsing the class body", token.index);
+                                U"Unexpected symbol while parsing the class body", token);
                     }
                 } break;
 
                 default:
                     this->ti++;
                     this->parse_exceptions.emplace_back(
-                        U"Unexpected token while parsing the class body", token.index);
+                        U"Unexpected token while parsing the class body", token);
             }
         }
     }
     else
         this->parse_exceptions.emplace_back(
-            U"Was expecting an opening curly bracket after the class declaration", token.index);
+            U"Was expecting an opening curly bracket after the class declaration", token);
 end:
     return new kh::AstClass(index, identifiers, bases, generic_args, members, methods);
 }
@@ -619,29 +636,30 @@ kh::AstStruct* kh::Parser::parseStruct() {
         (kh::AstIdentifierExpression*)this->parseIdentifiers());
     identifiers = identifiers_with_generics->identifiers;
     if (!identifiers_with_generics->generics.empty())
-        this->parse_exceptions.emplace_back(U"A struct could not have generic arguments",
-                                            identifiers_with_generics->generics[0]->index);
+        this->parse_exceptions.emplace_back(
+            U"A struct could not have generic arguments",
+            this->tokFromIndex(identifiers_with_generics->generics[0]->index));
 
-    KH_PARSE_GUARD(0);
+    KH_PARSE_GUARD();
     token = this->to();
 
     /* Optional struct inheritment */
     if (token.type == kh::TokenType::SYMBOL &&
         token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
         this->ti++;
-        KH_PARSE_GUARD(0);
+        KH_PARSE_GUARD();
 
         /* Parses the base struct's identifier */
         bases.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
-        KH_PARSE_GUARD(0);
+        KH_PARSE_GUARD();
         token = this->to();
 
         /* If there is any more bases to inherit */
         while (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::COMMA) {
             this->ti++;
-            KH_PARSE_GUARD(0);
+            KH_PARSE_GUARD();
             bases.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
-            KH_PARSE_GUARD(0);
+            KH_PARSE_GUARD();
             token = this->to();
         }
 
@@ -651,16 +669,16 @@ kh::AstStruct* kh::Parser::parseStruct() {
         else
             this->parse_exceptions.emplace_back(U"Was expecting a closing parentheses after the "
                                                 U"inheritment argument in the struct declaration",
-                                                token.index);
+                                                token);
     }
 
-    KH_PARSE_GUARD(0);
+    KH_PARSE_GUARD();
     token = this->to();
 
     /* Ensures opening curly bracket */
     if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_OPEN) {
         this->ti++;
-        KH_PARSE_GUARD(0);
+        KH_PARSE_GUARD();
         token = this->to();
 
         /* Parses the struct body which continuously parse variables */
@@ -675,7 +693,7 @@ kh::AstStruct* kh::Parser::parseStruct() {
             else if (token.type == kh::TokenType::SYMBOL &&
                      token.value.symbol_type == kh::Symbol::SEMICOLON) {
                 this->ti++;
-                KH_PARSE_GUARD(0);
+                KH_PARSE_GUARD();
                 token = this->to();
                 continue;
             }
@@ -686,7 +704,7 @@ kh::AstStruct* kh::Parser::parseStruct() {
                 members.emplace_back(this->parseDeclaration(is_static, is_public));
             }
 
-            KH_PARSE_GUARD(0);
+            KH_PARSE_GUARD();
             token = this->to();
 
             /* Stops parsing the body */
@@ -700,16 +718,16 @@ kh::AstStruct* kh::Parser::parseStruct() {
                        token.value.symbol_type == kh::Symbol::SEMICOLON))
                 this->parse_exceptions.emplace_back(
                     U"Was expecting a semicolon after the variable declaration in the struct body",
-                    token.index);
+                    token);
 
             this->ti++;
-            KH_PARSE_GUARD(0);
+            KH_PARSE_GUARD();
             token = this->to();
         }
     }
     else
         this->parse_exceptions.emplace_back(
-            U"Was expecting an opening curly bracket after the struct declaration", token.index);
+            U"Was expecting an opening curly bracket after the struct declaration", token);
 end:
     return new kh::AstStruct(index, identifiers, bases, members);
 }
@@ -730,16 +748,17 @@ kh::AstEnum* kh::Parser::parseEnum() {
         (kh::AstIdentifierExpression*)this->parseIdentifiers());
     identifiers = identifiers_with_generics->identifiers;
     if (!identifiers_with_generics->generics.empty())
-        this->parse_exceptions.emplace_back(U"An enum could not have generic arguments",
-                                            identifiers_with_generics->generics[0]->index);
+        this->parse_exceptions.emplace_back(
+            U"An enum could not have generic arguments",
+            this->tokFromIndex(identifiers_with_generics->generics[0]->index));
 
-    KH_PARSE_GUARD(0);
+    KH_PARSE_GUARD();
     token = this->to();
 
     /* Opens with a curly bracket */
     if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_OPEN) {
         this->ti++;
-        KH_PARSE_GUARD(0);
+        KH_PARSE_GUARD();
         token = this->to();
 
         /* Parses the enum content */
@@ -755,23 +774,23 @@ kh::AstEnum* kh::Parser::parseEnum() {
                 members.push_back(token.value.identifier);
             else {
                 this->parse_exceptions.emplace_back(U"Unexpected token while parsing the enum body",
-                                                    token.index);
+                                                    token);
 
                 this->ti++;
-                KH_PARSE_GUARD(0);
+                KH_PARSE_GUARD();
                 token = this->to();
                 continue;
             }
 
             this->ti++;
-            KH_PARSE_GUARD(0);
+            KH_PARSE_GUARD();
             token = this->to();
 
             /* Checks if there's an assignment operation on an enum member */
             if (token.type == kh::TokenType::OPERATOR &&
                 token.value.operator_type == kh::Operator::ASSIGN) {
                 this->ti++;
-                KH_PARSE_GUARD(0);
+                KH_PARSE_GUARD();
                 token = this->to();
 
                 /* Ensures there's an integer constant */
@@ -781,13 +800,13 @@ kh::AstEnum* kh::Parser::parseEnum() {
                     counter = token.value.uinteger + 1;
 
                     this->ti++;
-                    KH_PARSE_GUARD(0);
+                    KH_PARSE_GUARD();
                     token = this->to();
                 }
                 else {
                     this->parse_exceptions.emplace_back(U"Was expecting an integer constant after the "
                                                         U"assignment operation on the enum member",
-                                                        token.index);
+                                                        token);
 
                     values.push_back(counter);
                     counter++;
@@ -803,13 +822,13 @@ kh::AstEnum* kh::Parser::parseEnum() {
                 if (members[member] == members.back()) {
                     this->parse_exceptions.emplace_back(U"This enum member has the same name as #" +
                                                             kh::repr((uint64_t)member + 1),
-                                                        token.index);
+                                                        token);
                     break;
                 }
 
                 if (values[member] == values.back()) {
                     this->parse_exceptions.emplace_back(
-                        U"This enum member has a same index value as " + members[member], token.index);
+                        U"This enum member has a same index value as " + members[member], token);
                     break;
                 }
             }
@@ -825,16 +844,16 @@ kh::AstEnum* kh::Parser::parseEnum() {
                        token.value.symbol_type == kh::Symbol::COMMA))
                 this->parse_exceptions.emplace_back(U"Was expecting a closing curly bracket or a comma "
                                                     U"after an enum member in the enum body",
-                                                    token.index);
+                                                    token);
 
             this->ti++;
-            KH_PARSE_GUARD(0);
+            KH_PARSE_GUARD();
             token = this->to();
         }
     }
     else
         this->parse_exceptions.emplace_back(
-            U"Was expecting an opening curly bracket after the enum declaration", token.index);
+            U"Was expecting an opening curly bracket after the enum declaration", token);
 end:
     return new kh::AstEnum(index, identifiers, members, values);
 }
@@ -850,7 +869,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
     /* Expects an opening curly bracket */
     else if (!(token.type == kh::TokenType::SYMBOL &&
                token.value.symbol_type == kh::Symbol::CURLY_OPEN)) {
-        this->parse_exceptions.emplace_back(U"Was expecting an opening curly bracket", token.index);
+        this->parse_exceptions.emplace_back(U"Was expecting an opening curly bracket", token);
         goto end;
     }
 
@@ -858,7 +877,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
 
     /* Parses the body */
     while (true) {
-        KH_PARSE_GUARD(0);
+        KH_PARSE_GUARD();
         token = this->to();
         size_t index = token.index;
 
@@ -867,7 +886,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                 /* Nested function */
                 if (token.value.identifier == U"def") {
                     this->ti++;
-                    KH_PARSE_GUARD(0);
+                    KH_PARSE_GUARD();
                     body.emplace_back(this->parseFunction(false, true));
                 }
                 /* If statement */
@@ -880,11 +899,11 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                         /* Parses the expression and if body */
                         this->ti++;
                         token = this->to();
-                        KH_PARSE_GUARD(0);
+                        KH_PARSE_GUARD();
                         conditions.emplace_back(this->parseExpression());
-                        KH_PARSE_GUARD(0);
+                        KH_PARSE_GUARD();
                         bodies.emplace_back(this->parseBody(break_continue_allowed));
-                        KH_PARSE_GUARD(0);
+                        KH_PARSE_GUARD();
                         token = this->to();
 
                         /* Recontinues if there's an else if (`elif`) clause */
@@ -894,7 +913,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                     /* Parses the body if there's an `else` clause */
                     if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"else") {
                         this->ti++;
-                        KH_PARSE_GUARD(0);
+                        KH_PARSE_GUARD();
                         else_body = this->parseBody(break_continue_allowed);
                     }
 
@@ -903,7 +922,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                 /* While statement */
                 else if (token.value.identifier == U"while") {
                     this->ti++;
-                    KH_PARSE_GUARD(0);
+                    KH_PARSE_GUARD();
 
                     /* Parses the expression and body */
                     std::shared_ptr<kh::AstExpression> condition(this->parseExpression());
@@ -914,13 +933,13 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                 /* Do while statement */
                 else if (token.value.identifier == U"do") {
                     this->ti++;
-                    KH_PARSE_GUARD(0);
+                    KH_PARSE_GUARD();
 
                     /* Parses the body */
                     std::vector<std::shared_ptr<kh::AstBody>> do_while_body = this->parseBody(true);
                     std::shared_ptr<kh::AstExpression> condition;
 
-                    KH_PARSE_GUARD(0);
+                    KH_PARSE_GUARD();
                     token = this->to();
 
                     /* Expects `while` and then parses the condition expression */
@@ -930,9 +949,9 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                     }
                     else
                         this->parse_exceptions.emplace_back(
-                            U"Was expecting `while` after the `do {...}` body", token.index);
+                            U"Was expecting `while` after the `do {...}` body", token);
 
-                    KH_PARSE_GUARD(0);
+                    KH_PARSE_GUARD();
                     token = this->to();
 
                     /* Expects a semicolon */
@@ -942,27 +961,27 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                     else
                         this->parse_exceptions.emplace_back(
                             U"Was expecting a semicolon after the `do {...} while (...)` statement",
-                            token.index);
+                            token);
 
                     body.emplace_back(new kh::AstDoWhile(index, condition, do_while_body));
                 }
                 /* For statement */
                 else if (token.value.identifier == U"for") {
                     this->ti++;
-                    KH_PARSE_GUARD(0);
+                    KH_PARSE_GUARD();
 
                     std::shared_ptr<kh::AstExpression> target_or_initializer(this->parseExpression());
 
-                    KH_PARSE_GUARD(0);
+                    KH_PARSE_GUARD();
                     token = this->to();
                     if (token.type == kh::TokenType::SYMBOL &&
                         token.value.symbol_type == kh::Symbol::COLON) {
                         this->ti++;
-                        KH_PARSE_GUARD(0);
+                        KH_PARSE_GUARD();
                         token = this->to();
 
                         std::shared_ptr<kh::AstExpression> iterator(this->parseExpression());
-                        KH_PARSE_GUARD(0);
+                        KH_PARSE_GUARD();
                         std::vector<std::shared_ptr<kh::AstBody>> foreach_body = this->parseBody(true);
 
                         body.emplace_back(
@@ -971,23 +990,22 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                     else if (token.type == kh::TokenType::SYMBOL &&
                              token.value.symbol_type == kh::Symbol::COMMA) {
                         this->ti++;
-                        KH_PARSE_GUARD(0);
+                        KH_PARSE_GUARD();
                         std::shared_ptr<kh::AstExpression> condition(this->parseExpression());
-                        KH_PARSE_GUARD(0);
+                        KH_PARSE_GUARD();
                         token = this->to();
 
                         if (token.type == kh::TokenType::SYMBOL &&
                             token.value.symbol_type == kh::Symbol::COMMA) {
                             this->ti++;
-                            KH_PARSE_GUARD(0);
+                            KH_PARSE_GUARD();
                         }
                         else
                             this->parse_exceptions.emplace_back(
-                                U"Was expecting a comma after the `for` condition expression",
-                                token.index);
+                                U"Was expecting a comma after the `for` condition expression", token);
 
                         std::shared_ptr<kh::AstExpression> step(this->parseExpression());
-                        KH_PARSE_GUARD(0);
+                        KH_PARSE_GUARD();
                         std::vector<std::shared_ptr<kh::AstBody>> for_body = this->parseBody(true);
 
                         body.emplace_back(
@@ -996,17 +1014,16 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                     else
                         this->parse_exceptions.emplace_back(
                             U"Was expecting a colon or a comma after the `for` target/initializer",
-                            token.index);
+                            token);
                 }
                 /* `continue` statement */
                 else if (token.value.identifier == U"continue") {
                     this->ti++;
-                    KH_PARSE_GUARD(0);
+                    KH_PARSE_GUARD();
 
                     if (!break_continue_allowed)
                         this->parse_exceptions.emplace_back(
-                            U"`continue` cannot be used outside of `while` or `for` loops",
-                            token.index);
+                            U"`continue` cannot be used outside of `while` or `for` loops", token);
 
                     /* Placeholder expression */
                     std::shared_ptr<kh::AstExpression> expression((kh::AstExpression*)nullptr);
@@ -1018,7 +1035,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                         this->ti++;
                     else
                         this->parse_exceptions.emplace_back(
-                            U"Was expecting a semicolon after `continue`", token.index);
+                            U"Was expecting a semicolon after `continue`", token);
 
                     body.emplace_back(
                         new kh::AstStatement(index, kh::AstStatement::Type::CONTINUE, expression));
@@ -1026,11 +1043,11 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                 /* `break` statement */
                 else if (token.value.identifier == U"break") {
                     this->ti++;
-                    KH_PARSE_GUARD(0);
+                    KH_PARSE_GUARD();
 
                     if (!break_continue_allowed)
                         this->parse_exceptions.emplace_back(
-                            U"`break` cannot be used outside of `while` or `for` loops", token.index);
+                            U"`break` cannot be used outside of `while` or `for` loops", token);
 
                     /* Placeholder expression */
                     std::shared_ptr<kh::AstExpression> expression((kh::AstExpression*)nullptr);
@@ -1042,7 +1059,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                         this->ti++;
                     else
                         this->parse_exceptions.emplace_back(U"Was expecting a semicolon after `break`",
-                                                            token.index);
+                                                            token);
 
                     body.emplace_back(
                         new kh::AstStatement(index, kh::AstStatement::Type::BREAK, expression));
@@ -1050,7 +1067,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                 /* `return` statement */
                 else if (token.value.identifier == U"return") {
                     this->ti++;
-                    KH_PARSE_GUARD(0);
+                    KH_PARSE_GUARD();
                     token = this->to();
 
                     std::shared_ptr<kh::AstExpression> expression((kh::AstExpression*)nullptr);
@@ -1062,7 +1079,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                     /* If there's a provided return value expression */
                     else {
                         expression.reset(this->parseExpression());
-                        KH_PARSE_GUARD(0);
+                        KH_PARSE_GUARD();
                         token = this->to();
 
                         /* Expects semicolon */
@@ -1071,7 +1088,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                             this->ti++;
                         else
                             this->parse_exceptions.emplace_back(
-                                U"Was expecting a semicolon after the `return` statement", token.index);
+                                U"Was expecting a semicolon after the `return` statement", token);
                     }
 
                     body.emplace_back(
@@ -1092,8 +1109,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                     case kh::Symbol::CURLY_CLOSE: {
                         if (is_single_liner)
                             this->parse_exceptions.emplace_back(
-                                U"Unexpected closing curly bracket in a single liner statement",
-                                token.index);
+                                U"Unexpected closing curly bracket in a single liner statement", token);
 
                         this->ti++;
                         goto end;
@@ -1108,7 +1124,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
             parse_expr : {
                 /* If it isn't any of the statements above, it's probably an expression */
                 std::shared_ptr<kh::AstExpression> expr(this->parseExpression());
-                KH_PARSE_GUARD(0);
+                KH_PARSE_GUARD();
                 token = this->to();
 
                 /* Expects a semicolon */
@@ -1116,7 +1132,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                     token.value.symbol_type == kh::Symbol::SEMICOLON)
                     this->ti++;
                 else
-                    this->parse_exceptions.emplace_back(U"Was expecting a semicolon", token.index);
+                    this->parse_exceptions.emplace_back(U"Was expecting a semicolon", token);
 
                 body.emplace_back(expr);
             }

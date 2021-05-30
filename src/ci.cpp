@@ -1,3 +1,9 @@
+/*
+ * This file is a part of the Kithare programming language source code.
+ * The source code for Kithare programming language is distributed under the MIT license.
+ * Copyright (C) 2021 Kithare Organization
+ */
+
 #include <vector>
 
 #ifdef _WIN32
@@ -6,13 +12,16 @@
 #include <codecvt>
 #endif
 
+#include <kithare/file.hpp>
 #include <kithare/parser.hpp>
 #include <kithare/string.hpp>
+#include <kithare/test.hpp>
 #include <kithare/utf8.hpp>
 
 
 static std::vector<std::u32string> args;
-static bool help = false, show_tokens = false, show_ast = false, show_timer = false, silent = false;
+static bool help = false, show_tokens = false, show_ast = false, show_timer = false, silent = false,
+            test_mode = false;
 static std::vector<std::u32string> excess_args;
 
 static void handleArgs() {
@@ -30,14 +39,17 @@ static void handleArgs() {
             continue;
         }
 
+        /* Sets the booleans of the specified flags */
         if (arg == U"h" || arg == U"help")
             help = true;
-        else if (arg == U"l" || arg == U"tokens")
+        else if (arg == U"tokens")
             show_tokens = true;
-        else if (arg == U"a" || arg == U"ast")
+        else if (arg == U"ast")
             show_ast = true;
         else if (arg == U"t" || arg == U"timer")
             show_timer = true;
+        else if (arg == U"test")
+            test_mode = true;
         else {
             if (!silent)
                 std::cout << "Unrecognized flag argument: " << kh::encodeUtf8(arg) << '\n';
@@ -50,11 +62,38 @@ static int execute() {
     int code = 0;
 
     if (help && !silent) {
-        std::cout << "help message here later\n";
+        std::cout << "TODO\n";
     }
 
+    /* Unittest */
+    if (test_mode) {
+        std::vector<std::u32string> errors;
+        kh_test::utf8Test(errors);
+        kh_test::lexerTest(errors);
+        kh_test::parserTest(errors);
+        if (!silent) {
+            std::cout << "Unit-test: " << errors.size() << " error(s)\n";
+            for (const std::u32string& error : errors)
+                std::cout << kh::encodeUtf8(error) << '\n';
+        }
+
+        std::exit(errors.size());
+    }
+
+    /* Compilation */
     if (!excess_args.empty()) {
-        kh::Parser parser(U"def main() {}");
+        std::u32string source;
+
+        try {
+            source = kh::readFile(excess_args[0]);
+        }
+        catch (kh::Exception& exc) {
+            if (!silent)
+                std::cerr << kh::encodeUtf8(exc.format()) << '\n';
+            std::exit(1);
+        }
+
+        kh::Parser parser(source);
 
         parser.lex();
         if (show_timer && !silent)

@@ -1,3 +1,9 @@
+/*
+ * This file is a part of the Kithare programming language source code.
+ * The source code for Kithare programming language is distributed under the MIT license.
+ * Copyright (C) 2021 Kithare Organization
+ */
+
 #pragma once
 
 #include <clocale>
@@ -22,7 +28,6 @@ namespace kh {
 
     std::u32string repr(const int64_t n);
     std::u32string repr(const uint64_t n);
-    std::u32string repr(const size_t n);
     std::u32string repr(const float n);
     std::u32string repr(const double n);
 

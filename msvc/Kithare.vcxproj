@@ -28,10 +28,12 @@
     <ClInclude Include="..\include\kithare\ast.hpp" />
     <ClInclude Include="..\include\kithare\builder.hpp" />
     <ClInclude Include="..\include\kithare\exception.hpp" />
+    <ClInclude Include="..\include\kithare\file.hpp" />
     <ClInclude Include="..\include\kithare\info.hpp" />
     <ClInclude Include="..\include\kithare\ir.hpp" />
     <ClInclude Include="..\include\kithare\parser.hpp" />
     <ClInclude Include="..\include\kithare\string.hpp" />
+    <ClInclude Include="..\include\kithare\test.hpp" />
     <ClInclude Include="..\include\kithare\token.hpp" />
     <ClInclude Include="..\include\kithare\utf8.hpp" />
   </ItemGroup>
@@ -42,6 +44,7 @@
     <ClCompile Include="..\src\builder\ir_repr.cpp" />
     <ClCompile Include="..\src\builder\semanticizer.cpp" />
     <ClCompile Include="..\src\ci.cpp" />
+    <ClCompile Include="..\src\file.cpp" />
     <ClCompile Include="..\src\parser\ast.cpp" />
     <ClCompile Include="..\src\parser\ast_repr.cpp" />
     <ClCompile Include="..\src\parser\body_parser.cpp" />
@@ -50,6 +53,9 @@
     <ClCompile Include="..\src\parser\parser.cpp" />
     <ClCompile Include="..\src\parser\token_repr.cpp" />
     <ClCompile Include="..\src\string.cpp" />
+    <ClCompile Include="..\src\test\test_lexer.cpp" />
+    <ClCompile Include="..\src\test\test_parser.cpp" />
+    <ClCompile Include="..\src\test\test_utf8.cpp" />
     <ClCompile Include="..\src\utf8.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -4,17 +4,7 @@
  * Copyright (C) 2021 Kithare Organization
  */
 
-#pragma once
-
-#include <string>
+#include <kithare/test.hpp>
 
 
-namespace kh {
-    class Exception {
-    public:
-        virtual ~Exception() {}
-        virtual std::u32string format() const {
-            return U"";
-        }
-    };
-}
+void kh_test::lexerTest(std::vector<std::u32string>& errors) {}
