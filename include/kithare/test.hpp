@@ -9,13 +9,15 @@
 #include <string>
 #include <vector>
 
-#define KH_TEST_ASSERT(c) \
-    if (!(c))             \
-        goto error;
+#define KH_TEST_ASSERT(c)                                        \
+    if (!(c)) {                                                  \
+        errors_ptr->push_back("Assertion failed at " #c " in "); \
+        goto error;                                              \
+    }
 
 
 namespace kh_test {
-    void utf8Test(std::vector<std::u32string>& errors);
-    void lexerTest(std::vector<std::u32string>& errors);
-    void parserTest(std::vector<std::u32string>& errors);
+    void utf8Test(std::vector<std::string>& errors);
+    void lexerTest(std::vector<std::string>& errors);
+    void parserTest(std::vector<std::string>& errors);
 }

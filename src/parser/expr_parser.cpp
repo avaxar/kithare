@@ -507,7 +507,7 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
 
             /* Parses the genericization type arguments */
             generics.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
-            generics_array.push_back(this->parseArrayDimensionList(generics.back()));
+            generics_array.push_back(this->parseArrayDimension(generics.back()));
             KH_PARSE_GUARD();
             token = this->to();
 
@@ -550,7 +550,7 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
                 }
 
                 generics.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
-                generics_array.push_back(this->parseArrayDimensionList(generics.back()));
+                generics_array.push_back(this->parseArrayDimension(generics.back()));
 
                 KH_PARSE_GUARD();
                 token = this->to();
@@ -668,7 +668,7 @@ end:
 }
 
 std::vector<uint64_t>
-kh::Parser::parseArrayDimensionList(std::shared_ptr<kh::AstIdentifierExpression>& type) {
+kh::Parser::parseArrayDimension(std::shared_ptr<kh::AstIdentifierExpression>& type) {
     std::vector<uint64_t> dimension;
 
     kh::Token token = this->to();

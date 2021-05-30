@@ -77,14 +77,15 @@ static int execute() {
 
     /* Unittest */
     if (test_mode) {
-        std::vector<std::u32string> errors;
+        std::vector<std::string> errors;
         kh_test::utf8Test(errors);
         kh_test::lexerTest(errors);
         kh_test::parserTest(errors);
+
         if (!silent) {
-            std::cout << "Unit-test: " << errors.size() << " error(s)\n";
-            for (const std::u32string& error : errors)
-                std::cout << kh::encodeUtf8(error) << '\n';
+            std::cout << "Unittest: " << errors.size() << " error(s)\n";
+            for (const std::string& error : errors)
+                std::cout << error << '\n';
         }
 
         std::exit(errors.size());

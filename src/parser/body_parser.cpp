@@ -388,7 +388,7 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
             /* Array return type */
             if (token.type == kh::TokenType::SYMBOL &&
                 token.value.symbol_type == kh::Symbol::SQUARE_OPEN) {
-                return_array = this->parseArrayDimensionList(return_type);
+                return_array = this->parseArrayDimension(return_type);
             }
         }
         else {
@@ -450,7 +450,7 @@ kh::AstDeclarationExpression* kh::Parser::parseDeclaration(const bool is_static,
     /* Possible array type */
     KH_PARSE_GUARD();
     token = this->to();
-    var_array = this->parseArrayDimensionList(var_type);
+    var_array = this->parseArrayDimension(var_type);
 
     /* The case where: `SomeClass x(1, 2, 3)` */
     if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN)

@@ -43,6 +43,7 @@ namespace kh {
         std::shared_ptr<kh::Ast> ast;
         std::vector<kh::LexException> lex_exceptions;
         std::vector<kh::ParseException> parse_exceptions;
+        size_t ti = 0; /* Token iterator */
         double lex_time = 0.0;
         double parse_time = 0.0;
 
@@ -51,30 +52,14 @@ namespace kh {
         Parser(const std::vector<kh::Token>& _tokens);
         ~Parser();
 
-        void lex();
-        void parse();
-
         inline bool ok() {
             return this->lex_exceptions.empty() && this->parse_exceptions.empty();
         }
 
-    private:
-        size_t ti = 0; /* Token iterator */
+        void lex();
 
-        /* Gets token of the current iterator index */
-        inline kh::Token& to() {
-            return this->tokens[this->ti];
-        }
-
-        inline kh::Token& tokFromIndex(const size_t index) {
-            for (kh::Token& token : this->tokens)
-                if (token.index == index)
-                    return token;
-
-            /* placeholder */
-            return *(new kh::Token());
-        }
-
+        /* Most of these parses stuff at the top level scope */
+        void parse();
         kh::AstImport* parseImport(const bool is_include);
         void parseAccessAttribs(bool& is_static, bool& is_public);
         kh::AstFunctionExpression* parseFunction(const bool is_static, const bool is_public);
@@ -86,7 +71,6 @@ namespace kh {
 
         /* These parse expressions below are ordered based from their precedence from lowest to
          * highest */
-
         kh::AstExpression* parseExpression();     /* Parses an expression */
         kh::AstExpression* parseAssignOps();      /* Parses assignment operations and in-place
                                                    * operations `=`, `+=`, `-=`, `*=`, ... */
@@ -109,8 +93,22 @@ namespace kh {
                                       const kh::Symbol opening = kh::Symbol::PARENTHESES_OPEN,
                                       const kh::Symbol closing = kh::Symbol::PARENTHESES_CLOSE,
                                       const bool can_contain_one_element = true);
-        std::vector<uint64_t>
-        parseArrayDimensionList(std::shared_ptr<kh::AstIdentifierExpression>& type);
+        std::vector<uint64_t> parseArrayDimension(std::shared_ptr<kh::AstIdentifierExpression>& type);
+
+    private:
+        /* Gets token of the current iterator index */
+        inline kh::Token& to() {
+            return this->tokens[this->ti];
+        }
+
+        inline kh::Token& tokFromIndex(const size_t index) {
+            for (kh::Token& token : this->tokens)
+                if (token.index == index)
+                    return token;
+
+            /* placeholder */
+            return *(new kh::Token());
+        }
     };
 
     inline bool isReservedKeyword(const std::u32string& identifier) {

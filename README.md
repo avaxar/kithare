@@ -37,5 +37,5 @@ compile Kithare.
 - Make sure you have the GCC compiler.
 - Install the development libraries for these: `SDL2`, `SDL2_mixer`, `SDL2_image`, `SDL2_ttf`, `SDL2_net`. You may use your disto's package manager to do this.
 - A recommended way to do this on Mac is to use Homebrew. Just run
-`brew install gcc sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf`
+`brew install gcc sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf`.
 - Run `python3 build.py`.
