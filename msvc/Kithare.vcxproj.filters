@@ -66,7 +66,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\ci.cpp">
+    <ClCompile Include="..\src\cli.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\src\string.cpp">

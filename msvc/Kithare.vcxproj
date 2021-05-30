@@ -43,7 +43,7 @@
     <ClCompile Include="..\src\builder\ir.cpp" />
     <ClCompile Include="..\src\builder\ir_repr.cpp" />
     <ClCompile Include="..\src\builder\semanticizer.cpp" />
-    <ClCompile Include="..\src\ci.cpp" />
+    <ClCompile Include="..\src\cli.cpp" />
     <ClCompile Include="..\src\file.cpp" />
     <ClCompile Include="..\src\parser\ast.cpp" />
     <ClCompile Include="..\src\parser\ast_repr.cpp" />
