@@ -23,7 +23,7 @@ use the build script to achieve more things
 #### MSVC / Visual Studio
 - Make sure you have Visual Studio 2019 with C++ build tools and Windows 10 SDK installed.
 - Run `python3 build.py --msvc-deps`. It'll download the dependencies such as SDL and create the build destination directory with the dependencies' DLLs copied.
-- Open the solution at `msvc/Kithare.sln`.
+- Open the solution file, `Kithare.sln`.
 - See `Kithare` in the Solution Explorer. If the name's not bolded, right click and click "Set as Startup Project".
 - You can now build it by clicking "Local Windows Debugger".
 

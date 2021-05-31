@@ -62,6 +62,8 @@ import tarfile
 import urllib.request as urllib
 import zipfile
 
+ICO_RES = "icon.res"
+
 EXE = "kcr"
 
 if platform.system() == "Windows":
@@ -250,9 +252,7 @@ class KithareBuilder:
         ):
             shutil.copyfile(
                 dll,
-                os.path.join(
-                    f"{self.basepath}/dist/MinGW-{self.machine}", os.path.basename(dll)
-                ),
+                os.path.join(self.distdir, os.path.basename(dll)),
             )
 
         self.cflags.extend(
@@ -309,11 +309,16 @@ class KithareBuilder:
 
         self.copy_sdl_dll(download_path)
 
-    def compile_gpp(self, src, output, srcflag="-c "):
+    def compile_gpp(self, src, output, is_src):
         """
         Used to execute g++ commands
         """
+        srcflag = "-c " if is_src else ""
         cmd = f"g++ -o {output} {srcflag}{src} {' '.join(self.cflags)}"
+        src_repr = src.replace("\\", "/")
+        name = f"file: {src_repr}" if is_src else "executable"
+
+        print("\nBuilding ", name)
         print(cmd.replace("\\", "/"))
         return os.system(cmd)
 
@@ -328,8 +333,7 @@ class KithareBuilder:
             ofile = cfile.replace(".cpp", ".o")
             self.objfiles.append(ofile)
             if should_build(file, ofile, self.basepath):
-                print("\nBuilding file:", file.replace("\\", "/"))
-                isfailed = self.compile_gpp(file, ofile)
+                isfailed = self.compile_gpp(file, ofile, is_src=True)
                 if isfailed:
                     print("g++ command exited with an error code:", isfailed)
 
@@ -358,26 +362,25 @@ class KithareBuilder:
         args = " ".join(self.objfiles).replace("\\", "/")
 
         # Handle exe icon
-        icores = "icon.res"
-        if self.compiler == "MinGW":
-            assetfile = f"{self.basepath}/assets/Kithare.rc"
-            os.system(f"windres {assetfile} -O coff -o {icores}")
-            args += f" {icores}"
+        try:
+            if self.compiler == "MinGW":
+                assetfile = f"{self.basepath}/assets/Kithare.rc"
+                os.system(f"windres {assetfile} -O coff -o {ICO_RES}")
+                args += f" {ICO_RES}"
 
-        dist_m = None
-        if os.path.exists(exepath):
-            dist_m = os.stat(exepath).st_mtime
+            dist_m = None
+            if os.path.exists(exepath):
+                dist_m = os.stat(exepath).st_mtime
 
-        for ofile in self.objfiles:
-            if dist_m is None or os.stat(ofile).st_mtime > dist_m:
-                print("\nBuilding exe")
-                ecode = self.compile_gpp(args, exepath, "")
-                if ecode:
-                    sys.exit(ecode)
-                break
-
-        if os.path.exists(icores):
-            os.remove(icores)
+            for ofile in self.objfiles:
+                if dist_m is None or os.stat(ofile).st_mtime > dist_m:
+                    ecode = self.compile_gpp(args, exepath, is_src=False)
+                    if ecode:
+                        sys.exit(ecode)
+                    break
+        finally:
+            if os.path.exists(ICO_RES):
+                os.remove(ICO_RES)
 
     def build(self):
         """
