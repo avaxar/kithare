@@ -259,7 +259,8 @@ kh::AstExpression* kh::Parser::parseLiteral() {
             break;
 
         case kh::TokenType::IMAGINARY:
-            expr = new kh::AstConstValue(token.index, std::complex<double>(0, token.value.imaginary));
+            expr = new kh::AstConstValue(token.index, token.value.imaginary,
+                                         kh::AstConstValue::ValueType::IMAGINARY);
             this->ti++;
             break;
 

@@ -542,8 +542,8 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
                     str += U"floating: " + kh::repr(expr_const.floating);
                     break;
 
-                case kh::AstConstValue::ValueType::COMPLEX:
-                    str += U"complex: " + kh::repr(expr_const.complex);
+                case kh::AstConstValue::ValueType::IMAGINARY:
+                    str += U"imaginary: " + kh::repr(expr_const.imaginary) + U"i";
                     break;
 
                 case kh::AstConstValue::ValueType::BUFFER:

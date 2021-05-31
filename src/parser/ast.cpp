@@ -177,15 +177,6 @@ kh::AstConstValue::AstConstValue(const size_t _index, const double _floating,
     this->expression_type = kh::AstExpression::ExType::CONSTANT;
 }
 
-kh::AstConstValue::AstConstValue(const size_t _index, const std::complex<double> _complex,
-                                 const kh::AstConstValue::ValueType _value_type)
-    : value_type((ValueType)((size_t)_value_type)) {
-    this->index = _index;
-    this->complex = _complex;
-    this->type = kh::AstBody::Type::EXPRESSION;
-    this->expression_type = kh::AstExpression::ExType::CONSTANT;
-}
-
 kh::AstConstValue::AstConstValue(const size_t _index, const std::string& _buffer,
                                  const kh::AstConstValue::ValueType _value_type)
     : value_type((ValueType)((size_t)_value_type)) {

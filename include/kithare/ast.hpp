@@ -10,8 +10,8 @@
 #include <memory>
 #include <vector>
 
-#include <kithare/token.hpp>
 #include <kithare/string.hpp>
+#include <kithare/token.hpp>
 
 
 namespace kh {
@@ -304,7 +304,7 @@ namespace kh {
             UINTEGER,
             INTEGER,
             FLOATING,
-            COMPLEX,
+            IMAGINARY,
             BUFFER,
             STRING
         } value_type;
@@ -314,9 +314,9 @@ namespace kh {
             uint64_t uinteger;
             int64_t integer;
             double floating;
+            double imaginary;
         };
 
-        std::complex<double> complex = 0;
         std::string buffer = "";
         std::u32string string = U"";
 
@@ -332,9 +332,6 @@ namespace kh {
         AstConstValue(
             const size_t _index, const double _floating,
             const kh::AstConstValue::ValueType _value_type = kh::AstConstValue::ValueType::FLOATING);
-        AstConstValue(
-            const size_t _index, const std::complex<double> _complex,
-            const kh::AstConstValue::ValueType _value_type = kh::AstConstValue::ValueType::COMPLEX);
         AstConstValue(
             const size_t _index, const std::string& _buffer,
             const kh::AstConstValue::ValueType _value_type = kh::AstConstValue::ValueType::BUFFER);
