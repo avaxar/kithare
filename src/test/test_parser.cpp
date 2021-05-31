@@ -17,6 +17,7 @@ static void parserImportTest() {
                       U"include this;          \n");
     std::shared_ptr<kh::Ast>& ast = parser.ast;
     parser.lex();
+    parser.cleanTokens();
     parser.parse();
 
     KH_TEST_ASSERT(parser.ok());
