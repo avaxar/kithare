@@ -41,11 +41,6 @@ namespace kh {
         std::u32string source;
         std::vector<kh::Token> tokens;
         std::shared_ptr<kh::Ast> ast;
-        std::vector<kh::LexException> lex_exceptions;
-        std::vector<kh::ParseException> parse_exceptions;
-        size_t ti = 0; /* Token iterator */
-        double lex_time = 0.0;
-        double parse_time = 0.0;
 
         Parser();
         Parser(const std::u32string& _source);
@@ -56,7 +51,17 @@ namespace kh {
             return this->lex_exceptions.empty() && this->parse_exceptions.empty();
         }
 
+#///lexer:
+        double lex_time = 0.0;
+        std::vector<kh::LexException> lex_exceptions;
+
         void lex();
+        void cleanTokens();
+
+#///parser:
+        double parse_time = 0.0;
+        size_t ti = 0; /* Token iterator */
+        std::vector<kh::ParseException> parse_exceptions;
 
         /* Most of these parses stuff at the top level scope */
         void parse();
@@ -69,6 +74,7 @@ namespace kh {
         kh::AstEnum* parseEnum();
         std::vector<std::shared_ptr<kh::AstBody>> parseBody(const bool break_continue_allowed = false);
 
+#///expression parser:
         /* These parse expressions below are ordered based from their precedence from lowest to
          * highest */
         kh::AstExpression* parseExpression();     /* Parses an expression */

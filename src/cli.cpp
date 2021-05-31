@@ -121,6 +121,7 @@ static int execute() {
                 std::cout << '\t' << kh::encodeUtf8(kh::repr(token)) << '\n';
         }
 
+        parser.cleanTokens();
         parser.parse();
         if (show_timer && !silent)
             std::cout << "Finished parsing in " << parser.parse_time << "s\n";
