@@ -896,10 +896,8 @@ void kh::Parser::lex() {
 
                 /* Passing through until the inline comment is done */
                 case kh::TokenizeState::IN_INLINE_COMMENT:
-                    if (chAt(i) == '\n') {
+                    if (chAt(i) == '\n')
                         state = kh::TokenizeState::NONE;
-                        tokens.emplace_back(start, i + 1, kh::TokenType::COMMENT, kh::TokenValue());
-                    }
                     continue;
 
                 /* Passing through until the multiple line comment is closed */
@@ -907,7 +905,6 @@ void kh::Parser::lex() {
                     if (chAt(i) == '*' && chAt(i + 1) == '/') {
                         /* Close comment */
                         state = kh::TokenizeState::NONE;
-                        tokens.emplace_back(start, i + 2, kh::TokenType::COMMENT, kh::TokenValue());
                         i++;
                     }
                     continue;

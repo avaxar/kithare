@@ -56,7 +56,6 @@ namespace kh {
         std::vector<kh::LexException> lex_exceptions;
 
         void lex();
-        void cleanTokens();
 
 #///parser:
         double parse_time = 0.0;

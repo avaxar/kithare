@@ -80,8 +80,7 @@ namespace kh {
         UINTEGER,
         INTEGER,
         FLOATING,
-        IMAGINARY,
-        COMMENT
+        IMAGINARY
     };
 
     struct TokenValue {

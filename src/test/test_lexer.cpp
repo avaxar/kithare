@@ -21,7 +21,7 @@ static void lexerTypeTest() {
     parser.lex();
 
     KH_TEST_ASSERT(parser.ok());
-    KH_TEST_ASSERT(tokens.size() == 22);
+    KH_TEST_ASSERT(tokens.size() == 21);
     KH_TEST_ASSERT(tokens[0].type == kh::TokenType::IDENTIFIER);
     KH_TEST_ASSERT(tokens[1].type == kh::TokenType::IDENTIFIER);
     KH_TEST_ASSERT(tokens[2].type == kh::TokenType::SYMBOL);
@@ -30,20 +30,19 @@ static void lexerTypeTest() {
     KH_TEST_ASSERT(tokens[5].type == kh::TokenType::SYMBOL);
     KH_TEST_ASSERT(tokens[6].type == kh::TokenType::SYMBOL);
     KH_TEST_ASSERT(tokens[7].type == kh::TokenType::SYMBOL);
-    KH_TEST_ASSERT(tokens[8].type == kh::TokenType::COMMENT);
+    KH_TEST_ASSERT(tokens[8].type == kh::TokenType::IDENTIFIER);
     KH_TEST_ASSERT(tokens[9].type == kh::TokenType::IDENTIFIER);
-    KH_TEST_ASSERT(tokens[10].type == kh::TokenType::IDENTIFIER);
-    KH_TEST_ASSERT(tokens[11].type == kh::TokenType::OPERATOR);
-    KH_TEST_ASSERT(tokens[12].type == kh::TokenType::FLOATING);
-    KH_TEST_ASSERT(tokens[13].type == kh::TokenType::SYMBOL);
-    KH_TEST_ASSERT(tokens[14].type == kh::TokenType::IDENTIFIER);
-    KH_TEST_ASSERT(tokens[15].type == kh::TokenType::SYMBOL);
-    KH_TEST_ASSERT(tokens[16].type == kh::TokenType::IDENTIFIER);
-    KH_TEST_ASSERT(tokens[17].type == kh::TokenType::SYMBOL);
-    KH_TEST_ASSERT(tokens[18].type == kh::TokenType::STRING);
+    KH_TEST_ASSERT(tokens[10].type == kh::TokenType::OPERATOR);
+    KH_TEST_ASSERT(tokens[11].type == kh::TokenType::FLOATING);
+    KH_TEST_ASSERT(tokens[12].type == kh::TokenType::SYMBOL);
+    KH_TEST_ASSERT(tokens[13].type == kh::TokenType::IDENTIFIER);
+    KH_TEST_ASSERT(tokens[14].type == kh::TokenType::SYMBOL);
+    KH_TEST_ASSERT(tokens[15].type == kh::TokenType::IDENTIFIER);
+    KH_TEST_ASSERT(tokens[16].type == kh::TokenType::SYMBOL);
+    KH_TEST_ASSERT(tokens[17].type == kh::TokenType::STRING);
+    KH_TEST_ASSERT(tokens[18].type == kh::TokenType::SYMBOL);
     KH_TEST_ASSERT(tokens[19].type == kh::TokenType::SYMBOL);
     KH_TEST_ASSERT(tokens[20].type == kh::TokenType::SYMBOL);
-    KH_TEST_ASSERT(tokens[21].type == kh::TokenType::SYMBOL);
     return;
 error:
     errors_ptr->back() += "lexerTypeTest";

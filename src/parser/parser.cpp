@@ -22,20 +22,6 @@ kh::Parser::Parser() {}
 
 kh::Parser::Parser(const std::u32string& _source) : source(_source) {}
 
-kh::Parser::Parser(const std::vector<kh::Token>& _tokens) {
-    this->tokens.reserve(_tokens.size());
-    for (const kh::Token& token : _tokens)
-        if (token.type != kh::TokenType::COMMENT)
-            this->tokens.push_back(token);
-}
+kh::Parser::Parser(const std::vector<kh::Token>& _tokens) : tokens(_tokens) {}
 
 kh::Parser::~Parser() {}
-
-void kh::Parser::cleanTokens() {
-    std::vector<kh::Token> cleaned_tokens;
-    cleaned_tokens.reserve(this->tokens.size());
-    for (kh::Token& token : this->tokens)
-        if (token.type != kh::TokenType::COMMENT)
-            cleaned_tokens.push_back(token);
-    std::swap(this->tokens, cleaned_tokens);
- }
