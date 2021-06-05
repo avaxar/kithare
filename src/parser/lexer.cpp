@@ -140,7 +140,7 @@ namespace kh {
 
 void kh::Parser::lex() {
     this->lex_exceptions.clear();
-    auto lex_start = std::chrono::system_clock::now();
+    auto lex_start = std::chrono::high_resolution_clock::now();
 
     kh::TokenizeState state = kh::TokenizeState::NONE;
 
@@ -945,7 +945,7 @@ void kh::Parser::lex() {
         }
     }
 
-    auto lex_end = std::chrono::system_clock::now();
+    auto lex_end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = lex_end - lex_start;
     this->lex_time = elapsed.count();
 }

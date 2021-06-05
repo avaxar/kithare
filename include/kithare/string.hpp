@@ -6,9 +6,7 @@
 
 #pragma once
 
-#include <clocale>
 #include <complex>
-#include <iostream>
 #include <string>
 
 

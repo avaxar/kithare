@@ -110,9 +110,8 @@ namespace kh {
         kh::TokenType type;
         kh::TokenValue value;
 
-        Token() {}
+        Token();
         Token(const size_t _index, const size_t _end, const kh::TokenType _type,
-              const kh::TokenValue& _value)
-            : index(_index), length(_end - index), type(_type), value(_value) {}
+              const kh::TokenValue& _value);
     };
 }

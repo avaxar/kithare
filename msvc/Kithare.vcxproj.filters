@@ -90,7 +90,7 @@
     <ClCompile Include="..\src\parser\parser.cpp">
       <Filter>src\parser</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\parser\token_repr.cpp">
+    <ClCompile Include="..\src\parser\token.cpp">
       <Filter>src\parser</Filter>
     </ClCompile>
     <ClCompile Include="..\src\builder\builder.cpp">

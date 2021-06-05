@@ -8,6 +8,12 @@
 #include <kithare/token.hpp>
 
 
+kh::Token::Token() : column(0), line(0), index(0), length(0), type(), value() {}
+
+kh::Token::Token(const size_t _index, const size_t _end, const kh::TokenType _type,
+                 const kh::TokenValue& _value)
+    : column(0), line(0), index(_index), length(_end - index), type(_type), value(_value) {}
+
 std::u32string kh::repr(const kh::Token& token) {
     std::u32string str = kh::repr(token.type) + U" ";
 

@@ -51,7 +51,7 @@
     <ClCompile Include="..\src\parser\expr_parser.cpp" />
     <ClCompile Include="..\src\parser\lexer.cpp" />
     <ClCompile Include="..\src\parser\parser.cpp" />
-    <ClCompile Include="..\src\parser\token_repr.cpp" />
+    <ClCompile Include="..\src\parser\token.cpp" />
     <ClCompile Include="..\src\string.cpp" />
     <ClCompile Include="..\src\test\test_lexer.cpp" />
     <ClCompile Include="..\src\test\test_parser.cpp" />

@@ -4,13 +4,15 @@
  * Copyright (C) 2021 Kithare Organization
  */
 
-#include <vector>
-
 #ifdef _WIN32
 #define _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS
 #define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 #include <codecvt>
 #endif
+
+#include <clocale>
+#include <iostream>
+#include <vector>
 
 #include <kithare/file.hpp>
 #include <kithare/info.hpp>
@@ -148,9 +150,9 @@ int main(const int argc, char* argv[])
     std::setlocale(LC_ALL, "en_US.utf8");
 #ifdef _WIN32
     /* Sets up std::wcout and std::wcin on Windows */
-    std::locale _utf8_locale(std::locale(), new std::codecvt_utf8_utf16<wchar_t>);
-    std::wcout.imbue(_utf8_locale);
-    std::wcin.imbue(_utf8_locale);
+    std::locale utf8_locale(std::locale(), new std::codecvt_utf8_utf16<wchar_t>);
+    std::wcout.imbue(utf8_locale);
+    std::wcin.imbue(utf8_locale);
 #endif
 
     args.reserve(argc - 1);

@@ -5,3 +5,8 @@
  */
 
 #pragma once
+
+
+namespace kh {
+    
+}

@@ -12,7 +12,7 @@
 
 void kh::Parser::parse() {
     this->parse_exceptions.clear();
-    auto parse_start = std::chrono::system_clock::now();
+    auto parse_start = std::chrono::high_resolution_clock::now();
 
     std::vector<std::shared_ptr<kh::AstImport>> imports;
     std::vector<std::shared_ptr<kh::AstFunctionExpression>> functions;
@@ -146,7 +146,7 @@ end:
 
     this->ast.reset(new kh::Ast(imports, functions, classes, structs, enums, variables));
 
-    auto parse_end = std::chrono::system_clock::now();
+    auto parse_end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = parse_end - parse_start;
     this->parse_time = elapsed.count();
 }

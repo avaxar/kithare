@@ -154,7 +154,7 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
                     str += U"\n\t\t" + ind + U"body:";
                     for (auto part : ast_if.bodies[clause])
                         if (part)
-                            str += U"\n\t\t" + ind + kh::repr(*part, indent + 3);
+                            str += U"\n\t\t\t" + ind + kh::repr(*part, indent + 3);
                 }
             }
 
