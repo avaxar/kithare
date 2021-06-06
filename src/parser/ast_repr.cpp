@@ -268,8 +268,12 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
                     break;
             }
 
-            if (ast_statement.expression)
-                str += U"\n\t" + ind + kh::repr(*ast_statement.expression, indent + 1);
+            if (ast_statement.statement_type == kh::AstStatement::Type::RETURN) {
+                if (ast_statement.expression)
+                    str += U"\n\t" + ind + kh::repr(*ast_statement.expression, indent + 1);
+            }
+            else
+                str += U" " + kh::repr((uint64_t)ast_statement.loop_count);
 
             break;
         }

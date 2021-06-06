@@ -858,7 +858,7 @@ end:
     return new kh::AstEnum(index, identifiers, members, values);
 }
 
-std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break_continue_allowed) {
+std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const size_t loop_count) {
     std::vector<std::shared_ptr<kh::AstBody>> body;
     kh::Token token = this->to();
     bool is_single_liner = false;
@@ -902,7 +902,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                         KH_PARSE_GUARD();
                         conditions.emplace_back(this->parseExpression());
                         KH_PARSE_GUARD();
-                        bodies.emplace_back(this->parseBody(break_continue_allowed));
+                        bodies.emplace_back(this->parseBody(loop_count + 1));
                         KH_PARSE_GUARD();
                         token = this->to();
 
@@ -914,7 +914,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                     if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"else") {
                         this->ti++;
                         KH_PARSE_GUARD();
-                        else_body = this->parseBody(break_continue_allowed);
+                        else_body = this->parseBody(loop_count + 1);
                     }
 
                     body.emplace_back(new kh::AstIf(index, conditions, bodies, else_body));
@@ -926,7 +926,8 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
 
                     /* Parses the expression and body */
                     std::shared_ptr<kh::AstExpression> condition(this->parseExpression());
-                    std::vector<std::shared_ptr<kh::AstBody>> while_body = this->parseBody(true);
+                    std::vector<std::shared_ptr<kh::AstBody>> while_body =
+                        this->parseBody(loop_count + 1);
 
                     body.emplace_back(new kh::AstWhile(index, condition, while_body));
                 }
@@ -936,7 +937,8 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                     KH_PARSE_GUARD();
 
                     /* Parses the body */
-                    std::vector<std::shared_ptr<kh::AstBody>> do_while_body = this->parseBody(true);
+                    std::vector<std::shared_ptr<kh::AstBody>> do_while_body =
+                        this->parseBody(loop_count + 1);
                     std::shared_ptr<kh::AstExpression> condition;
 
                     KH_PARSE_GUARD();
@@ -982,7 +984,8 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
 
                         std::shared_ptr<kh::AstExpression> iterator(this->parseExpression());
                         KH_PARSE_GUARD();
-                        std::vector<std::shared_ptr<kh::AstBody>> foreach_body = this->parseBody(true);
+                        std::vector<std::shared_ptr<kh::AstBody>> foreach_body =
+                            this->parseBody(loop_count + 1);
 
                         body.emplace_back(
                             new kh::AstForEach(index, target_or_initializer, iterator, foreach_body));
@@ -1006,7 +1009,8 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
 
                         std::shared_ptr<kh::AstExpression> step(this->parseExpression());
                         KH_PARSE_GUARD();
-                        std::vector<std::shared_ptr<kh::AstBody>> for_body = this->parseBody(true);
+                        std::vector<std::shared_ptr<kh::AstBody>> for_body =
+                            this->parseBody(loop_count + 1);
 
                         body.emplace_back(
                             new kh::AstFor(index, target_or_initializer, condition, step, for_body));
@@ -1020,14 +1024,24 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                 else if (token.value.identifier == U"continue") {
                     this->ti++;
                     KH_PARSE_GUARD();
+                    token = this->to();
 
-                    if (!break_continue_allowed)
+                    if (!loop_count)
                         this->parse_exceptions.emplace_back(
                             U"`continue` cannot be used outside of `while` or `for` loops", token);
 
-                    /* Placeholder expression */
-                    std::shared_ptr<kh::AstExpression> expression((kh::AstExpression*)nullptr);
-                    token = this->to();
+                    size_t loop_breaks = 0;
+                    /* Continuing multiple loops `continue 4;` */
+                    if (token.type == kh::TokenType::UINTEGER || token.type == kh::TokenType::INTEGER) {
+                        if (token.value.uinteger >= loop_count)
+                            this->parse_exceptions.emplace_back(
+                                U"Trying to `continue` an invalid amount of loops", token);
+
+                        loop_breaks = token.value.uinteger;
+                        this->ti++;
+                        KH_PARSE_GUARD();
+                        token = this->to();
+                    }
 
                     /* Expects semicolon */
                     if (token.type == kh::TokenType::SYMBOL &&
@@ -1035,34 +1049,44 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const bool break
                         this->ti++;
                     else
                         this->parse_exceptions.emplace_back(
-                            U"Was expecting a semicolon after `continue`", token);
+                            U"Was expecting a semicolon or an integer after `continue`", token);
 
                     body.emplace_back(
-                        new kh::AstStatement(index, kh::AstStatement::Type::CONTINUE, expression));
+                        new kh::AstStatement(index, kh::AstStatement::Type::CONTINUE, loop_breaks));
                 }
                 /* `break` statement */
                 else if (token.value.identifier == U"break") {
                     this->ti++;
                     KH_PARSE_GUARD();
+                    token = this->to();
 
-                    if (!break_continue_allowed)
+                    if (!loop_count)
                         this->parse_exceptions.emplace_back(
                             U"`break` cannot be used outside of `while` or `for` loops", token);
 
-                    /* Placeholder expression */
-                    std::shared_ptr<kh::AstExpression> expression((kh::AstExpression*)nullptr);
-                    token = this->to();
+                    size_t loop_breaks = 0;
+                    /* Breaking multiple loops `break 2;` */
+                    if (token.type == kh::TokenType::UINTEGER || token.type == kh::TokenType::INTEGER) {
+                        if (token.value.uinteger >= loop_count)
+                            this->parse_exceptions.emplace_back(
+                                U"Trying to `break` an invalid amount of loops", token);
+
+                        loop_breaks = token.value.uinteger;
+                        this->ti++;
+                        KH_PARSE_GUARD();
+                        token = this->to();
+                    }
 
                     /* Expects semicolon */
                     if (token.type == kh::TokenType::SYMBOL &&
                         token.value.symbol_type == kh::Symbol::SEMICOLON)
                         this->ti++;
                     else
-                        this->parse_exceptions.emplace_back(U"Was expecting a semicolon after `break`",
-                                                            token);
+                        this->parse_exceptions.emplace_back(
+                            U"Was expecting a semicolon or an integer after `break`", token);
 
                     body.emplace_back(
-                        new kh::AstStatement(index, kh::AstStatement::Type::BREAK, expression));
+                        new kh::AstStatement(index, kh::AstStatement::Type::BREAK, loop_breaks));
                 }
                 /* `return` statement */
                 else if (token.value.identifier == U"return") {

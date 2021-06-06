@@ -249,3 +249,10 @@ kh::AstStatement::AstStatement(const size_t _index, const kh::AstStatement::Type
     this->index = _index;
     this->type = kh::AstBody::Type::STATEMENT;
 }
+
+kh::AstStatement::AstStatement(const size_t _index, const kh::AstStatement::Type _statement_type,
+    const size_t _loop_count)
+    : statement_type((Type)((size_t)_statement_type)), loop_count(_loop_count) {
+    this->index = _index;
+    this->type = kh::AstBody::Type::STATEMENT;
+}

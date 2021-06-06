@@ -690,10 +690,7 @@ kh::Parser::parseArrayDimension(std::shared_ptr<kh::AstIdentifierExpression>& ty
         }
         else if (token.type == kh::TokenType::INTEGER || token.type == kh::TokenType::UINTEGER) {
             dimension.push_back(token.value.uinteger);
-
-            if (token.type == kh::TokenType::INTEGER && token.value.integer < 0)
-                this->parse_exceptions.emplace_back(U"An array could not have a negative size", token);
-            else if (token.value.uinteger == 0)
+            if (token.value.uinteger == 0)
                 this->parse_exceptions.emplace_back(U"An array could not be zero sized", token);
 
             this->ti++;

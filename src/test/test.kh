@@ -1,5 +1,12 @@
 def main() {
-    func!(void()) l = def() {
+    while 1 {
+        break;
+        break 0;
 
-    };
+        while 2 {
+            break 1;
+            return;
+            return 69;
+        }
+    }
 }

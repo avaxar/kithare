@@ -411,10 +411,16 @@ namespace kh {
     class AstStatement : public kh::AstBody {
     public:
         enum class Type { CONTINUE, BREAK, RETURN } statement_type;
-        std::shared_ptr<kh::AstExpression> expression;
+
+        union {
+            std::shared_ptr<kh::AstExpression> expression;
+            size_t loop_count;
+        };
 
         AstStatement(const size_t _index, const kh::AstStatement::Type _statement_type,
                      std::shared_ptr<kh::AstExpression>& _expression);
+        AstStatement(const size_t _index, const kh::AstStatement::Type _statement_type,
+                     const size_t _loop_count);
         virtual ~AstStatement() {}
     };
 }
