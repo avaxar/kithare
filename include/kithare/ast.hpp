@@ -412,10 +412,8 @@ namespace kh {
     public:
         enum class Type { CONTINUE, BREAK, RETURN } statement_type;
 
-        union {
-            std::shared_ptr<kh::AstExpression> expression;
-            size_t loop_count;
-        };
+        std::shared_ptr<kh::AstExpression> expression;
+        size_t loop_count;
 
         AstStatement(const size_t _index, const kh::AstStatement::Type _statement_type,
                      std::shared_ptr<kh::AstExpression>& _expression);
