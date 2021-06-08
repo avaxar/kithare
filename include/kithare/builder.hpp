@@ -5,3 +5,12 @@
  */
 
 #pragma once
+
+#include <kithare/ir.hpp>
+
+
+namespace kh {
+    class Builder {
+        
+    };
+}

@@ -14,6 +14,7 @@
 #include <iostream>
 #include <vector>
 
+#include <kithare/ansi.hpp>
 #include <kithare/file.hpp>
 #include <kithare/info.hpp>
 #include <kithare/parser.hpp>
@@ -21,10 +22,18 @@
 #include <kithare/test.hpp>
 #include <kithare/utf8.hpp>
 
+#define CLI_ERROR_BEGIN() \
+    if (!colorless)       \
+        std::cerr << KH_ANSI_FG_RED;
+
+#define CLI_ERROR_END() \
+    if (!colorless)     \
+        std::cerr << KH_ANSI_RESET;
+
 
 static std::vector<std::u32string> args;
-static bool help = false, show_tokens = false, show_ast = false, show_timer = false, silent = false,
-            test_mode = false, version = false;
+static bool colorless = false, help = false, show_tokens = false, show_ast = false, show_timer = false,
+            silent = false, test_mode = false, version = false;
 static std::vector<std::u32string> excess_args;
 
 static void handleArgs() {
@@ -43,7 +52,9 @@ static void handleArgs() {
         }
 
         /* Sets the booleans of the specified flags */
-        if (arg == U"h" || arg == U"help")
+        if (arg == U"nocolor" || arg == U"nocolour" || arg == U"colorless" || arg == U"colourless")
+            colorless = true;
+        else if (arg == U"h" || arg == U"help")
             help = true;
         else if (arg == U"tokens")
             show_tokens = true;
@@ -58,8 +69,11 @@ static void handleArgs() {
         else if (arg == U"v" || arg == U"version")
             version = true;
         else {
-            if (!silent)
+            if (!silent) {
+                CLI_ERROR_BEGIN();
                 std::cout << "Unrecognized flag argument: " << kh::encodeUtf8(arg) << '\n';
+                CLI_ERROR_END();
+            }
             std::exit(1);
         }
     }
@@ -86,8 +100,11 @@ static int execute() {
 
         if (!silent) {
             std::cout << "Unittest: " << errors.size() << " error(s)\n";
+
+            CLI_ERROR_BEGIN();
             for (const std::string& error : errors)
                 std::cerr << error << '\n';
+            CLI_ERROR_END();
         }
 
         std::exit(errors.size());
@@ -101,8 +118,11 @@ static int execute() {
             source = kh::readFile(excess_args[0]);
         }
         catch (kh::Exception& exc) {
-            if (!silent)
+            if (!silent) {
+                CLI_ERROR_BEGIN();
                 std::cerr << kh::encodeUtf8(exc.format()) << '\n';
+                CLI_ERROR_END();
+            }
             std::exit(1);
         }
 
@@ -112,9 +132,13 @@ static int execute() {
         if (show_timer && !silent)
             std::cout << "Finished lexing in " << parser.lex_time << "s\n";
         if (!parser.lex_exceptions.empty()) {
-            if (!silent)
+            if (!silent) {
+                CLI_ERROR_BEGIN();
                 for (kh::LexException& exc : parser.lex_exceptions)
                     std::cerr << "LexException: " << kh::encodeUtf8(exc.format()) << '\n';
+                CLI_ERROR_END();
+            }
+
             code += parser.lex_exceptions.size();
         }
         if (show_tokens && !silent) {
@@ -127,9 +151,13 @@ static int execute() {
         if (show_timer && !silent)
             std::cout << "Finished parsing in " << parser.parse_time << "s\n";
         if (!parser.parse_exceptions.empty()) {
-            if (!silent)
+            if (!silent) {
+                CLI_ERROR_BEGIN();
                 for (kh::ParseException& exc : parser.parse_exceptions)
                     std::cerr << "ParseException: " << kh::encodeUtf8(exc.format()) << '\n';
+                CLI_ERROR_END();
+            }
+
             code += parser.parse_exceptions.size();
         }
         if (show_ast && !code && parser.ast && !silent)
@@ -153,6 +181,9 @@ int main(const int argc, char* argv[])
     std::locale utf8_locale(std::locale(), new std::codecvt_utf8_utf16<wchar_t>);
     std::wcout.imbue(utf8_locale);
     std::wcin.imbue(utf8_locale);
+
+    /* A weird bug, I guess. It enables ANSI escape codes. */
+    std::system(" ");
 #endif
 
     args.reserve(argc - 1);

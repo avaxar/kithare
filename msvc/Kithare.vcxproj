@@ -25,6 +25,7 @@
     <ResourceCompile Include="..\assets\Kithare.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\kithare\ansi.hpp" />
     <ClInclude Include="..\include\kithare\ast.hpp" />
     <ClInclude Include="..\include\kithare\builder.hpp" />
     <ClInclude Include="..\include\kithare\exception.hpp" />

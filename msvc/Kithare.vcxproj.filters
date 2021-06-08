@@ -64,6 +64,9 @@
     <ClInclude Include="..\include\kithare\test.hpp">
       <Filter>include/kithare</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\kithare\ansi.hpp">
+      <Filter>include/kithare</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cli.cpp">
