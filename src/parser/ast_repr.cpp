@@ -192,8 +192,8 @@ std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
             str += U"do while:";
 
             if (ast_do_while.condition)
-                str +=
-                    U"\n\t" + ind + U"condition:\n\t\t" + kh::repr(*ast_do_while.condition, indent + 2);
+                str += U"\n\t" + ind + U"condition:\n\t\t" + ind +
+                       kh::repr(*ast_do_while.condition, indent + 2);
 
             if (!ast_do_while.body.empty()) {
                 str += U"\n\t" + ind + U"body:";

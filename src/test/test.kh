@@ -1,12 +1,9 @@
-def main() {
-    while 1 {
-        break;
-        break 0;
+include std;
 
-        while 2 {
-            break 1;
-            return;
-            return 69;
-        }
-    }
+def main() -> int {
+    println("Hello, world!");
+    
+    do {
+        return 69;
+    } while false;
 }

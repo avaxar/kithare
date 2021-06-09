@@ -121,8 +121,8 @@ namespace kh {
                identifier == U"def" || identifier == U"class" || identifier == U"struct" ||
                identifier == U"enum" || identifier == U"import" || identifier == U"include" ||
                identifier == U"if" || identifier == U"for" || identifier == U"while" ||
-               identifier == U"break" || identifier == U"continue" || identifier == U"return" ||
-               identifier == U"ref";
+               identifier == U"do" || identifier == U"break" || identifier == U"continue" ||
+               identifier == U"return" || identifier == U"ref";
     }
 
     inline bool isDec(const char32_t chr) {
