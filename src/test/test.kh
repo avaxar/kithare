@@ -1,9 +1,15 @@
-include std;
+struct Vector2!T {
+    T x; T y;
 
-def main() -> int {
-    println("Hello, world!");
-    
-    do {
-        return 69;
-    } while false;
+    def add(ref Vector2!T other) {
+        return Vector2!T(self.x + other.x, self.y + other.y);
+    }
+}
+
+class AstConstant!T(AstNode) {
+    T actual_value;
+
+    def evaluate() -> T {
+        return self.actual_value;
+    }
 }

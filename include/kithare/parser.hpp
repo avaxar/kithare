@@ -68,9 +68,8 @@ namespace kh {
         void parseAccessAttribs(bool& is_static, bool& is_public);
         kh::AstFunctionExpression* parseFunction(const bool is_static, const bool is_public);
         kh::AstDeclarationExpression* parseDeclaration(const bool is_static, const bool is_public);
-        kh::AstClass* parseClass();
-        kh::AstStruct* parseStruct();
-        kh::AstEnum* parseEnum();
+        kh::AstUserType* parseUserType(const bool is_class);
+        kh::AstEnumType* parseEnum();
         std::vector<std::shared_ptr<kh::AstBody>> parseBody(const size_t loop_count = 0);
 
 #///expression parser:

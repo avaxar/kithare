@@ -16,9 +16,8 @@ void kh::Parser::parse() {
 
     std::vector<std::shared_ptr<kh::AstImport>> imports;
     std::vector<std::shared_ptr<kh::AstFunctionExpression>> functions;
-    std::vector<std::shared_ptr<kh::AstClass>> classes;
-    std::vector<std::shared_ptr<kh::AstStruct>> structs;
-    std::vector<std::shared_ptr<kh::AstEnum>> enums;
+    std::vector<std::shared_ptr<kh::AstUserType>> user_types;
+    std::vector<std::shared_ptr<kh::AstEnumType>> enums;
     std::vector<std::shared_ptr<kh::AstDeclarationExpression>> variables;
 
     for (this->ti = 0; this->ti < this->tokens.size();) {
@@ -53,13 +52,13 @@ void kh::Parser::parse() {
                 else if (identifier == U"class") {
                     this->ti++;
                     KH_PARSE_GUARD();
-                    classes.emplace_back(this->parseClass());
+                    user_types.emplace_back(this->parseUserType(true));
                 }
                 /* Parses struct declaration */
                 else if (identifier == U"struct") {
                     this->ti++;
                     KH_PARSE_GUARD();
-                    structs.emplace_back(this->parseStruct());
+                    user_types.emplace_back(this->parseUserType(false));
                 }
                 /* Parses enum declaration */
                 else if (identifier == U"enum") {
@@ -144,7 +143,7 @@ end:
         this->parse_exceptions = cleaned_exceptions;
     }
 
-    this->ast.reset(new kh::Ast(imports, functions, classes, structs, enums, variables));
+    this->ast.reset(new kh::Ast(imports, functions, user_types, enums, variables));
 
     auto parse_end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = parse_end - parse_start;
@@ -469,7 +468,7 @@ end:
                                             is_static, is_public);
 }
 
-kh::AstClass* kh::Parser::parseClass() {
+kh::AstUserType* kh::Parser::parseUserType(const bool is_class) {
     std::vector<std::u32string> identifiers;
     std::vector<std::shared_ptr<kh::AstIdentifierExpression>> bases;
     std::vector<std::u32string> generic_args;
@@ -479,6 +478,8 @@ kh::AstClass* kh::Parser::parseClass() {
     kh::Token token = this->to();
     size_t index = token.index;
 
+    const std::u32string type_name = is_class ? U"class" : U"struct";
+
     /* Gets the class identifiers */
     std::shared_ptr<kh::AstIdentifierExpression> identifiers_with_generics(
         (kh::AstIdentifierExpression*)this->parseIdentifiers());
@@ -487,11 +488,13 @@ kh::AstClass* kh::Parser::parseClass() {
     for (auto& generic_ : identifiers_with_generics->generics) {
         if (generic_->identifiers.size() != 1)
             this->parse_exceptions.emplace_back(U"Could not have multiple identifiers as a generic "
-                                                U"argument name in the class declaration",
+                                                U"argument name in the " +
+                                                    type_name + U" declaration",
                                                 this->tokFromIndex(generic_->index));
         if (!generic_->generics.empty())
             this->parse_exceptions.emplace_back(U"Could not have generic arguments in a generic "
-                                                U"argument in the class declaration",
+                                                U"argument in the " +
+                                                    type_name + U" declaration",
                                                 this->tokFromIndex(generic_->generics[0]->index));
 
         generic_args.push_back(generic_->identifiers.empty() ? U"" : generic_->identifiers[0]);
@@ -527,7 +530,8 @@ kh::AstClass* kh::Parser::parseClass() {
         else
             this->parse_exceptions.emplace_back(
                 U"Was expecting a closing parentheses after inheritment "
-                U"argument in the class declaration",
+                U"argument in the " +
+                    type_name + U" declaration",
                 token);
     }
 
@@ -581,10 +585,10 @@ kh::AstClass* kh::Parser::parseClass() {
                             this->ti++;
                         else {
                             this->ti++;
-                            this->parse_exceptions.emplace_back(
-                                U"Was expecting a semicolon after a "
-                                U"variable declaration in the class body",
-                                token);
+                            this->parse_exceptions.emplace_back(U"Was expecting a semicolon after a "
+                                                                U"variable declaration in the " +
+                                                                    type_name + U" body",
+                                                                token);
                         }
                     }
                 } break;
@@ -605,134 +609,25 @@ kh::AstClass* kh::Parser::parseClass() {
                         default:
                             this->ti++;
                             this->parse_exceptions.emplace_back(
-                                U"Unexpected symbol while parsing the class body", token);
+                                U"Unexpected symbol while parsing the " + type_name + U" body", token);
                     }
                 } break;
 
                 default:
                     this->ti++;
                     this->parse_exceptions.emplace_back(
-                        U"Unexpected token while parsing the class body", token);
+                        U"Unexpected token while parsing the " + type_name + U" body", token);
             }
         }
     }
     else
         this->parse_exceptions.emplace_back(
-            U"Was expecting an opening curly bracket after the class declaration", token);
+            U"Was expecting an opening curly bracket after the " + type_name + U" declaration", token);
 end:
-    return new kh::AstClass(index, identifiers, bases, generic_args, members, methods);
+    return new kh::AstUserType(index, identifiers, bases, generic_args, members, methods, is_class);
 }
 
-kh::AstStruct* kh::Parser::parseStruct() {
-    std::vector<std::u32string> identifiers;
-    std::vector<std::shared_ptr<kh::AstIdentifierExpression>> bases;
-    std::vector<std::shared_ptr<kh::AstDeclarationExpression>> members;
-
-    kh::Token token = this->to();
-    size_t index = token.index;
-
-    /* Gets the struct identifiers */
-    std::shared_ptr<kh::AstIdentifierExpression> identifiers_with_generics(
-        (kh::AstIdentifierExpression*)this->parseIdentifiers());
-    identifiers = identifiers_with_generics->identifiers;
-    if (!identifiers_with_generics->generics.empty())
-        this->parse_exceptions.emplace_back(
-            U"A struct could not have generic arguments",
-            this->tokFromIndex(identifiers_with_generics->generics[0]->index));
-
-    KH_PARSE_GUARD();
-    token = this->to();
-
-    /* Optional struct inheritment */
-    if (token.type == kh::TokenType::SYMBOL &&
-        token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
-        this->ti++;
-        KH_PARSE_GUARD();
-
-        /* Parses the base struct's identifier */
-        bases.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
-        KH_PARSE_GUARD();
-        token = this->to();
-
-        /* If there is any more bases to inherit */
-        while (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::COMMA) {
-            this->ti++;
-            KH_PARSE_GUARD();
-            bases.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
-            KH_PARSE_GUARD();
-            token = this->to();
-        }
-
-        if (token.type == kh::TokenType::SYMBOL &&
-            token.value.symbol_type == kh::Symbol::PARENTHESES_CLOSE)
-            this->ti++;
-        else
-            this->parse_exceptions.emplace_back(U"Was expecting a closing parentheses after the "
-                                                U"inheritment argument in the struct declaration",
-                                                token);
-    }
-
-    KH_PARSE_GUARD();
-    token = this->to();
-
-    /* Ensures opening curly bracket */
-    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_OPEN) {
-        this->ti++;
-        KH_PARSE_GUARD();
-        token = this->to();
-
-        /* Parses the struct body which continuously parse variables */
-        while (true) {
-            /* Stops parsing the body */
-            if (token.type == kh::TokenType::SYMBOL &&
-                token.value.symbol_type == kh::Symbol::CURLY_CLOSE) {
-                this->ti++;
-                break;
-            }
-            /* Passes through placeholder semicolon */
-            else if (token.type == kh::TokenType::SYMBOL &&
-                     token.value.symbol_type == kh::Symbol::SEMICOLON) {
-                this->ti++;
-                KH_PARSE_GUARD();
-                token = this->to();
-                continue;
-            }
-            /* Parses the member/static variable */
-            else {
-                bool is_static, is_public;
-                this->parseAccessAttribs(is_static, is_public);
-                members.emplace_back(this->parseDeclaration(is_static, is_public));
-            }
-
-            KH_PARSE_GUARD();
-            token = this->to();
-
-            /* Stops parsing the body */
-            if (token.type == kh::TokenType::SYMBOL &&
-                token.value.symbol_type == kh::Symbol::CURLY_CLOSE) {
-                this->ti++;
-                break;
-            }
-            /* Ensures there's a semicolon ending each variable declaration */
-            else if (!(token.type == kh::TokenType::SYMBOL &&
-                       token.value.symbol_type == kh::Symbol::SEMICOLON))
-                this->parse_exceptions.emplace_back(
-                    U"Was expecting a semicolon after the variable declaration in the struct body",
-                    token);
-
-            this->ti++;
-            KH_PARSE_GUARD();
-            token = this->to();
-        }
-    }
-    else
-        this->parse_exceptions.emplace_back(
-            U"Was expecting an opening curly bracket after the struct declaration", token);
-end:
-    return new kh::AstStruct(index, identifiers, bases, members);
-}
-
-kh::AstEnum* kh::Parser::parseEnum() {
+kh::AstEnumType* kh::Parser::parseEnum() {
     std::vector<std::u32string> identifiers;
     std::vector<std::u32string> members;
     std::vector<uint64_t> values;
@@ -855,7 +750,7 @@ kh::AstEnum* kh::Parser::parseEnum() {
         this->parse_exceptions.emplace_back(
             U"Was expecting an opening curly bracket after the enum declaration", token);
 end:
-    return new kh::AstEnum(index, identifiers, members, values);
+    return new kh::AstEnumType(index, identifiers, members, values);
 }
 
 std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const size_t loop_count) {
@@ -883,14 +778,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const size_t loo
 
         switch (token.type) {
             case kh::TokenType::IDENTIFIER: {
-                /* Nested function */
-                if (token.value.identifier == U"def") {
-                    this->ti++;
-                    KH_PARSE_GUARD();
-                    body.emplace_back(this->parseFunction(false, true));
-                }
-                /* If statement */
-                else if (token.value.identifier == U"if") {
+                if (token.value.identifier == U"if") {
                     std::vector<std::shared_ptr<kh::AstExpression>> conditions;
                     std::vector<std::vector<std::shared_ptr<kh::AstBody>>> bodies;
                     std::vector<std::shared_ptr<kh::AstBody>> else_body;

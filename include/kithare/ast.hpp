@@ -18,9 +18,8 @@ namespace kh {
     class Ast;
 
     class AstImport;
-    class AstClass;
-    class AstStruct;
-    class AstEnum;
+    class AstUserType;
+    class AstEnumType;
 
     class AstBody;
     class AstIf;
@@ -46,9 +45,8 @@ namespace kh {
 
     std::u32string repr(const kh::Ast& module_ast, const size_t indent = 0);
     std::u32string repr(const kh::AstImport& import_ast, const size_t indent = 0);
-    std::u32string repr(const kh::AstClass& class_ast, const size_t indent = 0);
-    std::u32string repr(const kh::AstStruct& struct_ast, const size_t indent = 0);
-    std::u32string repr(const kh::AstEnum& enum_ast, const size_t indent = 0);
+    std::u32string repr(const kh::AstUserType& type_ast, const size_t indent = 0);
+    std::u32string repr(const kh::AstEnumType& enum_ast, const size_t indent = 0);
     std::u32string repr(const kh::AstBody& ast, const size_t indent = 0);
     std::u32string repr(const kh::AstExpression& expr, const size_t indent = 0);
 
@@ -56,16 +54,14 @@ namespace kh {
     public:
         std::vector<std::shared_ptr<kh::AstImport>> imports;
         std::vector<std::shared_ptr<kh::AstFunctionExpression>> functions;
-        std::vector<std::shared_ptr<kh::AstClass>> classes;
-        std::vector<std::shared_ptr<kh::AstStruct>> structs;
-        std::vector<std::shared_ptr<kh::AstEnum>> enums;
+        std::vector<std::shared_ptr<kh::AstUserType>> user_types;
+        std::vector<std::shared_ptr<kh::AstEnumType>> enums;
         std::vector<std::shared_ptr<kh::AstDeclarationExpression>> variables;
 
         Ast(const std::vector<std::shared_ptr<kh::AstImport>>& _imports,
             const std::vector<std::shared_ptr<kh::AstFunctionExpression>>& _functions,
-            const std::vector<std::shared_ptr<kh::AstClass>>& _classes,
-            const std::vector<std::shared_ptr<kh::AstStruct>>& _structs,
-            const std::vector<std::shared_ptr<kh::AstEnum>>& _enums,
+            const std::vector<std::shared_ptr<kh::AstUserType>>& _user_types,
+            const std::vector<std::shared_ptr<kh::AstEnumType>>& _enums,
             const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _variables);
         virtual ~Ast() {}
     };
@@ -83,7 +79,7 @@ namespace kh {
         virtual ~AstImport() {}
     };
 
-    class AstClass {
+    class AstUserType {
     public:
         size_t index;
         std::vector<std::u32string> identifiers;
@@ -91,38 +87,27 @@ namespace kh {
         std::vector<std::u32string> generic_args;
         std::vector<std::shared_ptr<kh::AstDeclarationExpression>> members;
         std::vector<std::shared_ptr<kh::AstFunctionExpression>> methods;
+        bool is_class;
 
-        AstClass(const size_t _index, const std::vector<std::u32string>& _identifiers,
-                 const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _bases,
-                 const std::vector<std::u32string>& _generic_args,
-                 const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _members,
-                 const std::vector<std::shared_ptr<kh::AstFunctionExpression>>& _methods);
-        virtual ~AstClass() {}
+        AstUserType(const size_t _index, const std::vector<std::u32string>& _identifiers,
+                    const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _bases,
+                    const std::vector<std::u32string>& _generic_args,
+                    const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _members,
+                    const std::vector<std::shared_ptr<kh::AstFunctionExpression>>& _methods,
+                    const bool _is_class);
+        virtual ~AstUserType() {}
     };
 
-    class AstStruct {
-    public:
-        size_t index;
-        std::vector<std::u32string> identifiers;
-        std::vector<std::shared_ptr<kh::AstIdentifierExpression>> bases;
-        std::vector<std::shared_ptr<kh::AstDeclarationExpression>> members;
-
-        AstStruct(const size_t _index, const std::vector<std::u32string>& _identifiers,
-                  const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _bases,
-                  const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _members);
-        virtual ~AstStruct() {}
-    };
-
-    class AstEnum {
+    class AstEnumType {
     public:
         size_t index;
         std::vector<std::u32string> identifiers;
         std::vector<std::u32string> members;
         std::vector<uint64_t> values;
 
-        AstEnum(const size_t _index, const std::vector<std::u32string>& _identifiers,
-                const std::vector<std::u32string>& _members, const std::vector<uint64_t>& _values);
-        virtual ~AstEnum() {}
+        AstEnumType(const size_t _index, const std::vector<std::u32string>& _identifiers,
+                    const std::vector<std::u32string>& _members, const std::vector<uint64_t>& _values);
+        virtual ~AstEnumType() {}
     };
 
     class AstBody {

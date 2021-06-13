@@ -9,12 +9,11 @@
 
 kh::Ast::Ast(const std::vector<std::shared_ptr<kh::AstImport>>& _imports,
              const std::vector<std::shared_ptr<kh::AstFunctionExpression>>& _functions,
-             const std::vector<std::shared_ptr<kh::AstClass>>& _classes,
-             const std::vector<std::shared_ptr<kh::AstStruct>>& _structs,
-             const std::vector<std::shared_ptr<kh::AstEnum>>& _enums,
+             const std::vector<std::shared_ptr<kh::AstUserType>>& _user_types,
+             const std::vector<std::shared_ptr<kh::AstEnumType>>& _enums,
              const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _variables)
-    : variables(_variables), imports(_imports), functions(_functions), classes(_classes),
-      structs(_structs), enums(_enums) {}
+    : variables(_variables), imports(_imports), functions(_functions), user_types(_user_types),
+      enums(_enums) {}
 
 kh::AstImport::AstImport(const size_t _index, const std::vector<std::u32string>& _path,
                          const bool _is_include, const bool _is_relative,
@@ -22,21 +21,18 @@ kh::AstImport::AstImport(const size_t _index, const std::vector<std::u32string>&
     : index(_index), path(_path), is_include(_is_include), is_relative(_is_relative),
       identifier(_identifier) {}
 
-kh::AstClass::AstClass(const size_t _index, const std::vector<std::u32string>& _identifiers,
-                       const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _bases,
-                       const std::vector<std::u32string>& _generic_args,
-                       const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _members,
-                       const std::vector<std::shared_ptr<kh::AstFunctionExpression>>& _methods)
+kh::AstUserType::AstUserType(const size_t _index, const std::vector<std::u32string>& _identifiers,
+                             const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _bases,
+                             const std::vector<std::u32string>& _generic_args,
+                             const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _members,
+                             const std::vector<std::shared_ptr<kh::AstFunctionExpression>>& _methods,
+                             const bool _is_class)
     : index(_index), identifiers(_identifiers), bases(_bases), generic_args(_generic_args),
-      members(_members), methods(_methods) {}
+      members(_members), methods(_methods), is_class(_is_class) {}
 
-kh::AstStruct::AstStruct(const size_t _index, const std::vector<std::u32string>& _identifiers,
-                         const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _bases,
-                         const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _members)
-    : index(_index), identifiers(_identifiers), bases(_bases), members(_members) {}
-
-kh::AstEnum::AstEnum(const size_t _index, const std::vector<std::u32string>& _identifiers,
-                     const std::vector<std::u32string>& _members, const std::vector<uint64_t>& _values)
+kh::AstEnumType::AstEnumType(const size_t _index, const std::vector<std::u32string>& _identifiers,
+                             const std::vector<std::u32string>& _members,
+                             const std::vector<uint64_t>& _values)
     : index(_index), identifiers(_identifiers), members(_members), values(_values) {}
 
 kh::AstIdentifierExpression::AstIdentifierExpression(
@@ -251,7 +247,7 @@ kh::AstStatement::AstStatement(const size_t _index, const kh::AstStatement::Type
 }
 
 kh::AstStatement::AstStatement(const size_t _index, const kh::AstStatement::Type _statement_type,
-    const size_t _loop_count)
+                               const size_t _loop_count)
     : statement_type((Type)((size_t)_statement_type)), loop_count(_loop_count) {
     this->index = _index;
     this->type = kh::AstBody::Type::STATEMENT;
