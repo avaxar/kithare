@@ -13,3 +13,13 @@ class AstConstant!T(AstNode) {
         return self.actual_value;
     }
 }
+
+def main() {
+    tuple!int a = (1, 2, 3, 4);
+    list!int b = [1, 2, 3, 4];
+    dict!(str, int) c = {
+        "one": 1,
+        "two": 2,
+        "three": 3
+    };
+}

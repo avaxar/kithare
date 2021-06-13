@@ -199,6 +199,23 @@ kh::AstTupleExpression::AstTupleExpression(
     this->expression_type = kh::AstExpression::ExType::TUPLE;
 }
 
+kh::AstListExpression::AstListExpression(
+    const size_t _index, const std::vector<std::shared_ptr<kh::AstExpression>>& _elements)
+    : elements(_elements) {
+    this->index = _index;
+    this->type = kh::AstBody::Type::EXPRESSION;
+    this->expression_type = kh::AstExpression::ExType::LIST;
+}
+
+kh::AstDictExpression::AstDictExpression(const size_t _index,
+                                         const std::vector<std::shared_ptr<kh::AstExpression>>& _keys,
+                                         const std::vector<std::shared_ptr<kh::AstExpression>>& _items)
+    : keys(_keys), items(_items) {
+    this->index = _index;
+    this->type = kh::AstBody::Type::EXPRESSION;
+    this->expression_type = kh::AstExpression::ExType::DICT;
+}
+
 kh::AstIf::AstIf(const size_t _index,
                  const std::vector<std::shared_ptr<kh::AstExpression>>& _conditions,
                  const std::vector<std::vector<std::shared_ptr<kh::AstBody>>>& _bodies,

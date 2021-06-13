@@ -340,8 +340,14 @@ kh::AstExpression* kh::Parser::parseLiteral() {
                                             false);
                     break;
 
+                /* List literal expression */
                 case kh::Symbol::SQUARE_OPEN:
-                    expr = this->parseTuple(kh::Symbol::SQUARE_OPEN, kh::Symbol::SQUARE_CLOSE);
+                    expr = this->parseList();
+                    break;
+
+                /* Dict literal expression */
+                case kh::Symbol::CURLY_OPEN:
+                    expr = this->parseDict();
                     break;
 
                 default:
@@ -666,6 +672,65 @@ end:
 
         return new kh::AstTupleExpression(index, _elements);
     }
+}
+
+kh::AstExpression* kh::Parser::parseList() {
+    kh::Token token = this->to();
+    size_t index = token.index;
+
+    kh::AstTupleExpression* tuple = (kh::AstTupleExpression*)this->parseTuple(
+        kh::Symbol::SQUARE_OPEN, kh::Symbol::SQUARE_CLOSE, false);
+    kh::AstListExpression* list = new kh::AstListExpression(tuple->index, tuple->elements);
+    delete tuple;
+
+    if (list && !list->elements.size())
+        this->parse_exceptions.emplace_back(
+            U"A list literal must at least have one element to be able for its type to be known",
+            token);
+
+    return list;
+}
+
+kh::AstExpression* kh::Parser::parseDict() {
+    std::vector<std::shared_ptr<kh::AstExpression>> keys;
+    std::vector<std::shared_ptr<kh::AstExpression>> items;
+
+    kh::Token token = this->to();
+    size_t index = token.index;
+
+    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_OPEN) {
+        do {
+            this->ti++;
+            KH_PARSE_GUARD();
+            keys.emplace_back(this->parseExpression());
+
+            KH_PARSE_GUARD();
+            token = this->to();
+            if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::COLON) {
+                this->ti++;
+                KH_PARSE_GUARD();
+            }
+            else
+                this->parse_exceptions.emplace_back(
+                    U"Was expecting a colon after a key of a dict literal", token);
+
+            items.emplace_back(this->parseExpression());
+            KH_PARSE_GUARD();
+            token = this->to();
+        } while (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::COMMA);
+
+        if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_CLOSE)
+            this->ti++;
+        else
+            this->parse_exceptions.emplace_back(
+                U"Was expecting a closing curly bracket finishing the dict literal", token);
+    }
+    else
+        this->parse_exceptions.emplace_back(
+            U"Was expecting an opening curly bracket for a dict literal", token);
+
+end:
+    return new kh::AstDictExpression(index, keys, items);
 }
 
 std::vector<uint64_t>

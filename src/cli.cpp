@@ -167,7 +167,7 @@ static int execute() {
     return code;
 }
 
-/* Entry point of the Kithare CI program */
+/* Entry point of the Kithare CLI program */
 #ifdef _WIN32
 int wmain(const int argc, wchar_t* argv[])
 #else

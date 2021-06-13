@@ -559,6 +559,32 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
             break;
         }
 
+        case kh::AstExpression::ExType::LIST: {
+            const kh::AstListExpression& expr_const = *(kh::AstListExpression*)&expr;
+            str += U"list:";
+
+            for (auto element : expr_const.elements)
+                if (element)
+                    str += U"\n\t" + ind + kh::repr(*element, indent + 1);
+
+            break;
+        }
+
+        case kh::AstExpression::ExType::DICT: {
+            const kh::AstDictExpression& expr_const = *(kh::AstDictExpression*)&expr;
+            str += U"dict:";
+
+            for (size_t i = 0; i < expr_const.keys.size(); i++) {
+                str += U"\n\t" + ind + U"pair:";
+                if (expr_const.keys[i])
+                    str += U"\n\t\t" + ind + kh::repr(*expr_const.keys[i], indent + 2);
+                if (expr_const.items[i])
+                    str += U"\n\t\t" + ind + kh::repr(*expr_const.items[i], indent + 2);
+            }
+
+            break;
+        }
+
         default:
             str += U"[unknown expression]";
     }

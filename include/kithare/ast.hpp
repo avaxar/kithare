@@ -42,6 +42,8 @@ namespace kh {
     class AstScopeExpression;
     class AstConstValue;
     class AstTupleExpression;
+    class AstListExpression;
+    class AstDictExpression;
 
     std::u32string repr(const kh::Ast& module_ast, const size_t indent = 0);
     std::u32string repr(const kh::AstImport& import_ast, const size_t indent = 0);
@@ -142,7 +144,9 @@ namespace kh {
             FUNCTION,
             SCOPE,
             CONSTANT,
-            TUPLE
+            TUPLE,
+            LIST,
+            DICT
         } expression_type = ExType::NONE;
 
         virtual ~AstExpression() {}
@@ -333,6 +337,26 @@ namespace kh {
         AstTupleExpression(const size_t _index,
                            const std::vector<std::shared_ptr<kh::AstExpression>>& _elements);
         virtual ~AstTupleExpression() {}
+    };
+
+    class AstListExpression : public kh::AstExpression {
+    public:
+        std::vector<std::shared_ptr<kh::AstExpression>> elements;
+
+        AstListExpression(const size_t _index,
+                          const std::vector<std::shared_ptr<kh::AstExpression>>& _elements);
+        virtual ~AstListExpression() {}
+    };
+
+    class AstDictExpression : public kh::AstExpression {
+    public:
+        std::vector<std::shared_ptr<kh::AstExpression>> keys;
+        std::vector<std::shared_ptr<kh::AstExpression>> items;
+
+        AstDictExpression(const size_t _index,
+                          const std::vector<std::shared_ptr<kh::AstExpression>>& _keys,
+                          const std::vector<std::shared_ptr<kh::AstExpression>>& _items);
+        virtual ~AstDictExpression() {}
     };
 
     class AstIf : public kh::AstBody {

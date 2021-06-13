@@ -97,6 +97,8 @@ namespace kh {
                                       const kh::Symbol opening = kh::Symbol::PARENTHESES_OPEN,
                                       const kh::Symbol closing = kh::Symbol::PARENTHESES_CLOSE,
                                       const bool can_contain_one_element = true);
+        kh::AstExpression* parseList(); /* Parses list literals */
+        kh::AstExpression* parseDict(); /* Parses dict literals */
         std::vector<uint64_t> parseArrayDimension(std::shared_ptr<kh::AstIdentifierExpression>& type);
 
     private:
