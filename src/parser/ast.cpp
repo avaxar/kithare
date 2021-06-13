@@ -118,11 +118,12 @@ kh::AstFunctionExpression::AstFunctionExpression(
     const std::vector<std::u32string>& _generic_args, const std::vector<uint64_t>& _return_array,
     std::shared_ptr<kh::AstIdentifierExpression>& _return_type, const size_t _return_refs,
     const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _arguments,
-    const std::vector<std::shared_ptr<kh::AstBody>>& _body, const bool _is_static,
-    const bool _is_public)
+    const std::vector<std::shared_ptr<kh::AstBody>>& _body, const bool _is_conditional,
+    const bool _is_static, const bool _is_public)
     : index(_index), identifiers(_identifiers), generic_args(_generic_args),
       return_array(_return_array), return_type(_return_type), return_refs(_return_refs),
-      arguments(_arguments), body(_body), is_static(_is_static), is_public(_is_public) {
+      arguments(_arguments), body(_body), is_conditional(_is_conditional), is_static(_is_static),
+      is_public(_is_public) {
     this->index = _index;
     this->type = kh::AstBody::Type::EXPRESSION;
     this->expression_type = kh::AstExpression::ExType::FUNCTION;

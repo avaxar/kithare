@@ -66,7 +66,8 @@ namespace kh {
         void parse();
         kh::AstImport* parseImport(const bool is_include);
         void parseAccessAttribs(bool& is_static, bool& is_public);
-        kh::AstFunctionExpression* parseFunction(const bool is_static, const bool is_public);
+        kh::AstFunctionExpression* parseFunction(const bool is_static, const bool is_public,
+                                                 const bool is_conditional);
         kh::AstDeclarationExpression* parseDeclaration(const bool is_static, const bool is_public);
         kh::AstUserType* parseUserType(const bool is_class);
         kh::AstEnumType* parseEnum();
@@ -119,11 +120,11 @@ namespace kh {
 
     inline bool isReservedKeyword(const std::u32string& identifier) {
         return identifier == U"public" || identifier == U"private" || identifier == U"static" ||
-               identifier == U"def" || identifier == U"class" || identifier == U"struct" ||
-               identifier == U"enum" || identifier == U"import" || identifier == U"include" ||
-               identifier == U"if" || identifier == U"for" || identifier == U"while" ||
-               identifier == U"do" || identifier == U"break" || identifier == U"continue" ||
-               identifier == U"return" || identifier == U"ref";
+               identifier == U"try" || identifier == U"def" || identifier == U"class" ||
+               identifier == U"struct" || identifier == U"enum" || identifier == U"import" ||
+               identifier == U"include" || identifier == U"if" || identifier == U"for" ||
+               identifier == U"while" || identifier == U"do" || identifier == U"break" ||
+               identifier == U"continue" || identifier == U"return" || identifier == U"ref";
     }
 
     inline bool isDec(const char32_t chr) {

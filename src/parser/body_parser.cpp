@@ -28,10 +28,25 @@ void kh::Parser::parse() {
                 const std::u32string& identifier = token.value.identifier;
 
                 /* Function declaration identifier keyword */
-                if (identifier == U"def") {
+                if (identifier == U"def" || identifier == U"try") {
                     /* Skips initial keyword */
                     this->ti++;
                     KH_PARSE_GUARD();
+
+                    /* Case for conditional functions */
+                    bool conditional = false;
+                    if (identifier == U"try") {
+                        conditional = true;
+                        token = this->to();
+                        if (token.type == kh::TokenType::IDENTIFIER &&
+                            token.value.identifier == U"def") {
+                            this->ti++;
+                            KH_PARSE_GUARD();
+                        }
+                        else
+                            this->parse_exceptions.emplace_back(
+                                U"Was expecting `def` after `try` at the top scope", token);
+                    }
 
                     /* Parses access type */
                     bool is_static, is_public;
@@ -39,7 +54,7 @@ void kh::Parser::parse() {
 
                     KH_PARSE_GUARD();
                     /* Parses return type, name, arguments, and body */
-                    functions.emplace_back(this->parseFunction(is_static, is_public));
+                    functions.emplace_back(this->parseFunction(is_static, is_public, conditional));
 
                     if (!functions.back()->identifiers.size())
                         this->parse_exceptions.emplace_back(
@@ -271,7 +286,8 @@ end:
     return;
 }
 
-kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const bool is_public) {
+kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const bool is_public,
+                                                     const bool is_conditional) {
     std::vector<std::u32string> identifiers;
     std::vector<std::u32string> generic_args;
     std::shared_ptr<kh::AstIdentifierExpression> return_type;
@@ -405,7 +421,8 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
     body = this->parseBody();
 end:
     return new kh::AstFunctionExpression(index, identifiers, generic_args, return_array, return_type,
-                                         return_refs, arguments, body, is_static, is_public);
+                                         return_refs, arguments, body, is_conditional, is_static,
+                                         is_public);
 }
 
 kh::AstDeclarationExpression* kh::Parser::parseDeclaration(const bool is_static, const bool is_public) {
@@ -551,16 +568,31 @@ kh::AstUserType* kh::Parser::parseUserType(const bool is_class) {
             switch (token.type) {
                 case kh::TokenType::IDENTIFIER: {
                     /* Methods */
-                    if (token.value.identifier == U"def") {
+                    if (token.value.identifier == U"def" || token.value.identifier == U"try") {
+                        bool conditional = token.value.identifier == U"try";
+
                         this->ti++;
                         KH_PARSE_GUARD();
+
+                        /* Case for conditional methods */
+                        if (conditional) {
+                            token = this->to();
+                            if (token.type == kh::TokenType::IDENTIFIER &&
+                                token.value.identifier == U"def") {
+                                this->ti++;
+                                KH_PARSE_GUARD();
+                            }
+                            else
+                                this->parse_exceptions.emplace_back(
+                                    U"Was expecting `def` after `try` at the top scope", token);
+                        }
 
                         bool is_static, is_public;
                         /* Parse access types */
                         this->parseAccessAttribs(is_static, is_public);
                         KH_PARSE_GUARD();
                         /* Parse function declaration */
-                        methods.emplace_back(this->parseFunction(is_static, is_public));
+                        methods.emplace_back(this->parseFunction(is_static, is_public, conditional));
 
                         /* Ensures that methods don't have generic argument(s) */
                         if (methods.back() && !methods.back()->generic_args.empty()) {

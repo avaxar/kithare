@@ -262,6 +262,7 @@ namespace kh {
 
         std::vector<std::shared_ptr<kh::AstDeclarationExpression>> arguments;
         std::vector<std::shared_ptr<kh::AstBody>> body;
+        bool is_conditional;
         bool is_static;
         bool is_public;
 
@@ -271,8 +272,8 @@ namespace kh {
             const std::vector<uint64_t>& _return_array,
             std::shared_ptr<kh::AstIdentifierExpression>& _return_type, const size_t _return_refs,
             const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _arguments,
-            const std::vector<std::shared_ptr<kh::AstBody>>& _body, const bool _is_static,
-            const bool _is_public);
+            const std::vector<std::shared_ptr<kh::AstBody>>& _body, const bool _is_conditional,
+            const bool _is_static, const bool _is_public);
         virtual ~AstFunctionExpression() {}
     };
 

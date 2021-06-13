@@ -440,7 +440,7 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
         case kh::AstExpression::ExType::FUNCTION: {
             const kh::AstFunctionExpression& expr_func = *(kh::AstFunctionExpression*)&expr;
 
-            str += U"function:";
+            str += expr_func.is_conditional ? U"conditional function:" : U"function:";
 
             str += U"\n\t" + ind + U"static: " + (expr_func.is_static ? U"true" : U"false");
             str += U"\n\t" + ind + U"access: " + (expr_func.is_public ? U"public" : U"private");

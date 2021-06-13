@@ -299,11 +299,11 @@ kh::AstExpression* kh::Parser::parseLiteral() {
             break;
 
         case kh::TokenType::IDENTIFIER:
-            /* Function expression */
+            /* Lambda expression */
             if (token.value.identifier == U"def") {
                 this->ti++;
                 KH_PARSE_GUARD();
-                return this->parseFunction(false, true);
+                return this->parseFunction(false, true, false);
             }
             /* Variable declaration */
             else if (token.value.identifier == U"ref" || token.value.identifier == U"static" ||
