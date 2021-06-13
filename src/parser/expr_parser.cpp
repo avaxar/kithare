@@ -489,8 +489,7 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
         token = this->to();
     }
 
-    if (identifiers.size() == 1 && identifiers[0] == U"func")
-        is_function = true;
+    is_function = identifiers.size() == 1 && identifiers[0] == U"func";
 
     /* Optional genericization */
     if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::NOT) {
@@ -608,11 +607,12 @@ end:
 }
 
 kh::AstExpression* kh::Parser::parseTuple(const kh::Symbol opening, const kh::Symbol closing,
-                                          const bool can_contain_one_element) {
+                                          const bool forced_as_tuple) {
     std::vector<kh::AstExpression*> elements;
 
     kh::Token token = this->to();
     size_t index = token.index;
+    bool explicit_tuple = false;
 
     /* Expects the opening symbol */
     if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == opening) {
@@ -620,8 +620,13 @@ kh::AstExpression* kh::Parser::parseTuple(const kh::Symbol opening, const kh::Sy
         KH_PARSE_GUARD();
         token = this->to();
 
-        bool skip_parentheses = true;
-        while (!(token.type == kh::TokenType::SYMBOL && token.value.symbol_type == closing)) {
+        /* Instant close */
+        if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == closing) {
+            this->ti++;
+            goto end;
+        }
+
+        while (true) {
             /* Parses the element expression */
             elements.push_back(this->parseExpression());
             KH_PARSE_GUARD();
@@ -629,7 +634,6 @@ kh::AstExpression* kh::Parser::parseTuple(const kh::Symbol opening, const kh::Sy
 
             if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == closing) {
                 this->ti++;
-                skip_parentheses = false;
                 break;
             }
             else if (!(token.type == kh::TokenType::SYMBOL &&
@@ -639,25 +643,32 @@ kh::AstExpression* kh::Parser::parseTuple(const kh::Symbol opening, const kh::Sy
                         ? U"Was expecting a comma or a closing square bracket"
                         : U"Was expecting a comma or a closing parentheses",
                     token);
+                this->ti++;
                 break;
             }
 
             this->ti++;
             KH_PARSE_GUARD();
             token = this->to();
-        }
 
-        if (skip_parentheses)
-            this->ti++;
+            /* Cases for explicit one-elemented tuples `(69420,)` */
+            if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == closing) {
+                this->ti++;
+                explicit_tuple = true;
+                break;
+            }
+        }
     }
-    else
+    else {
         this->parse_exceptions.emplace_back(opening == kh::Symbol::SQUARE_OPEN
                                                 ? U"Was expecting an opening square bracket"
                                                 : U"Was expecting an opening parentheses",
                                             token);
+        this->ti++;
+    }
 
 end:
-    if ((!can_contain_one_element) && elements.size() == 1) {
+    if (!forced_as_tuple && !explicit_tuple && elements.size() == 1) {
         for (size_t i = 1; i < elements.size(); i++)
             delete elements[i];
 
@@ -683,11 +694,6 @@ kh::AstExpression* kh::Parser::parseList() {
     kh::AstListExpression* list = new kh::AstListExpression(tuple->index, tuple->elements);
     delete tuple;
 
-    if (list && !list->elements.size())
-        this->parse_exceptions.emplace_back(
-            U"A list literal must at least have one element to be able for its type to be known",
-            token);
-
     return list;
 }
 
@@ -699,9 +705,22 @@ kh::AstExpression* kh::Parser::parseDict() {
     size_t index = token.index;
 
     if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_OPEN) {
+        this->ti++;
+        KH_PARSE_GUARD();
+        token = this->to();
+
+        /* Instant close*/
+        if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_CLOSE) {
+            this->ti++;
+            goto end;
+        }
+        else
+            goto forceIn;
+
         do {
             this->ti++;
             KH_PARSE_GUARD();
+        forceIn:
             keys.emplace_back(this->parseExpression());
 
             KH_PARSE_GUARD();

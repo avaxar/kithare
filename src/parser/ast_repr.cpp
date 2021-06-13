@@ -563,6 +563,11 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
             const kh::AstListExpression& expr_const = *(kh::AstListExpression*)&expr;
             str += U"list:";
 
+            if (expr_const.elements.empty()) {
+                str += U" [no elements]";
+                break;
+            }
+
             for (auto element : expr_const.elements)
                 if (element)
                     str += U"\n\t" + ind + kh::repr(*element, indent + 1);
@@ -573,6 +578,11 @@ std::u32string kh::repr(const kh::AstExpression& expr, const size_t indent) {
         case kh::AstExpression::ExType::DICT: {
             const kh::AstDictExpression& expr_const = *(kh::AstDictExpression*)&expr;
             str += U"dict:";
+
+            if (expr_const.keys.empty()) {
+                str += U" [no pairs]";
+                break;
+            }
 
             for (size_t i = 0; i < expr_const.keys.size(); i++) {
                 str += U"\n\t" + ind + U"pair:";

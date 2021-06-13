@@ -1,25 +1,7 @@
-struct Vector2!T {
-    T x; T y;
-
-    def add(ref Vector2!T other) {
-        return Vector2!T(self.x + other.x, self.y + other.y);
-    }
-}
-
-class AstConstant!T(AstNode) {
-    T actual_value;
-
-    def evaluate() -> T {
-        return self.actual_value;
-    }
-}
-
 try def main() {
-    tuple!int a = (1, 2, 3, 4);
-    list!int b = [1, 2, 3, 4];
-    dict!(str, int) c = {
-        "one": 1,
-        "two": 2,
-        "three": 3
-    };
+    tuple!int a = ();
+    list!int b = [];
+    dict!(str, int) c = {};
+
+    (1,2,3,4i,);
 }
