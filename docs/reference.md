@@ -98,9 +98,9 @@ def main() {
 	}
 }
 ```
-## OOP, with operator overloading and templating
+## OOP on structs, with operator overloading and generics
 ```py
-class Vector2!T {
+struct Vector2!T {
 	T x;
 	T y;
 
@@ -123,8 +123,7 @@ class Vector2!T {
 ```py
 import std;
 
-/* Inheriting `object` would mark it as polymorphic, making all of its methods virtual */
-class Entity(object) {
+class Entity {
 	int age;
 
 	def sayAge() {

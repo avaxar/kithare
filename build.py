@@ -318,7 +318,7 @@ class KithareBuilder:
         src_repr = src.replace("\\", "/")
         name = f"file: {src_repr}" if is_src else "executable"
 
-        print("\nBuilding ", name)
+        print("\nBuilding", name)
         print(cmd.replace("\\", "/"))
         return os.system(cmd)
 
