@@ -6,16 +6,6 @@
 
 #include <kithare/parser.hpp>
 
-
-kh::AstExpression* kh::Parser::parseExpression() {
-    kh::Token token = this->to();
-    size_t index = token.index;
-
-    return this->parseAssignOps();
-end:
-    return nullptr;
-}
-
 #define RECURSIVE_DESCENT_SINGULAR_OP(lower)                                                        \
     do {                                                                                            \
         kh::AstExpression* expr = lower();                                                          \
@@ -47,6 +37,16 @@ end:
     end:                                                                                            \
         return expr;                                                                                \
     } while (false)
+
+
+kh::AstExpression* kh::Parser::parseExpression() {
+    kh::Token token = this->to();
+    size_t index = token.index;
+
+    return this->parseAssignOps();
+end:
+    return nullptr;
+}
 
 kh::AstExpression* kh::Parser::parseAssignOps() {
     static std::vector<kh::Operator> operators = {
