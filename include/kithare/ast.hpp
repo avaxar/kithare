@@ -49,8 +49,7 @@ namespace kh {
     std::u32string repr(const kh::AstImport& import_ast, const size_t indent = 0);
     std::u32string repr(const kh::AstUserType& type_ast, const size_t indent = 0);
     std::u32string repr(const kh::AstEnumType& enum_ast, const size_t indent = 0);
-    std::u32string repr(const kh::AstBody& ast, const size_t indent = 0);
-    std::u32string repr(const kh::AstExpression& expr, const size_t indent = 0);
+    std::u32string repr(const kh::AstBody& body_ast, const size_t indent = 0);
 
     class Ast {
     public:
@@ -127,6 +126,8 @@ namespace kh {
         } type = Type::NONE;
 
         virtual ~AstBody() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstExpression : public kh::AstBody {
@@ -150,6 +151,8 @@ namespace kh {
         } expression_type = ExType::NONE;
 
         virtual ~AstExpression() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstIdentifierExpression : public kh::AstExpression {
@@ -165,6 +168,8 @@ namespace kh {
             const std::vector<size_t>& _generics_refs,
             const std::vector<std::vector<uint64_t>>& _generics_array);
         virtual ~AstIdentifierExpression() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstUnaryExpression : public kh::AstExpression {
@@ -175,6 +180,8 @@ namespace kh {
         AstUnaryExpression(const size_t _index, const kh::Operator _operation,
                            std::shared_ptr<kh::AstExpression>& _rvalue);
         virtual ~AstUnaryExpression() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstBinaryExpression : public kh::AstExpression {
@@ -187,6 +194,8 @@ namespace kh {
                             std::shared_ptr<kh::AstExpression>& _lvalue,
                             std::shared_ptr<kh::AstExpression>& _rvalue);
         virtual ~AstBinaryExpression() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstTernaryExpression : public kh::AstExpression {
@@ -199,6 +208,8 @@ namespace kh {
                              std::shared_ptr<kh::AstExpression>& _value,
                              std::shared_ptr<kh::AstExpression>& _otherwise);
         virtual ~AstTernaryExpression() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstComparisonExpression : public kh::AstExpression {
@@ -209,6 +220,8 @@ namespace kh {
         AstComparisonExpression(const size_t _index, const std::vector<kh::Operator>& _operations,
                                 const std::vector<std::shared_ptr<kh::AstExpression>>& _values);
         virtual ~AstComparisonExpression() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstSubscriptExpression : public kh::AstExpression {
@@ -219,6 +232,8 @@ namespace kh {
         AstSubscriptExpression(const size_t _index, std::shared_ptr<kh::AstExpression>& _expression,
                                const std::vector<std::shared_ptr<kh::AstExpression>>& _arguments);
         virtual ~AstSubscriptExpression() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstCallExpression : public kh::AstExpression {
@@ -229,6 +244,8 @@ namespace kh {
         AstCallExpression(const size_t _index, std::shared_ptr<kh::AstExpression>& _expression,
                           const std::vector<std::shared_ptr<kh::AstExpression>>& _arguments);
         virtual ~AstCallExpression() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstDeclarationExpression : public kh::AstExpression {
@@ -248,6 +265,8 @@ namespace kh {
                                  std::shared_ptr<kh::AstExpression>& _expression, const size_t _refs,
                                  const bool _is_static, const bool _is_public);
         virtual ~AstDeclarationExpression() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstFunctionExpression : public kh::AstExpression {
@@ -275,6 +294,8 @@ namespace kh {
             const std::vector<std::shared_ptr<kh::AstBody>>& _body, const bool _is_conditional,
             const bool _is_static, const bool _is_public);
         virtual ~AstFunctionExpression() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstScopeExpression : public kh::AstExpression {
@@ -285,6 +306,8 @@ namespace kh {
         AstScopeExpression(const size_t _index, std::shared_ptr<kh::AstExpression>& _expression,
                            const std::vector<std::u32string>& _identifiers);
         virtual ~AstScopeExpression() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstConstValue : public kh::AstExpression {
@@ -329,6 +352,8 @@ namespace kh {
             const size_t _index, const std::u32string& _string,
             const kh::AstConstValue::ValueType _value_type = kh::AstConstValue::ValueType::STRING);
         virtual ~AstConstValue() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstTupleExpression : public kh::AstExpression {
@@ -338,6 +363,8 @@ namespace kh {
         AstTupleExpression(const size_t _index,
                            const std::vector<std::shared_ptr<kh::AstExpression>>& _elements);
         virtual ~AstTupleExpression() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstListExpression : public kh::AstExpression {
@@ -347,6 +374,8 @@ namespace kh {
         AstListExpression(const size_t _index,
                           const std::vector<std::shared_ptr<kh::AstExpression>>& _elements);
         virtual ~AstListExpression() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstDictExpression : public kh::AstExpression {
@@ -358,6 +387,8 @@ namespace kh {
                           const std::vector<std::shared_ptr<kh::AstExpression>>& _keys,
                           const std::vector<std::shared_ptr<kh::AstExpression>>& _items);
         virtual ~AstDictExpression() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstIf : public kh::AstBody {
@@ -371,6 +402,8 @@ namespace kh {
               const std::vector<std::vector<std::shared_ptr<kh::AstBody>>>& _bodies,
               const std::vector<std::shared_ptr<kh::AstBody>>& _else_body);
         virtual ~AstIf() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstWhile : public kh::AstBody {
@@ -381,6 +414,8 @@ namespace kh {
         AstWhile(const size_t _index, std::shared_ptr<kh::AstExpression>& _condition,
                  const std::vector<std::shared_ptr<kh::AstBody>>& _body);
         virtual ~AstWhile() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstDoWhile : public kh::AstBody {
@@ -391,6 +426,8 @@ namespace kh {
         AstDoWhile(const size_t _index, std::shared_ptr<kh::AstExpression>& _condition,
                    const std::vector<std::shared_ptr<kh::AstBody>>& _body);
         virtual ~AstDoWhile() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstFor : public kh::AstBody {
@@ -404,6 +441,8 @@ namespace kh {
                std::shared_ptr<kh::AstExpression>& condition, std::shared_ptr<kh::AstExpression>& step,
                const std::vector<std::shared_ptr<kh::AstBody>>& _body);
         virtual ~AstFor() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstForEach : public kh::AstBody {
@@ -416,6 +455,8 @@ namespace kh {
                    std::shared_ptr<kh::AstExpression>& _iterator,
                    const std::vector<std::shared_ptr<kh::AstBody>>& _body);
         virtual ~AstForEach() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 
     class AstStatement : public kh::AstBody {
@@ -430,5 +471,7 @@ namespace kh {
         AstStatement(const size_t _index, const kh::AstStatement::Type _statement_type,
                      const size_t _loop_count);
         virtual ~AstStatement() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
     };
 }
