@@ -174,8 +174,6 @@ int wmain(const int argc, wchar_t* argv[])
 int main(const int argc, char* argv[])
 #endif
 {
-    std::system("start https://www.youtube.com/watch?v=dQw4w9WgXcQ");
-
     /* Sets the locale to using UTF-8 */
     std::setlocale(LC_ALL, "en_US.utf8");
 #ifdef _WIN32
