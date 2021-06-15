@@ -111,8 +111,8 @@ std::u32string kh::repr(const kh::AstEnumType& enum_ast, const size_t indent) {
     return str;
 }
 
-std::u32string kh::repr(const kh::AstBody& ast, const size_t indent) {
-    return ast.repr(indent);
+std::u32string kh::repr(const kh::AstBody& body_ast, const size_t indent) {
+    return body_ast.repr(indent);
 }
 
 std::u32string kh::AstBody::repr(const size_t indent) const {
@@ -331,16 +331,17 @@ std::u32string kh::AstFunctionExpression::repr(const size_t indent) const {
 
 std::u32string kh::AstScopeExpression::repr(const size_t indent) const {
     BODY_HEADER();
-    str = U"scoping:";
+    str = U"scoping (";
+
+    if (!this->identifiers.empty()) {
+        for (const std::u32string& identifier : this->identifiers)
+            str += (&this->identifiers.back() == &identifier ? U"" : U".") + identifier;
+    }
+
+    str += U"):"; /* sad face */
 
     if (this->expression)
         str += U"\n\t" + ind + U"expression:\n\t\t" + ind + kh::repr(*this->expression, indent + 2);
-
-    if (!this->identifiers.empty()) {
-        str += U"\n\t" + ind + U"scoping: [expr]";
-        for (const std::u32string& identifier : this->identifiers)
-            str += U'.' + identifier;
-    }
 
     return str;
 }
