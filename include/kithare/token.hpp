@@ -28,12 +28,16 @@ namespace kh {
         DIV,
         MOD,
         POW,
+
         IADD,
         ISUB,
         IMUL,
         IDIV,
         IMOD,
         IPOW,
+
+        INCREMENT,
+        DECREMENT,
 
         EQUAL,
         NOT_EQUAL,

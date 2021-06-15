@@ -55,6 +55,14 @@ kh::AstUnaryExpression::AstUnaryExpression(const size_t _index, const kh::Operat
     this->expression_type = kh::AstExpression::ExType::UNARY;
 }
 
+kh::AstRevUnaryExpression::AstRevUnaryExpression(const size_t _index, const kh::Operator _operation,
+                                           std::shared_ptr<kh::AstExpression>& _rvalue)
+    : operation(_operation), rvalue(_rvalue) {
+    this->index = _index;
+    this->type = kh::AstBody::Type::EXPRESSION;
+    this->expression_type = kh::AstExpression::ExType::REV_UNARY;
+}
+
 kh::AstBinaryExpression::AstBinaryExpression(const size_t _index, const kh::Operator _operation,
                                              std::shared_ptr<kh::AstExpression>& _lvalue,
                                              std::shared_ptr<kh::AstExpression>& _rvalue)

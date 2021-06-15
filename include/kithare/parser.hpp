@@ -91,6 +91,7 @@ namespace kh {
         kh::AstExpression* parseMulDivMod();      /* Parses `*`, `/`, and `%` */
         kh::AstExpression* parseUnary();          /* Parses unary operations */
         kh::AstExpression* parseExponentiation(); /* Parses `^` */
+        kh::AstExpression* parseRevUnary();       /* Parses reverse unary operations */
         kh::AstExpression* parseLiteral();        /* Parses literals */
         kh::AstExpression* parseIdentifiers();    /* Parses identifiers with scoping and
                                                    * templates */

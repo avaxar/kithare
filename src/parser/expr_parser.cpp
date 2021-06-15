@@ -203,6 +203,8 @@ kh::AstExpression* kh::Parser::parseUnary() {
         switch (token.value.operator_type) {
             case kh::Operator::ADD:
             case kh::Operator::SUB:
+            case kh::Operator::INCREMENT:
+            case kh::Operator::DECREMENT:
             case kh::Operator::BIT_NOT:
             case kh::Operator::SIZEOF:
             case kh::Operator::ADDRESS: {
@@ -227,7 +229,97 @@ end:
 
 kh::AstExpression* kh::Parser::parseExponentiation() {
     static std::vector<kh::Operator> operators = {kh::Operator::POW};
-    RECURSIVE_DESCENT_SINGULAR_OP(this->parseLiteral);
+    RECURSIVE_DESCENT_SINGULAR_OP(this->parseRevUnary);
+}
+
+kh::AstExpression* kh::Parser::parseRevUnary() {
+    kh::Token token = this->to();
+    size_t index = token.index;
+    kh::AstExpression* expr = this->parseLiteral();
+
+    KH_PARSE_GUARD();
+    token = this->to();
+
+    while ((token.type == kh::TokenType::OPERATOR &&
+                token.value.operator_type == kh::Operator::INCREMENT ||
+            token.value.operator_type == kh::Operator::DECREMENT) ||
+           (token.type == kh::TokenType::SYMBOL &&
+            (token.value.symbol_type == kh::Symbol::DOT ||
+             token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN ||
+             token.value.symbol_type == kh::Symbol::SQUARE_OPEN))) {
+        index = token.index;
+
+        /* Post-incrementation and decrementation */
+        if (token.type == kh::TokenType::OPERATOR) {
+            std::shared_ptr<kh::AstExpression> expr_ptr(expr);
+            expr = new kh::AstRevUnaryExpression(index, token.value.operator_type, expr_ptr);
+            this->ti++;
+        }
+        else {
+            switch (token.value.symbol_type) {
+                /* Scoping expression */
+                case kh::Symbol::DOT: {
+                    std::vector<std::u32string> identifiers;
+
+                    do {
+                        this->ti++;
+                        KH_PARSE_GUARD();
+                        token = this->to();
+
+                        /* Expects an identifier for which to be scoped through from the expression */
+                        if (token.type == kh::TokenType::IDENTIFIER)
+                            identifiers.push_back(token.value.identifier);
+                        else
+                            this->parse_exceptions.emplace_back(U"Was expecting an identifier", token);
+
+                        this->ti++;
+                        KH_PARSE_GUARD();
+                        token = this->to();
+
+                        /* Continues again for another scope in */
+                    } while (token.type == kh::TokenType::SYMBOL &&
+                             token.value.symbol_type == kh::Symbol::DOT);
+
+                    std::shared_ptr<kh::AstExpression> exprptr(expr);
+                    expr = new kh::AstScopeExpression(index, exprptr, identifiers);
+                } break;
+
+                /* Calling expression */
+                case kh::Symbol::PARENTHESES_OPEN: {
+                    std::shared_ptr<kh::AstExpression> exprptr(expr);
+                    /* Parses the argument(s) */
+                    kh::AstTupleExpression* tuple = (kh::AstTupleExpression*)this->parseTuple();
+                    std::vector<std::shared_ptr<kh::AstExpression>> arguments;
+
+                    for (std::shared_ptr<kh::AstExpression>& element : tuple->elements)
+                        arguments.push_back(element);
+
+                    expr = new kh::AstCallExpression(index, exprptr, arguments);
+                    delete tuple;
+                } break;
+
+                /* Subscription expression */
+                case kh::Symbol::SQUARE_OPEN: {
+                    std::shared_ptr<kh::AstExpression> exprptr(expr);
+                    /* Parses argument(s) */
+                    kh::AstTupleExpression* tuple = (kh::AstTupleExpression*)this->parseTuple(
+                        kh::Symbol::SQUARE_OPEN, kh::Symbol::SQUARE_CLOSE);
+                    std::vector<std::shared_ptr<kh::AstExpression>> arguments;
+
+                    for (std::shared_ptr<kh::AstExpression>& element : tuple->elements)
+                        arguments.push_back(element);
+
+                    expr = new kh::AstSubscriptExpression(index, exprptr, arguments);
+                    delete tuple;
+                } break;
+            }
+        }
+
+        KH_PARSE_GUARD();
+        token = this->to();
+    }
+end:
+    return expr;
 }
 
 kh::AstExpression* kh::Parser::parseLiteral() {
@@ -361,77 +453,6 @@ kh::AstExpression* kh::Parser::parseLiteral() {
             this->parse_exceptions.emplace_back(U"Unexpected token for a literal", token);
             this->ti++;
             goto end;
-    }
-
-    KH_PARSE_GUARD();
-    token = this->to();
-
-    while (token.type == kh::TokenType::SYMBOL &&
-           (token.value.symbol_type == kh::Symbol::DOT ||
-            token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN ||
-            token.value.symbol_type == kh::Symbol::SQUARE_OPEN)) {
-        index = token.index;
-
-        switch (token.value.symbol_type) {
-            /* Scoping expression */
-            case kh::Symbol::DOT: {
-                std::vector<std::u32string> identifiers;
-
-                do {
-                    this->ti++;
-                    KH_PARSE_GUARD();
-                    token = this->to();
-
-                    /* Expects an identifier for which to be scoped through from the expression */
-                    if (token.type == kh::TokenType::IDENTIFIER)
-                        identifiers.push_back(token.value.identifier);
-                    else
-                        this->parse_exceptions.emplace_back(U"Was expecting an identifier", token);
-
-                    this->ti++;
-                    KH_PARSE_GUARD();
-                    token = this->to();
-
-                    /* Continues again for another scope in */
-                } while (token.type == kh::TokenType::SYMBOL &&
-                         token.value.symbol_type == kh::Symbol::DOT);
-
-                std::shared_ptr<kh::AstExpression> exprptr(expr);
-                expr = new kh::AstScopeExpression(index, exprptr, identifiers);
-            } break;
-
-            /* Calling expression */
-            case kh::Symbol::PARENTHESES_OPEN: {
-                std::shared_ptr<kh::AstExpression> exprptr(expr);
-                /* Parses the argument(s) */
-                kh::AstTupleExpression* tuple = (kh::AstTupleExpression*)this->parseTuple();
-                std::vector<std::shared_ptr<kh::AstExpression>> arguments;
-
-                for (std::shared_ptr<kh::AstExpression>& element : tuple->elements)
-                    arguments.push_back(element);
-
-                expr = new kh::AstCallExpression(index, exprptr, arguments);
-                delete tuple;
-            } break;
-
-            /* Subscription expression */
-            case kh::Symbol::SQUARE_OPEN: {
-                std::shared_ptr<kh::AstExpression> exprptr(expr);
-                /* Parses argument(s) */
-                kh::AstTupleExpression* tuple = (kh::AstTupleExpression*)this->parseTuple(
-                    kh::Symbol::SQUARE_OPEN, kh::Symbol::SQUARE_CLOSE);
-                std::vector<std::shared_ptr<kh::AstExpression>> arguments;
-
-                for (std::shared_ptr<kh::AstExpression>& element : tuple->elements)
-                    arguments.push_back(element);
-
-                expr = new kh::AstSubscriptExpression(index, exprptr, arguments);
-                delete tuple;
-            } break;
-        }
-
-        KH_PARSE_GUARD();
-        token = this->to();
     }
 end:
     return expr;

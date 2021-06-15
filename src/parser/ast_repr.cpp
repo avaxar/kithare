@@ -125,6 +125,7 @@ std::u32string kh::AstExpression::repr(const size_t indent) const {
 
 std::u32string kh::AstIdentifierExpression::repr(const size_t indent) const {
     BODY_HEADER();
+    str = U"identifier(s): ";
 
     for (const std::u32string& identifier : this->identifiers)
         str += identifier + (&identifier == &this->identifiers.back() ? U"" : U".");
@@ -160,6 +161,18 @@ std::u32string kh::AstIdentifierExpression::repr(const size_t indent) const {
 std::u32string kh::AstUnaryExpression::repr(const size_t indent) const {
     BODY_HEADER();
     str = U"unary expression:";
+
+    str += U"\n\t" + ind + U"operator: " + kh::repr(this->operation);
+
+    if (this->rvalue)
+        str += U"\n\t" + ind + U"rvalue:\n\t\t" + ind + kh::repr(*this->rvalue, indent + 2);
+
+    return str;
+}
+
+std::u32string kh::AstRevUnaryExpression::repr(const size_t indent) const {
+    BODY_HEADER();
+    str = U"reverse unary expression:";
 
     str += U"\n\t" + ind + U"operator: " + kh::repr(this->operation);
 
@@ -341,7 +354,7 @@ std::u32string kh::AstScopeExpression::repr(const size_t indent) const {
     str += U"):"; /* sad face */
 
     if (this->expression)
-        str += U"\n\t" + ind + U"expression:\n\t\t" + ind + kh::repr(*this->expression, indent + 2);
+        str += U"\n\t" + ind + kh::repr(*this->expression, indent + 1);
 
     return str;
 }

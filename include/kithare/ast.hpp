@@ -32,6 +32,7 @@ namespace kh {
     class AstExpression;
     class AstIdentifierExpression;
     class AstUnaryExpression;
+    class AstRevUnaryExpression;
     class AstBinaryExpression;
     class AstTrinaryExpression;
     class AstComparisonExpression;
@@ -136,6 +137,7 @@ namespace kh {
             NONE,
             IDENTIFIER,
             UNARY,
+            REV_UNARY,
             BINARY,
             TERNARY,
             COMPARISON,
@@ -180,6 +182,18 @@ namespace kh {
         AstUnaryExpression(const size_t _index, const kh::Operator _operation,
                            std::shared_ptr<kh::AstExpression>& _rvalue);
         virtual ~AstUnaryExpression() {}
+
+        virtual std::u32string repr(const size_t indent = 0) const;
+    };
+
+    class AstRevUnaryExpression : public kh::AstExpression {
+    public:
+        kh::Operator operation;
+        std::shared_ptr<kh::AstExpression> rvalue;
+
+        AstRevUnaryExpression(const size_t _index, const kh::Operator _operation,
+                           std::shared_ptr<kh::AstExpression>& _rvalue);
+        virtual ~AstRevUnaryExpression() {}
 
         virtual std::u32string repr(const size_t indent = 0) const;
     };

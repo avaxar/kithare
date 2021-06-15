@@ -345,8 +345,6 @@ void kh::Parser::lex() {
                                 break;
 
                                 /* Operator handling */
-                                HANDLE_OP_COMBO('+', kh::Operator::ADD, '=', kh::Operator::IADD);
-                                HANDLE_OP_COMBO('-', kh::Operator::SUB, '=', kh::Operator::ISUB);
                                 HANDLE_OP_COMBO('%', kh::Operator::MOD, '=', kh::Operator::IMOD);
                                 HANDLE_OP_COMBO('^', kh::Operator::POW, '=', kh::Operator::IPOW);
                                 HANDLE_OP_COMBO('=', kh::Operator::ASSIGN, '=', kh::Operator::EQUAL);
@@ -371,6 +369,38 @@ void kh::Parser::lex() {
 
                             /* Some operators and symbols have more complicated handling, and
                              * those are not macro-ised */
+                            case '+': {
+                                kh::TokenValue value;
+                                value.operator_type = kh::Operator::ADD;
+
+                                if (chAt(i + 1) == '=') {
+                                    value.operator_type = kh::Operator::IADD;
+                                    i++;
+                                }
+                                else if (chAt(i + 1) == '+') {
+                                    value.operator_type = kh::Operator::INCREMENT;
+                                    i++;
+                                }
+
+                                tokens.emplace_back(start, i + 1, kh::TokenType::OPERATOR, value);
+                            } break;
+
+                            case '-': {
+                                kh::TokenValue value;
+                                value.operator_type = kh::Operator::SUB;
+
+                                if (chAt(i + 1) == '=') {
+                                    value.operator_type = kh::Operator::ISUB;
+                                    i++;
+                                }
+                                else if (chAt(i + 1) == '-') {
+                                    value.operator_type = kh::Operator::DECREMENT;
+                                    i++;
+                                }
+
+                                tokens.emplace_back(start, i + 1, kh::TokenType::OPERATOR, value);
+                            } break;
+
                             case '*': {
                                 kh::TokenValue value;
                                 value.operator_type = kh::Operator::MUL;

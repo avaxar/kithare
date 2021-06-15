@@ -116,6 +116,11 @@ std::u32string kh::repr(const kh::Operator op) {
         case kh::Operator::IPOW:
             return U"^=";
 
+        case kh::Operator::INCREMENT:
+            return U"++";
+        case kh::Operator::DECREMENT:
+            return U"--";
+
         case kh::Operator::EQUAL:
             return U"==";
         case kh::Operator::NOT_EQUAL:
