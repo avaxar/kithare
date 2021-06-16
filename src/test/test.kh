@@ -1,7 +1,8 @@
 try def main() {
-    tuple!int a = ();
-    list!int b = [];
-    dict!(str, int) c = {};
+    float[3] vector3;
+    float[3][3] matrix3x3;
+    float[] float_list;
 
-    (1,2,3,4i,);
+    float a_float = vector3[x];
+    float another_float = vector3[0];
 }

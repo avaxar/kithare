@@ -446,6 +446,11 @@ kh::AstDeclarationExpression* kh::Parser::parseDeclaration(const bool is_static,
     /* Parses the variable's type */
     var_type.reset((kh::AstIdentifierExpression*)this->parseIdentifiers());
 
+    /* Possible array type `float[3] var;` */
+    KH_PARSE_GUARD();
+    token = this->to();
+    var_array = this->parseArrayDimension(var_type);
+
     /* Gets the variable's name */
     KH_PARSE_GUARD();
     token = this->to();
@@ -462,11 +467,6 @@ kh::AstDeclarationExpression* kh::Parser::parseDeclaration(const bool is_static,
     this->ti++;
     KH_PARSE_GUARD();
     token = this->to();
-
-    /* Possible array type */
-    KH_PARSE_GUARD();
-    token = this->to();
-    var_array = this->parseArrayDimension(var_type);
 
     /* The case where: `SomeClass x(1, 2, 3)` */
     if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN)

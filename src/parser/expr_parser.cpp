@@ -288,7 +288,8 @@ kh::AstExpression* kh::Parser::parseRevUnary() {
                 case kh::Symbol::PARENTHESES_OPEN: {
                     std::shared_ptr<kh::AstExpression> exprptr(expr);
                     /* Parses the argument(s) */
-                    kh::AstTupleExpression* tuple = (kh::AstTupleExpression*)this->parseTuple();
+                    kh::AstTupleExpression* tuple =
+                        static_cast<kh::AstTupleExpression*>(this->parseTuple());
                     std::vector<std::shared_ptr<kh::AstExpression>> arguments;
 
                     for (std::shared_ptr<kh::AstExpression>& element : tuple->elements)
@@ -302,8 +303,8 @@ kh::AstExpression* kh::Parser::parseRevUnary() {
                 case kh::Symbol::SQUARE_OPEN: {
                     std::shared_ptr<kh::AstExpression> exprptr(expr);
                     /* Parses argument(s) */
-                    kh::AstTupleExpression* tuple = (kh::AstTupleExpression*)this->parseTuple(
-                        kh::Symbol::SQUARE_OPEN, kh::Symbol::SQUARE_CLOSE);
+                    kh::AstTupleExpression* tuple = static_cast<kh::AstTupleExpression*>(
+                        this->parseTuple(kh::Symbol::SQUARE_OPEN, kh::Symbol::SQUARE_CLOSE));
                     std::vector<std::shared_ptr<kh::AstExpression>> arguments;
 
                     for (std::shared_ptr<kh::AstExpression>& element : tuple->elements)
@@ -414,12 +415,50 @@ kh::AstExpression* kh::Parser::parseLiteral() {
                 KH_PARSE_GUARD();
                 token = this->to();
 
+                /* An identifier is next to another identifier `int number` */
                 if (token.type == kh::TokenType::IDENTIFIER &&
                     !kh::isReservedKeyword(token.value.identifier)) {
                     this->ti = _ti;
                     delete expr;
                     expr = this->parseDeclaration(false, true);
-                    goto end;
+                }
+                /* An opening square parentheses next to an idenifier, possible array variable
+                 * declaration */
+                else if (token.type == kh::TokenType::SYMBOL &&
+                         token.value.symbol_type == kh::Symbol::SQUARE_OPEN) {
+                    size_t exception_counts = this->parse_exceptions.size();
+
+                    /* Note: `expr` doesn't need to be `delete`d, cause it'll be handled by this
+                     * shared_ptr */
+                    std::shared_ptr<kh::AstIdentifierExpression> expr_ptr(
+                        static_cast<kh::AstIdentifierExpression*>(expr));
+                    this->parseArrayDimension(expr_ptr);
+
+                    /* If there was exceptions while parsing the array dimension type, it probably
+                     * wasn't an array variable declaration.. rather a subscript or something */
+                    if (this->parse_exceptions.size() > exception_counts) {
+                        for (size_t i = 0; i < this->parse_exceptions.size() - exception_counts; i++)
+                            this->parse_exceptions.pop_back();
+
+                        this->ti = _ti;
+                        expr = this->parseIdentifiers();
+                    }
+                    else {
+                        KH_PARSE_GUARD();
+                        token = this->to();
+
+                        /* Confirmed that it's an array declaration `float[3] position;` */
+                        if (token.type == kh::TokenType::IDENTIFIER &&
+                            !kh::isReservedKeyword(token.value.identifier)) {
+                            this->ti = _ti;
+                            expr = this->parseDeclaration(false, true);
+                        }
+                        /* Probably was just a normal subscript */
+                        else {
+                            this->ti = _ti;
+                            expr = this->parseIdentifiers();
+                        }
+                    }
                 }
             }
             break;

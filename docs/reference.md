@@ -15,7 +15,7 @@ import std;
 
 
 def main() {
-    for int i = 0, i < 1500, i += 1 {
+    for int i = 0, i < 1500, i++ {
         str string = "";
         if i % 3 == 0 {
             string += "Fizz";
@@ -154,7 +154,7 @@ class Human(Monke) {
 }
 
 class Axolotl(Entity) {
-	ubyte image_face[4][256][256];
+	ubyte[4][256][256] image_face;
 }
 
 def main() {
@@ -162,7 +162,7 @@ def main() {
 	entity.sayAge();
 	if castable!Human(entity) {
 		/* `ref` handles the object by reference */
-		ref Human human = cast!Human(entity);
+		ref Human human = cast!(ref Human)(entity);
 		std.println("The human's name is " + human.name);
 	}
 	else {
@@ -176,9 +176,9 @@ def main() {
 import std;
 
 def main() {
-	float position[3] = (4, 5, 0);
-	float an_object[3] = (2, 1, 1);
-	float relative_position_of_object[3] = an_object - position;
+	float[3] position = (4, 5, 0);
+	float[3] an_object = (2, 1, 1);
+	float[3] relative_position_of_object = an_object - position;
 	float dot_product = dot(position, an_object);
 	float scaled_position = position * 2.0;
 }
