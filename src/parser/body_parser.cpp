@@ -1132,7 +1132,7 @@ void kh::Parser::parseTopScopeIdentifiersAndGenericArgs(std::vector<std::u32stri
         else
             this->parse_exceptions.emplace_back(U"Was expecting an identifier", token);
 
-        KH_PARSE_GUARD(0);
+        KH_PARSE_GUARD();
         token = this->to();
     } while (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::DOT);
 
@@ -1178,7 +1178,7 @@ void kh::Parser::parseTopScopeIdentifiersAndGenericArgs(std::vector<std::u32stri
                     this->parse_exceptions.emplace_back(U"Was expecting a generic argument identifier",
                                                         token);
 
-                KH_PARSE_GUARD(0);
+                KH_PARSE_GUARD();
                 token = this->to();
             } while (token.type == kh::TokenType::SYMBOL &&
                      token.value.symbol_type == kh::Symbol::COMMA);
