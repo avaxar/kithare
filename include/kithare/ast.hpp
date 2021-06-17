@@ -192,7 +192,7 @@ namespace kh {
         std::shared_ptr<kh::AstExpression> rvalue;
 
         AstRevUnaryExpression(const size_t _index, const kh::Operator _operation,
-                           std::shared_ptr<kh::AstExpression>& _rvalue);
+                              std::shared_ptr<kh::AstExpression>& _rvalue);
         virtual ~AstRevUnaryExpression() {}
 
         virtual std::u32string repr(const size_t indent = 0) const;

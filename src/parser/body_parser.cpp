@@ -291,7 +291,7 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
     std::vector<std::u32string> identifiers;
     std::vector<std::u32string> generic_args;
     std::shared_ptr<kh::AstIdentifierExpression> return_type;
-    std::vector<uint64_t> return_array = {0};
+    std::vector<uint64_t> return_array = {};
     size_t return_refs = 0;
     std::vector<std::shared_ptr<kh::AstDeclarationExpression>> arguments;
     std::vector<std::shared_ptr<kh::AstBody>> body;
@@ -427,7 +427,7 @@ end:
 
 kh::AstDeclarationExpression* kh::Parser::parseDeclaration(const bool is_static, const bool is_public) {
     std::shared_ptr<kh::AstIdentifierExpression> var_type;
-    std::vector<uint64_t> var_array = {0};
+    std::vector<uint64_t> var_array = {};
     std::u32string var_name;
     std::shared_ptr<kh::AstExpression> expression = nullptr;
     size_t refs = 0;

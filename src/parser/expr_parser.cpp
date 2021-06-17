@@ -650,7 +650,7 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
 
             generics.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
             generics_refs.push_back(0);
-            generics_array.push_back({0});
+            generics_array.push_back({});
         }
         else {
             this->parse_exceptions.emplace_back(U"Was expecting either an identifier or an opening "
@@ -829,7 +829,7 @@ kh::Parser::parseArrayDimension(std::shared_ptr<kh::AstIdentifierExpression>& ty
             type.reset(new kh::AstIdentifierExpression(
                 token.index, {U"list"}, {type}, {false},
                 dimension.size() ? std::vector<std::vector<uint64_t>>{dimension}
-                                 : std::vector<std::vector<uint64_t>>{{0}}));
+                                 : std::vector<std::vector<uint64_t>>{{}}));
             dimension.clear();
         }
         else if (token.type == kh::TokenType::INTEGER || token.type == kh::TokenType::UINTEGER) {
@@ -858,5 +858,5 @@ end:
     if (dimension.size())
         return dimension;
     else
-        return {0};
+        return {};
 }

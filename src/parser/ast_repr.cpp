@@ -140,12 +140,11 @@ std::u32string kh::AstIdentifierExpression::repr(const size_t indent) const {
 
             for (size_t refs = 0; refs < this->generics_refs[i]; refs++)
                 str += U"ref ";
+
             str += kh::repr(*(this->generics[i]), indent);
 
-            if (this->generics_array[i].size() && this->generics_array[i][0] != 0) {
-                for (size_t d = 0; d < this->generics_array[i].size(); d++)
-                    str += U"[" + kh::repr(this->generics_array[i][d]) + U"]";
-            }
+            for (size_t d = 0; d < this->generics_array[i].size(); d++)
+                str += U"[" + kh::repr(this->generics_array[i][d]) + U"]";
 
             if (is_function && i == 0)
                 str += U"(";
@@ -276,12 +275,11 @@ std::u32string kh::AstDeclarationExpression::repr(const size_t indent) const {
 
         for (size_t refs = 0; refs < this->refs; refs++)
             str += U"ref ";
+
         str += kh::repr(*this->var_type, indent + 1);
 
-        if (this->var_array.size() && this->var_array[0] != 0) {
-            for (const uint64_t dimension : this->var_array)
-                str += U'[' + kh::repr(dimension) + U']';
-        }
+        for (const uint64_t dimension : this->var_array)
+            str += U'[' + kh::repr(dimension) + U']';
     }
 
     str += U"\n\t" + ind + U"name: " + this->var_name;
@@ -321,10 +319,8 @@ std::u32string kh::AstFunctionExpression::repr(const size_t indent) const {
             str += U"ref ";
         str += kh::repr(*this->return_type, indent + 1);
 
-        if (this->return_array.size() && this->return_array[0] != 0) {
-            for (const uint64_t dimension : this->return_array)
-                str += U'[' + kh::repr(dimension) + U']';
-        }
+        for (const uint64_t dimension : this->return_array)
+            str += U'[' + kh::repr(dimension) + U']';
     }
 
     str += U"\n\t" + ind + U"argument(s):";
