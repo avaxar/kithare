@@ -72,6 +72,8 @@ namespace kh {
         kh::AstUserType* parseUserType(const bool is_class);
         kh::AstEnumType* parseEnum();
         std::vector<std::shared_ptr<kh::AstBody>> parseBody(const size_t loop_count = 0);
+        void parseTopScopeIdentifiersAndGenericArgs(std::vector<std::u32string>& identifiers,
+                                                   std::vector<std::u32string>& generic_args);
 
 #///expression parser:
         /* These parse expressions below are ordered based from their precedence from lowest to

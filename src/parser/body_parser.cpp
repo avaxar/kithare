@@ -306,27 +306,13 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
 
     if (!(token.type == kh::TokenType::SYMBOL &&
           token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN)) {
-        std::shared_ptr<kh::AstIdentifierExpression> identifiers_with_generics(
-            (kh::AstIdentifierExpression*)this->parseIdentifiers());
-        identifiers = identifiers_with_generics->identifiers;
-
-        for (auto& generic_ : identifiers_with_generics->generics) {
-            if (generic_->identifiers.size() != 1)
-                this->parse_exceptions.emplace_back(U"Could not have multiple identifiers as a generic "
-                                                    U"argument name in the function declaration",
-                                                    this->tokFromIndex(generic_->index));
-            if (!generic_->generics.empty())
-                this->parse_exceptions.emplace_back(U"Could not have generic arguments in a generic "
-                                                    U"argument in the function declaration",
-                                                    this->tokFromIndex(generic_->generics[0]->index));
-
-            generic_args.push_back(generic_->identifiers.empty() ? U"" : generic_->identifiers[0]);
-        }
+        /* Parses the function's identifiers and generic args */
+        this->parseTopScopeIdentifiersAndGenericArgs(identifiers, generic_args);
+        KH_PARSE_GUARD();
+        token = this->to();
 
         /* Array dimension method extension/overloading/overriding specifier `def float[3].add(float[3]
          * other) {}` */
-        KH_PARSE_GUARD();
-        token = this->to();
         while (token.type == kh::TokenType::SYMBOL &&
                token.value.symbol_type == kh::Symbol::SQUARE_OPEN) {
             this->ti++;
@@ -355,7 +341,7 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
             token = this->to();
         }
 
-        /* Extra identifier `def something!(int).extraIdentifier() {}` */
+        /* Extra identifier `def something!int.extraIdentifier() {}` */
         KH_PARSE_GUARD();
         token = this->to();
         if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::DOT) {
@@ -552,26 +538,8 @@ kh::AstUserType* kh::Parser::parseUserType(const bool is_class) {
 
     const std::u32string type_name = is_class ? U"class" : U"struct";
 
-    /* Gets the class identifiers */
-    std::shared_ptr<kh::AstIdentifierExpression> identifiers_with_generics(
-        (kh::AstIdentifierExpression*)this->parseIdentifiers());
-    identifiers = identifiers_with_generics->identifiers;
-
-    for (auto& generic_ : identifiers_with_generics->generics) {
-        if (generic_->identifiers.size() != 1)
-            this->parse_exceptions.emplace_back(U"Could not have multiple identifiers as a generic "
-                                                U"argument name in the " +
-                                                    type_name + U" declaration",
-                                                this->tokFromIndex(generic_->index));
-        if (!generic_->generics.empty())
-            this->parse_exceptions.emplace_back(U"Could not have generic arguments in a generic "
-                                                U"argument in the " +
-                                                    type_name + U" declaration",
-                                                this->tokFromIndex(generic_->generics[0]->index));
-
-        generic_args.push_back(generic_->identifiers.empty() ? U"" : generic_->identifiers[0]);
-    }
-
+    /* Parses the class'/struct's identifiers and generic arguments */
+    this->parseTopScopeIdentifiersAndGenericArgs(identifiers, generic_args);
     KH_PARSE_GUARD();
     token = this->to();
 
@@ -726,13 +694,10 @@ kh::AstEnumType* kh::Parser::parseEnum() {
     size_t index = token.index;
 
     /* Gets the enum identifiers */
-    std::shared_ptr<kh::AstIdentifierExpression> identifiers_with_generics(
-        (kh::AstIdentifierExpression*)this->parseIdentifiers());
-    identifiers = identifiers_with_generics->identifiers;
-    if (!identifiers_with_generics->generics.empty())
-        this->parse_exceptions.emplace_back(
-            U"An enum could not have generic arguments",
-            this->tokFromIndex(identifiers_with_generics->generics[0]->index));
+    std::vector<std::u32string> _generic_args;
+    this->parseTopScopeIdentifiersAndGenericArgs(identifiers, _generic_args);
+    if (!_generic_args.empty())
+        this->parse_exceptions.emplace_back(U"An enum could not have generic arguments", token);
 
     KH_PARSE_GUARD();
     token = this->to();
@@ -1142,4 +1107,90 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::Parser::parseBody(const size_t loo
     }
 end:
     return body;
+}
+
+void kh::Parser::parseTopScopeIdentifiersAndGenericArgs(std::vector<std::u32string>& identifiers,
+                                                       std::vector<std::u32string>& generic_args) {
+    kh::Token token = this->to();
+    goto forceIn;
+
+    /* Parses the identifiers */
+    do {
+        this->ti++;
+        KH_PARSE_GUARD();
+        token = this->to();
+
+    forceIn:
+        if (token.type == kh::TokenType::IDENTIFIER) {
+            if (kh::isReservedKeyword(token.value.identifier))
+                this->parse_exceptions.emplace_back(U"Cannot use a reserved keyword as an identifier",
+                                                    token);
+
+            identifiers.push_back(token.value.identifier);
+            this->ti++;
+        }
+        else
+            this->parse_exceptions.emplace_back(U"Was expecting an identifier", token);
+
+        KH_PARSE_GUARD(0);
+        token = this->to();
+    } while (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::DOT);
+
+    /* Generic arguments */
+    if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::NOT) {
+        this->ti++;
+        KH_PARSE_GUARD();
+        token = this->to();
+
+        /* a.b.c!T */
+        if (token.type == kh::TokenType::IDENTIFIER) {
+            if (kh::isReservedKeyword(token.value.identifier))
+                this->parse_exceptions.emplace_back(
+                    U"Cannot use a reserved keyword as an identifier of a generic argument", token);
+
+            generic_args.push_back(token.value.identifier);
+            this->ti++;
+        }
+        /* a.b.c!(A, B) */
+        else if (token.type == kh::TokenType::SYMBOL &&
+                 token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
+            this->ti++;
+            KH_PARSE_GUARD();
+            token = this->to();
+            goto forceInGenericArgs;
+
+            do {
+                this->ti++;
+                KH_PARSE_GUARD();
+                token = this->to();
+
+            forceInGenericArgs:
+                if (token.type == kh::TokenType::IDENTIFIER) {
+                    if (kh::isReservedKeyword(token.value.identifier))
+                        this->parse_exceptions.emplace_back(
+                            U"Cannot use a reserved keyword as an identifier of a generic argument",
+                            token);
+
+                    generic_args.push_back(token.value.identifier);
+                    this->ti++;
+                }
+                else
+                    this->parse_exceptions.emplace_back(U"Was expecting a generic argument identifier",
+                                                        token);
+
+                KH_PARSE_GUARD(0);
+                token = this->to();
+            } while (token.type == kh::TokenType::SYMBOL &&
+                     token.value.symbol_type == kh::Symbol::COMMA);
+
+            if (token.type == kh::TokenType::SYMBOL &&
+                token.value.symbol_type == kh::Symbol::PARENTHESES_CLOSE)
+                this->ti++;
+            else
+                this->parse_exceptions.emplace_back(U"Was expecting a closing parentheses", token);
+        }
+    }
+
+end:
+    return;
 }
