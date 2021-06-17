@@ -310,6 +310,12 @@ std::u32string kh::AstFunctionExpression::repr(const size_t indent) const {
             for (const std::u32string& generic_ : this->generic_args)
                 str += generic_ + (&generic_ == &this->generic_args.back() ? U"" : U", ");
         }
+
+        if (!this->id_array.empty()) {
+            str += U"\n\t" + ind + U"array type dimension: ";
+            for (const uint64_t size : this->id_array)
+                str += U'[' + kh::repr(size) + U']';
+        }
     }
 
     if (this->return_type) {

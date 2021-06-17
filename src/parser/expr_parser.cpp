@@ -648,9 +648,12 @@ kh::AstExpression* kh::Parser::parseIdentifiers() {
                 this->parse_exceptions.emplace_back(
                     U"Was expecting an opening parentheses for genericization of `func` type", token);
 
-            generics.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
+            generics.emplace_back(
+                new kh::AstIdentifierExpression(token.index, {token.value.identifier}, {}, {}, {}));
             generics_refs.push_back(0);
             generics_array.push_back({});
+
+            this->ti++;
         }
         else {
             this->parse_exceptions.emplace_back(U"Was expecting either an identifier or an opening "

@@ -1,3 +1,11 @@
+def float[3].add(ref float[3] other) {
+    return (self[0] + other[0], self[1] + other[1], self[2] + other[2]);
+}
+
+def list!T[6][9].add() {
+
+}
+
 try def main() {
     float[3] vector3;
     float[3][3] matrix3x3;

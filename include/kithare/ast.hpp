@@ -288,6 +288,7 @@ namespace kh {
         size_t index;
         std::vector<std::u32string> identifiers;
         std::vector<std::u32string> generic_args;
+        std::vector<uint64_t> id_array;
 
         std::shared_ptr<kh::AstIdentifierExpression> return_type;
         std::vector<uint64_t> return_array;
@@ -301,7 +302,7 @@ namespace kh {
 
         AstFunctionExpression(
             const size_t _index, const std::vector<std::u32string>& _identifiers,
-            const std::vector<std::u32string>& _generic_args,
+            const std::vector<std::u32string>& _generic_args, const std::vector<uint64_t>& _id_array,
             const std::vector<uint64_t>& _return_array,
             std::shared_ptr<kh::AstIdentifierExpression>& _return_type, const size_t _return_refs,
             const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _arguments,

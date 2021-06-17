@@ -142,17 +142,21 @@ void kh::Parser::parse() {
     }
 
 end:
-    /* Removes exceptions that's got a duplicate index */
+    /* Removes exceptions that's got duplicate errors at the same index */
     if (this->parse_exceptions.size() > 1) {
         size_t last_index = -1;
+        kh::ParseException* last_element = nullptr;
+
         std::vector<kh::ParseException> cleaned_exceptions;
         cleaned_exceptions.reserve(this->parse_exceptions.size());
 
         for (kh::ParseException& exc : this->parse_exceptions) {
-            if (last_index != exc.token.index)
+            if (last_element == nullptr || last_index != exc.token.index ||
+                last_element->what != exc.what)
                 cleaned_exceptions.push_back(exc);
 
             last_index = exc.token.index;
+            last_element = &exc;
         }
 
         this->parse_exceptions = cleaned_exceptions;
@@ -290,6 +294,7 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
                                                      const bool is_conditional) {
     std::vector<std::u32string> identifiers;
     std::vector<std::u32string> generic_args;
+    std::vector<uint64_t> id_array;
     std::shared_ptr<kh::AstIdentifierExpression> return_type;
     std::vector<uint64_t> return_array = {};
     size_t return_refs = 0;
@@ -316,6 +321,56 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
                                                     this->tokFromIndex(generic_->generics[0]->index));
 
             generic_args.push_back(generic_->identifiers.empty() ? U"" : generic_->identifiers[0]);
+        }
+
+        /* Array dimension method extension/overloading/overriding specifier `def float[3].add(float[3]
+         * other) {}` */
+        KH_PARSE_GUARD();
+        token = this->to();
+        while (token.type == kh::TokenType::SYMBOL &&
+               token.value.symbol_type == kh::Symbol::SQUARE_OPEN) {
+            this->ti++;
+            KH_PARSE_GUARD();
+            token = this->to();
+
+            if (token.type == kh::TokenType::INTEGER || token.type == kh::TokenType::UINTEGER) {
+                if (token.value.uinteger == 0)
+                    this->parse_exceptions.emplace_back(U"An array could not be zero sized", token);
+
+                id_array.push_back(token.value.uinteger);
+                this->ti++;
+                KH_PARSE_GUARD();
+                token = this->to();
+            }
+            else
+                this->parse_exceptions.emplace_back(U"Was expecting an integer for the array size",
+                                                    token);
+
+            if (!(token.type == kh::TokenType::SYMBOL &&
+                  token.value.symbol_type == kh::Symbol::SQUARE_CLOSE))
+                this->parse_exceptions.emplace_back(U"Was expecting a closing square bracket", token);
+
+            this->ti++;
+            KH_PARSE_GUARD();
+            token = this->to();
+        }
+
+        /* Extra identifier `def something!(int).extraIdentifier() {}` */
+        KH_PARSE_GUARD();
+        token = this->to();
+        if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::DOT) {
+            this->ti++;
+            KH_PARSE_GUARD();
+            token = this->to();
+
+            if (token.type == kh::TokenType::IDENTIFIER) {
+                identifiers.push_back(token.value.identifier);
+                this->ti++;
+            }
+            else
+                this->parse_exceptions.emplace_back(
+                    U"Was expecting an identifier after the dot in the function declaration name",
+                    token);
         }
 
         /* Ensures it has an opening parentheses */
@@ -420,9 +475,9 @@ kh::AstFunctionExpression* kh::Parser::parseFunction(const bool is_static, const
     /* Parses the function's body */
     body = this->parseBody();
 end:
-    return new kh::AstFunctionExpression(index, identifiers, generic_args, return_array, return_type,
-                                         return_refs, arguments, body, is_conditional, is_static,
-                                         is_public);
+    return new kh::AstFunctionExpression(index, identifiers, generic_args, id_array, return_array,
+                                         return_type, return_refs, arguments, body, is_conditional,
+                                         is_static, is_public);
 }
 
 kh::AstDeclarationExpression* kh::Parser::parseDeclaration(const bool is_static, const bool is_public) {
