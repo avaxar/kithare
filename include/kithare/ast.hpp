@@ -85,14 +85,14 @@ namespace kh {
     public:
         size_t index;
         std::vector<std::u32string> identifiers;
-        std::vector<std::shared_ptr<kh::AstIdentifierExpression>> bases;
+        std::shared_ptr<kh::AstIdentifierExpression> base;
         std::vector<std::u32string> generic_args;
         std::vector<std::shared_ptr<kh::AstDeclarationExpression>> members;
         std::vector<std::shared_ptr<kh::AstFunctionExpression>> methods;
         bool is_class;
 
         AstUserType(const size_t _index, const std::vector<std::u32string>& _identifiers,
-                    const std::vector<std::shared_ptr<kh::AstIdentifierExpression>>& _bases,
+                    std::shared_ptr<kh::AstIdentifierExpression>& _base,
                     const std::vector<std::u32string>& _generic_args,
                     const std::vector<std::shared_ptr<kh::AstDeclarationExpression>>& _members,
                     const std::vector<std::shared_ptr<kh::AstFunctionExpression>>& _methods,

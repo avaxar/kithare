@@ -1,3 +1,7 @@
+class Test(Base) {
+
+}
+
 def float[3].add(ref float[3] other) {
     return (self[0] + other[0], self[1] + other[1], self[2] + other[2]);
 }

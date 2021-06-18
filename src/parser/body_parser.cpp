@@ -528,7 +528,7 @@ end:
 
 kh::AstUserType* kh::Parser::parseUserType(const bool is_class) {
     std::vector<std::u32string> identifiers;
-    std::vector<std::shared_ptr<kh::AstIdentifierExpression>> bases;
+    std::shared_ptr<kh::AstIdentifierExpression> base;
     std::vector<std::u32string> generic_args;
     std::vector<std::shared_ptr<kh::AstDeclarationExpression>> members;
     std::vector<std::shared_ptr<kh::AstFunctionExpression>> methods;
@@ -550,18 +550,9 @@ kh::AstUserType* kh::Parser::parseUserType(const bool is_class) {
         KH_PARSE_GUARD();
 
         /* Parses base class' identifier */
-        bases.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
+        base.reset(static_cast<kh::AstIdentifierExpression*>(this->parseIdentifiers()));
         KH_PARSE_GUARD();
         token = this->to();
-
-        /* If there is any more bases to inherit */
-        while (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::COMMA) {
-            this->ti++;
-            KH_PARSE_GUARD();
-            bases.emplace_back((kh::AstIdentifierExpression*)this->parseIdentifiers());
-            KH_PARSE_GUARD();
-            token = this->to();
-        }
 
         /* Expects a closing parentheses */
         if (token.type == kh::TokenType::SYMBOL &&
@@ -679,7 +670,7 @@ kh::AstUserType* kh::Parser::parseUserType(const bool is_class) {
         this->parse_exceptions.emplace_back(
             U"Was expecting an opening curly bracket after the " + type_name + U" declaration", token);
 end:
-    return new kh::AstUserType(index, identifiers, bases, generic_args, members, methods, is_class);
+    return new kh::AstUserType(index, identifiers, base, generic_args, members, methods, is_class);
 }
 
 kh::AstEnumType* kh::Parser::parseEnum() {

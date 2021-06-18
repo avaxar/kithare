@@ -66,11 +66,9 @@ std::u32string kh::repr(const kh::AstUserType& type_ast, const size_t indent) {
     for (const std::u32string& identifier : type_ast.identifiers)
         str += identifier + (&identifier == &type_ast.identifiers.back() ? U"" : U".");
 
-    if (!type_ast.bases.empty()) {
-        str += U"\n\t" + ind + U"base(s):";
-        for (const std::shared_ptr<kh::AstIdentifierExpression>& base : type_ast.bases)
-            if (base)
-                str += U"\n\t\t" + ind + kh::repr(*base, indent + 3);
+    if (type_ast.base) {
+        str += U"\n\t" + ind + U"base " + (type_ast.is_class ? U"class:" : U"struct:");
+        str += U"\n\t\t" + ind + kh::repr(*type_ast.base, indent + 3);
     }
 
     if (!type_ast.generic_args.empty()) {
@@ -79,10 +77,12 @@ std::u32string kh::repr(const kh::AstUserType& type_ast, const size_t indent) {
             str += generic_ + (&generic_ == &type_ast.generic_args.back() ? U"" : U", ");
     }
 
-    str += U"\n\t" + ind + U"member(s):";
-    for (auto member : type_ast.members)
-        if (member)
-            str += U"\n\t\t" + ind + kh::repr(*member, indent + 2);
+    if (!type_ast.members.empty()) {
+        str += U"\n\t" + ind + U"member(s):";
+        for (auto member : type_ast.members)
+            if (member)
+                str += U"\n\t\t" + ind + kh::repr(*member, indent + 2);
+    }
 
     if (!type_ast.methods.empty()) {
         str += U"\n\t" + ind + U"method(s):";
