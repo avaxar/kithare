@@ -1,4 +1,4 @@
-class Test(Base) {
+class Test!T(Base) {
 
 }
 
@@ -18,5 +18,5 @@ try def main() {
     float a_float = vector3[x];
     float another_float = vector3[0];
 
-    a!(ref b!c[3]) d;
+    Test!(ref b!c[3]) d;
 }

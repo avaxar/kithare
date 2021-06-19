@@ -20,7 +20,7 @@ std::u32string kh::quote(const std::u32string& str) {
             case U'\\':
                 repr_str += U"\\\\";
                 break;
-            case ' ':
+            case U' ':
                 repr_str += U" ";
                 break;
             case U'\t':
@@ -56,15 +56,13 @@ std::u32string kh::quote(const std::u32string& str) {
                             U"\\x" + kh::repr((sstream.str().size() == 1 ? "0" : "") + sstream.str());
                     else if (chr <= 0xfff)
                         repr_str += U"\\u0" + kh::repr(sstream.str());
-                    else if (chr <= 0xffff)
-                        repr_str += U"\\u" + kh::repr(sstream.str());
                     else if (chr <= 0xfffff)
                         repr_str += U"\\U000" + kh::repr(sstream.str());
                     else if (chr <= 0xffffff)
                         repr_str += U"\\U00" + kh::repr(sstream.str());
                     else if (chr <= 0xfffffff)
                         repr_str += U"\\U0" + kh::repr(sstream.str());
-                    else if (chr <= 0xffffffff)
+                    else
                         repr_str += U"\\U" + kh::repr(sstream.str());
                 }
         }
@@ -113,9 +111,9 @@ std::u32string kh::quote(const std::string& str) {
             default:
                 if (chr > 32 && chr < 127)
                     repr_str += (char32_t)chr;
-                else if (chr <= 0xff) {
+                else {
                     std::stringstream sstream;
-                    sstream << std::hex << (int)((uint8_t)chr);
+                    sstream << std::hex << (int)(uint8_t)chr;
                     repr_str +=
                         U"\\x" + kh::repr((sstream.str().size() == 1 ? "0" : "") + sstream.str());
                 }
@@ -131,17 +129,13 @@ void kh::getLineColumn(const std::u32string& str, const size_t index, size_t& co
     line = 1;
 
     for (size_t i = 0; i < index + 1; i++) {
-        if (str[i] == '\n') {
+        if (str[i] == U'\n') {
             column = 1;
             line++;
         }
         else
             column++;
     }
-}
-
-std::u32string kh::repr(const std::u32string& str) {
-    return str;
 }
 
 std::u32string kh::repr(const std::wstring& str) {
@@ -155,7 +149,13 @@ std::u32string kh::repr(const std::wstring& str) {
 }
 
 std::u32string kh::repr(const std::string& str) {
-    return kh::decodeUtf8(str);
+    std::u32string str32;
+    str32.reserve(str.size());
+
+    for (const char chr : str)
+        str32 += (char32_t)chr;
+
+    return str32;
 }
 
 std::u32string kh::repr(const char chr) {
