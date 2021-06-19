@@ -17,7 +17,7 @@ namespace kh {
         std::u32string what;
         size_t index;
 
-        Utf8DecodingException(const std::u32string _what, const size_t _index)
+        Utf8DecodingException(const std::u32string _what, size_t _index)
             : what(_what), index(_index) {}
         virtual ~Utf8DecodingException() {}
         virtual std::u32string format() const;

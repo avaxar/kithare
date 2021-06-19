@@ -9,122 +9,122 @@
 
 
 std::u32string kh::quote(const std::u32string& str) {
-    std::u32string repr_str = U"\"";
-    repr_str.reserve(str.size() + str.size() / 8 + 2);
+    std::u32string quoted_str = U"\"";
+    quoted_str.reserve(str.size() + str.size() / 8 + 2);
 
     for (const char32_t chr : str) {
         switch (chr) {
             case U'"':
-                repr_str += U"\\\"";
+                quoted_str += U"\\\"";
                 break;
             case U'\\':
-                repr_str += U"\\\\";
+                quoted_str += U"\\\\";
                 break;
             case U' ':
-                repr_str += U" ";
+                quoted_str += U" ";
                 break;
             case U'\t':
-                repr_str += U"\\t";
+                quoted_str += U"\\t";
                 break;
             case U'\v':
-                repr_str += U"\\v";
+                quoted_str += U"\\v";
                 break;
             case U'\n':
-                repr_str += U"\\n";
+                quoted_str += U"\\n";
                 break;
             case U'\r':
-                repr_str += U"\\r";
+                quoted_str += U"\\r";
                 break;
             case U'\b':
-                repr_str += U"\\b";
+                quoted_str += U"\\b";
                 break;
             case U'\f':
-                repr_str += U"\\f";
+                quoted_str += U"\\f";
                 break;
             case U'\a':
-                repr_str += U"\\a";
+                quoted_str += U"\\a";
                 break;
             default:
                 if (chr > 32 && chr < 127)
-                    repr_str += (char32_t)chr;
+                    quoted_str += (char32_t)chr;
                 else {
                     std::stringstream sstream;
                     sstream << std::hex << (uint32_t)chr;
 
                     if (chr <= 0xff)
-                        repr_str +=
-                            U"\\x" + kh::repr((sstream.str().size() == 1 ? "0" : "") + sstream.str());
+                        quoted_str +=
+                            U"\\x" + kh::str((sstream.str().size() == 1 ? "0" : "") + sstream.str());
                     else if (chr <= 0xfff)
-                        repr_str += U"\\u0" + kh::repr(sstream.str());
+                        quoted_str += U"\\u0" + kh::str(sstream.str());
                     else if (chr <= 0xfffff)
-                        repr_str += U"\\U000" + kh::repr(sstream.str());
+                        quoted_str += U"\\U000" + kh::str(sstream.str());
                     else if (chr <= 0xffffff)
-                        repr_str += U"\\U00" + kh::repr(sstream.str());
+                        quoted_str += U"\\U00" + kh::str(sstream.str());
                     else if (chr <= 0xfffffff)
-                        repr_str += U"\\U0" + kh::repr(sstream.str());
+                        quoted_str += U"\\U0" + kh::str(sstream.str());
                     else
-                        repr_str += U"\\U" + kh::repr(sstream.str());
+                        quoted_str += U"\\U" + kh::str(sstream.str());
                 }
         }
     }
 
-    repr_str += U'"';
-    return repr_str;
+    quoted_str += U'"';
+    return quoted_str;
 }
 
 std::u32string kh::quote(const std::string& str) {
-    std::u32string repr_str = U"\"";
-    repr_str.reserve(str.size() + str.size() / 8 + 2);
+    std::u32string quoted_str = U"\"";
+    quoted_str.reserve(str.size() + str.size() / 8 + 2);
 
     for (const char chr : str) {
         switch (chr) {
             case '"':
-                repr_str += U"\\\"";
+                quoted_str += U"\\\"";
                 break;
             case '\\':
-                repr_str += U"\\\\";
+                quoted_str += U"\\\\";
                 break;
             case ' ':
-                repr_str += U" ";
+                quoted_str += U" ";
                 break;
             case '\t':
-                repr_str += U"\\t";
+                quoted_str += U"\\t";
                 break;
             case '\v':
-                repr_str += U"\\v";
+                quoted_str += U"\\v";
                 break;
             case '\n':
-                repr_str += U"\\n";
+                quoted_str += U"\\n";
                 break;
             case '\r':
-                repr_str += U"\\r";
+                quoted_str += U"\\r";
                 break;
             case '\b':
-                repr_str += U"\\b";
+                quoted_str += U"\\b";
                 break;
             case '\f':
-                repr_str += U"\\f";
+                quoted_str += U"\\f";
                 break;
             case '\a':
-                repr_str += U"\\a";
+                quoted_str += U"\\a";
                 break;
             default:
                 if (chr > 32 && chr < 127)
-                    repr_str += (char32_t)chr;
+                    quoted_str += (char32_t)chr;
                 else {
                     std::stringstream sstream;
                     sstream << std::hex << (int)(uint8_t)chr;
-                    repr_str +=
-                        U"\\x" + kh::repr((sstream.str().size() == 1 ? "0" : "") + sstream.str());
+                    quoted_str +=
+                        U"\\x" + kh::str((sstream.str().size() == 1 ? "0" : "") + sstream.str());
                 }
         }
     }
 
-    repr_str += U'"';
-    return repr_str;
+    quoted_str += U'"';
+    return quoted_str;
 }
 
-void kh::getLineColumn(const std::u32string& str, const size_t index, size_t& column, size_t& line) {
+void kh::getLineColumn(const std::u32string& str, size_t index, size_t& column, size_t& line) {
     column = 0;
     line = 1;
 
@@ -138,7 +138,7 @@ void kh::getLineColumn(const std::u32string& str, const size_t index, size_t& co
     }
 }
 
-std::u32string kh::repr(const std::wstring& str) {
+std::u32string kh::str(const std::wstring& str) {
     std::u32string str32;
     str32.reserve(str.size());
 
@@ -148,7 +148,7 @@ std::u32string kh::repr(const std::wstring& str) {
     return str32;
 }
 
-std::u32string kh::repr(const std::string& str) {
+std::u32string kh::str(const std::string& str) {
     std::u32string str32;
     str32.reserve(str.size());
 
@@ -158,23 +158,23 @@ std::u32string kh::repr(const std::string& str) {
     return str32;
 }
 
-std::u32string kh::repr(const char chr) {
+std::u32string kh::str(char chr) {
     char32_t chr32 = chr;
     return std::u32string(&chr32, &chr32 + 1);
 }
 
-std::u32string kh::repr(const wchar_t chr) {
+std::u32string kh::str(wchar_t chr) {
     char32_t chr32 = chr;
     return std::u32string(&chr32, &chr32 + 1);
 }
 
-std::u32string kh::repr(const char32_t chr) {
+std::u32string kh::str(char32_t chr) {
     return std::u32string(&chr, &chr + 1);
 }
 
-#define KH_REPR_TO_STRING(TYPE)             \
-    std::u32string kh::repr(const TYPE n) { \
-        return kh::repr(std::to_string(n)); \
+#define KH_REPR_TO_STRING(TYPE)            \
+    std::u32string kh::str(TYPE n) {       \
+        return kh::str(std::to_string(n)); \
     }
 
 KH_REPR_TO_STRING(int64_t);
@@ -182,10 +182,10 @@ KH_REPR_TO_STRING(uint64_t);
 KH_REPR_TO_STRING(float);
 KH_REPR_TO_STRING(double);
 
-std::u32string kh::repr(const std::complex<float>& n) {
-    return kh::repr(n.real()) + U" + " + kh::repr(n.imag()) + U"i";
+std::u32string kh::str(const std::complex<float>& n) {
+    return kh::str(n.real()) + U" + " + kh::str(n.imag()) + U"i";
 }
 
-std::u32string kh::repr(const std::complex<double>& n) {
-    return kh::repr(n.real()) + U" + " + kh::repr(n.imag()) + U"i";
+std::u32string kh::str(const std::complex<double>& n) {
+    return kh::str(n.real()) + U" + " + kh::str(n.imag()) + U"i";
 }

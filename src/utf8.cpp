@@ -9,7 +9,7 @@
 
 
 std::u32string kh::Utf8DecodingException::format() const {
-    return this->what + U" at index " + kh::repr((uint64_t)this->index);
+    return this->what + U" at index " + kh::str((uint64_t)this->index);
 }
 
 std::string kh::encodeUtf8(const std::u32string& str) {

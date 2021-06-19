@@ -4,13 +4,28 @@
  * Copyright (C) 2021 Kithare Organization
  */
 
-#include <chrono>
 #include <cwctype>
 #include <functional>
 
-#include <kithare/parser.hpp>
+#include <kithare/lexer.hpp>
 #include <kithare/utf8.hpp>
 
+
+std::u32string kh::LexException::format() const {
+    return this->what + U" at line " + kh::str((uint64_t)this->line) + U" column " +
+           kh::str((uint64_t)this->column);
+}
+
+std::vector<kh::Token> kh::lex(const std::u32string& source) {
+    std::vector<kh::LexException> exceptions;
+    kh::LexerContext context{source, exceptions};
+    std::vector<kh::Token> tokens = kh::lex(context);
+
+    if (exceptions.empty())
+        return tokens;
+    else
+        throw exceptions;
+}
 
 /* Helper to raise error at a file */
 #define KH_RAISE_ERROR(msg, n) throw kh::LexException(msg, i + n)
@@ -28,12 +43,12 @@
     i += _start + _len
 
 /* Helper macro */
-#define _PLACE_HEXSTR_AS_TYPE(_var, ttype)                     \
-    if (chAt(i) == '\'') {                                     \
-        _var = std::stoul(hex_str, nullptr, 16);               \
-        this->tokens.emplace_back(start, i + 1, ttype, value); \
-    }                                                          \
-    else                                                       \
+#define _PLACE_HEXSTR_AS_TYPE(_var, ttype)               \
+    if (chAt(i) == '\'') {                               \
+        _var = std::stoul(hex_str, nullptr, 16);         \
+        tokens.emplace_back(start, i + 1, ttype, value); \
+    }                                                    \
+    else                                                 \
         KH_RAISE_ERROR(U"Expected a closing single quote", 0)
 
 /* Place a hex_str as an integer into tokens stack */
@@ -138,11 +153,9 @@ namespace kh {
     };
 }
 
-void kh::Parser::lex() {
-    this->lex_exceptions.clear();
-    auto lex_start = std::chrono::high_resolution_clock::now();
-
+std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
     kh::TokenizeState state = kh::TokenizeState::NONE;
+    std::vector<kh::Token> tokens;
 
     size_t start = 0;
     std::u32string temp_str;
@@ -151,9 +164,9 @@ void kh::Parser::lex() {
     /* Lambda function which accesses the string, and throws an error directly to the console if it
      * had passed the length */
     std::function<char32_t(const size_t)> chAt = [&](const size_t index) -> char32_t {
-        if (index < source.size())
-            return source[index];
-        else if (index == source.size())
+        if (index < context.source.size())
+            return context.source[index];
+        else if (index == context.source.size())
             return '\n';
         else {
             size_t i = index;
@@ -161,7 +174,7 @@ void kh::Parser::lex() {
         }
     };
 
-    for (size_t i = 0; i <= this->source.size(); i++) {
+    for (size_t i = 0; i <= context.source.size(); i++) {
         try {
             switch (state) {
                 case kh::TokenizeState::NONE:
@@ -945,37 +958,35 @@ void kh::Parser::lex() {
             }
         }
         catch (const kh::LexException& exc) {
-            this->lex_exceptions.push_back(exc);
+            context.exceptions.push_back(exc);
             state = kh::TokenizeState::NONE;
-            kh::getLineColumn(this->source, exc.index, this->lex_exceptions.back().column,
-                              this->lex_exceptions.back().line);
+            kh::getLineColumn(context.source, exc.index, context.exceptions.back().column,
+                              context.exceptions.back().line);
         }
     }
     /* We were expecting to be in a tokenize state, but got EOF, so throw error.
      * This usually happens if the user has forgotten to close a multiline comment,
      * string or buffer */
     if (state != kh::TokenizeState::NONE)
-        this->lex_exceptions.emplace_back(U"Got unexpected EOF", source.size());
+        context.exceptions.emplace_back(U"Got unexpected EOF", context.source.size());
 
     /* Fills in the `column` and `line` number attributes of each token */
     size_t column = 1, line = 1;
     size_t token_index = 0;
-    for (size_t i = 0; i <= this->source.size(); i++, column++) {
-        if (token_index >= this->tokens.size())
+    for (size_t i = 0; i <= context.source.size(); i++, column++) {
+        if (token_index >= tokens.size())
             break;
-        if (this->source[i] == '\n') {
+        if (context.source[i] == '\n') {
             column = 0;
             line++;
         }
 
-        if (this->tokens[token_index].index == i) {
-            this->tokens[token_index].column = column;
-            this->tokens[token_index].line = line;
+        if (tokens[token_index].index == i) {
+            tokens[token_index].column = column;
+            tokens[token_index].line = line;
             token_index++;
         }
     }
 
-    auto lex_end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = lex_end - lex_start;
-    this->lex_time = elapsed.count();
+    return tokens;
 }
