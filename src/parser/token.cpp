@@ -10,8 +10,7 @@
 
 kh::Token::Token() : column(0), line(0), index(0), length(0), type(), value() {}
 
-kh::Token::Token(const size_t _index, const size_t _end, const kh::TokenType _type,
-                 const kh::TokenValue& _value)
+kh::Token::Token(size_t _index, size_t _end, kh::TokenType _type, const kh::TokenValue& _value)
     : column(0), line(0), index(_index), length(_end - index), type(_type), value(_value) {}
 
 std::u32string kh::str(const kh::Token& token) {
@@ -58,7 +57,7 @@ std::u32string kh::str(const kh::Token& token) {
     return str;
 }
 
-std::u32string kh::str(const kh::TokenType type) {
+std::u32string kh::str(kh::TokenType type) {
     switch (type) {
         case kh::TokenType::IDENTIFIER:
             return U"identifier";
@@ -88,7 +87,7 @@ std::u32string kh::str(const kh::TokenType type) {
     }
 }
 
-std::u32string kh::str(const kh::Operator op) {
+std::u32string kh::str(kh::Operator op) {
     switch (op) {
         case kh::Operator::ADD:
             return U"+";
@@ -165,7 +164,7 @@ std::u32string kh::str(const kh::Operator op) {
     }
 }
 
-std::u32string kh::str(const kh::Symbol sym) {
+std::u32string kh::str(kh::Symbol sym) {
     switch (sym) {
         case kh::Symbol::SEMICOLON:
             return U";";

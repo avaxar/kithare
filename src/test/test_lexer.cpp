@@ -4,23 +4,24 @@
  * Copyright (C) 2021 Kithare Organization
  */
 
-#include <kithare/parser.hpp>
+#include <kithare/lexer.hpp>
 #include <kithare/test.hpp>
 
 
 static std::vector<std::string>* errors_ptr;
 
 static void lexerTypeTest() {
-    kh::Parser parser(U"import std;                            \n"
-                      U"def main() {                           \n"
-                      U"    // Inline comments                 \n"
-                      U"    float number = 6.9;                \n"
-                      U"    std.print(\"Hello, world!\");      \n"
-                      U"}                                      \n");
-    std::vector<kh::Token>& tokens = parser.tokens;
-    parser.lex();
+    std::vector<kh::LexException> lex_exceptions;
+    kh::LexerContext lexer_context{U"import std;                            \n"
+                                   U"def main() {                           \n"
+                                   U"    // Inline comments                 \n"
+                                   U"    float number = 6.9;                \n"
+                                   U"    std.print(\"Hello, world!\");      \n"
+                                   U"}                                      \n",
+                                   lex_exceptions};
+    std::vector<kh::Token> tokens = kh::lex(lexer_context);
 
-    KH_TEST_ASSERT(parser.ok());
+    KH_TEST_ASSERT(lex_exceptions.empty());
     KH_TEST_ASSERT(tokens.size() == 21);
     KH_TEST_ASSERT(tokens[0].type == kh::TokenType::IDENTIFIER);
     KH_TEST_ASSERT(tokens[1].type == kh::TokenType::IDENTIFIER);
@@ -49,18 +50,19 @@ error:
 }
 
 static void lexerNumeralTest() {
-    kh::Parser parser(U"0 1 2 8 9  " /* Single digit decimal integers */
-                      U"00 10 29U  " /* Multi-digit + Unsigned */
-                      U"0.1 0.2    " /* Floating point */
-                      U"11.1 .123  " /* Several other cases */
-                      U"0xFFF 0x1  " /* Hexadecimal */
-                      U"0o77 0o11  " /* Octal */
-                      U"0b111 0b01 " /* Binary */
-                      U"4i 2i 5.6i " /* Imaginary */);
-    std::vector<kh::Token>& tokens = parser.tokens;
-    parser.lex();
+    std::vector<kh::LexException> lex_exceptions;
+    kh::LexerContext lexer_context{U"0 1 2 8 9  " /* Single digit decimal integers */
+                                   U"00 10 29U  " /* Multi-digit + Unsigned */
+                                   U"0.1 0.2    " /* Floating point */
+                                   U"11.1 .123  " /* Several other cases */
+                                   U"0xFFF 0x1  " /* Hexadecimal */
+                                   U"0o77 0o11  " /* Octal */
+                                   U"0b111 0b01 " /* Binary */
+                                   U"4i 2i 5.6i " /* Imaginary */,
+                                   lex_exceptions};
+    std::vector<kh::Token> tokens = kh::lex(lexer_context);
 
-    KH_TEST_ASSERT(parser.ok());
+    KH_TEST_ASSERT(lex_exceptions.empty());
     KH_TEST_ASSERT(tokens.size() == 21);
     KH_TEST_ASSERT(tokens[0].type == kh::TokenType::INTEGER);
     KH_TEST_ASSERT(tokens[0].value.integer == 0);
@@ -110,7 +112,8 @@ error:
 }
 
 static void lexerStringTest() {
-    kh::Parser parser(
+    std::vector<kh::LexException> lex_exceptions;
+    kh::LexerContext lexer_context{
         U"\"AB\\x42\\x88\\u1234\\u9876\\v\\U00001234\\U00010000\\\"\\n\"" /* Escape tests */
         U"b'' '' b\"aFd\\x87\\x90\\xff\" 'K' b'\\b' b'\\x34''\\U0001AF21' '\\r' "
         U"\"Hello, world!\" "  /* String */
@@ -118,11 +121,11 @@ static void lexerStringTest() {
         U"\"\"\"Hello,\n"
         U"world!\"\"\" " /* Multiline string */
         U"b\"\"\"Hello,\n"
-        U"world!\"\"\" " /* Multiline buffer */);
-    std::vector<kh::Token>& tokens = parser.tokens;
-    parser.lex();
+        U"world!\"\"\" " /* Multiline buffer */,
+        lex_exceptions};
+    std::vector<kh::Token> tokens = kh::lex(lexer_context);
 
-    KH_TEST_ASSERT(parser.ok());
+    KH_TEST_ASSERT(lex_exceptions.empty());
     KH_TEST_ASSERT(tokens.size() == 13);
     KH_TEST_ASSERT(tokens[0].type == kh::TokenType::STRING);
     KH_TEST_ASSERT(tokens[0].value.string == U"AB\x42\x88\u1234\u9876\v\U00001234\U00010000\"\n");

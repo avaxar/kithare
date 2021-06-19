@@ -32,6 +32,7 @@
     <ClInclude Include="..\include\kithare\file.hpp" />
     <ClInclude Include="..\include\kithare\info.hpp" />
     <ClInclude Include="..\include\kithare\ir.hpp" />
+    <ClInclude Include="..\include\kithare\lexer.hpp" />
     <ClInclude Include="..\include\kithare\parser.hpp" />
     <ClInclude Include="..\include\kithare\string.hpp" />
     <ClInclude Include="..\include\kithare\test.hpp" />
@@ -48,10 +49,9 @@
     <ClCompile Include="..\src\file.cpp" />
     <ClCompile Include="..\src\parser\ast.cpp" />
     <ClCompile Include="..\src\parser\ast_str.cpp" />
-    <ClCompile Include="..\src\parser\body_parser.cpp" />
+    <ClCompile Include="..\src\parser\parser.cpp" />
     <ClCompile Include="..\src\parser\expr_parser.cpp" />
     <ClCompile Include="..\src\parser\lexer.cpp" />
-    <ClCompile Include="..\src\parser\parser.cpp" />
     <ClCompile Include="..\src\parser\token.cpp" />
     <ClCompile Include="..\src\string.cpp" />
     <ClCompile Include="..\src\test\test_lexer.cpp" />

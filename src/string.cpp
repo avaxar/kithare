@@ -124,7 +124,7 @@ std::u32string kh::quote(const std::string& str) {
     return quoted_str;
 }
 
-void kh::getLineColumn(const std::u32string& str, const size_t index, size_t& column, size_t& line) {
+void kh::getLineColumn(const std::u32string& str, size_t index, size_t& column, size_t& line) {
     column = 0;
     line = 1;
 
@@ -158,22 +158,22 @@ std::u32string kh::str(const std::string& str) {
     return str32;
 }
 
-std::u32string kh::str(const char chr) {
+std::u32string kh::str(char chr) {
     char32_t chr32 = chr;
     return std::u32string(&chr32, &chr32 + 1);
 }
 
-std::u32string kh::str(const wchar_t chr) {
+std::u32string kh::str(wchar_t chr) {
     char32_t chr32 = chr;
     return std::u32string(&chr32, &chr32 + 1);
 }
 
-std::u32string kh::str(const char32_t chr) {
+std::u32string kh::str(char32_t chr) {
     return std::u32string(&chr, &chr + 1);
 }
 
-#define KH_REPR_TO_STRING(TYPE)             \
-    std::u32string kh::str(const TYPE n) { \
+#define KH_REPR_TO_STRING(TYPE)            \
+    std::u32string kh::str(TYPE n) {       \
         return kh::str(std::to_string(n)); \
     }
 

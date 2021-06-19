@@ -10,6 +10,7 @@
 #include <codecvt>
 #endif
 
+#include <chrono>
 #include <clocale>
 #include <iostream>
 #include <vector>
@@ -17,6 +18,7 @@
 #include <kithare/ansi.hpp>
 #include <kithare/file.hpp>
 #include <kithare/info.hpp>
+#include <kithare/lexer.hpp>
 #include <kithare/parser.hpp>
 #include <kithare/string.hpp>
 #include <kithare/test.hpp>
@@ -126,42 +128,53 @@ static int execute() {
             std::exit(1);
         }
 
-        kh::Parser parser(source);
+        auto lex_start = std::chrono::high_resolution_clock::now();
+        std::vector<kh::LexException> lex_exceptions;
+        kh::LexerContext lexer_context{source, lex_exceptions};
+        std::vector<kh::Token> tokens = kh::lex(lexer_context);
+        auto lex_end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> lex_elapsed = lex_end - lex_start;
 
-        parser.lex();
         if (show_timer && !silent)
-            std::cout << "Finished lexing in " << parser.lex_time << "s\n";
-        if (!parser.lex_exceptions.empty()) {
+            std::cout << "Finished lexing in " << lex_elapsed.count() << "s\n";
+        if (!lex_exceptions.empty()) {
             if (!silent) {
                 CLI_ERROR_BEGIN();
-                for (kh::LexException& exc : parser.lex_exceptions)
+                for (kh::LexException& exc : lex_exceptions)
                     std::cerr << "LexException: " << kh::encodeUtf8(exc.format()) << '\n';
                 CLI_ERROR_END();
             }
 
-            code += parser.lex_exceptions.size();
+            code += lex_exceptions.size();
         }
         if (show_tokens && !silent) {
             std::cout << "tokens:\n";
-            for (kh::Token& token : parser.tokens)
+            for (kh::Token& token : tokens)
                 std::cout << '\t' << kh::encodeUtf8(kh::str(token)) << '\n';
         }
 
-        parser.parse();
+        auto parse_start = std::chrono::high_resolution_clock::now();
+        std::vector<kh::ParseException> parse_exceptions;
+        kh::ParserContext parser_context{tokens, parse_exceptions};
+        std::shared_ptr<kh::Ast> ast(kh::parseWhole(parser_context));
+        auto parse_end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> parse_elapsed = parse_end - parse_start;
+        while (true)
+            ;
         if (show_timer && !silent)
-            std::cout << "Finished parsing in " << parser.parse_time << "s\n";
-        if (!parser.parse_exceptions.empty()) {
+            std::cout << "Finished parsing in " << parse_elapsed.count() << "s\n";
+        if (!parse_exceptions.empty()) {
             if (!silent) {
                 CLI_ERROR_BEGIN();
-                for (kh::ParseException& exc : parser.parse_exceptions)
+                for (kh::ParseException& exc : parse_exceptions)
                     std::cerr << "ParseException: " << kh::encodeUtf8(exc.format()) << '\n';
                 CLI_ERROR_END();
             }
 
-            code += parser.parse_exceptions.size();
+            code += parse_exceptions.size();
         }
-        if (show_ast && !code && parser.ast && !silent)
-            std::cout << kh::encodeUtf8(kh::str(*parser.ast)) << '\n';
+        if (show_ast && !code && ast && !silent)
+            std::cout << kh::encodeUtf8(kh::str(*ast)) << '\n';
     }
 
     return code;

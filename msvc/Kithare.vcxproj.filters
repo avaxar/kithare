@@ -67,6 +67,9 @@
     <ClInclude Include="..\include\kithare\ansi.hpp">
       <Filter>include/kithare</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\kithare\lexer.hpp">
+      <Filter>include/kithare</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cli.cpp">
@@ -81,16 +84,13 @@
     <ClCompile Include="..\src\parser\ast_str.cpp">
       <Filter>src\parser</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\parser\body_parser.cpp">
+    <ClCompile Include="..\src\parser\parser.cpp">
       <Filter>src\parser</Filter>
     </ClCompile>
     <ClCompile Include="..\src\parser\expr_parser.cpp">
       <Filter>src\parser</Filter>
     </ClCompile>
     <ClCompile Include="..\src\parser\lexer.cpp">
-      <Filter>src\parser</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\parser\parser.cpp">
       <Filter>src\parser</Filter>
     </ClCompile>
     <ClCompile Include="..\src\parser\token.cpp">

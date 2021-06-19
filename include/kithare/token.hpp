@@ -17,9 +17,9 @@ namespace kh {
     enum class TokenType;
 
     std::u32string str(const kh::Token& token);
-    std::u32string str(const kh::TokenType type);
-    std::u32string str(const kh::Operator op);
-    std::u32string str(const kh::Symbol sym);
+    std::u32string str(kh::TokenType type);
+    std::u32string str(kh::Operator op);
+    std::u32string str(kh::Symbol sym);
 
     enum class Operator {
         ADD,
@@ -115,7 +115,6 @@ namespace kh {
         kh::TokenValue value;
 
         Token();
-        Token(const size_t _index, const size_t _end, const kh::TokenType _type,
-              const kh::TokenValue& _value);
+        Token(size_t _index, size_t _end, kh::TokenType _type, const kh::TokenValue& _value);
     };
 }
