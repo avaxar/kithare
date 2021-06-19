@@ -42,12 +42,12 @@
     <ClCompile Include="..\src\builder\builder.cpp" />
     <ClCompile Include="..\src\builder\ctranspiler.cpp" />
     <ClCompile Include="..\src\builder\ir.cpp" />
-    <ClCompile Include="..\src\builder\ir_repr.cpp" />
+    <ClCompile Include="..\src\builder\ir_str.cpp" />
     <ClCompile Include="..\src\builder\semanticizer.cpp" />
     <ClCompile Include="..\src\cli.cpp" />
     <ClCompile Include="..\src\file.cpp" />
     <ClCompile Include="..\src\parser\ast.cpp" />
-    <ClCompile Include="..\src\parser\ast_repr.cpp" />
+    <ClCompile Include="..\src\parser\ast_str.cpp" />
     <ClCompile Include="..\src\parser\body_parser.cpp" />
     <ClCompile Include="..\src\parser\expr_parser.cpp" />
     <ClCompile Include="..\src\parser\lexer.cpp" />

@@ -78,7 +78,7 @@
     <ClCompile Include="..\src\parser\ast.cpp">
       <Filter>src\parser</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\parser\ast_repr.cpp">
+    <ClCompile Include="..\src\parser\ast_str.cpp">
       <Filter>src\parser</Filter>
     </ClCompile>
     <ClCompile Include="..\src\parser\body_parser.cpp">
@@ -105,7 +105,7 @@
     <ClCompile Include="..\src\builder\ir.cpp">
       <Filter>src\builder</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\builder\ir_repr.cpp">
+    <ClCompile Include="..\src\builder\ir_str.cpp">
       <Filter>src\builder</Filter>
     </ClCompile>
     <ClCompile Include="..\src\builder\semanticizer.cpp">

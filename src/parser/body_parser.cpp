@@ -759,7 +759,7 @@ kh::AstEnumType* kh::Parser::parseEnum() {
             for (size_t member = 0; member < members.size() - 1; member++) {
                 if (members[member] == members.back()) {
                     this->parse_exceptions.emplace_back(U"This enum member has the same name as #" +
-                                                            kh::repr((uint64_t)member + 1),
+                                                            kh::str((uint64_t)member + 1),
                                                         token);
                     break;
                 }

@@ -144,7 +144,7 @@ static int execute() {
         if (show_tokens && !silent) {
             std::cout << "tokens:\n";
             for (kh::Token& token : parser.tokens)
-                std::cout << '\t' << kh::encodeUtf8(kh::repr(token)) << '\n';
+                std::cout << '\t' << kh::encodeUtf8(kh::str(token)) << '\n';
         }
 
         parser.parse();
@@ -161,7 +161,7 @@ static int execute() {
             code += parser.parse_exceptions.size();
         }
         if (show_ast && !code && parser.ast && !silent)
-            std::cout << kh::encodeUtf8(kh::repr(*parser.ast)) << '\n';
+            std::cout << kh::encodeUtf8(kh::str(*parser.ast)) << '\n';
     }
 
     return code;
@@ -191,7 +191,7 @@ int main(const int argc, char* argv[])
     /* Ignore the first argument */
     for (int arg = 1; arg < argc; arg++)
 #ifdef _WIN32
-        args.push_back(kh::repr(std::wstring(argv[arg])));
+        args.push_back(kh::str(std::wstring(argv[arg])));
 #else
         args.push_back(kh::decodeUtf8(std::string(argv[arg])));
 #endif

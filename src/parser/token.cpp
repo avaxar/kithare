@@ -14,22 +14,22 @@ kh::Token::Token(const size_t _index, const size_t _end, const kh::TokenType _ty
                  const kh::TokenValue& _value)
     : column(0), line(0), index(_index), length(_end - index), type(_type), value(_value) {}
 
-std::u32string kh::repr(const kh::Token& token) {
-    std::u32string str = kh::repr(token.type) + U" ";
+std::u32string kh::str(const kh::Token& token) {
+    std::u32string str = kh::str(token.type) + U" ";
 
     switch (token.type) {
         case kh::TokenType::IDENTIFIER:
             str += token.value.identifier;
             break;
         case kh::TokenType::OPERATOR:
-            str += kh::repr(token.value.operator_type);
+            str += kh::str(token.value.operator_type);
             break;
         case kh::TokenType::SYMBOL:
-            str += kh::repr(token.value.symbol_type);
+            str += kh::str(token.value.symbol_type);
             break;
 
         case kh::TokenType::CHARACTER:
-            str += kh::repr(token.value.character);
+            str += kh::str(token.value.character);
             break;
         case kh::TokenType::STRING:
             str += kh::quote(token.value.string);
@@ -39,16 +39,16 @@ std::u32string kh::repr(const kh::Token& token) {
             break;
 
         case kh::TokenType::UINTEGER:
-            str += kh::repr(token.value.uinteger);
+            str += kh::str(token.value.uinteger);
             break;
         case kh::TokenType::INTEGER:
-            str += kh::repr(token.value.integer);
+            str += kh::str(token.value.integer);
             break;
         case kh::TokenType::FLOATING:
-            str += kh::repr(token.value.floating);
+            str += kh::str(token.value.floating);
             break;
         case kh::TokenType::IMAGINARY:
-            str += kh::repr(token.value.imaginary) + U"i";
+            str += kh::str(token.value.imaginary) + U"i";
             break;
 
         default:
@@ -58,7 +58,7 @@ std::u32string kh::repr(const kh::Token& token) {
     return str;
 }
 
-std::u32string kh::repr(const kh::TokenType type) {
+std::u32string kh::str(const kh::TokenType type) {
     switch (type) {
         case kh::TokenType::IDENTIFIER:
             return U"identifier";
@@ -88,7 +88,7 @@ std::u32string kh::repr(const kh::TokenType type) {
     }
 }
 
-std::u32string kh::repr(const kh::Operator op) {
+std::u32string kh::str(const kh::Operator op) {
     switch (op) {
         case kh::Operator::ADD:
             return U"+";
@@ -165,7 +165,7 @@ std::u32string kh::repr(const kh::Operator op) {
     }
 }
 
-std::u32string kh::repr(const kh::Symbol sym) {
+std::u32string kh::str(const kh::Symbol sym) {
     switch (sym) {
         case kh::Symbol::SEMICOLON:
             return U";";

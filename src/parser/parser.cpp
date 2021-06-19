@@ -9,13 +9,13 @@
 
 
 std::u32string kh::LexException::format() const {
-    return this->what + U" at line " + kh::repr((uint64_t)this->line) + U" column " +
-           kh::repr((uint64_t)this->column);
+    return this->what + U" at line " + kh::str((uint64_t)this->line) + U" column " +
+           kh::str((uint64_t)this->column);
 }
 
 std::u32string kh::ParseException::format() const {
-    return this->what + U" at line " + kh::repr((uint64_t)this->token.line) + U" column " +
-           kh::repr((uint64_t)this->token.column);
+    return this->what + U" at line " + kh::str((uint64_t)this->token.line) + U" column " +
+           kh::str((uint64_t)this->token.column);
 }
 
 kh::Parser::Parser() {}
