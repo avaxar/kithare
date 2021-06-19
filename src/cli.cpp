@@ -159,8 +159,7 @@ static int execute() {
         std::shared_ptr<kh::Ast> ast(kh::parseWhole(parser_context));
         auto parse_end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> parse_elapsed = parse_end - parse_start;
-        while (true)
-            ;
+
         if (show_timer && !silent)
             std::cout << "Finished parsing in " << parse_elapsed.count() << "s\n";
         if (!parse_exceptions.empty()) {

@@ -23,8 +23,8 @@ namespace kh {
         size_t line;
         size_t index;
 
-        LexException(const std::u32string& _what, size_t _column, size_t _line, size_t _index)
-            : what(_what), column(_column), line(_line), index(_index) {}
+        LexException(const std::u32string& _what, /* size_t _column, size_t _line, */ size_t _index)
+            : what(_what), /* column(_column), line(_line), */ index(_index) {}
         virtual ~LexException() {}
         virtual std::u32string format() const;
     };
