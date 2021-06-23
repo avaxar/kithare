@@ -7,10 +7,9 @@
 #include <kithare/ast.hpp>
 
 
-#define REPR_ALL_IN(var)  \
-    for (auto _var : var) \
-        if (_var)         \
-    str += U"\n\t" + ind + kh::str(*_var, indent + 1)
+#define REPR_ALL_IN(var)   \
+    for (auto& _var : var) \
+    str += U"\n\t" + ind + kh::str(_var, indent + 1)
 
 #define BODY_HEADER()                   \
     std::u32string ind;                 \
@@ -80,15 +79,13 @@ std::u32string kh::str(const kh::AstUserType& type_ast, size_t indent) {
     if (!type_ast.members.empty()) {
         str += U"\n\t" + ind + U"member(s):";
         for (auto& member : type_ast.members)
-            if (member)
-                str += U"\n\t\t" + ind + kh::str(*member, indent + 2);
+            str += U"\n\t\t" + ind + kh::str(member, indent + 2);
     }
 
     if (!type_ast.methods.empty()) {
         str += U"\n\t" + ind + U"method(s):";
         for (auto& method : type_ast.methods)
-            if (method)
-                str += U"\n\t\t" + ind + kh::str(*method, indent + 2);
+            str += U"\n\t\t" + ind + kh::str(method, indent + 2);
     }
 
     return str;
@@ -123,7 +120,7 @@ std::u32string kh::AstExpression::str(size_t indent) const {
     return U"[unknown expression]";
 }
 
-std::u32string kh::AstIdentifierExpression::str(size_t indent) const {
+std::u32string kh::AstIdentifiers::str(size_t indent) const {
     BODY_HEADER();
     str = U"identifier(s): ";
 
@@ -135,13 +132,10 @@ std::u32string kh::AstIdentifierExpression::str(size_t indent) const {
     if (!this->generics.empty()) {
         str += U"!(";
         for (size_t i = 0; i < this->generics.size(); i++) {
-            if (!this->generics[i])
-                continue;
-
             for (size_t refs = 0; refs < this->generics_refs[i]; refs++)
                 str += U"ref ";
 
-            str += kh::str(*(this->generics[i]), indent);
+            str += kh::str(this->generics[i], indent);
 
             for (size_t d = 0; d < this->generics_array[i].size(); d++)
                 str += U"[" + kh::str(this->generics_array[i][d]) + U"]";
@@ -157,7 +151,7 @@ std::u32string kh::AstIdentifierExpression::str(size_t indent) const {
     return str;
 }
 
-std::u32string kh::AstUnaryExpression::str(size_t indent) const {
+std::u32string kh::AstUnaryOperation::str(size_t indent) const {
     BODY_HEADER();
     str = U"unary expression:";
 
@@ -169,7 +163,7 @@ std::u32string kh::AstUnaryExpression::str(size_t indent) const {
     return str;
 }
 
-std::u32string kh::AstRevUnaryExpression::str(size_t indent) const {
+std::u32string kh::AstRevUnaryOperation::str(size_t indent) const {
     BODY_HEADER();
     str = U"reverse unary expression:";
 
@@ -181,7 +175,7 @@ std::u32string kh::AstRevUnaryExpression::str(size_t indent) const {
     return str;
 }
 
-std::u32string kh::AstBinaryExpression::str(size_t indent) const {
+std::u32string kh::AstBinaryOperation::str(size_t indent) const {
     BODY_HEADER();
     str = U"binary expression:";
 
@@ -196,7 +190,7 @@ std::u32string kh::AstBinaryExpression::str(size_t indent) const {
     return str;
 }
 
-std::u32string kh::AstTernaryExpression::str(size_t indent) const {
+std::u32string kh::AstComparisonOperation::str(size_t indent) const {
     BODY_HEADER();
     str = U"ternary expression:";
 
@@ -261,26 +255,24 @@ std::u32string kh::AstCallExpression::str(size_t indent) const {
     return str;
 }
 
-std::u32string kh::AstDeclarationExpression::str(size_t indent) const {
+std::u32string kh::AstDeclaration::str(size_t indent) const {
     BODY_HEADER();
     str = U"declare:";
 
-    if (this->var_type) {
-        str += U"\n\t" + ind + U"type: ";
+    str += U"\n\t" + ind + U"type: ";
 
-        if (this->is_static)
-            str += U"static ";
-        if (!this->is_public)
-            str += U"private ";
+    if (this->is_static)
+        str += U"static ";
+    if (!this->is_public)
+        str += U"private ";
 
-        for (size_t refs = 0; refs < this->refs; refs++)
-            str += U"ref ";
+    for (size_t refs = 0; refs < this->refs; refs++)
+        str += U"ref ";
 
-        str += kh::str(*this->var_type, indent + 1);
+    str += kh::str(this->var_type, indent + 1);
 
-        for (uint64_t dimension : this->var_array)
-            str += U'[' + kh::str(dimension) + U']';
-    }
+    for (uint64_t dimension : this->var_array)
+        str += U'[' + kh::str(dimension) + U']';
 
     str += U"\n\t" + ind + U"name: " + this->var_name;
 
@@ -291,7 +283,7 @@ std::u32string kh::AstDeclarationExpression::str(size_t indent) const {
     return str;
 }
 
-std::u32string kh::AstFunctionExpression::str(size_t indent) const {
+std::u32string kh::AstFunction::str(size_t indent) const {
     BODY_HEADER();
     str = this->is_conditional ? U"conditional function:" : U"function:";
 
@@ -318,23 +310,20 @@ std::u32string kh::AstFunctionExpression::str(size_t indent) const {
         }
     }
 
-    if (this->return_type) {
-        str += U"\n\t" + ind + U"return type: ";
+    str += U"\n\t" + ind + U"return type: ";
 
-        for (size_t refs = 0; refs < this->return_refs; refs++)
-            str += U"ref ";
-        str += kh::str(*this->return_type, indent + 1);
+    for (size_t refs = 0; refs < this->return_refs; refs++)
+        str += U"ref ";
+    str += kh::str(this->return_type, indent + 1);
 
-        for (uint64_t dimension : this->return_array)
-            str += U'[' + kh::str(dimension) + U']';
-    }
+    for (uint64_t dimension : this->return_array)
+        str += U'[' + kh::str(dimension) + U']';
 
     str += U"\n\t" + ind + U"argument(s):";
     if (this->arguments.empty())
         str += U" [none]";
     for (auto& arg : this->arguments)
-        if (arg)
-            str += U"\n\t\t" + ind + kh::str(*arg, indent + 2);
+        str += U"\n\t\t" + ind + kh::str(arg, indent + 2);
 
     str += U"\n\t" + ind + U"body:";
     for (auto& part : this->body)
@@ -344,7 +333,7 @@ std::u32string kh::AstFunctionExpression::str(size_t indent) const {
     return str;
 }
 
-std::u32string kh::AstScopeExpression::str(size_t indent) const {
+std::u32string kh::AstScoping::str(size_t indent) const {
     BODY_HEADER();
     str = U"scoping (";
 
@@ -361,35 +350,35 @@ std::u32string kh::AstScopeExpression::str(size_t indent) const {
     return str;
 }
 
-std::u32string kh::AstConstValue::str(size_t indent) const {
+std::u32string kh::AstValue::str(size_t indent) const {
     BODY_HEADER();
 
     switch (this->value_type) {
-        case kh::AstConstValue::ValueType::CHARACTER:
+        case kh::AstValue::ValueType::CHARACTER:
             str = U"character: " + this->character;
             break;
 
-        case kh::AstConstValue::ValueType::UINTEGER:
+        case kh::AstValue::ValueType::UINTEGER:
             str = U"unsigned integer: " + kh::str(this->uinteger);
             break;
 
-        case kh::AstConstValue::ValueType::INTEGER:
+        case kh::AstValue::ValueType::INTEGER:
             str = U"integer: " + kh::str(this->integer);
             break;
 
-        case kh::AstConstValue::ValueType::FLOATING:
+        case kh::AstValue::ValueType::FLOATING:
             str = U"floating: " + kh::str(this->floating);
             break;
 
-        case kh::AstConstValue::ValueType::IMAGINARY:
+        case kh::AstValue::ValueType::IMAGINARY:
             str = U"imaginary: " + kh::str(this->imaginary) + U"i";
             break;
 
-        case kh::AstConstValue::ValueType::BUFFER:
+        case kh::AstValue::ValueType::BUFFER:
             str = U"buffer: " + kh::quote(this->buffer);
             break;
 
-        case kh::AstConstValue::ValueType::STRING:
+        case kh::AstValue::ValueType::STRING:
             str = U"string: " + kh::quote(this->string);
             break;
 
@@ -400,7 +389,7 @@ std::u32string kh::AstConstValue::str(size_t indent) const {
     return str;
 }
 
-std::u32string kh::AstTupleExpression::str(size_t indent) const {
+std::u32string kh::AstTuple::str(size_t indent) const {
     BODY_HEADER();
     str = U"tuple:";
 
@@ -415,7 +404,7 @@ std::u32string kh::AstTupleExpression::str(size_t indent) const {
     return str;
 }
 
-std::u32string kh::AstListExpression::str(size_t indent) const {
+std::u32string kh::AstList::str(size_t indent) const {
     BODY_HEADER();
     str = U"list:";
 
@@ -430,7 +419,7 @@ std::u32string kh::AstListExpression::str(size_t indent) const {
     return str;
 }
 
-std::u32string kh::AstDictExpression::str(size_t indent) const {
+std::u32string kh::AstDict::str(size_t indent) const {
     BODY_HEADER();
     str = U"dict:";
 

@@ -21,18 +21,18 @@ static void parserImportTest() {
     std::vector<kh::Token> tokens = kh::lex(lexer_context);
     std::vector<kh::ParseException> parse_exceptions;
     kh::ParserContext parser_context{tokens, parse_exceptions};
-    std::shared_ptr<kh::Ast> ast(kh::parseWhole(parser_context));
+    kh::Ast ast = kh::parseWhole(parser_context);
 
     KH_TEST_ASSERT(lex_exceptions.empty());
     KH_TEST_ASSERT(parse_exceptions.empty());
-    KH_TEST_ASSERT(ast->imports.size() == 4);
-    KH_TEST_ASSERT(ast->imports[0]->identifier == U"stuff");
-    KH_TEST_ASSERT(ast->imports[1]->identifier == U"other");
-    KH_TEST_ASSERT(ast->imports[2]->identifier == U"other");
-    KH_TEST_ASSERT(ast->imports[0]->is_include == false);
-    KH_TEST_ASSERT(ast->imports[1]->is_include == false);
-    KH_TEST_ASSERT(ast->imports[2]->is_include == false);
-    KH_TEST_ASSERT(ast->imports[3]->is_include == true);
+    KH_TEST_ASSERT(ast.imports.size() == 4);
+    KH_TEST_ASSERT(ast.imports[0].identifier == U"stuff");
+    KH_TEST_ASSERT(ast.imports[1].identifier == U"other");
+    KH_TEST_ASSERT(ast.imports[2].identifier == U"other");
+    KH_TEST_ASSERT(ast.imports[0].is_include == false);
+    KH_TEST_ASSERT(ast.imports[1].is_include == false);
+    KH_TEST_ASSERT(ast.imports[2].is_include == false);
+    KH_TEST_ASSERT(ast.imports[3].is_include == true);
     return;
 error:
     errors_ptr->back() += "parserImportTest";

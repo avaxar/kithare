@@ -66,50 +66,45 @@ namespace kh {
                identifier == U"continue" || identifier == U"return" || identifier == U"ref";
     }
 
-    kh::Ast* parse(const std::vector<kh::Token>& tokens);
+    kh::Ast parse(const std::vector<kh::Token>& tokens);
     kh::AstExpression* parseExpression(const std::vector<kh::Token>& tokens);
 
     /* Most of these parses stuff such as imports, includes, classes, structs, enums, functions at the
      * top level scope */
-    kh::Ast* parseWhole(KH_PARSE_CTX);
-    kh::AstImport* parseImport(KH_PARSE_CTX, bool is_include);
+    kh::Ast parseWhole(KH_PARSE_CTX);
+    kh::AstImport parseImport(KH_PARSE_CTX, bool is_include);
     void parseAccessAttribs(KH_PARSE_CTX, bool& is_static, bool& is_public);
-    kh::AstFunctionExpression* parseFunction(KH_PARSE_CTX, bool is_static, bool is_public,
-                                             bool is_conditional);
-    kh::AstDeclarationExpression* parseDeclaration(KH_PARSE_CTX, bool is_static, bool is_public);
-    kh::AstUserType* parseUserType(KH_PARSE_CTX, bool is_class);
-    kh::AstEnumType* parseEnum(KH_PARSE_CTX);
+    kh::AstFunction parseFunction(KH_PARSE_CTX, bool is_static, bool is_public, bool is_conditional);
+    kh::AstDeclaration parseDeclaration(KH_PARSE_CTX, bool is_static, bool is_public);
+    kh::AstUserType parseUserType(KH_PARSE_CTX, bool is_class);
+    kh::AstEnumType parseEnum(KH_PARSE_CTX);
     std::vector<std::shared_ptr<kh::AstBody>> parseBody(KH_PARSE_CTX, size_t loop_count = 0);
     void parseTopScopeIdentifiersAndGenericArgs(KH_PARSE_CTX, std::vector<std::u32string>& identifiers,
                                                 std::vector<std::u32string>& generic_args);
 
     /* These parse expressions below are ordered based from their precedence from lowest to
      * highest */
-    kh::AstExpression* parseExpression(KH_PARSE_CTX);     /* Parses an expression */
-    kh::AstExpression* parseAssignOps(KH_PARSE_CTX);      /* Parses assignment operations and in-place
-                                                           * operations `=`, `+=`, `-=`, `*=`, ... */
-    kh::AstExpression* parseTernary(KH_PARSE_CTX);        /* Parses ternary expressions */
-    kh::AstExpression* parseOr(KH_PARSE_CTX);             /* Parses logical `or` */
-    kh::AstExpression* parseAnd(KH_PARSE_CTX);            /* Parses logical `and` */
-    kh::AstExpression* parseNot(KH_PARSE_CTX);            /* Parses logical `not` */
-    kh::AstExpression* parseComparison(KH_PARSE_CTX);     /* Parses `==` `!=` `<` `>` `<=` `>=` */
-    kh::AstExpression* parseBitwiseOr(KH_PARSE_CTX);      /* Parses bitwise OR `|` */
-    kh::AstExpression* parseBitwiseAnd(KH_PARSE_CTX);     /* Parses bitwise AND `&` */
-    kh::AstExpression* parseBitwiseShift(KH_PARSE_CTX);   /* Parses bitwise shift `<<` `>>` */
-    kh::AstExpression* parseAddSub(KH_PARSE_CTX);         /* Parses `+` and `-` */
-    kh::AstExpression* parseMulDivMod(KH_PARSE_CTX);      /* Parses `*`, `/`, and `%` */
-    kh::AstExpression* parseUnary(KH_PARSE_CTX);          /* Parses unary operations */
-    kh::AstExpression* parseExponentiation(KH_PARSE_CTX); /* Parses `^` */
-    kh::AstExpression* parseRevUnary(KH_PARSE_CTX);       /* Parses reverse unary operations */
-    kh::AstExpression* parseLiteral(KH_PARSE_CTX);        /* Parses literals */
-    kh::AstExpression* parseIdentifiers(KH_PARSE_CTX);    /* Parses identifiers with scoping and
-                                                           * templates */
-    kh::AstExpression* parseTuple(KH_PARSE_CTX, /* Parses tuples with parentheses expressions */
-                                  kh::Symbol opening = kh::Symbol::PARENTHESES_OPEN,
+    kh::AstExpression* parseExpression(KH_PARSE_CTX);
+    kh::AstExpression* parseAssignOps(KH_PARSE_CTX);
+    kh::AstExpression* parseTernary(KH_PARSE_CTX);
+    kh::AstExpression* parseOr(KH_PARSE_CTX);
+    kh::AstExpression* parseAnd(KH_PARSE_CTX);
+    kh::AstExpression* parseNot(KH_PARSE_CTX);
+    kh::AstExpression* parseComparison(KH_PARSE_CTX);
+    kh::AstExpression* parseBitwiseOr(KH_PARSE_CTX);
+    kh::AstExpression* parseBitwiseAnd(KH_PARSE_CTX);
+    kh::AstExpression* parseBitwiseShift(KH_PARSE_CTX);
+    kh::AstExpression* parseAddSub(KH_PARSE_CTX);
+    kh::AstExpression* parseMulDivMod(KH_PARSE_CTX);
+    kh::AstExpression* parseUnary(KH_PARSE_CTX);
+    kh::AstExpression* parseExponentiation(KH_PARSE_CTX);
+    kh::AstExpression* parseRevUnary(KH_PARSE_CTX);
+    kh::AstExpression* parseLiteral(KH_PARSE_CTX);
+    kh::AstIdentifiers parseIdentifiers(KH_PARSE_CTX);
+    kh::AstExpression* parseTuple(KH_PARSE_CTX, kh::Symbol opening = kh::Symbol::PARENTHESES_OPEN,
                                   kh::Symbol closing = kh::Symbol::PARENTHESES_CLOSE,
                                   bool explicit_tuple = true);
-    kh::AstExpression* parseList(KH_PARSE_CTX); /* Parses list literals */
-    kh::AstExpression* parseDict(KH_PARSE_CTX); /* Parses dict literals */
-    std::vector<uint64_t> parseArrayDimension(KH_PARSE_CTX,
-                                              std::shared_ptr<kh::AstIdentifierExpression>& type);
+    kh::AstExpression* parseList(KH_PARSE_CTX);
+    kh::AstExpression* parseDict(KH_PARSE_CTX);
+    std::vector<uint64_t> parseArrayDimension(KH_PARSE_CTX, kh::AstIdentifiers& type);
 }

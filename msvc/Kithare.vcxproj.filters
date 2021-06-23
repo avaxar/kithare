@@ -7,9 +7,6 @@
     <Filter Include="src">
       <UniqueIdentifier>{e5627a32-dce4-468c-9878-44417de8e64e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{26183c5e-66ce-477f-ae3e-e96815fe9ebd}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\parser">
       <UniqueIdentifier>{7a3ba78c-1364-4dcb-a772-12966d2406ac}</UniqueIdentifier>
     </Filter>
@@ -19,15 +16,18 @@
     <Filter Include="src\test">
       <UniqueIdentifier>{b7496bb6-050e-4348-8312-20070a76b51b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="resources">
+      <UniqueIdentifier>{26183c5e-66ce-477f-ae3e-e96815fe9ebd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\assets\icon.ico">
-      <Filter>Resource Files</Filter>
+      <Filter>resources</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\assets\Kithare.rc">
-      <Filter>Resource Files</Filter>
+      <Filter>resources</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>

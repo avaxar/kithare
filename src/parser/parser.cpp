@@ -12,10 +12,10 @@ std::u32string kh::ParseException::format() const {
            kh::str((uint64_t)this->token.column);
 }
 
-kh::Ast* kh::parse(const std::vector<kh::Token>& tokens) {
+kh::Ast kh::parse(const std::vector<kh::Token>& tokens) {
     std::vector<kh::ParseException> exceptions;
     kh::ParserContext context{tokens, exceptions};
-    kh::Ast* ast = kh::parseWhole(context);
+    kh::Ast ast = kh::parseWhole(context);
 
     if (exceptions.empty())
         return ast;
@@ -23,14 +23,14 @@ kh::Ast* kh::parse(const std::vector<kh::Token>& tokens) {
         throw exceptions;
 }
 
-kh::Ast* kh::parseWhole(KH_PARSE_CTX) {
+kh::Ast kh::parseWhole(KH_PARSE_CTX) {
     context.exceptions.clear();
 
-    std::vector<std::shared_ptr<kh::AstImport>> imports;
-    std::vector<std::shared_ptr<kh::AstFunctionExpression>> functions;
-    std::vector<std::shared_ptr<kh::AstUserType>> user_types;
-    std::vector<std::shared_ptr<kh::AstEnumType>> enums;
-    std::vector<std::shared_ptr<kh::AstDeclarationExpression>> variables;
+    std::vector<kh::AstImport> imports;
+    std::vector<kh::AstFunction> functions;
+    std::vector<kh::AstUserType> user_types;
+    std::vector<kh::AstEnumType> enums;
+    std::vector<kh::AstDeclaration> variables;
 
     for (context.ti = 0; context.ti < context.tokens.size();) {
         kh::Token& token = context.tok();
@@ -66,13 +66,12 @@ kh::Ast* kh::parseWhole(KH_PARSE_CTX) {
 
                     KH_PARSE_GUARD();
                     /* Parses return type, name, arguments, and body */
-                    functions.emplace_back(
-                        kh::parseFunction(context, is_static, is_public, conditional));
+                    functions.push_back(kh::parseFunction(context, is_static, is_public, conditional));
 
-                    if (!functions.back()->identifiers.size())
+                    if (functions.back().identifiers.empty())
                         context.exceptions.emplace_back(
                             U"Lambda functions cannot be declared at the top scope", token);
-                    if (is_static && functions.back()->identifiers.size() == 1)
+                    if (is_static && functions.back().identifiers.size() == 1)
                         context.exceptions.emplace_back(U"A top scope function cannot be `static`",
                                                         token);
                 }
@@ -80,31 +79,31 @@ kh::Ast* kh::parseWhole(KH_PARSE_CTX) {
                 else if (identifier == U"class") {
                     context.ti++;
                     KH_PARSE_GUARD();
-                    user_types.emplace_back(kh::parseUserType(context, true));
+                    user_types.push_back(kh::parseUserType(context, true));
                 }
                 /* Parses struct declaration */
                 else if (identifier == U"struct") {
                     context.ti++;
                     KH_PARSE_GUARD();
-                    user_types.emplace_back(kh::parseUserType(context, false));
+                    user_types.push_back(kh::parseUserType(context, false));
                 }
                 /* Parses enum declaration */
                 else if (identifier == U"enum") {
                     context.ti++;
                     KH_PARSE_GUARD();
-                    enums.emplace_back(kh::parseEnum(context));
+                    enums.push_back(kh::parseEnum(context));
                 }
                 /* Parses import statement */
                 else if (identifier == U"import") {
                     context.ti++;
                     KH_PARSE_GUARD();
-                    imports.emplace_back(kh::parseImport(context, false)); /* is_include = false */
+                    imports.push_back(kh::parseImport(context, false)); /* is_include = false */
                 }
                 /* Parses include statement */
                 else if (identifier == U"include") {
                     context.ti++;
                     KH_PARSE_GUARD();
-                    imports.emplace_back(kh::parseImport(context, true)); /* is_include = true */
+                    imports.push_back(kh::parseImport(context, true)); /* is_include = true */
                 }
                 /* If it was none of those above, it's probably a variable declaration */
                 else {
@@ -117,7 +116,7 @@ kh::Ast* kh::parseWhole(KH_PARSE_CTX) {
                                                         token);
 
                     /* Parses the variable's return type, name, and assignment value */
-                    variables.emplace_back(kh::parseDeclaration(context, is_static, is_public));
+                    variables.push_back(kh::parseDeclaration(context, is_static, is_public));
 
                     /* Makes sure it ends with a semicolon */
                     KH_PARSE_GUARD();
@@ -174,10 +173,10 @@ end:
         context.exceptions = cleaned_exceptions;
     }
 
-    return new kh::Ast(imports, functions, user_types, enums, variables);
+    return {imports, functions, user_types, enums, variables};
 }
 
-kh::AstImport* kh::parseImport(KH_PARSE_CTX, bool is_include) {
+kh::AstImport kh::parseImport(KH_PARSE_CTX, bool is_include) {
     std::vector<std::u32string> path;
     bool is_relative = false;
     std::u32string identifier;
@@ -268,8 +267,8 @@ kh::AstImport* kh::parseImport(KH_PARSE_CTX, bool is_include) {
         context.exceptions.emplace_back(U"Was expecting a semicolon after the " + type + U" statement",
                                         token);
 end:
-    return new kh::AstImport(index, path, is_include, is_relative,
-                             path.empty() ? U"" : (identifier.empty() ? path.back() : identifier));
+    return {index, path, is_include, is_relative,
+            path.empty() ? U"" : (identifier.empty() ? path.back() : identifier)};
 }
 
 void kh::parseAccessAttribs(KH_PARSE_CTX, bool& is_static, bool& is_public) {
@@ -298,15 +297,14 @@ end:
     return;
 }
 
-kh::AstFunctionExpression* kh::parseFunction(KH_PARSE_CTX, bool is_static, bool is_public,
-                                             bool is_conditional) {
+kh::AstFunction kh::parseFunction(KH_PARSE_CTX, bool is_static, bool is_public, bool is_conditional) {
     std::vector<std::u32string> identifiers;
     std::vector<std::u32string> generic_args;
     std::vector<uint64_t> id_array;
-    std::shared_ptr<kh::AstIdentifierExpression> return_type;
+    kh::AstIdentifiers return_type{0, {}, {}, {}, {}};
     std::vector<uint64_t> return_array = {};
     size_t return_refs = 0;
-    std::vector<std::shared_ptr<kh::AstDeclarationExpression>> arguments;
+    std::vector<kh::AstDeclaration> arguments;
     std::vector<std::shared_ptr<kh::AstBody>> body;
 
     kh::Token token = context.tok();
@@ -442,7 +440,7 @@ kh::AstFunctionExpression* kh::parseFunction(KH_PARSE_CTX, bool is_static, bool 
                 token = context.tok();
             }
 
-            return_type.reset((kh::AstIdentifierExpression*)kh::parseIdentifiers(context));
+            return_type = kh::parseIdentifiers(context);
             KH_PARSE_GUARD();
             token = context.tok();
 
@@ -453,25 +451,24 @@ kh::AstFunctionExpression* kh::parseFunction(KH_PARSE_CTX, bool is_static, bool 
             }
         }
         else {
-            return_type.reset(new kh::AstIdentifierExpression(token.index, {U"void"}, {}, {}, {}));
+            return_type = kh::AstIdentifiers(token.index, {U"void"}, {}, {}, {});
 
             context.exceptions.emplace_back(U"Was expecting an arrow specifying a return type", token);
         }
     }
     else {
-        return_type.reset(new kh::AstIdentifierExpression(token.index, {U"void"}, {}, {}, {}));
+        return_type = kh::AstIdentifiers(token.index, {U"void"}, {}, {}, {});
     }
 
     /* Parses the function's body */
     body = kh::parseBody(context);
 end:
-    return new kh::AstFunctionExpression(index, identifiers, generic_args, id_array, return_array,
-                                         return_type, return_refs, arguments, body, is_conditional,
-                                         is_static, is_public);
+    return {index,       identifiers, generic_args, id_array,       return_array, return_type,
+            return_refs, arguments,   body,         is_conditional, is_static,    is_public};
 }
 
-kh::AstDeclarationExpression* kh::parseDeclaration(KH_PARSE_CTX, bool is_static, bool is_public) {
-    std::shared_ptr<kh::AstIdentifierExpression> var_type;
+kh::AstDeclaration kh::parseDeclaration(KH_PARSE_CTX, bool is_static, bool is_public) {
+    kh::AstIdentifiers var_type{0, {}, {}, {}, {}};
     std::vector<uint64_t> var_array = {};
     std::u32string var_name;
     std::shared_ptr<kh::AstExpression> expression = nullptr;
@@ -489,7 +486,7 @@ kh::AstDeclarationExpression* kh::parseDeclaration(KH_PARSE_CTX, bool is_static,
     }
 
     /* Parses the variable's type */
-    var_type.reset((kh::AstIdentifierExpression*)kh::parseIdentifiers(context));
+    var_type = kh::parseIdentifiers(context);
 
     /* Possible array type `float[3] var;` */
     KH_PARSE_GUARD();
@@ -526,16 +523,15 @@ kh::AstDeclarationExpression* kh::parseDeclaration(KH_PARSE_CTX, bool is_static,
     else
         goto end;
 end:
-    return new kh::AstDeclarationExpression(index, var_type, var_array, var_name, expression, refs,
-                                            is_static, is_public);
+    return {index, var_type, var_array, var_name, expression, refs, is_static, is_public};
 }
 
-kh::AstUserType* kh::parseUserType(KH_PARSE_CTX, bool is_class) {
+kh::AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
     std::vector<std::u32string> identifiers;
-    std::shared_ptr<kh::AstIdentifierExpression> base;
+    std::shared_ptr<kh::AstIdentifiers> base;
     std::vector<std::u32string> generic_args;
-    std::vector<std::shared_ptr<kh::AstDeclarationExpression>> members;
-    std::vector<std::shared_ptr<kh::AstFunctionExpression>> methods;
+    std::vector<kh::AstDeclaration> members;
+    std::vector<kh::AstFunction> methods;
 
     kh::Token token = context.tok();
     size_t index = token.index;
@@ -554,7 +550,7 @@ kh::AstUserType* kh::parseUserType(KH_PARSE_CTX, bool is_class) {
         KH_PARSE_GUARD();
 
         /* Parses base class' identifier */
-        base.reset(static_cast<kh::AstIdentifierExpression*>(kh::parseIdentifiers(context)));
+        base.reset(new kh::AstIdentifiers(kh::parseIdentifiers(context)));
         KH_PARSE_GUARD();
         token = context.tok();
 
@@ -608,15 +604,20 @@ kh::AstUserType* kh::parseUserType(KH_PARSE_CTX, bool is_class) {
                         /* Parse access types */
                         kh::parseAccessAttribs(context, is_static, is_public);
                         KH_PARSE_GUARD();
+
                         /* Parse function declaration */
-                        methods.emplace_back(
+                        methods.push_back(
                             kh::parseFunction(context, is_static, is_public, conditional));
 
                         /* Ensures that methods don't have generic argument(s) */
-                        if (methods.back() && !methods.back()->generic_args.empty()) {
+                        if (methods.back().generic_args.empty()) {
                             context.exceptions.emplace_back(
                                 U"A method cannot have (a) generic argument(s)", token);
                         }
+
+                        /* Nor a lambda.. */
+                        if (methods.back().identifiers.empty())
+                            context.exceptions.emplace_back(U"A method cannot be a lambda", token);
                     }
                     /* Member/class variables */
                     else {
@@ -624,8 +625,9 @@ kh::AstUserType* kh::parseUserType(KH_PARSE_CTX, bool is_class) {
                         /* Parse access types */
                         kh::parseAccessAttribs(context, is_static, is_public);
                         KH_PARSE_GUARD();
+
                         /* Parse variable declaration */
-                        members.emplace_back(kh::parseDeclaration(context, is_static, is_public));
+                        members.push_back(kh::parseDeclaration(context, is_static, is_public));
 
                         KH_PARSE_GUARD();
                         token = context.tok();
@@ -674,10 +676,10 @@ kh::AstUserType* kh::parseUserType(KH_PARSE_CTX, bool is_class) {
         context.exceptions.emplace_back(
             U"Was expecting an opening curly bracket after the " + type_name + U" declaration", token);
 end:
-    return new kh::AstUserType(index, identifiers, base, generic_args, members, methods, is_class);
+    return {index, identifiers, base, generic_args, members, methods, is_class};
 }
 
-kh::AstEnumType* kh::parseEnum(KH_PARSE_CTX) {
+kh::AstEnumType kh::parseEnum(KH_PARSE_CTX) {
     std::vector<std::u32string> identifiers;
     std::vector<std::u32string> members;
     std::vector<uint64_t> values;
@@ -796,7 +798,7 @@ kh::AstEnumType* kh::parseEnum(KH_PARSE_CTX) {
         context.exceptions.emplace_back(
             U"Was expecting an opening curly bracket after the enum declaration", token);
 end:
-    return new kh::AstEnumType(index, identifiers, members, values);
+    return {index, identifiers, members, values};
 }
 
 std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loop_count) {

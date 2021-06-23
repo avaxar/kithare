@@ -156,7 +156,7 @@ static int execute() {
         auto parse_start = std::chrono::high_resolution_clock::now();
         std::vector<kh::ParseException> parse_exceptions;
         kh::ParserContext parser_context{tokens, parse_exceptions};
-        std::shared_ptr<kh::Ast> ast(kh::parseWhole(parser_context));
+        kh::Ast ast = parseWhole(parser_context);
         auto parse_end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> parse_elapsed = parse_end - parse_start;
 
@@ -172,8 +172,8 @@ static int execute() {
 
             code += parse_exceptions.size();
         }
-        if (show_ast && !code && ast && !silent)
-            std::cout << kh::encodeUtf8(kh::str(*ast)) << '\n';
+        if (show_ast && !code && !silent)
+            std::cout << kh::encodeUtf8(kh::str(ast)) << '\n';
     }
 
     return code;
