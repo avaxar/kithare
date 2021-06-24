@@ -87,7 +87,7 @@ kh::AstExpression* kh::parseTernary(KH_PARSE_CTX) {
 
         if (!(token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"else")) {
             context.exceptions.emplace_back(
-                U"Was expecting an `else` identifier to continue the ternary expression", token);
+                U"expected an `else` to specify the else case of the ternary expression", token);
             goto end;
         }
 
@@ -227,7 +227,8 @@ kh::AstExpression* kh::parseUnary(KH_PARSE_CTX) {
 
             default:
                 context.ti++;
-                context.exceptions.emplace_back(U"Unexpected operator as a unary operator", token);
+                context.exceptions.emplace_back(
+                    U"unexpected `" + kh::str(token) + U"` in an expression", token);
         }
     }
     else
@@ -245,7 +246,7 @@ kh::AstExpression* kh::parseExponentiation(KH_PARSE_CTX) {
 kh::AstExpression* kh::parseRevUnary(KH_PARSE_CTX) {
     kh::Token token = context.tok();
     size_t index = token.index;
-    kh::AstExpression* expr = kh::parseLiteral(context);
+    kh::AstExpression* expr = kh::parseOthers(context);
 
     KH_PARSE_GUARD();
     token = context.tok();
@@ -280,7 +281,7 @@ kh::AstExpression* kh::parseRevUnary(KH_PARSE_CTX) {
                         if (token.type == kh::TokenType::IDENTIFIER)
                             identifiers.push_back(token.value.identifier);
                         else
-                            context.exceptions.emplace_back(U"Was expecting an identifier", token);
+                            context.exceptions.emplace_back(U"expected an identifier", token);
 
                         context.ti++;
                         KH_PARSE_GUARD();
@@ -332,7 +333,7 @@ end:
     return expr;
 }
 
-kh::AstExpression* kh::parseLiteral(KH_PARSE_CTX) {
+kh::AstExpression* kh::parseOthers(KH_PARSE_CTX) {
     kh::AstExpression* expr = nullptr;
     kh::Token token = context.tok();
     size_t index = token.index;
@@ -414,7 +415,7 @@ kh::AstExpression* kh::parseLiteral(KH_PARSE_CTX) {
                 kh::parseAccessAttribs(context, is_static, is_public);
                 KH_PARSE_GUARD();
                 if (!is_public)
-                    context.exceptions.emplace_back(U"A local variable cannot be `private`", token);
+                    context.exceptions.emplace_back(U"a local variable cannot be private", token);
                 return new kh::AstDeclaration(kh::parseDeclaration(context, is_static, is_public));
             }
             else {
@@ -488,14 +489,16 @@ kh::AstExpression* kh::parseLiteral(KH_PARSE_CTX) {
                     break;
 
                 default:
-                    context.exceptions.emplace_back(U"Unexpected token for a literal", token);
+                    context.exceptions.emplace_back(
+                        U"unexpected `" + kh::str(token) + U"` in an expression", token);
                     context.ti++;
                     goto end;
             }
             break;
 
         default:
-            context.exceptions.emplace_back(U"Unexpected token for a literal", token);
+            context.exceptions.emplace_back(U"unexpected `" + kh::str(token) + U"` in an expression",
+                                            token);
             context.ti++;
             goto end;
     }
@@ -517,14 +520,13 @@ kh::AstIdentifiers kh::parseIdentifiers(KH_PARSE_CTX) {
     /* Expects an identifier */
     if (token.type == kh::TokenType::IDENTIFIER) {
         if (kh::isReservedKeyword(token.value.identifier))
-            context.exceptions.emplace_back(U"Could not use a reserved keyword as an identifier",
-                                            token);
+            context.exceptions.emplace_back(U"cannot use a reserved keyword as an identifier", token);
 
         identifiers.push_back(token.value.identifier);
         context.ti++;
     }
     else {
-        context.exceptions.emplace_back(U"Was expecting an identifier", token);
+        context.exceptions.emplace_back(U"expected an identifier", token);
         goto end;
     }
 
@@ -540,13 +542,13 @@ kh::AstIdentifiers kh::parseIdentifiers(KH_PARSE_CTX) {
         /* Appends the identifier */
         if (token.type == kh::TokenType::IDENTIFIER) {
             if (kh::isReservedKeyword(token.value.identifier))
-                context.exceptions.emplace_back(U"Could not use a reserved keyword as an identifier",
+                context.exceptions.emplace_back(U"cannot use a reserved keyword as an identifier",
                                                 token);
 
             identifiers.push_back(token.value.identifier);
         }
         else {
-            context.exceptions.emplace_back(U"Was expecting an identifier after the dot", token);
+            context.exceptions.emplace_back(U"expected an identifier after the dot", token);
             goto end;
         }
 
@@ -599,8 +601,8 @@ kh::AstIdentifiers kh::parseIdentifiers(KH_PARSE_CTX) {
                         goto forceIn;
                 }
                 else {
-                    context.exceptions.emplace_back(U"Was expecting an opening parentheses after the "
-                                                    U"return type in the genericization of `func` type",
+                    context.exceptions.emplace_back(U"expected an opening parentheses after the "
+                                                    U"return type in the genericization of `func`",
                                                     token);
                 }
             }
@@ -641,23 +643,23 @@ kh::AstIdentifiers kh::parseIdentifiers(KH_PARSE_CTX) {
                         token.value.symbol_type == kh::Symbol::PARENTHESES_CLOSE)
                         context.ti++;
                     else
-                        context.exceptions.emplace_back(U"Was expecting a closing parentheses", token);
+                        context.exceptions.emplace_back(U"expected a closing parentheses", token);
                 }
             }
             else
-                context.exceptions.emplace_back(U"Was expecting a closing parentheses", token);
+                context.exceptions.emplace_back(U"expected a closing parentheses", token);
         }
         else if (token.type == kh::TokenType::IDENTIFIER) {
             if (is_function)
                 context.exceptions.emplace_back(
-                    U"Was expecting an opening parentheses for genericization of `func` type", token);
+                    U"expected an opening parentheses for genericization of `func`", token);
 
             generics.push_back(kh::parseIdentifiers(context));
             generics_refs.push_back(0);
             generics_array.push_back({});
         }
         else {
-            context.exceptions.emplace_back(U"Was expecting either an identifier or an opening "
+            context.exceptions.emplace_back(U"expected either an identifier or an opening "
                                             U"parentheses for genericization after the "
                                             U"exclamation mark ",
                                             token);
@@ -665,7 +667,7 @@ kh::AstIdentifiers kh::parseIdentifiers(KH_PARSE_CTX) {
         }
     }
     else if (is_function)
-        context.exceptions.emplace_back(U"`func` type requires genericization", token);
+        context.exceptions.emplace_back(U"`func` requires genericization", token);
 end:
     return {index, identifiers, generics, generics_refs, generics_array};
 }
@@ -701,11 +703,10 @@ kh::AstExpression* kh::parseTuple(KH_PARSE_CTX, kh::Symbol opening, kh::Symbol c
             }
             else if (!(token.type == kh::TokenType::SYMBOL &&
                        token.value.symbol_type == kh::Symbol::COMMA)) {
-                context.exceptions.emplace_back(
-                    closing == kh::Symbol::SQUARE_CLOSE
-                        ? U"Was expecting a comma or a closing square bracket"
-                        : U"Was expecting a comma or a closing parentheses",
-                    token);
+                context.exceptions.emplace_back(closing == kh::Symbol::SQUARE_CLOSE
+                                                    ? U"expected a comma or a closing square bracket"
+                                                    : U"expected a comma or a closing parentheses",
+                                                token);
                 context.ti++;
                 break;
             }
@@ -724,8 +725,8 @@ kh::AstExpression* kh::parseTuple(KH_PARSE_CTX, kh::Symbol opening, kh::Symbol c
     }
     else {
         context.exceptions.emplace_back(opening == kh::Symbol::SQUARE_OPEN
-                                            ? U"Was expecting an opening square bracket"
-                                            : U"Was expecting an opening parentheses",
+                                            ? U"expected an opening square bracket"
+                                            : U"expected an opening parentheses",
                                         token);
         context.ti++;
     }
@@ -793,7 +794,7 @@ kh::AstExpression* kh::parseDict(KH_PARSE_CTX) {
                 KH_PARSE_GUARD();
             }
             else
-                context.exceptions.emplace_back(U"Was expecting a colon after a key of a dict literal",
+                context.exceptions.emplace_back(U"expected a colon after a key of the dict literal",
                                                 token);
 
             items.emplace_back(kh::parseExpression(context));
@@ -805,10 +806,10 @@ kh::AstExpression* kh::parseDict(KH_PARSE_CTX) {
             context.ti++;
         else
             context.exceptions.emplace_back(
-                U"Was expecting a closing curly bracket finishing the dict literal", token);
+                U"expected a closing curly bracket closing the dict literal", token);
     }
     else
-        context.exceptions.emplace_back(U"Was expecting an opening curly bracket for a dict literal",
+        context.exceptions.emplace_back(U"expected an opening curly bracket for the dict literal",
                                         token);
 
 end:
@@ -837,7 +838,7 @@ std::vector<uint64_t> kh::parseArrayDimension(KH_PARSE_CTX, kh::AstIdentifiers& 
         else if (token.type == kh::TokenType::INTEGER || token.type == kh::TokenType::UINTEGER) {
             dimension.push_back(token.value.uinteger);
             if (token.value.uinteger == 0)
-                context.exceptions.emplace_back(U"An array could not be zero sized", token);
+                context.exceptions.emplace_back(U"an array could not be zero sized", token);
 
             context.ti++;
             KH_PARSE_GUARD();
@@ -845,11 +846,12 @@ std::vector<uint64_t> kh::parseArrayDimension(KH_PARSE_CTX, kh::AstIdentifiers& 
 
             if (!(token.type == kh::TokenType::SYMBOL &&
                   token.value.symbol_type == kh::Symbol::SQUARE_CLOSE))
-                context.exceptions.emplace_back(
-                    U"Was expecting a closing square bracket in the array size", token);
+                context.exceptions.emplace_back(U"expected a closing square bracket in the array size",
+                                                token);
         }
         else
-            context.exceptions.emplace_back(U"Unexpected token while parsing array size", token);
+            context.exceptions.emplace_back(
+                U"unexpected `" + kh::str(token) + U"` while parsing the array size", token);
 
         context.ti++;
         KH_PARSE_GUARD();

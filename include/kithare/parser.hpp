@@ -11,13 +11,13 @@
 #include <kithare/string.hpp>
 #include <kithare/token.hpp>
 
-#define KH_PARSE_GUARD()                                                          \
-    do {                                                                          \
-        if (context.ti >= context.tokens.size()) {                                \
-            context.exceptions.emplace_back(U"Was expecting a token but hit EOF", \
-                                            context.tokens.back());               \
-            goto end;                                                             \
-        }                                                                         \
+#define KH_PARSE_GUARD()                                                                     \
+    do {                                                                                     \
+        if (context.ti >= context.tokens.size()) {                                           \
+            context.exceptions.emplace_back(U"expected a token but reached the end of file", \
+                                            context.tokens.back());                          \
+            goto end;                                                                        \
+        }                                                                                    \
     } while (false)
 
 #define KH_PARSE_CTX kh::ParserContext& context
@@ -45,15 +45,6 @@ namespace kh {
         /* Gets token of the current iterator index */
         inline kh::Token& tok() const {
             return *(kh::Token*)(size_t) & this->tokens[this->ti];
-        }
-
-        inline kh::Token& tokFromIndex(const size_t index) const {
-            for (const kh::Token& token : this->tokens)
-                if (token.index == index)
-                    return *(kh::Token*)(size_t)&token;
-
-            /* placeholder */
-            return *(kh::Token*)nullptr;
         }
     };
 
@@ -99,7 +90,7 @@ namespace kh {
     kh::AstExpression* parseUnary(KH_PARSE_CTX);
     kh::AstExpression* parseExponentiation(KH_PARSE_CTX);
     kh::AstExpression* parseRevUnary(KH_PARSE_CTX);
-    kh::AstExpression* parseLiteral(KH_PARSE_CTX);
+    kh::AstExpression* parseOthers(KH_PARSE_CTX);
     kh::AstIdentifiers parseIdentifiers(KH_PARSE_CTX);
     kh::AstExpression* parseTuple(KH_PARSE_CTX, kh::Symbol opening = kh::Symbol::PARENTHESES_OPEN,
                                   kh::Symbol closing = kh::Symbol::PARENTHESES_CLOSE,

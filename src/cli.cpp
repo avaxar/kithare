@@ -150,7 +150,7 @@ static int execute() {
         if (show_tokens && !silent) {
             std::cout << "tokens:\n";
             for (kh::Token& token : tokens)
-                std::cout << '\t' << kh::encodeUtf8(kh::str(token)) << '\n';
+                std::cout << '\t' << kh::encodeUtf8(kh::str(token, true)) << '\n';
         }
 
         auto parse_start = std::chrono::high_resolution_clock::now();

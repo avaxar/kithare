@@ -16,7 +16,7 @@ namespace kh {
     enum class Symbol;
     enum class TokenType;
 
-    std::u32string str(const kh::Token& token);
+    std::u32string str(const kh::Token& token, bool show_token_type = false);
     std::u32string str(kh::TokenType type);
     std::u32string str(kh::Operator op);
     std::u32string str(kh::Symbol sym);
