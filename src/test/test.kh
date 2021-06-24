@@ -13,7 +13,7 @@ def list!T[6][9].add() {
 try def main() {
     float[3] vector3;
     float[3][3] matrix3x3;
-    float[] float_list = *;
+    float[] float_list;
 
     float a_float = vector3[x];
     float another_float = vector3[0];
