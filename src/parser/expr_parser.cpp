@@ -426,8 +426,8 @@ kh::AstExpression* kh::parseOthers(KH_PARSE_CTX) {
                 token = context.tok();
 
                 /* An identifier is next to another identifier `int number` */
-                if (token.type == kh::TokenType::IDENTIFIER &&
-                    !kh::isReservedKeyword(token.value.identifier)) {
+                if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier != U"if" &&
+                    token.value.identifier != U"else") {
                     context.ti = _ti;
                     delete expr;
                     expr = new kh::AstDeclaration(kh::parseDeclaration(context, false, true));
@@ -456,7 +456,7 @@ kh::AstExpression* kh::parseOthers(KH_PARSE_CTX) {
 
                         /* Confirmed that it's an array declaration `float[3] position;` */
                         if (token.type == kh::TokenType::IDENTIFIER &&
-                            !kh::isReservedKeyword(token.value.identifier)) {
+                            token.value.identifier != U"if" && token.value.identifier != U"else") {
                             context.ti = _ti;
                             expr = new kh::AstDeclaration(kh::parseDeclaration(context, false, true));
                         }
