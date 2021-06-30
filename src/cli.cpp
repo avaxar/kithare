@@ -25,16 +25,16 @@
 #include <kithare/utf8.hpp>
 
 #define CLI_ERROR_BEGIN() \
-    if (!colorless)       \
+    if (!nocolor)       \
         std::cerr << KH_ANSI_FG_RED;
 
 #define CLI_ERROR_END() \
-    if (!colorless)     \
+    if (!nocolor)     \
         std::cerr << KH_ANSI_RESET;
 
 
 static std::vector<std::u32string> args;
-static bool colorless = false, help = false, show_tokens = false, show_ast = false, show_timer = false,
+static bool nocolor = false, help = false, show_tokens = false, show_ast = false, show_timer = false,
             silent = false, test_mode = false, version = false;
 static std::vector<std::u32string> excess_args;
 
@@ -55,7 +55,7 @@ static void handleArgs() {
 
         /* Sets the booleans of the specified flags */
         if (arg == U"nocolor" || arg == U"nocolour" || arg == U"colorless" || arg == U"colourless")
-            colorless = true;
+            nocolor = true;
         else if (arg == U"h" || arg == U"help")
             help = true;
         else if (arg == U"tokens")

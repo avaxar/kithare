@@ -52,9 +52,10 @@ namespace kh {
         return identifier == U"public" || identifier == U"private" || identifier == U"static" ||
                identifier == U"try" || identifier == U"def" || identifier == U"class" ||
                identifier == U"struct" || identifier == U"enum" || identifier == U"import" ||
-               identifier == U"include" || identifier == U"if" || identifier == U"for" ||
-               identifier == U"while" || identifier == U"do" || identifier == U"break" ||
-               identifier == U"continue" || identifier == U"return" || identifier == U"ref";
+               identifier == U"include" || identifier == U"if" || identifier == U"elif" ||
+               identifier == U"else" || identifier == U"for" || identifier == U"while" ||
+               identifier == U"do" || identifier == U"break" || identifier == U"continue" ||
+               identifier == U"return" || identifier == U"ref";
     }
 
     kh::Ast parse(const std::vector<kh::Token>& tokens);
