@@ -44,8 +44,9 @@ kh::AstExpression* kh::parseExpression(const std::vector<kh::Token>& tokens) {
     kh::ParserContext context{tokens, exceptions};
     kh::AstExpression* ast = kh::parseExpression(context);
 
-    if (exceptions.empty())
+    if (exceptions.empty()) {
         return ast;
+    }
     else
         throw exceptions;
 }
@@ -278,8 +279,9 @@ kh::AstExpression* kh::parseRevUnary(KH_PARSE_CTX) {
                         token = context.tok();
 
                         /* Expects an identifier for which to be scoped through from the expression */
-                        if (token.type == kh::TokenType::IDENTIFIER)
+                        if (token.type == kh::TokenType::IDENTIFIER) {
                             identifiers.push_back(token.value.identifier);
+                        }
                         else
                             context.exceptions.emplace_back(U"expected an identifier", token);
 
@@ -295,21 +297,22 @@ kh::AstExpression* kh::parseRevUnary(KH_PARSE_CTX) {
                     expr = new kh::AstScoping(index, exprptr, identifiers);
                 } break;
 
-                /* Calling expression */
+                    /* Calling expression */
                 case kh::Symbol::PARENTHESES_OPEN: {
                     std::shared_ptr<kh::AstExpression> exprptr(expr);
                     /* Parses the argument(s) */
                     kh::AstTuple* tuple = static_cast<kh::AstTuple*>(kh::parseTuple(context));
                     std::vector<std::shared_ptr<kh::AstExpression>> arguments;
 
-                    for (std::shared_ptr<kh::AstExpression>& element : tuple->elements)
+                    for (std::shared_ptr<kh::AstExpression>& element : tuple->elements) {
                         arguments.push_back(element);
+                    }
 
                     expr = new kh::AstCallExpression(index, exprptr, arguments);
                     delete tuple;
                 } break;
 
-                /* Subscription expression */
+                    /* Subscription expression */
                 case kh::Symbol::SQUARE_OPEN: {
                     std::shared_ptr<kh::AstExpression> exprptr(expr);
                     /* Parses argument(s) */
@@ -317,8 +320,9 @@ kh::AstExpression* kh::parseRevUnary(KH_PARSE_CTX) {
                         kh::parseTuple(context, kh::Symbol::SQUARE_OPEN, kh::Symbol::SQUARE_CLOSE));
                     std::vector<std::shared_ptr<kh::AstExpression>> arguments;
 
-                    for (std::shared_ptr<kh::AstExpression>& element : tuple->elements)
+                    for (std::shared_ptr<kh::AstExpression>& element : tuple->elements) {
                         arguments.push_back(element);
+                    }
 
                     expr = new kh::AstSubscriptExpression(index, exprptr, arguments);
                     delete tuple;
@@ -414,8 +418,9 @@ kh::AstExpression* kh::parseOthers(KH_PARSE_CTX) {
                 bool is_static, is_public;
                 kh::parseAccessAttribs(context, is_static, is_public);
                 KH_PARSE_GUARD();
-                if (!is_public)
+                if (!is_public) {
                     context.exceptions.emplace_back(U"a local variable cannot be private", token);
+                }
                 return new kh::AstDeclaration(kh::parseDeclaration(context, is_static, is_public));
             }
             else {
@@ -444,8 +449,9 @@ kh::AstExpression* kh::parseOthers(KH_PARSE_CTX) {
                     /* If there was exceptions while parsing the array dimension type, it probably
                      * wasn't an array variable declaration.. rather a subscript or something */
                     if (context.exceptions.size() > exception_counts) {
-                        for (size_t i = 0; i < context.exceptions.size() - exception_counts; i++)
+                        for (size_t i = 0; i < context.exceptions.size() - exception_counts; i++) {
                             context.exceptions.pop_back();
+                        }
 
                         context.ti = _ti;
                         expr = new kh::AstIdentifiers(kh::parseIdentifiers(context));
@@ -478,12 +484,12 @@ kh::AstExpression* kh::parseOthers(KH_PARSE_CTX) {
                                           kh::Symbol::PARENTHESES_CLOSE, false);
                     break;
 
-                /* List literal expression */
+                    /* List literal expression */
                 case kh::Symbol::SQUARE_OPEN:
                     expr = kh::parseList(context);
                     break;
 
-                /* Dict literal expression */
+                    /* Dict literal expression */
                 case kh::Symbol::CURLY_OPEN:
                     expr = kh::parseDict(context);
                     break;
@@ -519,8 +525,9 @@ kh::AstIdentifiers kh::parseIdentifiers(KH_PARSE_CTX) {
 
     /* Expects an identifier */
     if (token.type == kh::TokenType::IDENTIFIER) {
-        if (kh::isReservedKeyword(token.value.identifier))
+        if (kh::isReservedKeyword(token.value.identifier)) {
             context.exceptions.emplace_back(U"cannot use a reserved keyword as an identifier", token);
+        }
 
         identifiers.push_back(token.value.identifier);
         context.ti++;
@@ -666,8 +673,9 @@ kh::AstIdentifiers kh::parseIdentifiers(KH_PARSE_CTX) {
             context.ti++;
         }
     }
-    else if (is_function)
+    else if (is_function) {
         context.exceptions.emplace_back(U"`func` requires genericization", token);
+    }
 end:
     return {index, identifiers, generics, generics_refs, generics_array};
 }
@@ -733,8 +741,9 @@ kh::AstExpression* kh::parseTuple(KH_PARSE_CTX, kh::Symbol opening, kh::Symbol c
 
 end:
     if (!explicit_tuple && elements.size() == 1) {
-        for (size_t i = 1; i < elements.size(); i++)
+        for (size_t i = 1; i < elements.size(); i++) {
             delete elements[i];
+        }
 
         return elements[0];
     }
@@ -742,8 +751,9 @@ end:
         std::vector<std::shared_ptr<kh::AstExpression>> _elements;
         _elements.reserve(elements.size());
 
-        for (kh::AstExpression* element : elements)
+        for (kh::AstExpression* element : elements) {
             _elements.emplace_back(element);
+        }
 
         return new kh::AstTuple(index, _elements);
     }
@@ -802,8 +812,9 @@ kh::AstExpression* kh::parseDict(KH_PARSE_CTX) {
             token = context.tok();
         } while (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::COMMA);
 
-        if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_CLOSE)
+        if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_CLOSE) {
             context.ti++;
+        }
         else
             context.exceptions.emplace_back(
                 U"expected a closing curly bracket closing the dict literal", token);
@@ -837,8 +848,9 @@ std::vector<uint64_t> kh::parseArrayDimension(KH_PARSE_CTX, kh::AstIdentifiers& 
         }
         else if (token.type == kh::TokenType::INTEGER || token.type == kh::TokenType::UINTEGER) {
             dimension.push_back(token.value.uinteger);
-            if (token.value.uinteger == 0)
+            if (token.value.uinteger == 0) {
                 context.exceptions.emplace_back(U"an array could not be zero sized", token);
+            }
 
             context.ti++;
             KH_PARSE_GUARD();

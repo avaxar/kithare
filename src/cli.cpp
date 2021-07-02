@@ -25,11 +25,11 @@
 #include <kithare/utf8.hpp>
 
 #define CLI_ERROR_BEGIN() \
-    if (!nocolor)       \
+    if (!nocolor)         \
         std::cerr << KH_ANSI_FG_RED;
 
 #define CLI_ERROR_END() \
-    if (!nocolor)     \
+    if (!nocolor)       \
         std::cerr << KH_ANSI_RESET;
 
 
@@ -43,10 +43,12 @@ static void handleArgs() {
         std::u32string arg;
 
         /* Indicates that it is a flag argument (which starts with `-`. `--`, or `/`) */
-        if (_arg.size() > 1 && _arg[0] == '-' && _arg[1] == '-')
+        if (_arg.size() > 1 && _arg[0] == '-' && _arg[1] == '-') {
             arg = std::u32string(_arg.begin() + 2, _arg.end());
-        else if (_arg.size() > 0 && (_arg[0] == '-' || _arg[0] == '/'))
+        }
+        else if (_arg.size() > 0 && (_arg[0] == '-' || _arg[0] == '/')) {
             arg = std::u32string(_arg.begin() + 1, _arg.end());
+        }
         /* Excess arguments */
         else {
             excess_args.push_back(_arg);
@@ -54,22 +56,30 @@ static void handleArgs() {
         }
 
         /* Sets the booleans of the specified flags */
-        if (arg == U"nocolor" || arg == U"nocolour" || arg == U"colorless" || arg == U"colourless")
+        if (arg == U"nocolor" || arg == U"nocolour" || arg == U"colorless" || arg == U"colourless") {
             nocolor = true;
-        else if (arg == U"h" || arg == U"help")
+        }
+        else if (arg == U"h" || arg == U"help") {
             help = true;
-        else if (arg == U"tokens")
+        }
+        else if (arg == U"tokens") {
             show_tokens = true;
-        else if (arg == U"ast")
+        }
+        else if (arg == U"ast") {
             show_ast = true;
-        else if (arg == U"t" || arg == U"timer")
+        }
+        else if (arg == U"t" || arg == U"timer") {
             show_timer = true;
-        else if (arg == U"s" || arg == U"silent")
+        }
+        else if (arg == U"s" || arg == U"silent") {
             silent = true;
-        else if (arg == U"test")
+        }
+        else if (arg == U"test") {
             test_mode = true;
-        else if (arg == U"v" || arg == U"version")
+        }
+        else if (arg == U"v" || arg == U"version") {
             version = true;
+        }
         else {
             if (!silent) {
                 CLI_ERROR_BEGIN();
@@ -104,8 +114,9 @@ static int execute() {
             std::cout << "Unittest: " << errors.size() << " error(s)\n";
 
             CLI_ERROR_BEGIN();
-            for (const std::string& error : errors)
+            for (const std::string& error : errors) {
                 std::cerr << error << '\n';
+            }
             CLI_ERROR_END();
         }
 
@@ -135,13 +146,15 @@ static int execute() {
         auto lex_end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> lex_elapsed = lex_end - lex_start;
 
-        if (show_timer && !silent)
+        if (show_timer && !silent) {
             std::cout << "Finished lexing in " << lex_elapsed.count() << "s\n";
+        }
         if (!lex_exceptions.empty()) {
             if (!silent) {
                 CLI_ERROR_BEGIN();
-                for (kh::LexException& exc : lex_exceptions)
+                for (kh::LexException& exc : lex_exceptions) {
                     std::cerr << "LexException: " << kh::encodeUtf8(exc.format()) << '\n';
+                }
                 CLI_ERROR_END();
             }
 
@@ -149,8 +162,9 @@ static int execute() {
         }
         if (show_tokens && !silent) {
             std::cout << "tokens:\n";
-            for (kh::Token& token : tokens)
+            for (kh::Token& token : tokens) {
                 std::cout << '\t' << kh::encodeUtf8(kh::str(token, true)) << '\n';
+            }
         }
 
         auto parse_start = std::chrono::high_resolution_clock::now();
@@ -160,20 +174,23 @@ static int execute() {
         auto parse_end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> parse_elapsed = parse_end - parse_start;
 
-        if (show_timer && !silent)
+        if (show_timer && !silent) {
             std::cout << "Finished parsing in " << parse_elapsed.count() << "s\n";
+        }
         if (!parse_exceptions.empty()) {
             if (!silent) {
                 CLI_ERROR_BEGIN();
-                for (kh::ParseException& exc : parse_exceptions)
+                for (kh::ParseException& exc : parse_exceptions) {
                     std::cerr << "ParseException: " << kh::encodeUtf8(exc.format()) << '\n';
+                }
                 CLI_ERROR_END();
             }
 
             code += parse_exceptions.size();
         }
-        if (show_ast && !code && !silent)
+        if (show_ast && !code && !silent) {
             std::cout << kh::encodeUtf8(kh::str(ast)) << '\n';
+        }
     }
 
     return code;

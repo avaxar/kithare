@@ -45,8 +45,9 @@ std::u32string kh::quote(const std::u32string& str) {
                 quoted_str += U"\\a";
                 break;
             default:
-                if (chr > 32 && chr < 127)
+                if (chr > 32 && chr < 127) {
                     quoted_str += (char32_t)chr;
+                }
                 else {
                     std::stringstream sstream;
                     sstream << std::hex << (uint32_t)chr;
@@ -54,14 +55,18 @@ std::u32string kh::quote(const std::u32string& str) {
                     if (chr <= 0xff)
                         quoted_str +=
                             U"\\x" + kh::str((sstream.str().size() == 1 ? "0" : "") + sstream.str());
-                    else if (chr <= 0xfff)
+                    else if (chr <= 0xfff) {
                         quoted_str += U"\\u0" + kh::str(sstream.str());
-                    else if (chr <= 0xfffff)
+                    }
+                    else if (chr <= 0xfffff) {
                         quoted_str += U"\\U000" + kh::str(sstream.str());
-                    else if (chr <= 0xffffff)
+                    }
+                    else if (chr <= 0xffffff) {
                         quoted_str += U"\\U00" + kh::str(sstream.str());
-                    else if (chr <= 0xfffffff)
+                    }
+                    else if (chr <= 0xfffffff) {
                         quoted_str += U"\\U0" + kh::str(sstream.str());
+                    }
                     else
                         quoted_str += U"\\U" + kh::str(sstream.str());
                 }
@@ -109,8 +114,9 @@ std::u32string kh::quote(const std::string& str) {
                 quoted_str += U"\\a";
                 break;
             default:
-                if (chr > 32 && chr < 127)
+                if (chr > 32 && chr < 127) {
                     quoted_str += (char32_t)chr;
+                }
                 else {
                     std::stringstream sstream;
                     sstream << std::hex << (int)(uint8_t)chr;
@@ -142,8 +148,9 @@ std::u32string kh::str(const std::wstring& str) {
     std::u32string str32;
     str32.reserve(str.size());
 
-    for (const wchar_t chr : str)
+    for (const wchar_t chr : str) {
         str32 += (char32_t)chr;
+    }
 
     return str32;
 }
@@ -152,8 +159,9 @@ std::u32string kh::str(const std::string& str) {
     std::u32string str32;
     str32.reserve(str.size());
 
-    for (const char chr : str)
+    for (const char chr : str) {
         str32 += (char32_t)chr;
+    }
 
     return str32;
 }
