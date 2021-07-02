@@ -15,8 +15,9 @@ kh::Token::Token(size_t _index, size_t _end, kh::TokenType _type, const kh::Toke
 
 std::u32string kh::str(const kh::Token& token, bool show_token_type) {
     std::u32string str;
-    if (show_token_type)
+    if (show_token_type) {
         str = kh::str(token.type) + U' ';
+    }
 
     switch (token.type) {
         case kh::TokenType::IDENTIFIER:

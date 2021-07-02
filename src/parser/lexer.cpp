@@ -21,8 +21,9 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
     kh::LexerContext context{source, exceptions};
     std::vector<kh::Token> tokens = kh::lex(context);
 
-    if (exceptions.empty())
+    if (exceptions.empty()) {
         return tokens;
+    }
     else
         throw exceptions;
 }
@@ -164,10 +165,12 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
     /* Lambda function which accesses the string, and throws an error directly to the console if it
      * had passed the length */
     std::function<char32_t(const size_t)> chAt = [&](const size_t index) -> char32_t {
-        if (index < context.source.size())
+        if (index < context.source.size()) {
             return context.source[index];
-        else if (index == context.source.size())
+        }
+        else if (index == context.source.size()) {
             return '\n';
+        }
         else {
             size_t i = index;
             KH_RAISE_ERROR(U"unexpected end of file", -1);
@@ -183,8 +186,9 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                     temp_buf.clear();
 
                     /* Skips whitespace and newlines */
-                    if (chAt(i) == '\n' || std::iswspace(chAt(i)) > 0)
+                    if (chAt(i) == '\n' || std::iswspace(chAt(i)) > 0) {
                         continue;
+                    }
 
                     /* Possible identifier start */
                     else if (std::iswalpha(chAt(i)) > 0 || chAt(i) == '_') {
@@ -214,13 +218,15 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
 
                                     i += 2;
                                 }
-                                else if (chAt(i + 2) == '\n')
+                                else if (chAt(i + 2) == '\n') {
                                     KH_RAISE_ERROR(U"new line before byte character closing", 2);
+                                }
 
                                 /* Plain byte-char without character escapes */
                                 else if (chAt(i + 3) == '\'') {
-                                    if (chAt(i + 2) > 255)
+                                    if (chAt(i + 2) > 255) {
                                         KH_RAISE_ERROR(U"a non-byte sized character", 2);
+                                    }
 
                                     kh::TokenValue value;
                                     value.integer = chAt(i + 2);
@@ -260,30 +266,33 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                 case 'x':
                                 case 'X': {
                                     state = kh::TokenizeState::HEX;
-                                    if (!kh::isHex(chAt(i + 2)))
+                                    if (!kh::isHex(chAt(i + 2))) {
                                         KH_RAISE_ERROR(U"expected a hexadecimal digit", 2);
+                                    }
 
                                     i++;
                                     continue;
                                 }
 
-                                /* Handles octal numbers */
+                                    /* Handles octal numbers */
                                 case 'o':
                                 case 'O': {
                                     state = kh::TokenizeState::OCTAL;
-                                    if (!kh::isOct(chAt(i + 2)))
+                                    if (!kh::isOct(chAt(i + 2))) {
                                         KH_RAISE_ERROR(U"expected an octal digit at", 2);
+                                    }
 
                                     i++;
                                     continue;
                                 }
 
-                                /* Handles binary numbers */
+                                    /* Handles binary numbers */
                                 case 'b':
                                 case 'B': {
                                     state = kh::TokenizeState::BIN;
-                                    if (!kh::isBin(chAt(i + 2)))
+                                    if (!kh::isBin(chAt(i + 2))) {
                                         KH_RAISE_ERROR(U"expected a binary digit at", 2);
+                                    }
 
                                     i++;
                                     continue;
@@ -310,13 +319,13 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                             PLACE_HEXSTR_AS_CHAR();
                                         } break;
 
-                                        /* 2 bytes unicode escape */
+                                            /* 2 bytes unicode escape */
                                         case 'u': {
                                             HANDLE_HEX_INTO_HEXSTR(3, 4);
                                             PLACE_HEXSTR_AS_CHAR();
                                         } break;
 
-                                        /* 4 bytes unicode escape */
+                                            /* 4 bytes unicode escape */
                                         case 'U': {
                                             HANDLE_HEX_INTO_HEXSTR(3, 8);
                                             PLACE_HEXSTR_AS_CHAR();
@@ -334,8 +343,9 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
 
                                     i += 1;
                                 }
-                                else if (chAt(i + 1) == '\n')
+                                else if (chAt(i + 1) == '\n') {
                                     KH_RAISE_ERROR(U"new line before character closing", 1);
+                                }
                                 else if (chAt(i + 2) == '\'') {
                                     kh::TokenValue value;
                                     value.character = chAt(i + 1);
@@ -347,7 +357,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                 continue;
                             } break;
 
-                            /* Possible string */
+                                /* Possible string */
                             case '"':
                                 if (chAt(i + 1) == '"' && chAt(i + 2) == '"') {
                                     state = kh::TokenizeState::IN_MULTILINE_STR;
@@ -380,8 +390,8 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                 HANDLE_SIMPLE_SYMBOL('[', kh::Symbol::SQUARE_OPEN);
                                 HANDLE_SIMPLE_SYMBOL(']', kh::Symbol::SQUARE_CLOSE);
 
-                            /* Some operators and symbols have more complicated handling, and
-                             * those are not macro-ised */
+                                /* Some operators and symbols have more complicated handling, and
+                                 * those are not macro-ised */
                             case '+': {
                                 kh::TokenValue value;
                                 value.operator_type = kh::Operator::ADD;
@@ -422,8 +432,9 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                     value.operator_type = kh::Operator::IMUL;
                                     i++;
                                 }
-                                else if (chAt(i + 1) == '/')
+                                else if (chAt(i + 1) == '/') {
                                     KH_RAISE_ERROR(U"unexpected comment close", 0);
+                                }
 
                                 tokens.emplace_back(start, i + 1, kh::TokenType::OPERATOR, value);
                             } break;
@@ -504,8 +515,9 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                     /* Follows the identifier's characters */
                 case kh::TokenizeState::IDENTIFIER:
                     /* Checks if it's still a valid identifier character */
-                    if (std::iswalpha(chAt(i)) > 0 || kh::isDec(chAt(i)) || chAt(i) == '_')
+                    if (std::iswalpha(chAt(i)) > 0 || kh::isDec(chAt(i)) || chAt(i) == '_') {
                         temp_str += chAt(i);
+                    }
                     else {
                         kh::TokenValue value;
                         if (temp_str == U"and") {
@@ -534,8 +546,9 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
 
                     /* Checks for an integer */
                 case kh::TokenizeState::INTEGER:
-                    if (kh::isDec(chAt(i)))
+                    if (kh::isDec(chAt(i))) {
                         temp_str += chAt(i);
+                    }
                     else if (chAt(i) == 'u' || chAt(i) == 'U') {
                         /* Is unsigned */
                         kh::TokenValue value;
@@ -584,12 +597,14 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
 
                     /* Checks floating point numbers */
                 case kh::TokenizeState::FLOATING:
-                    if (kh::isDec(chAt(i)))
+                    if (kh::isDec(chAt(i))) {
                         temp_str += chAt(i);
+                    }
                     else if (chAt(i) == 'i' || chAt(i) == 'I') {
                         /* Is imaginary */
-                        if (temp_str.back() == '.')
+                        if (temp_str.back() == '.') {
                             temp_str.pop_back();
+                        }
 
                         kh::TokenValue value;
                         value.imaginary = std::stod(kh::encodeUtf8(temp_str));
@@ -600,8 +615,9 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                     else {
                         /* An artifact from how integers were checked that was transferred as a floating
                          * point with an invalid character after . */
-                        if (temp_str.back() == '.')
+                        if (temp_str.back() == '.') {
                             KH_RAISE_ERROR(U"was expecting a digit after the decimal point", 0);
+                        }
 
                         kh::TokenValue value;
                         value.floating = std::stod(kh::encodeUtf8(temp_str));
@@ -614,8 +630,9 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
 
                     /* Checks hex integers */
                 case kh::TokenizeState::HEX:
-                    if (kh::isHex(chAt(i)))
+                    if (kh::isHex(chAt(i))) {
                         temp_str += chAt(i);
+                    }
                     else if (chAt(i) == 'u' || chAt(i) == 'U') {
                         /* Is unsigned */
                         kh::TokenValue value;
@@ -659,8 +676,9 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
 
                     /* Checks octal integers */
                 case kh::TokenizeState::OCTAL:
-                    if (kh::isOct(chAt(i)))
+                    if (kh::isOct(chAt(i))) {
                         temp_str += chAt(i);
+                    }
                     else if (chAt(i) == 'u' || chAt(i) == 'U') {
                         /* Is unsigned */
                         kh::TokenValue value;
@@ -704,8 +722,9 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
 
                     /* Checks binary integers */
                 case kh::TokenizeState::BIN:
-                    if (kh::isBin(chAt(i)))
+                    if (kh::isBin(chAt(i))) {
                         temp_str += chAt(i);
+                    }
 
                     else if (chAt(i) == 'u' || chAt(i) == 'U') {
                         /* Is unsigned */
@@ -784,8 +803,9 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                             }
                         }
                         else {
-                            if (chAt(i) > 255)
+                            if (chAt(i) > 255) {
                                 KH_RAISE_ERROR(U"a non-byte sized character", 0);
+                            }
 
                             temp_buf.push_back(chAt(i));
                         }
@@ -825,15 +845,16 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                             }
                         }
                         else {
-                            if (chAt(i) > 255)
+                            if (chAt(i) > 255) {
                                 KH_RAISE_ERROR(U"a non-byte sized character", 0);
+                            }
 
                             temp_buf.push_back(chAt(i));
                         }
                     }
                     continue;
 
-                /* Checks for a string */
+                    /* Checks for a string */
                 case kh::TokenizeState::IN_STR:
                     if (chAt(i) == '"') {
                         /* End string */
@@ -859,14 +880,14 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                     i--;
                                 } break;
 
-                                /* 2 bytes unicode escape */
+                                    /* 2 bytes unicode escape */
                                 case 'u': {
                                     HANDLE_HEX_INTO_HEXSTR(2, 4);
                                     temp_str += std::stoul(hex_str, nullptr, 16);
                                     i--;
                                 } break;
 
-                                /* 4 bytes unicode escape */
+                                    /* 4 bytes unicode escape */
                                 case 'U': {
                                     HANDLE_HEX_INTO_HEXSTR(2, 8);
                                     temp_str += std::stoul(hex_str, nullptr, 16);
@@ -886,7 +907,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                     }
                     continue;
 
-                /* Checks for a multiline string */
+                    /* Checks for a multiline string */
                 case kh::TokenizeState::IN_MULTILINE_STR:
                     if (chAt(i) == '"' && chAt(i + 1) == '"' && chAt(i + 2) == '"') {
                         /* End string */
@@ -910,14 +931,14 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                     i--;
                                 } break;
 
-                                /* 2 bytes unicode escape */
+                                    /* 2 bytes unicode escape */
                                 case 'u': {
                                     HANDLE_HEX_INTO_HEXSTR(2, 4);
                                     temp_str += std::stoul(hex_str, nullptr, 16);
                                     i--;
                                 } break;
 
-                                /* 4 bytes unicode escape */
+                                    /* 4 bytes unicode escape */
                                 case 'U': {
                                     HANDLE_HEX_INTO_HEXSTR(2, 8);
                                     temp_str += std::stoul(hex_str, nullptr, 16);
@@ -937,13 +958,14 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                     }
                     continue;
 
-                /* Passing through until the inline comment is done */
+                    /* Passing through until the inline comment is done */
                 case kh::TokenizeState::IN_INLINE_COMMENT:
-                    if (chAt(i) == '\n')
+                    if (chAt(i) == '\n') {
                         state = kh::TokenizeState::NONE;
+                    }
                     continue;
 
-                /* Passing through until the multiple line comment is closed */
+                    /* Passing through until the multiple line comment is closed */
                 case kh::TokenizeState::IN_MULTIPLE_LINE_COMMENT:
                     if (chAt(i) == '*' && chAt(i + 1) == '/') {
                         /* Close comment */
@@ -967,15 +989,17 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
     /* We were expecting to be in a tokenize state, but got EOF, so throw error.
      * This usually happens if the user has forgotten to close a multiline comment,
      * string or buffer */
-    if (state != kh::TokenizeState::NONE)
+    if (state != kh::TokenizeState::NONE) {
         context.exceptions.emplace_back(U"unexpected end of file", context.source.size());
+    }
 
     /* Fills in the `column` and `line` number attributes of each token */
     size_t column = 1, line = 1;
     size_t token_index = 0;
     for (size_t i = 0; i <= context.source.size(); i++, column++) {
-        if (token_index >= tokens.size())
+        if (token_index >= tokens.size()) {
             break;
+        }
         if (context.source[i] == '\n') {
             column = 0;
             line++;

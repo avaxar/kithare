@@ -25,23 +25,27 @@ std::string kh::readFileBinary(const std::u32string& path) {
 #if _WIN32
     std::wstring u16path;
     u16path.reserve(path.size());
-    for (const char32_t ch : path)
+    for (const char32_t ch : path) {
         u16path += (wchar_t)ch;
+    }
 
     file = _wfopen(u16path.c_str(), L"rb");
 #else
     file = fopen(kh::encodeUtf8(path).c_str(), "rb");
 #endif
 
-    if (!file)
+    if (!file) {
         throw kh::FileReadError(path);
+    }
 
     int c; /* Note: int, not char, required to handle EOF */
-    while ((c = fgetc(file)) != EOF)
+    while ((c = fgetc(file)) != EOF) {
         ret += (char)c;
+    }
 
-    if (ferror(file))
+    if (ferror(file)) {
         throw kh::FileReadError(path);
+    }
 
     fclose(file);
     return ret;

@@ -50,8 +50,9 @@ std::u32string kh::decodeUtf8(const std::string& str) {
         const uint8_t chr = str[i];
 
         if (continuation) {
-            if ((chr & 0b11000000) != 0b10000000)
+            if ((chr & 0b11000000) != 0b10000000) {
                 throw kh::Utf8DecodingException(U"Expected continuation byte", i);
+            }
 
             temp = (temp << 6) + (chr & 0b00111111);
             continuation--;
@@ -62,8 +63,9 @@ std::u32string kh::decodeUtf8(const std::string& str) {
                 temp = 0;
             }
 
-            if (chr < 128)
+            if (chr < 128) {
                 str32 += (char32_t)chr;
+            }
             else if ((chr & 0b11100000) == 0b11000000) {
                 temp = chr & 0b00011111;
                 continuation = 1;
@@ -81,11 +83,13 @@ std::u32string kh::decodeUtf8(const std::string& str) {
         }
     }
 
-    if (continuation)
+    if (continuation) {
         throw kh::Utf8DecodingException(U"Expected continuation byte near end", str.size() - 1);
+    }
 
-    if (temp)
+    if (temp) {
         str32 += (char32_t)temp;
+    }
 
     return str32;
 }
