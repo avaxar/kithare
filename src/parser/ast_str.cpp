@@ -239,10 +239,11 @@ std::u32string kh::AstComparisonExpression::str(size_t indent) const {
     }
 
     str += U"\n\t" + ind + U"value(s):";
-    for (auto& value : this->values)
+    for (auto& value : this->values) {
         if (value) {
             str += U"\n\t\t" + ind + kh::str(*value);
         }
+    }
 
     return str;
 }
@@ -257,10 +258,11 @@ std::u32string kh::AstSubscriptExpression::str(size_t indent) const {
 
     if (!this->arguments.empty()) {
         str += U"\n\t" + ind + U"argument(s):";
-        for (auto& argument : this->arguments)
+        for (auto& argument : this->arguments) {
             if (argument) {
                 str += U"\n\t\t" + ind + kh::str(*argument, indent + 2);
             }
+        }
     }
 
     return str;
@@ -276,10 +278,11 @@ std::u32string kh::AstCallExpression::str(size_t indent) const {
 
     if (!this->arguments.empty()) {
         str += U"\n\t" + ind + U"argument(s):";
-        for (auto& argument : this->arguments)
+        for (auto& argument : this->arguments) {
             if (argument) {
                 str += U"\n\t\t" + ind + kh::str(*argument, indent + 2);
             }
+        }
     }
 
     return str;
@@ -368,10 +371,11 @@ std::u32string kh::AstFunction::str(size_t indent) const {
     }
 
     str += U"\n\t" + ind + U"body:";
-    for (auto& part : this->body)
+    for (auto& part : this->body) {
         if (part) {
             str += U"\n\t\t" + ind + kh::str(*part, indent + 2);
         }
+    }
 
     return str;
 }
@@ -442,10 +446,11 @@ std::u32string kh::AstTuple::str(size_t indent) const {
         str += U" [no elements]";
     }
     else {
-        for (auto& element : this->elements)
+        for (auto& element : this->elements) {
             if (element) {
                 str += U"\n\t" + ind + kh::str(*element, indent + 1);
             }
+        }
     }
 
     return str;
@@ -459,10 +464,11 @@ std::u32string kh::AstList::str(size_t indent) const {
         str += U" [no elements]";
     }
     else {
-        for (auto& element : this->elements)
+        for (auto& element : this->elements) {
             if (element) {
                 str += U"\n\t" + ind + kh::str(*element, indent + 1);
             }
+        }
     }
 
     return str;
@@ -633,8 +639,8 @@ std::u32string kh::AstStatement::str(size_t indent) const {
             str += U"\n\t" + ind + kh::str(*this->expression, indent + 1);
         }
     }
-    else
+    else {
         str += U" " + kh::str((uint64_t)this->loop_count);
-
+    }
     return str;
 }

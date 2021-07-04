@@ -24,8 +24,9 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
     if (exceptions.empty()) {
         return tokens;
     }
-    else
+    else {
         throw exceptions;
+    }
 }
 
 /* Helper to raise error at a file */
@@ -234,8 +235,9 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
 
                                     i += 3;
                                 }
-                                else
+                                else {
                                     KH_RAISE_ERROR(U"expected a closing single quote", 3);
+                                }
                                 continue;
                             }
                             /* Possible byte-string/buffer */
@@ -352,8 +354,9 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                     tokens.emplace_back(start, i + 3, kh::TokenType::CHARACTER, value);
                                     i += 2;
                                 }
-                                else
+                                else {
                                     KH_RAISE_ERROR(U"expected a closing single quote", 2);
+                                }
                                 continue;
                             } break;
 
@@ -363,8 +366,9 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                     state = kh::TokenizeState::IN_MULTILINE_STR;
                                     i += 2;
                                 }
-                                else
+                                else {
                                     state = kh::TokenizeState::IN_STR;
+                                }
                                 break;
 
                                 /* Operator handling */
@@ -902,8 +906,9 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                     HANDLE_ESCAPES_2(temp_str += value)
                             }
                         }
-                        else
+                        else {
                             temp_str += chAt(i);
+                        }
                     }
                     continue;
 
@@ -953,8 +958,9 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                     HANDLE_ESCAPES_2(temp_str += value)
                             }
                         }
-                        else
+                        else {
                             temp_str += chAt(i);
+                        }
                     }
                     continue;
 
