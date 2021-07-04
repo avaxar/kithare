@@ -14,9 +14,9 @@ std::u32string kh::Utf8DecodingException::format() const {
 
 std::string kh::encodeUtf8(const std::u32string& str) {
     std::string str8;
-    str8.reserve(str.size() + str.size() / 4);
+    str8.reserve(str.size());
 
-    for (const char32_t chr : str) {
+    for (char32_t chr : str) {
         if (chr > 0xFFFF) {
             str8 += 0b11110000 | (char)(0b00000111 & (chr >> 18));
             str8 += 0b10000000 | (char)(0b00111111 & (chr >> 12));
@@ -47,7 +47,7 @@ std::u32string kh::decodeUtf8(const std::string& str) {
     uint32_t temp = 0;
 
     for (size_t i = 0; i < str.size(); i++) {
-        const uint8_t chr = str[i];
+        uint8_t chr = str[i];
 
         if (continuation) {
             if ((chr & 0b11000000) != 0b10000000) {

@@ -12,7 +12,7 @@ std::u32string kh::quote(const std::u32string& str) {
     std::u32string quoted_str = U"\"";
     quoted_str.reserve(str.size() + str.size() / 8 + 2);
 
-    for (const char32_t chr : str) {
+    for (char32_t chr : str) {
         switch (chr) {
             case U'"':
                 quoted_str += U"\\\"";
@@ -81,7 +81,7 @@ std::u32string kh::quote(const std::string& str) {
     std::u32string quoted_str = U"\"";
     quoted_str.reserve(str.size() + str.size() / 8 + 2);
 
-    for (const char chr : str) {
+    for (char chr : str) {
         switch (chr) {
             case '"':
                 quoted_str += U"\\\"";
@@ -148,7 +148,7 @@ std::u32string kh::str(const std::wstring& str) {
     std::u32string str32;
     str32.reserve(str.size());
 
-    for (const wchar_t chr : str) {
+    for (wchar_t chr : str) {
         str32 += (char32_t)chr;
     }
 
@@ -159,7 +159,7 @@ std::u32string kh::str(const std::string& str) {
     std::u32string str32;
     str32.reserve(str.size());
 
-    for (const char chr : str) {
+    for (char chr : str) {
         str32 += (char32_t)chr;
     }
 

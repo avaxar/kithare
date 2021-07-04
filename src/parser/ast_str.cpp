@@ -5,6 +5,7 @@
  */
 
 #include <kithare/ast.hpp>
+#include <kithare/utf8.hpp>
 
 
 #define REPR_ALL_IN(var)   \
@@ -48,12 +49,12 @@ std::u32string kh::str(const kh::AstImport& import_ast, size_t indent) {
     str += U"\n\t" + ind + U"type: " + (import_ast.is_relative ? U"relative" : U"absolute");
 
     str += U"\n\t" + ind + U"path: ";
-    for (const std::u32string& dir : import_ast.path) {
-        str += dir + (&dir == &import_ast.path.back() ? U"" : U".");
+    for (const std::string& dir : import_ast.path) {
+        str += kh::decodeUtf8(dir) + (&dir == &import_ast.path.back() ? U"" : U".");
     }
 
     if (!import_ast.is_include) {
-        str += U"\n\t" + ind + U"identifier: " + import_ast.identifier;
+        str += U"\n\t" + ind + U"identifier: " + kh::decodeUtf8(import_ast.identifier);
     }
 
     return str;
@@ -67,8 +68,8 @@ std::u32string kh::str(const kh::AstUserType& type_ast, size_t indent) {
     }
 
     std::u32string str = (type_ast.is_class ? U"class:\n\t" : U"struct:\n\t") + ind + U"name: ";
-    for (const std::u32string& identifier : type_ast.identifiers) {
-        str += identifier + (&identifier == &type_ast.identifiers.back() ? U"" : U".");
+    for (const std::string& identifier : type_ast.identifiers) {
+        str += kh::decodeUtf8(identifier) + (&identifier == &type_ast.identifiers.back() ? U"" : U".");
     }
 
     if (type_ast.base) {
@@ -78,8 +79,9 @@ std::u32string kh::str(const kh::AstUserType& type_ast, size_t indent) {
 
     if (!type_ast.generic_args.empty()) {
         str += U"\n\t" + ind + U"generic argument(s): ";
-        for (const std::u32string& generic_ : type_ast.generic_args) {
-            str += generic_ + (&generic_ == &type_ast.generic_args.back() ? U"" : U", ");
+        for (const std::string& generic_ : type_ast.generic_args) {
+            str +=
+                kh::decodeUtf8(generic_) + (&generic_ == &type_ast.generic_args.back() ? U"" : U", ");
         }
     }
 
@@ -108,13 +110,14 @@ std::u32string kh::str(const kh::AstEnumType& enum_ast, size_t indent) {
     }
 
     std::u32string str = U"enum:\n\t" + ind + U"name: ";
-    for (const std::u32string& identifier : enum_ast.identifiers) {
-        str += identifier + (&identifier == &enum_ast.identifiers.back() ? U"" : U".");
+    for (const std::string& identifier : enum_ast.identifiers) {
+        str += kh::decodeUtf8(identifier) + (&identifier == &enum_ast.identifiers.back() ? U"" : U".");
     }
 
     str += U"\n\t" + ind + U"member(s):";
     for (size_t member = 0; member < enum_ast.members.size(); member++) {
-        str += U"\n\t\t" + ind + enum_ast.members[member] + U": " + kh::str(enum_ast.values[member]);
+        str += U"\n\t\t" + ind + kh::decodeUtf8(enum_ast.members[member]) + U": " +
+               kh::str(enum_ast.values[member]);
     }
 
     return str;
@@ -136,11 +139,11 @@ std::u32string kh::AstIdentifiers::str(size_t indent) const {
     BODY_HEADER();
     str = U"identifier(s): ";
 
-    for (const std::u32string& identifier : this->identifiers) {
-        str += identifier + (&identifier == &this->identifiers.back() ? U"" : U".");
+    for (const std::string& identifier : this->identifiers) {
+        str += kh::decodeUtf8(identifier) + (&identifier == &this->identifiers.back() ? U"" : U".");
     }
 
-    bool is_function = this->identifiers.size() == 1 && this->identifiers[0] == U"func";
+    bool is_function = this->identifiers.size() == 1 && this->identifiers[0] == "func";
 
     if (!this->generics.empty()) {
         str += U"!(";
@@ -308,7 +311,7 @@ std::u32string kh::AstDeclaration::str(size_t indent) const {
         str += U'[' + kh::str(dimension) + U']';
     }
 
-    str += U"\n\t" + ind + U"name: " + this->var_name;
+    str += U"\n\t" + ind + U"name: " + kh::decodeUtf8(this->var_name);
 
     if (this->expression)
         str += U"\n\t" + ind + U"initializer expression:\n\t\t" + ind +
@@ -329,14 +332,15 @@ std::u32string kh::AstFunction::str(size_t indent) const {
     }
     else {
         str += U"\n\t" + ind + U"name: ";
-        for (const std::u32string& identifier : this->identifiers) {
-            str += identifier + (&identifier == &this->identifiers.back() ? U"" : U".");
+        for (const std::string& identifier : this->identifiers) {
+            str += kh::decodeUtf8(identifier) + (&identifier == &this->identifiers.back() ? U"" : U".");
         }
 
         if (!this->generic_args.empty()) {
             str += U"\n\t" + ind + U"generic argument(s): ";
-            for (const std::u32string& generic_ : this->generic_args) {
-                str += generic_ + (&generic_ == &this->generic_args.back() ? U"" : U", ");
+            for (const std::string& generic_ : this->generic_args) {
+                str +=
+                    kh::decodeUtf8(generic_) + (&generic_ == &this->generic_args.back() ? U"" : U", ");
             }
         }
 
@@ -381,8 +385,8 @@ std::u32string kh::AstScoping::str(size_t indent) const {
     str = U"scoping (";
 
     if (!this->identifiers.empty()) {
-        for (const std::u32string& identifier : this->identifiers) {
-            str += (&this->identifiers.back() == &identifier ? U"" : U".") + identifier;
+        for (const std::string& identifier : this->identifiers) {
+            str += (&this->identifiers.back() == &identifier ? U"" : U".") + kh::decodeUtf8(identifier);
         }
     }
 

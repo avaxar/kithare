@@ -26,9 +26,9 @@ static void parserImportTest() {
     KH_TEST_ASSERT(lex_exceptions.empty());
     KH_TEST_ASSERT(parse_exceptions.empty());
     KH_TEST_ASSERT(ast.imports.size() == 4);
-    KH_TEST_ASSERT(ast.imports[0].identifier == U"stuff");
-    KH_TEST_ASSERT(ast.imports[1].identifier == U"other");
-    KH_TEST_ASSERT(ast.imports[2].identifier == U"other");
+    KH_TEST_ASSERT(ast.imports[0].identifier == "stuff");
+    KH_TEST_ASSERT(ast.imports[1].identifier == "other");
+    KH_TEST_ASSERT(ast.imports[2].identifier == "other");
     KH_TEST_ASSERT(ast.imports[0].is_include == false);
     KH_TEST_ASSERT(ast.imports[1].is_include == false);
     KH_TEST_ASSERT(ast.imports[2].is_include == false);

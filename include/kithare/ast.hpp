@@ -69,29 +69,29 @@ namespace kh {
     class AstImport {
     public:
         size_t index;
-        std::vector<std::u32string> path;
+        std::vector<std::string> path;
         bool is_include;
         bool is_relative;
-        std::u32string identifier;
+        std::string identifier;
 
-        AstImport(size_t _index, const std::vector<std::u32string>& _path, bool _is_include,
-                  bool _is_relative, const std::u32string& _identifier);
+        AstImport(size_t _index, const std::vector<std::string>& _path, bool _is_include,
+                  bool _is_relative, const std::string& _identifier);
         virtual ~AstImport() {}
     };
 
     class AstUserType {
     public:
         size_t index;
-        std::vector<std::u32string> identifiers;
+        std::vector<std::string> identifiers;
         std::shared_ptr<kh::AstIdentifiers> base;
-        std::vector<std::u32string> generic_args;
+        std::vector<std::string> generic_args;
         std::vector<kh::AstDeclaration> members;
         std::vector<kh::AstFunction> methods;
         bool is_class;
 
-        AstUserType(size_t _index, const std::vector<std::u32string>& _identifiers,
+        AstUserType(size_t _index, const std::vector<std::string>& _identifiers,
                     const std::shared_ptr<kh::AstIdentifiers>& _base,
-                    const std::vector<std::u32string>& _generic_args,
+                    const std::vector<std::string>& _generic_args,
                     const std::vector<kh::AstDeclaration>& _members,
                     const std::vector<kh::AstFunction>& _methods, bool _is_class);
         virtual ~AstUserType() {}
@@ -100,12 +100,12 @@ namespace kh {
     class AstEnumType {
     public:
         size_t index;
-        std::vector<std::u32string> identifiers;
-        std::vector<std::u32string> members;
+        std::vector<std::string> identifiers;
+        std::vector<std::string> members;
         std::vector<uint64_t> values;
 
-        AstEnumType(size_t _index, const std::vector<std::u32string>& _identifiers,
-                    const std::vector<std::u32string>& _members, const std::vector<uint64_t>& _values);
+        AstEnumType(size_t _index, const std::vector<std::string>& _identifiers,
+                    const std::vector<std::string>& _members, const std::vector<uint64_t>& _values);
         virtual ~AstEnumType() {}
     };
 
@@ -156,12 +156,12 @@ namespace kh {
 
     class AstIdentifiers : public kh::AstExpression {
     public:
-        std::vector<std::u32string> identifiers;
+        std::vector<std::string> identifiers;
         std::vector<kh::AstIdentifiers> generics;
         std::vector<size_t> generics_refs;
         std::vector<std::vector<uint64_t>> generics_array;
 
-        AstIdentifiers(size_t _index, const std::vector<std::u32string>& _identifiers,
+        AstIdentifiers(size_t _index, const std::vector<std::string>& _identifiers,
                        const std::vector<kh::AstIdentifiers>& _generics,
                        const std::vector<size_t>& _generics_refs,
                        const std::vector<std::vector<uint64_t>>& _generics_array);
@@ -174,14 +174,14 @@ namespace kh {
     public:
         kh::AstIdentifiers var_type;
         std::vector<uint64_t> var_array;
-        std::u32string var_name;
+        std::string var_name;
         std::shared_ptr<kh::AstExpression> expression;
         size_t refs;
         bool is_static;
         bool is_public;
 
         AstDeclaration(size_t _index, const kh::AstIdentifiers& _var_type,
-                       const std::vector<uint64_t>& _var_array, const std::u32string& _var_name,
+                       const std::vector<uint64_t>& _var_array, const std::string& _var_name,
                        std::shared_ptr<kh::AstExpression>& _expression, size_t _refs, bool _is_static,
                        bool _is_public);
         virtual ~AstDeclaration() {}
@@ -191,8 +191,8 @@ namespace kh {
 
     class AstFunction : public kh::AstExpression {
     public:
-        std::vector<std::u32string> identifiers;
-        std::vector<std::u32string> generic_args;
+        std::vector<std::string> identifiers;
+        std::vector<std::string> generic_args;
         std::vector<uint64_t> id_array;
 
         kh::AstIdentifiers return_type;
@@ -205,8 +205,8 @@ namespace kh {
         bool is_static;
         bool is_public;
 
-        AstFunction(size_t _index, const std::vector<std::u32string>& _identifiers,
-                    const std::vector<std::u32string>& _generic_args,
+        AstFunction(size_t _index, const std::vector<std::string>& _identifiers,
+                    const std::vector<std::string>& _generic_args,
                     const std::vector<uint64_t>& _id_array, const std::vector<uint64_t>& _return_array,
                     const kh::AstIdentifiers& _return_type, size_t _return_refs,
                     const std::vector<kh::AstDeclaration>& _arguments,
@@ -308,10 +308,10 @@ namespace kh {
     class AstScoping : public kh::AstExpression {
     public:
         std::shared_ptr<kh::AstExpression> expression;
-        std::vector<std::u32string> identifiers;
+        std::vector<std::string> identifiers;
 
         AstScoping(size_t _index, std::shared_ptr<kh::AstExpression>& _expression,
-                   const std::vector<std::u32string>& _identifiers);
+                   const std::vector<std::string>& _identifiers);
         virtual ~AstScoping() {}
 
         virtual std::u32string str(size_t indent = 0) const;

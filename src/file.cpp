@@ -25,7 +25,7 @@ std::string kh::readFileBinary(const std::u32string& path) {
 #if _WIN32
     std::wstring u16path;
     u16path.reserve(path.size());
-    for (const char32_t ch : path) {
+    for (char32_t ch : path) {
         u16path += (wchar_t)ch;
     }
 

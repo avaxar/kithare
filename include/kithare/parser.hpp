@@ -48,14 +48,14 @@ namespace kh {
         }
     };
 
-    inline bool isReservedKeyword(const std::u32string& identifier) {
-        return identifier == U"public" || identifier == U"private" || identifier == U"static" ||
-               identifier == U"try" || identifier == U"def" || identifier == U"class" ||
-               identifier == U"struct" || identifier == U"enum" || identifier == U"import" ||
-               identifier == U"include" || identifier == U"if" || identifier == U"elif" ||
-               identifier == U"else" || identifier == U"for" || identifier == U"while" ||
-               identifier == U"do" || identifier == U"break" || identifier == U"continue" ||
-               identifier == U"return" || identifier == U"ref";
+    inline bool isReservedKeyword(const std::string& identifier) {
+        return identifier == "public" || identifier == "private" || identifier == "static" ||
+               identifier == "try" || identifier == "def" || identifier == "class" ||
+               identifier == "struct" || identifier == "enum" || identifier == "import" ||
+               identifier == "include" || identifier == "if" || identifier == "elif" ||
+               identifier == "else" || identifier == "for" || identifier == "while" ||
+               identifier == "do" || identifier == "break" || identifier == "continue" ||
+               identifier == "return" || identifier == "ref";
     }
 
     kh::Ast parse(const std::vector<kh::Token>& tokens);
@@ -71,8 +71,8 @@ namespace kh {
     kh::AstUserType parseUserType(KH_PARSE_CTX, bool is_class);
     kh::AstEnumType parseEnum(KH_PARSE_CTX);
     std::vector<std::shared_ptr<kh::AstBody>> parseBody(KH_PARSE_CTX, size_t loop_count = 0);
-    void parseTopScopeIdentifiersAndGenericArgs(KH_PARSE_CTX, std::vector<std::u32string>& identifiers,
-                                                std::vector<std::u32string>& generic_args);
+    void parseTopScopeIdentifiersAndGenericArgs(KH_PARSE_CTX, std::vector<std::string>& identifiers,
+                                                std::vector<std::string>& generic_args);
 
     /* These parse expressions below are ordered based from their precedence from lowest to
      * highest */

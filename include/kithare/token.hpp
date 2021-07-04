@@ -100,9 +100,9 @@ namespace kh {
             double imaginary;
         };
 
-        std::u32string identifier;
         std::u32string string;
 
+        std::string identifier;
         std::string buffer;
     };
 

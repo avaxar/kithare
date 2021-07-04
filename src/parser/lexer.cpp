@@ -535,7 +535,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                         else {
                             /* If it's not, reset the state and appends the concatenated identifier
                              * characters as a token */
-                            value.identifier = temp_str;
+                            value.identifier = kh::encodeUtf8(temp_str);
                             tokens.emplace_back(start, i, kh::TokenType::IDENTIFIER, value);
                         }
 

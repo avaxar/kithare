@@ -5,6 +5,7 @@
  */
 
 #include <kithare/parser.hpp>
+#include <kithare/utf8.hpp>
 
 
 std::u32string kh::ParseException::format() const {
@@ -38,21 +39,21 @@ kh::Ast kh::parseWhole(KH_PARSE_CTX) {
 
         switch (token.type) {
             case kh::TokenType::IDENTIFIER: {
-                const std::u32string& identifier = token.value.identifier;
+                const std::string& identifier = token.value.identifier;
 
                 /* Function declaration identifier keyword */
-                if (identifier == U"def" || identifier == U"try") {
+                if (identifier == "def" || identifier == "try") {
                     /* Skips initial keyword */
                     context.ti++;
                     KH_PARSE_GUARD();
 
                     /* Case for conditional functions */
                     bool conditional = false;
-                    if (identifier == U"try") {
+                    if (identifier == "try") {
                         conditional = true;
                         token = context.tok();
                         if (token.type == kh::TokenType::IDENTIFIER &&
-                            token.value.identifier == U"def") {
+                            token.value.identifier == "def") {
                             context.ti++;
                             KH_PARSE_GUARD();
                         }
@@ -77,31 +78,31 @@ kh::Ast kh::parseWhole(KH_PARSE_CTX) {
                                                         token);
                 }
                 /* Parses class declaration */
-                else if (identifier == U"class") {
+                else if (identifier == "class") {
                     context.ti++;
                     KH_PARSE_GUARD();
                     user_types.push_back(kh::parseUserType(context, true));
                 }
                 /* Parses struct declaration */
-                else if (identifier == U"struct") {
+                else if (identifier == "struct") {
                     context.ti++;
                     KH_PARSE_GUARD();
                     user_types.push_back(kh::parseUserType(context, false));
                 }
                 /* Parses enum declaration */
-                else if (identifier == U"enum") {
+                else if (identifier == "enum") {
                     context.ti++;
                     KH_PARSE_GUARD();
                     enums.push_back(kh::parseEnum(context));
                 }
                 /* Parses import statement */
-                else if (identifier == U"import") {
+                else if (identifier == "import") {
                     context.ti++;
                     KH_PARSE_GUARD();
                     imports.push_back(kh::parseImport(context, false)); /* is_include = false */
                 }
                 /* Parses include statement */
-                else if (identifier == U"include") {
+                else if (identifier == "include") {
                     context.ti++;
                     KH_PARSE_GUARD();
                     imports.push_back(kh::parseImport(context, true)); /* is_include = true */
@@ -179,9 +180,9 @@ end:
 }
 
 kh::AstImport kh::parseImport(KH_PARSE_CTX, bool is_include) {
-    std::vector<std::u32string> path;
+    std::vector<std::string> path;
     bool is_relative = false;
-    std::u32string identifier;
+    std::string identifier;
     kh::Token token = context.tok();
     size_t index = token.index;
 
@@ -239,7 +240,7 @@ kh::AstImport kh::parseImport(KH_PARSE_CTX, bool is_include) {
     }
 
     /* An optional `as` for changing the namespace name in import statements */
-    if (!is_include && token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"as") {
+    if (!is_include && token.type == kh::TokenType::IDENTIFIER && token.value.identifier == "as") {
         context.ti++;
         KH_PARSE_GUARD();
         token = context.tok();
@@ -271,7 +272,7 @@ kh::AstImport kh::parseImport(KH_PARSE_CTX, bool is_include) {
                                         token);
 end:
     return {index, path, is_include, is_relative,
-            path.empty() ? U"" : (identifier.empty() ? path.back() : identifier)};
+            path.empty() ? "" : (identifier.empty() ? path.back() : identifier)};
 }
 
 void kh::parseAccessAttribs(KH_PARSE_CTX, bool& is_static, bool& is_public) {
@@ -282,13 +283,13 @@ void kh::parseAccessAttribs(KH_PARSE_CTX, bool& is_static, bool& is_public) {
 
     kh::Token token = context.tok();
     while (token.type == kh::TokenType::IDENTIFIER) {
-        if (token.value.identifier == U"static") {
+        if (token.value.identifier == "static") {
             is_static = true;
         }
-        else if (token.value.identifier == U"public") {
+        else if (token.value.identifier == "public") {
             is_public = true;
         }
-        else if (token.value.identifier == U"private") {
+        else if (token.value.identifier == "private") {
             is_public = false;
         }
         else
@@ -304,8 +305,8 @@ end:
 }
 
 kh::AstFunction kh::parseFunction(KH_PARSE_CTX, bool is_static, bool is_public, bool is_conditional) {
-    std::vector<std::u32string> identifiers;
-    std::vector<std::u32string> generic_args;
+    std::vector<std::string> identifiers;
+    std::vector<std::string> generic_args;
     std::vector<uint64_t> id_array;
     kh::AstIdentifiers return_type{0, {}, {}, {}, {}};
     std::vector<uint64_t> return_array = {};
@@ -440,7 +441,7 @@ kh::AstFunction kh::parseFunction(KH_PARSE_CTX, bool is_static, bool is_public, 
             token = context.tok();
 
             /* Checks if the return type is a `ref`erence type */
-            while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
+            while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == "ref") {
                 return_refs += 1;
                 context.ti++;
                 KH_PARSE_GUARD();
@@ -458,13 +459,13 @@ kh::AstFunction kh::parseFunction(KH_PARSE_CTX, bool is_static, bool is_public, 
             }
         }
         else {
-            return_type = kh::AstIdentifiers(token.index, {U"void"}, {}, {}, {});
+            return_type = kh::AstIdentifiers(token.index, {"void"}, {}, {}, {});
 
             context.exceptions.emplace_back(U"expected a `->` specifying a return type", token);
         }
     }
     else {
-        return_type = kh::AstIdentifiers(token.index, {U"void"}, {}, {}, {});
+        return_type = kh::AstIdentifiers(token.index, {"void"}, {}, {}, {});
     }
 
     /* Parses the function's body */
@@ -477,7 +478,7 @@ end:
 kh::AstDeclaration kh::parseDeclaration(KH_PARSE_CTX, bool is_static, bool is_public) {
     kh::AstIdentifiers var_type{0, {}, {}, {}, {}};
     std::vector<uint64_t> var_array = {};
-    std::u32string var_name;
+    std::string var_name;
     std::shared_ptr<kh::AstExpression> expression = nullptr;
     size_t refs = 0;
 
@@ -485,7 +486,7 @@ kh::AstDeclaration kh::parseDeclaration(KH_PARSE_CTX, bool is_static, bool is_pu
     size_t index = token.index;
 
     /* Checks if the variable type is a `ref`erence type */
-    while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
+    while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == "ref") {
         refs += 1;
         context.ti++;
         KH_PARSE_GUARD();
@@ -537,9 +538,9 @@ end:
 }
 
 kh::AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
-    std::vector<std::u32string> identifiers;
+    std::vector<std::string> identifiers;
     std::shared_ptr<kh::AstIdentifiers> base;
-    std::vector<std::u32string> generic_args;
+    std::vector<std::string> generic_args;
     std::vector<kh::AstDeclaration> members;
     std::vector<kh::AstFunction> methods;
 
@@ -591,8 +592,8 @@ kh::AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
             switch (token.type) {
                 case kh::TokenType::IDENTIFIER: {
                     /* Methods */
-                    if (token.value.identifier == U"def" || token.value.identifier == U"try") {
-                        bool conditional = token.value.identifier == U"try";
+                    if (token.value.identifier == "def" || token.value.identifier == "try") {
+                        bool conditional = token.value.identifier == "try";
 
                         context.ti++;
                         KH_PARSE_GUARD();
@@ -601,7 +602,7 @@ kh::AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
                         if (conditional) {
                             token = context.tok();
                             if (token.type == kh::TokenType::IDENTIFIER &&
-                                token.value.identifier == U"def") {
+                                token.value.identifier == "def") {
                                 context.ti++;
                                 KH_PARSE_GUARD();
                             }
@@ -694,8 +695,8 @@ end:
 }
 
 kh::AstEnumType kh::parseEnum(KH_PARSE_CTX) {
-    std::vector<std::u32string> identifiers;
-    std::vector<std::u32string> members;
+    std::vector<std::string> identifiers;
+    std::vector<std::string> members;
     std::vector<uint64_t> values;
 
     /* Internal enum counter */
@@ -705,7 +706,7 @@ kh::AstEnumType kh::parseEnum(KH_PARSE_CTX) {
     size_t index = token.index;
 
     /* Gets the enum identifiers */
-    std::vector<std::u32string> _generic_args;
+    std::vector<std::string> _generic_args;
     kh::parseTopScopeIdentifiersAndGenericArgs(context, identifiers, _generic_args);
     if (!_generic_args.empty()) {
         context.exceptions.emplace_back(U"an enum could not have generic arguments", token);
@@ -788,7 +789,7 @@ kh::AstEnumType kh::parseEnum(KH_PARSE_CTX) {
 
                 if (values[member] == values.back()) {
                     context.exceptions.emplace_back(U"this enum member has a same index value as `" +
-                                                        members[member] + U"`",
+                                                        kh::decodeUtf8(members[member]) + U"`",
                                                     token);
                     break;
                 }
@@ -839,7 +840,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
 
         switch (token.type) {
             case kh::TokenType::IDENTIFIER: {
-                if (token.value.identifier == U"if") {
+                if (token.value.identifier == "if") {
                     std::vector<std::shared_ptr<kh::AstExpression>> conditions;
                     std::vector<std::vector<std::shared_ptr<kh::AstBody>>> bodies;
                     std::vector<std::shared_ptr<kh::AstBody>> else_body;
@@ -857,10 +858,10 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
 
                         /* Recontinues if there's an else if (`elif`) clause */
                     } while (token.type == kh::TokenType::IDENTIFIER &&
-                             token.value.identifier == U"elif");
+                             token.value.identifier == "elif");
 
                     /* Parses the body if there's an `else` clause */
-                    if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"else") {
+                    if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == "else") {
                         context.ti++;
                         KH_PARSE_GUARD();
                         else_body = kh::parseBody(context, loop_count + 1);
@@ -869,7 +870,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                     body.emplace_back(new kh::AstIf(index, conditions, bodies, else_body));
                 }
                 /* While statement */
-                else if (token.value.identifier == U"while") {
+                else if (token.value.identifier == "while") {
                     context.ti++;
                     KH_PARSE_GUARD();
 
@@ -881,7 +882,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                     body.emplace_back(new kh::AstWhile(index, condition, while_body));
                 }
                 /* Do while statement */
-                else if (token.value.identifier == U"do") {
+                else if (token.value.identifier == "do") {
                     context.ti++;
                     KH_PARSE_GUARD();
 
@@ -894,7 +895,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                     token = context.tok();
 
                     /* Expects `while` and then parses the condition expression */
-                    if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"while") {
+                    if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == "while") {
                         context.ti++;
                         condition.reset(kh::parseExpression(context));
                     }
@@ -916,7 +917,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                     body.emplace_back(new kh::AstDoWhile(index, condition, do_while_body));
                 }
                 /* For statement */
-                else if (token.value.identifier == U"for") {
+                else if (token.value.identifier == "for") {
                     context.ti++;
                     KH_PARSE_GUARD();
 
@@ -969,7 +970,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                             U"expected a colon or a comma after the `for` target/initializer", token);
                 }
                 /* `continue` statement */
-                else if (token.value.identifier == U"continue") {
+                else if (token.value.identifier == "continue") {
                     context.ti++;
                     KH_PARSE_GUARD();
                     token = context.tok();
@@ -1003,7 +1004,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                         new kh::AstStatement(index, kh::AstStatement::Type::CONTINUE, loop_breaks));
                 }
                 /* `break` statement */
-                else if (token.value.identifier == U"break") {
+                else if (token.value.identifier == "break") {
                     context.ti++;
                     KH_PARSE_GUARD();
                     token = context.tok();
@@ -1037,7 +1038,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                         new kh::AstStatement(index, kh::AstStatement::Type::BREAK, loop_breaks));
                 }
                 /* `return` statement */
-                else if (token.value.identifier == U"return") {
+                else if (token.value.identifier == "return") {
                     context.ti++;
                     KH_PARSE_GUARD();
                     token = context.tok();
@@ -1111,8 +1112,8 @@ end:
     return body;
 }
 
-void kh::parseTopScopeIdentifiersAndGenericArgs(KH_PARSE_CTX, std::vector<std::u32string>& identifiers,
-                                                std::vector<std::u32string>& generic_args) {
+void kh::parseTopScopeIdentifiersAndGenericArgs(KH_PARSE_CTX, std::vector<std::string>& identifiers,
+                                                std::vector<std::string>& generic_args) {
     kh::Token token = context.tok();
     goto forceIn;
 

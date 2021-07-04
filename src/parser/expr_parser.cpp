@@ -76,7 +76,7 @@ kh::AstExpression* kh::parseTernary(KH_PARSE_CTX) {
     token = context.tok();
     index = token.index;
 
-    while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"if") {
+    while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == "if") {
         index = token.index;
 
         context.ti++;
@@ -86,7 +86,7 @@ kh::AstExpression* kh::parseTernary(KH_PARSE_CTX) {
         KH_PARSE_GUARD();
         token = context.tok();
 
-        if (!(token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"else")) {
+        if (!(token.type == kh::TokenType::IDENTIFIER && token.value.identifier == "else")) {
             context.exceptions.emplace_back(
                 U"expected an `else` to specify the else case of the ternary expression", token);
             goto end;
@@ -271,7 +271,7 @@ kh::AstExpression* kh::parseRevUnary(KH_PARSE_CTX) {
             switch (token.value.symbol_type) {
                 /* Scoping expression */
                 case kh::Symbol::DOT: {
-                    std::vector<std::u32string> identifiers;
+                    std::vector<std::string> identifiers;
 
                     do {
                         context.ti++;
@@ -407,14 +407,14 @@ kh::AstExpression* kh::parseOthers(KH_PARSE_CTX) {
 
         case kh::TokenType::IDENTIFIER:
             /* Lambda expression */
-            if (token.value.identifier == U"def") {
+            if (token.value.identifier == "def") {
                 context.ti++;
                 KH_PARSE_GUARD();
                 return new kh::AstFunction(kh::parseFunction(context, false, true, false));
             }
             /* Variable declaration */
-            else if (token.value.identifier == U"ref" || token.value.identifier == U"static" ||
-                     token.value.identifier == U"private" || token.value.identifier == U"public") {
+            else if (token.value.identifier == "ref" || token.value.identifier == "static" ||
+                     token.value.identifier == "private" || token.value.identifier == "public") {
                 bool is_static, is_public;
                 kh::parseAccessAttribs(context, is_static, is_public);
                 KH_PARSE_GUARD();
@@ -431,8 +431,8 @@ kh::AstExpression* kh::parseOthers(KH_PARSE_CTX) {
                 token = context.tok();
 
                 /* An identifier is next to another identifier `int number` */
-                if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier != U"if" &&
-                    token.value.identifier != U"else") {
+                if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier != "if" &&
+                    token.value.identifier != "else") {
                     context.ti = _ti;
                     delete expr;
                     expr = new kh::AstDeclaration(kh::parseDeclaration(context, false, true));
@@ -461,8 +461,8 @@ kh::AstExpression* kh::parseOthers(KH_PARSE_CTX) {
                         token = context.tok();
 
                         /* Confirmed that it's an array declaration `float[3] position;` */
-                        if (token.type == kh::TokenType::IDENTIFIER &&
-                            token.value.identifier != U"if" && token.value.identifier != U"else") {
+                        if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier != "if" &&
+                            token.value.identifier != "else") {
                             context.ti = _ti;
                             expr = new kh::AstDeclaration(kh::parseDeclaration(context, false, true));
                         }
@@ -513,7 +513,7 @@ end:
 }
 
 kh::AstIdentifiers kh::parseIdentifiers(KH_PARSE_CTX) {
-    std::vector<std::u32string> identifiers;
+    std::vector<std::string> identifiers;
     std::vector<kh::AstIdentifiers> generics;
     std::vector<size_t> generics_refs;
     std::vector<std::vector<uint64_t>> generics_array;
@@ -564,7 +564,7 @@ kh::AstIdentifiers kh::parseIdentifiers(KH_PARSE_CTX) {
         token = context.tok();
     }
 
-    is_function = identifiers.size() == 1 && identifiers[0] == U"func";
+    is_function = identifiers.size() == 1 && identifiers[0] == "func";
 
     /* Optional genericization */
     if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::NOT) {
@@ -579,7 +579,7 @@ kh::AstIdentifiers kh::parseIdentifiers(KH_PARSE_CTX) {
             token = context.tok();
 
             generics_refs.push_back(0);
-            while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
+            while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == "ref") {
                 generics_refs.back() += 1;
                 context.ti++;
                 KH_PARSE_GUARD();
@@ -622,7 +622,7 @@ kh::AstIdentifiers kh::parseIdentifiers(KH_PARSE_CTX) {
 
             forceIn:
                 generics_refs.push_back(0);
-                while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == U"ref") {
+                while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == "ref") {
                     generics_refs.back() += 1;
                     context.ti++;
                     KH_PARSE_GUARD();
@@ -840,7 +840,7 @@ std::vector<uint64_t> kh::parseArrayDimension(KH_PARSE_CTX, kh::AstIdentifiers& 
 
         if (token.type == kh::TokenType::SYMBOL &&
             token.value.symbol_type == kh::Symbol::SQUARE_CLOSE) {
-            type = kh::AstIdentifiers(token.index, {U"list"}, {type}, {false},
+            type = kh::AstIdentifiers(token.index, {"list"}, {type}, {false},
                                       dimension.size() ? std::vector<std::vector<uint64_t>>{dimension}
                                                        : std::vector<std::vector<uint64_t>>{{}});
 

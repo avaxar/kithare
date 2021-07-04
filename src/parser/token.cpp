@@ -6,6 +6,7 @@
 
 #include <kithare/string.hpp>
 #include <kithare/token.hpp>
+#include <kithare/utf8.hpp>
 
 
 kh::Token::Token() : column(0), line(0), index(0), length(0), type(), value() {}
@@ -21,7 +22,7 @@ std::u32string kh::str(const kh::Token& token, bool show_token_type) {
 
     switch (token.type) {
         case kh::TokenType::IDENTIFIER:
-            str += token.value.identifier;
+            str += kh::decodeUtf8(token.value.identifier);
             break;
         case kh::TokenType::OPERATOR:
             str += kh::str(token.value.operator_type);

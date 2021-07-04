@@ -14,25 +14,25 @@ kh::Ast::Ast(const std::vector<kh::AstImport>& _imports, const std::vector<kh::A
     : variables(_variables), imports(_imports), functions(_functions), user_types(_user_types),
       enums(_enums) {}
 
-kh::AstImport::AstImport(size_t _index, const std::vector<std::u32string>& _path, bool _is_include,
-                         bool _is_relative, const std::u32string& _identifier)
+kh::AstImport::AstImport(size_t _index, const std::vector<std::string>& _path, bool _is_include,
+                         bool _is_relative, const std::string& _identifier)
     : index(_index), path(_path), is_include(_is_include), is_relative(_is_relative),
       identifier(_identifier) {}
 
-kh::AstUserType::AstUserType(size_t _index, const std::vector<std::u32string>& _identifiers,
+kh::AstUserType::AstUserType(size_t _index, const std::vector<std::string>& _identifiers,
                              const std::shared_ptr<kh::AstIdentifiers>& _base,
-                             const std::vector<std::u32string>& _generic_args,
+                             const std::vector<std::string>& _generic_args,
                              const std::vector<kh::AstDeclaration>& _members,
                              const std::vector<kh::AstFunction>& _methods, bool _is_class)
     : index(_index), identifiers(_identifiers), base(_base), generic_args(_generic_args),
       members(_members), methods(_methods), is_class(_is_class) {}
 
-kh::AstEnumType::AstEnumType(size_t _index, const std::vector<std::u32string>& _identifiers,
-                             const std::vector<std::u32string>& _members,
+kh::AstEnumType::AstEnumType(size_t _index, const std::vector<std::string>& _identifiers,
+                             const std::vector<std::string>& _members,
                              const std::vector<uint64_t>& _values)
     : index(_index), identifiers(_identifiers), members(_members), values(_values) {}
 
-kh::AstIdentifiers::AstIdentifiers(size_t _index, const std::vector<std::u32string>& _identifiers,
+kh::AstIdentifiers::AstIdentifiers(size_t _index, const std::vector<std::string>& _identifiers,
                                    const std::vector<kh::AstIdentifiers>& _generics,
                                    const std::vector<size_t>& _generics_refs,
                                    const std::vector<std::vector<uint64_t>>& _generics_array)
@@ -45,7 +45,7 @@ kh::AstIdentifiers::AstIdentifiers(size_t _index, const std::vector<std::u32stri
 
 kh::AstDeclaration::AstDeclaration(size_t _index, const kh::AstIdentifiers& _var_type,
                                    const std::vector<uint64_t>& _var_array,
-                                   const std::u32string& _var_name,
+                                   const std::string& _var_name,
                                    std::shared_ptr<kh::AstExpression>& _expression, size_t _refs,
                                    bool _is_static, bool _is_public)
     : var_type(_var_type), var_array(_var_array), var_name(_var_name), expression(_expression),
@@ -55,8 +55,8 @@ kh::AstDeclaration::AstDeclaration(size_t _index, const kh::AstIdentifiers& _var
     this->expression_type = kh::AstExpression::ExType::DECLARE;
 }
 
-kh::AstFunction::AstFunction(size_t _index, const std::vector<std::u32string>& _identifiers,
-                             const std::vector<std::u32string>& _generic_args,
+kh::AstFunction::AstFunction(size_t _index, const std::vector<std::string>& _identifiers,
+                             const std::vector<std::string>& _generic_args,
                              const std::vector<uint64_t>& _id_array,
                              const std::vector<uint64_t>& _return_array,
                              const kh::AstIdentifiers& _return_type, size_t _return_refs,
@@ -135,7 +135,7 @@ kh::AstCallExpression::AstCallExpression(
 }
 
 kh::AstScoping::AstScoping(size_t _index, std::shared_ptr<kh::AstExpression>& _expression,
-                           const std::vector<std::u32string>& _identifiers)
+                           const std::vector<std::string>& _identifiers)
     : expression(_expression), identifiers(_identifiers) {
     this->index = _index;
     this->type = kh::AstBody::Type::EXPRESSION;

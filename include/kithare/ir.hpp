@@ -25,13 +25,16 @@ namespace kh {
 
     class IrExpression;
     class IrVariableExpression;
+    class IrReturnRefExpression;
     class IrFunctionExpression;
-    class IrTypeExpression;
-    class IrCallExpression;
     class IrAssignExpression;
+    class IrDerefExpression;
+    class IrScopeExpression;
+    class IrCallExpression;
 
     class IrType;
     class IrRefType;
+    class IrArrayType;
     class IrListType;
     class IrTupleType;
     class IrDictType;
@@ -41,7 +44,7 @@ namespace kh {
     class IrEnumType;
 
     class IrFunction;
-    class IrBuiltinFunction;
+    class IrIntrinsic;
     class IrUserFunction;
 
     class IrClassGeneric;
