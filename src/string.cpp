@@ -139,8 +139,9 @@ void kh::getLineColumn(const std::u32string& str, size_t index, size_t& column, 
             column = 1;
             line++;
         }
-        else
+        else {
             column++;
+        }
     }
 }
 
