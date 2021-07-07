@@ -14,20 +14,6 @@ On Windows and MinGW:
     This builder automatically installs SDL dependencies. Just run this file
     with: 'py build.py'.
 
-On Windows and MSVC:
-    Make sure you have Visual Studio 2019 with C/C++ build tools and Windows 10
-    SDK installed.
-
-    If you are familiar with Visual Studio C++ IDE, you can use the graphical
-    interface in the IDE to build kithare. But in that case, you would first
-    need to run 'py build.py --msvc-deps', as this installs the required
-    dependencies.
-
-    To build kithare from the command line, you first need to have the 'msbuild'
-    command in your PATH. Then run 'py build.py --msvc'. This will build kithare
-    sources using the MSVC compiler. By default, this command will build in
-    "Release" mode, if you want to build in "Debug" mode, pass '--debug' too.
-
 On other OS:
     This assumes you have GCC (g++) installed. Also, you need to install SDL
     dependencies on your own, via your systems package manager.
@@ -47,20 +33,18 @@ in some cases)
 To just run tests, pass '--run-tests'. Note that this command is only going to
 run the tests, it does not do anything else.
 
-Any other arguments passed to this builder will be forwarded to the compiler,
-but this is not true in the case of MSVC.
+Any other arguments passed to this builder will be forwarded to the compiler.
 This feature might fall of use for advanced users, who know what they are doing.
 """
 
+
 import glob
-import io
 import os
 import platform
 import shutil
 import sys
 import tarfile
 import urllib.request as urllib
-import zipfile
 
 ICO_RES = "icon.res"
 
@@ -84,14 +68,14 @@ SDL_DEPS = {
 }
 
 
-def mkdir(file):
+def mkdir(file: str):
     """
     Make a directory, don't error if it exists
     """
     os.makedirs(file, exist_ok=True)
 
 
-def find_includes(file, basedir):
+def find_includes(file: str, basedir: str):
     """
     Recursively find include files for a given file
     Returns an iterator
@@ -119,7 +103,7 @@ def find_includes(file, basedir):
                 break
 
 
-def should_build(file, ofile, basedir):
+def should_build(file: str, ofile: str, basedir: str):
     """
     Determines whether a particular cpp file should be rebuilt
     """
@@ -141,11 +125,11 @@ class KithareBuilder:
     Kithare builder class
     """
 
-    def __init__(self, args, basepath):
+    def __init__(self, basepath: str, *args: str):
         """
         Initialise kithare builder
         """
-        self.args = args
+        self.args = list(args)
         self.basepath = basepath
         self.objfiles = []  # populated later by a call to self.build_sources
         self.set_machine()
@@ -180,22 +164,11 @@ class KithareBuilder:
         """
         Parse any arguments into respective flags
         """
-        self.msvc_no_compile = False
-        self.compiler = "GCC"
-        if platform.system() == "Windows":
-            self.msvc_no_compile = "--msvc-deps" in self.args
-            self.msvc_config = "Debug" if "--debug" in self.args else "Release"
-            if "--msvc" in self.args or self.msvc_no_compile:
-                self.compiler = "MSVC"
-            else:
-                self.compiler = "MinGW"
+        self.compiler = "MinGW" if platform.system() == "Windows" else "GCC"
 
         self.download_dir = f"{self.basepath}/deps/SDL-{self.compiler}"
 
-        msvc_tags = ""
-        if self.compiler == "MSVC":
-            msvc_tags += "-" + self.msvc_config
-        dirname = f"{self.compiler}-{self.machine}{msvc_tags}"
+        dirname = f"{self.compiler}-{self.machine}"
 
         self.builddir = f"{self.basepath}/build/{dirname}"
         self.distdir = f"{self.basepath}/dist/{dirname}"
@@ -231,38 +204,7 @@ class KithareBuilder:
 
         self.cflags.extend(self.args)
 
-    def copy_sdl_dll(self, download_path):
-        """
-        Copy SDL dll's into the dist folder, and also update the cflags to
-        include the SDL library
-        """
-        if self.compiler == "MSVC":
-            for i in ["x86", "x64"]:
-                for j in ["Debug", "Release"]:
-                    distdir = f"{self.basepath}/dist/MSVC-{i}-{j}"
-                    mkdir(distdir)
-                    for dll in glob.iglob(f"{download_path}/lib/{i}/*.dll"):
-                        shutil.copyfile(
-                            dll, os.path.join(distdir, os.path.basename(dll))
-                        )
-            return
-
-        for dll in glob.iglob(
-            f"{download_path}/{self.machine_alt}-w64-mingw32/bin/*.dll"
-        ):
-            shutil.copyfile(
-                dll,
-                os.path.join(self.distdir, os.path.basename(dll)),
-            )
-
-        self.cflags.extend(
-            [
-                f"-I {download_path}/{self.machine_alt}-w64-mingw32/include/SDL2",
-                f"-L {download_path}/{self.machine_alt}-w64-mingw32/lib",
-            ]
-        )
-
-    def download_sdl_deps(self, name, version):
+    def download_sdl_deps(self, name: str, version: str):
         """
         SDL Dependency download utility for windows
         """
@@ -270,8 +212,7 @@ class KithareBuilder:
         if name != "SDL2":
             download_link += f"projects/{name}/".replace("2", "")
 
-        download_link += f"release/{name}-devel-{version}-"
-        download_link += "VC.zip" if self.compiler == "MSVC" else "mingw.tar.gz"
+        download_link += f"release/{name}-devel-{version}-mingw.tar.gz"
 
         download_path = f"{self.download_dir}/{name}"
 
@@ -288,37 +229,39 @@ class KithareBuilder:
                 response = download.read()
 
             print("Extracting compressed files")
-            if self.compiler == "MSVC":
-                with zipfile.ZipFile(io.BytesIO(response), "r") as zipped:
-                    zipped.extractall(self.download_dir)
+            # Tarfile does not support bytes IO, so use temp file
+            try:
+                with open("temp", "wb") as tar:
+                    tar.write(response)
 
-            else:
-                # Tarfile does not support bytes IO, so use temp file
-                try:
-                    with open("temp", "wb") as tar:
-                        tar.write(response)
-
-                    with tarfile.open("temp", "r:gz") as tarred:
-                        tarred.extractall(self.download_dir)
-                finally:
-                    if os.path.exists("temp"):
-                        os.remove("temp")
+                with tarfile.open("temp", "r:gz") as tarred:
+                    tarred.extractall(self.download_dir)
+            finally:
+                if os.path.exists("temp"):
+                    os.remove("temp")
 
             os.rename(f"{download_path}-{version}", download_path)
             print(f"Finished downloading {name}")
 
-        self.copy_sdl_dll(download_path)
+        # Copy DLLs
+        sdl_mingw = f"{download_path}/{self.machine_alt}-w64-mingw32"
+        for dll in glob.iglob(f"{sdl_mingw}/bin/*.dll"):
+            shutil.copyfile(
+                dll,
+                os.path.join(self.distdir, os.path.basename(dll)),
+            )
 
-    def compile_gpp(self, src, output, is_src):
+        self.cflags.extend([f"-I {sdl_mingw}/include/SDL2", f"-L {sdl_mingw}/lib"])
+
+    def compile_gpp(self, src: str, output: str, is_src: bool):
         """
         Used to execute g++ commands
         """
         srcflag = "-c " if is_src else ""
         cmd = f"g++ -o {output} {srcflag}{src} {' '.join(self.cflags)}"
         src_repr = src.replace("\\", "/")
-        name = f"file: {src_repr}" if is_src else "executable"
 
-        print("\nBuilding", name)
+        print("\nBuilding", f"file: {src_repr}" if is_src else "executable")
         print(cmd.replace("\\", "/"))
         return os.system(cmd)
 
@@ -329,8 +272,7 @@ class KithareBuilder:
         isfailed = 0
 
         for file in glob.iglob(f"{self.basepath}/src/**/*.cpp", recursive=True):
-            cfile = f"{self.builddir}/{os.path.basename(file)}"
-            ofile = cfile.replace(".cpp", ".o")
+            ofile = f"{self.builddir}/{os.path.basename(file)}".replace(".cpp", ".o")
             self.objfiles.append(ofile)
             if should_build(file, ofile, self.basepath):
                 isfailed = self.compile_gpp(file, ofile, is_src=True)
@@ -345,19 +287,8 @@ class KithareBuilder:
         """
         Generate final exe.
         """
-        if self.compiler == "MSVC":
-            ecode = os.system(
-                f"msbuild /m /p:Configuration={self.msvc_config} "
-                + f"/p:Platform={self.machine} {self.basepath}\\msvc\\Kithare.vcxproj"
-            )
-
-            if ecode:
-                sys.exit(ecode)
-            return
-
-        self.build_sources()
-
         exepath = f"{self.distdir}/{EXE}"
+        self.build_sources()
 
         args = " ".join(self.objfiles).replace("\\", "/")
 
@@ -405,10 +336,6 @@ class KithareBuilder:
                     self.cflags.append(f"-I {inc_dir}")
                     break
 
-        # Building in only dependency install mode
-        if self.msvc_no_compile:
-            return
-
         self.build_exe()
         print("Done!")
 
@@ -419,5 +346,5 @@ if __name__ == "__main__":
     if not dname:
         dname = "."
 
-    kithare = KithareBuilder(argv, dname)
+    kithare = KithareBuilder(dname, *argv)
     kithare.build()

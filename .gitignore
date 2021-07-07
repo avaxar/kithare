@@ -6,7 +6,6 @@
 
 # Executable/compiler generated files
 /build
-/deps/SDL-MSVC/
 /deps/SDL-MinGW/
 /dist
 *.o
