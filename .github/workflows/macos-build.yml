@@ -10,7 +10,6 @@ on:
     - '.gitignore'
     - 'LICENSE'
     - 'README.md'
-    - '.github/workflows/ms-build.yml'
     - '.github/workflows/mingw-build.yml'
     - '.github/workflows/ubuntu-build.yml'
   pull_request:
@@ -22,7 +21,6 @@ on:
     - '.gitignore'
     - 'LICENSE'
     - 'README.md'
-    - '.github/workflows/ms-build.yml'
     - '.github/workflows/mingw-build.yml'
     - '.github/workflows/ubuntu-build.yml'
 
