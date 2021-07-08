@@ -18,15 +18,15 @@
 namespace kh {
     class LexException : public kh::Exception {
     public:
-        std::u32string what;
+        std::string what;
         size_t column;
         size_t line;
         size_t index;
 
-        LexException(const std::u32string& _what, /* size_t _column, size_t _line, */ size_t _index)
+        LexException(const std::string& _what, /* size_t _column, size_t _line, */ size_t _index)
             : what(_what), /* column(_column), line(_line), */ index(_index) {}
         virtual ~LexException() {}
-        virtual std::u32string format() const;
+        virtual std::string format() const;
     };
 
     struct LexerContext {

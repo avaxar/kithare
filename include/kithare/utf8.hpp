@@ -14,13 +14,12 @@
 namespace kh {
     class Utf8DecodingException : public kh::Exception {
     public:
-        std::u32string what;
+        std::string what;
         size_t index;
 
-        Utf8DecodingException(const std::u32string _what, size_t _index)
-            : what(_what), index(_index) {}
+        Utf8DecodingException(const std::string _what, size_t _index) : what(_what), index(_index) {}
         virtual ~Utf8DecodingException() {}
-        virtual std::u32string format() const;
+        virtual std::string format() const;
     };
 
     std::string encodeUtf8(const std::u32string& str);

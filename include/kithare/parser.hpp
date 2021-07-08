@@ -11,13 +11,13 @@
 #include <kithare/string.hpp>
 #include <kithare/token.hpp>
 
-#define KH_PARSE_GUARD()                                                                     \
-    do {                                                                                     \
-        if (context.ti >= context.tokens.size()) {                                           \
-            context.exceptions.emplace_back(U"expected a token but reached the end of file", \
-                                            context.tokens.back());                          \
-            goto end;                                                                        \
-        }                                                                                    \
+#define KH_PARSE_GUARD()                                                                    \
+    do {                                                                                    \
+        if (context.ti >= context.tokens.size()) {                                          \
+            context.exceptions.emplace_back("expected a token but reached the end of file", \
+                                            context.tokens.back());                         \
+            goto end;                                                                       \
+        }                                                                                   \
     } while (false)
 
 #define KH_PARSE_CTX kh::ParserContext& context
@@ -26,13 +26,12 @@
 namespace kh {
     class ParseException : public kh::Exception {
     public:
-        std::u32string what;
+        std::string what;
         kh::Token token;
 
-        ParseException(const std::u32string _what, const kh::Token& _token)
-            : what(_what), token(_token) {}
+        ParseException(const std::string _what, const kh::Token& _token) : what(_what), token(_token) {}
         virtual ~ParseException() {}
-        virtual std::u32string format() const;
+        virtual std::string format() const;
     };
 
     struct ParserContext {

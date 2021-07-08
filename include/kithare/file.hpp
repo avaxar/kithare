@@ -14,11 +14,11 @@
 namespace kh {
     class FileReadError : public kh::Exception {
     public:
-        std::u32string fname;
+        std::string fname;
 
-        FileReadError(const std::u32string& _fname) : fname(_fname) {}
+        FileReadError(const std::string& _fname) : fname(_fname) {}
         virtual ~FileReadError() {}
-        virtual std::u32string format() const;
+        virtual std::string format() const;
     };
 
     std::u32string readFile(const std::u32string& path);

@@ -133,7 +133,7 @@ static int execute() {
         catch (kh::Exception& exc) {
             if (!silent) {
                 CLI_ERROR_BEGIN();
-                std::cerr << kh::encodeUtf8(exc.format()) << '\n';
+                std::cerr << exc.format() << '\n';
                 CLI_ERROR_END();
             }
             std::exit(1);
@@ -153,7 +153,7 @@ static int execute() {
             if (!silent) {
                 CLI_ERROR_BEGIN();
                 for (kh::LexException& exc : lex_exceptions) {
-                    std::cerr << "LexException: " << kh::encodeUtf8(exc.format()) << '\n';
+                    std::cerr << "LexException: " << exc.format() << '\n';
                 }
                 CLI_ERROR_END();
             }
@@ -181,7 +181,7 @@ static int execute() {
             if (!silent) {
                 CLI_ERROR_BEGIN();
                 for (kh::ParseException& exc : parse_exceptions) {
-                    std::cerr << "ParseException: " << kh::encodeUtf8(exc.format()) << '\n';
+                    std::cerr << "ParseException: " << exc.format() << '\n';
                 }
                 CLI_ERROR_END();
             }

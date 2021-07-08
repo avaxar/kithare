@@ -13,8 +13,8 @@ namespace kh {
     class Exception {
     public:
         virtual ~Exception() {}
-        virtual std::u32string format() const {
-            return U"";
+        virtual std::string format() const {
+            return "";
         }
     };
 }

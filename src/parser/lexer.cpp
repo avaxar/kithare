@@ -11,9 +11,9 @@
 #include <kithare/utf8.hpp>
 
 
-std::u32string kh::LexException::format() const {
-    return this->what + U" at line " + kh::str((uint64_t)this->line) + U" column " +
-           kh::str((uint64_t)this->column);
+std::string kh::LexException::format() const {
+    return this->what + " at line " + std::to_string(this->line) + " column " +
+           std::to_string(this->column);
 }
 
 std::vector<kh::Token> kh::lex(const std::u32string& source) {
@@ -34,14 +34,14 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
 
 /* Use this macro to export a variable hex_str from a given start and len relative
  * to the file index */
-#define HANDLE_HEX_INTO_HEXSTR(_start, _len)                    \
-    std::string hex_str;                                        \
-    for (size_t j = _start; j < _start + _len; j++) {           \
-        if (kh::isHex(chAt(i + j)))                             \
-            hex_str += (char)chAt(i + j);                       \
-        else                                                    \
-            KH_RAISE_ERROR(U"expected a hexadecimal digit", j); \
-    }                                                           \
+#define HANDLE_HEX_INTO_HEXSTR(_start, _len)                   \
+    std::string hex_str;                                       \
+    for (size_t j = _start; j < _start + _len; j++) {          \
+        if (kh::isHex(chAt(i + j)))                            \
+            hex_str += (char)chAt(i + j);                      \
+        else                                                   \
+            KH_RAISE_ERROR("expected a hexadecimal digit", j); \
+    }                                                          \
     i += _start + _len
 
 /* Helper macro */
@@ -51,7 +51,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
         tokens.emplace_back(start, i + 1, ttype, value); \
     }                                                    \
     else                                                 \
-        KH_RAISE_ERROR(U"expected a closing single quote", 0)
+        KH_RAISE_ERROR("expected a closing single quote", 0)
 
 /* Place a hex_str as an integer into tokens stack */
 #define PLACE_HEXSTR_AS_INT() _PLACE_HEXSTR_AS_TYPE(value.integer, kh::TokenType::INTEGER)
@@ -68,10 +68,10 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
         break;
 
 /* Helper macro */
-#define _HANDLE_ESCAPE_1(chr, echr, _val, _ttype, _len)                          \
-    _HANDLE_ESCAPE(chr, echr, _val, _len,                                        \
-                   if (chAt(i + _len) != '\'')                                   \
-                       KH_RAISE_ERROR(U"expected a closing single quote", _len); \
+#define _HANDLE_ESCAPE_1(chr, echr, _val, _ttype, _len)                         \
+    _HANDLE_ESCAPE(chr, echr, _val, _len,                                       \
+                   if (chAt(i + _len) != '\'')                                  \
+                       KH_RAISE_ERROR("expected a closing single quote", _len); \
                    tokens.emplace_back(start, i + _len + 1, _ttype, value);)
 
 /* Use this to handle string escapes from a switch statement. This is used to handle
@@ -89,7 +89,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
     _HANDLE_ESCAPE_1('"', '\"', _val, _valc, _len)  \
     _HANDLE_ESCAPE_1('\'', '\'', _val, _valc, _len) \
     default:                                        \
-        KH_RAISE_ERROR(U"unknown escape character", _len - 1);
+        KH_RAISE_ERROR("unknown escape character", _len - 1);
 
 /* Use this to handle string escapes from a switch statement. This is used to handle
  * escapes into byte/unicode strings */
@@ -106,7 +106,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
     _HANDLE_ESCAPE('"', '\"', value, 1, code)  \
     _HANDLE_ESCAPE('\'', '\'', value, 1, code) \
     default:                                   \
-        KH_RAISE_ERROR(U"unknown escape character", 1);
+        KH_RAISE_ERROR("unknown escape character", 1);
 
 /* Handle a simple symbol from a switch block */
 #define HANDLE_SIMPLE_SYMBOL(sym, name)                                \
@@ -174,7 +174,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
         }
         else {
             size_t i = index;
-            KH_RAISE_ERROR(U"unexpected end of file", -1);
+            KH_RAISE_ERROR("unexpected end of file", -1);
         }
     };
 
@@ -220,13 +220,13 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                     i += 2;
                                 }
                                 else if (chAt(i + 2) == '\n') {
-                                    KH_RAISE_ERROR(U"new line before byte character closing", 2);
+                                    KH_RAISE_ERROR("new line before byte character closing", 2);
                                 }
 
                                 /* Plain byte-char without character escapes */
                                 else if (chAt(i + 3) == '\'') {
                                     if (chAt(i + 2) > 255) {
-                                        KH_RAISE_ERROR(U"a non-byte sized character", 2);
+                                        KH_RAISE_ERROR("a non-byte sized character", 2);
                                     }
 
                                     kh::TokenValue value;
@@ -236,7 +236,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                     i += 3;
                                 }
                                 else {
-                                    KH_RAISE_ERROR(U"expected a closing single quote", 3);
+                                    KH_RAISE_ERROR("expected a closing single quote", 3);
                                 }
                                 continue;
                             }
@@ -269,7 +269,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                 case 'X': {
                                     state = kh::TokenizeState::HEX;
                                     if (!kh::isHex(chAt(i + 2))) {
-                                        KH_RAISE_ERROR(U"expected a hexadecimal digit", 2);
+                                        KH_RAISE_ERROR("expected a hexadecimal digit", 2);
                                     }
 
                                     i++;
@@ -281,7 +281,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                 case 'O': {
                                     state = kh::TokenizeState::OCTAL;
                                     if (!kh::isOct(chAt(i + 2))) {
-                                        KH_RAISE_ERROR(U"expected an octal digit at", 2);
+                                        KH_RAISE_ERROR("expected an octal digit at", 2);
                                     }
 
                                     i++;
@@ -293,7 +293,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                 case 'B': {
                                     state = kh::TokenizeState::BIN;
                                     if (!kh::isBin(chAt(i + 2))) {
-                                        KH_RAISE_ERROR(U"expected a binary digit at", 2);
+                                        KH_RAISE_ERROR("expected a binary digit at", 2);
                                     }
 
                                     i++;
@@ -346,7 +346,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                     i += 1;
                                 }
                                 else if (chAt(i + 1) == '\n') {
-                                    KH_RAISE_ERROR(U"new line before character closing", 1);
+                                    KH_RAISE_ERROR("new line before character closing", 1);
                                 }
                                 else if (chAt(i + 2) == '\'') {
                                     kh::TokenValue value;
@@ -355,7 +355,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                     i += 2;
                                 }
                                 else {
-                                    KH_RAISE_ERROR(U"expected a closing single quote", 2);
+                                    KH_RAISE_ERROR("expected a closing single quote", 2);
                                 }
                                 continue;
                             } break;
@@ -437,7 +437,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                     i++;
                                 }
                                 else if (chAt(i + 1) == '/') {
-                                    KH_RAISE_ERROR(U"unexpected comment close", 0);
+                                    KH_RAISE_ERROR("unexpected comment close", 0);
                                 }
 
                                 tokens.emplace_back(start, i + 1, kh::TokenType::OPERATOR, value);
@@ -511,7 +511,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                             } break;
 
                             default:
-                                KH_RAISE_ERROR(U"unrecognized character", 0);
+                                KH_RAISE_ERROR("unrecognized character", 0);
                         }
                     }
                     continue;
@@ -560,7 +560,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                             value.uinteger = std::stoull(kh::encodeUtf8(temp_str));
                         }
                         catch (...) {
-                            KH_RAISE_ERROR(U"unsigned integer too large to be interpret", 0);
+                            KH_RAISE_ERROR("unsigned integer too large to be interpret", 0);
                         }
                         tokens.emplace_back(start, i + 1, kh::TokenType::UINTEGER, value);
 
@@ -573,7 +573,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                             value.imaginary = std::stoull(kh::encodeUtf8(temp_str));
                         }
                         catch (...) {
-                            KH_RAISE_ERROR(U"imaginary integer too large to be interpret", 0);
+                            KH_RAISE_ERROR("imaginary integer too large to be interpret", 0);
                         }
                         tokens.emplace_back(start, i + 1, kh::TokenType::IMAGINARY, value);
 
@@ -590,7 +590,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                             value.integer = std::stoll(kh::encodeUtf8(temp_str));
                         }
                         catch (...) {
-                            KH_RAISE_ERROR(U"integer too large to be interpret", -1);
+                            KH_RAISE_ERROR("integer too large to be interpret", -1);
                         }
                         tokens.emplace_back(start, i, kh::TokenType::INTEGER, value);
 
@@ -620,7 +620,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                         /* An artifact from how integers were checked that was transferred as a floating
                          * point with an invalid character after . */
                         if (temp_str.back() == '.') {
-                            KH_RAISE_ERROR(U"was expecting a digit after the decimal point", 0);
+                            KH_RAISE_ERROR("was expecting a digit after the decimal point", 0);
                         }
 
                         kh::TokenValue value;
@@ -644,7 +644,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                             value.uinteger = std::stoull(kh::encodeUtf8(temp_str), nullptr, 16);
                         }
                         catch (...) {
-                            KH_RAISE_ERROR(U"unsigned hex integer too large to be interpret", 0);
+                            KH_RAISE_ERROR("unsigned hex integer too large to be interpret", 0);
                         }
                         tokens.emplace_back(start, i + 1, kh::TokenType::UINTEGER, value);
 
@@ -657,7 +657,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                             value.imaginary = std::stoull(kh::encodeUtf8(temp_str), nullptr, 16);
                         }
                         catch (...) {
-                            KH_RAISE_ERROR(U"imaginary hex integer too large to be interpret", 0);
+                            KH_RAISE_ERROR("imaginary hex integer too large to be interpret", 0);
                         }
                         tokens.emplace_back(start, i + 1, kh::TokenType::IMAGINARY, value);
 
@@ -669,7 +669,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                             value.integer = std::stoull(kh::encodeUtf8(temp_str), nullptr, 16);
                         }
                         catch (...) {
-                            KH_RAISE_ERROR(U"hex integer too large to be interpret", -1);
+                            KH_RAISE_ERROR("hex integer too large to be interpret", -1);
                         }
                         tokens.emplace_back(start, i, kh::TokenType::INTEGER, value);
 
@@ -690,7 +690,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                             value.uinteger = std::stoull(kh::encodeUtf8(temp_str), nullptr, 8);
                         }
                         catch (...) {
-                            KH_RAISE_ERROR(U"unsigned octal integer too large to be interpret", 0);
+                            KH_RAISE_ERROR("unsigned octal integer too large to be interpret", 0);
                         }
                         tokens.emplace_back(start, i + 1, kh::TokenType::UINTEGER, value);
 
@@ -703,7 +703,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                             value.imaginary = std::stoull(kh::encodeUtf8(temp_str), nullptr, 8);
                         }
                         catch (...) {
-                            KH_RAISE_ERROR(U"imaginary octal integer too large to be interpret", 0);
+                            KH_RAISE_ERROR("imaginary octal integer too large to be interpret", 0);
                         }
                         tokens.emplace_back(start, i + 1, kh::TokenType::IMAGINARY, value);
 
@@ -715,7 +715,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                             value.integer = std::stoull(kh::encodeUtf8(temp_str), nullptr, 8);
                         }
                         catch (...) {
-                            KH_RAISE_ERROR(U"octal integer too large to be interpret", -1);
+                            KH_RAISE_ERROR("octal integer too large to be interpret", -1);
                         }
                         tokens.emplace_back(start, i, kh::TokenType::INTEGER, value);
 
@@ -737,7 +737,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                             value.uinteger = std::stoull(kh::encodeUtf8(temp_str), nullptr, 2);
                         }
                         catch (...) {
-                            KH_RAISE_ERROR(U"unsigned binary integer too large to be interpret", 0);
+                            KH_RAISE_ERROR("unsigned binary integer too large to be interpret", 0);
                         }
                         tokens.emplace_back(start, i + 1, kh::TokenType::UINTEGER, value);
 
@@ -750,7 +750,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                             value.imaginary = std::stoull(kh::encodeUtf8(temp_str), nullptr, 2);
                         }
                         catch (...) {
-                            KH_RAISE_ERROR(U"imaginary binary integer too large to be interpret", 0);
+                            KH_RAISE_ERROR("imaginary binary integer too large to be interpret", 0);
                         }
                         tokens.emplace_back(start, i + 1, kh::TokenType::IMAGINARY, value);
 
@@ -762,7 +762,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                             value.integer = std::stoull(kh::encodeUtf8(temp_str), nullptr, 2);
                         }
                         catch (...) {
-                            KH_RAISE_ERROR(U"binary integer too large to be interpret", -1);
+                            KH_RAISE_ERROR("binary integer too large to be interpret", -1);
                         }
                         tokens.emplace_back(start, i, kh::TokenType::INTEGER, value);
 
@@ -783,7 +783,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                         state = kh::TokenizeState::NONE;
                     }
                     else if (chAt(i) == '\n') {
-                        KH_RAISE_ERROR(U"unclosed buffer string before new line", 0);
+                        KH_RAISE_ERROR("unclosed buffer string before new line", 0);
                     }
                     else {
                         /* Possible character escape */
@@ -808,7 +808,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                         }
                         else {
                             if (chAt(i) > 255) {
-                                KH_RAISE_ERROR(U"a non-byte sized character", 0);
+                                KH_RAISE_ERROR("a non-byte sized character", 0);
                             }
 
                             temp_buf.push_back(chAt(i));
@@ -850,7 +850,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                         }
                         else {
                             if (chAt(i) > 255) {
-                                KH_RAISE_ERROR(U"a non-byte sized character", 0);
+                                KH_RAISE_ERROR("a non-byte sized character", 0);
                             }
 
                             temp_buf.push_back(chAt(i));
@@ -869,7 +869,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                         state = kh::TokenizeState::NONE;
                     }
                     else if (chAt(i) == '\n') {
-                        KH_RAISE_ERROR(U"unclosed string before new line", 0);
+                        KH_RAISE_ERROR("unclosed string before new line", 0);
                     }
                     else {
                         /* Possible character escape */
@@ -982,7 +982,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
 
                 default:
                     /* How did we get here? */
-                    KH_RAISE_ERROR(U"got an unknown tokenize state (u got a bug m8)", 0);
+                    KH_RAISE_ERROR("got an unknown tokenize state (u got a bug m8)", 0);
             }
         }
         catch (const kh::LexException& exc) {
@@ -996,7 +996,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
      * This usually happens if the user has forgotten to close a multiline comment,
      * string or buffer */
     if (state != kh::TokenizeState::NONE) {
-        context.exceptions.emplace_back(U"unexpected end of file", context.source.size());
+        context.exceptions.emplace_back("unexpected end of file", context.source.size());
     }
 
     /* Fills in the `column` and `line` number attributes of each token */
