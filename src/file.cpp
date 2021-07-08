@@ -10,7 +10,7 @@
 
 
 std::string kh::FileReadError::format() const {
-    return "Unable to read " + kh::encodeUtf8(kh::quote(this->fname));
+    return "unable to read file";
 }
 
 std::u32string kh::readFile(const std::u32string& path) {
@@ -35,7 +35,7 @@ std::string kh::readFileBinary(const std::u32string& path) {
 #endif
 
     if (!file) {
-        throw kh::FileReadError(kh::encodeUtf8(path));
+        throw kh::FileReadError();
     }
 
     int c; /* Note: int, not char, required to handle EOF */
@@ -44,7 +44,7 @@ std::string kh::readFileBinary(const std::u32string& path) {
     }
 
     if (ferror(file)) {
-        throw kh::FileReadError(kh::encodeUtf8(path));
+        throw kh::FileReadError();
     }
 
     fclose(file);

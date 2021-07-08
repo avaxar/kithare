@@ -14,9 +14,7 @@
 namespace kh {
     class FileReadError : public kh::Exception {
     public:
-        std::string fname;
-
-        FileReadError(const std::string& _fname) : fname(_fname) {}
+        FileReadError() {}
         virtual ~FileReadError() {}
         virtual std::string format() const;
     };
