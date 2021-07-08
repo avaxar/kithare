@@ -74,7 +74,7 @@ kh::AstModule kh::parseWhole(KH_PARSE_CTX) {
 
                     if (functions.back().identifiers.empty()) {
                         context.exceptions.emplace_back(
-                            U"lambda functions cannot be declared at the top scope", token);
+                            U"a lambda function cannot be declared at the top scope", token);
                     }
                     if (is_static && functions.back().identifiers.size() == 1) {
                         context.exceptions.emplace_back(U"a top scope function cannot be static",

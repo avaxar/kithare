@@ -411,7 +411,14 @@ kh::AstExpression* kh::parseOthers(KH_PARSE_CTX) {
             if (token.value.identifier == "def") {
                 context.ti++;
                 KH_PARSE_GUARD();
-                return new kh::AstFunction(kh::parseFunction(context, false, true, false));
+                kh::AstFunction lambda = kh::parseFunction(context, false, true, false);
+
+                if (!lambda.identifiers.empty()) {
+                    context.exceptions.emplace_back(
+                        U"a non-lambda function cannot be defined in an expression", token);
+                }
+
+                return new kh::AstFunction(lambda);
             }
             /* Variable declaration */
             else if (token.value.identifier == "ref" || token.value.identifier == "static" ||
@@ -419,9 +426,11 @@ kh::AstExpression* kh::parseOthers(KH_PARSE_CTX) {
                 bool is_static, is_public;
                 kh::parseAccessAttribs(context, is_static, is_public);
                 KH_PARSE_GUARD();
+
                 if (!is_public) {
                     context.exceptions.emplace_back(U"a local variable cannot be private", token);
                 }
+
                 return new kh::AstDeclaration(kh::parseDeclaration(context, is_static, is_public));
             }
             else {

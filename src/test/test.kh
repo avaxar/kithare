@@ -19,4 +19,8 @@ try def main() {
     float another_float = vector3[0];
 
     Test!(ref b!c[3]) d;
+
+    func!(void()) a = def() {
+
+    };
 }
