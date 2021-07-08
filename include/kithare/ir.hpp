@@ -6,12 +6,32 @@
 
 #pragma once
 
+#include <vector>
+
 
 namespace kh {
-    class Ir;
     class IrModule;
     class IrScope;
     class IrVariable;
+
+    class IrFunction;
+    class IrIntrinsic;
+    class IrUserFunction;
+
+    class IrClassGeneric;
+    class IrStructGeneric;
+    class IrFunctionGeneric;
+
+    class IrType;
+    class IrRefType;
+    class IrArrayType;
+    class IrListType;
+    class IrTupleType;
+    class IrDictType;
+    class IrFuncType;
+    class IrClassType;
+    class IrStructType;
+    class IrEnumType;
 
     class IrBody;
     class IrExpressionBody;
@@ -27,27 +47,22 @@ namespace kh {
     class IrVariableExpression;
     class IrReturnRefExpression;
     class IrFunctionExpression;
+    class IrTernaryExpression;
     class IrAssignExpression;
     class IrDerefExpression;
     class IrScopeExpression;
     class IrCallExpression;
 
-    class IrType;
-    class IrRefType;
-    class IrArrayType;
-    class IrListType;
-    class IrTupleType;
-    class IrDictType;
-    class IrFuncType;
-    class IrClassType;
-    class IrStructType;
-    class IrEnumType;
+    class IrConst;
+    class IrIntegerConst;
+    class IrUnsignedIntegerConst;
+    class IrFloatConst;
+    class IrDoubleConst;
+    class IrComplexConst;
+    class IrComplexFConst;
+    class IrStringConst;
+    class IrBufferConst;
+    class IrEnumerationConst;
 
-    class IrFunction;
-    class IrIntrinsic;
-    class IrUserFunction;
-
-    class IrClassGeneric;
-    class IrStructGeneric;
-    class IrFunctionGeneric;
+    class IrModule {};
 }

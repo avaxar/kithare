@@ -7,10 +7,11 @@
 #include <kithare/ast.hpp>
 
 
-kh::Ast::Ast(const std::vector<kh::AstImport>& _imports, const std::vector<kh::AstFunction>& _functions,
-             const std::vector<kh::AstUserType>& _user_types,
-             const std::vector<kh::AstEnumType>& _enums,
-             const std::vector<kh::AstDeclaration>& _variables)
+kh::AstModule::AstModule(const std::vector<kh::AstImport>& _imports,
+                         const std::vector<kh::AstFunction>& _functions,
+                         const std::vector<kh::AstUserType>& _user_types,
+                         const std::vector<kh::AstEnumType>& _enums,
+                         const std::vector<kh::AstDeclaration>& _variables)
     : variables(_variables), imports(_imports), functions(_functions), user_types(_user_types),
       enums(_enums) {}
 

@@ -170,7 +170,7 @@ static int execute() {
         auto parse_start = std::chrono::high_resolution_clock::now();
         std::vector<kh::ParseException> parse_exceptions;
         kh::ParserContext parser_context{tokens, parse_exceptions};
-        kh::Ast ast = parseWhole(parser_context);
+        kh::AstModule ast = parseWhole(parser_context);
         auto parse_end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> parse_elapsed = parse_end - parse_start;
 

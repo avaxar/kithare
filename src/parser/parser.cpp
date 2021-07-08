@@ -13,10 +13,10 @@ std::u32string kh::ParseException::format() const {
            kh::str((uint64_t)this->token.column);
 }
 
-kh::Ast kh::parse(const std::vector<kh::Token>& tokens) {
+kh::AstModule kh::parse(const std::vector<kh::Token>& tokens) {
     std::vector<kh::ParseException> exceptions;
     kh::ParserContext context{tokens, exceptions};
-    kh::Ast ast = kh::parseWhole(context);
+    kh::AstModule ast = kh::parseWhole(context);
 
     if (exceptions.empty()) {
         return ast;
@@ -26,7 +26,7 @@ kh::Ast kh::parse(const std::vector<kh::Token>& tokens) {
     }
 }
 
-kh::Ast kh::parseWhole(KH_PARSE_CTX) {
+kh::AstModule kh::parseWhole(KH_PARSE_CTX) {
     context.exceptions.clear();
 
     std::vector<kh::AstImport> imports;

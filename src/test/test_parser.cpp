@@ -21,7 +21,7 @@ static void parserImportTest() {
     std::vector<kh::Token> tokens = kh::lex(lexer_context);
     std::vector<kh::ParseException> parse_exceptions;
     kh::ParserContext parser_context{tokens, parse_exceptions};
-    kh::Ast ast = kh::parseWhole(parser_context);
+    kh::AstModule ast = kh::parseWhole(parser_context);
 
     KH_TEST_ASSERT(lex_exceptions.empty());
     KH_TEST_ASSERT(parse_exceptions.empty());

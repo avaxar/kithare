@@ -58,12 +58,12 @@ namespace kh {
                identifier == "return" || identifier == "ref";
     }
 
-    kh::Ast parse(const std::vector<kh::Token>& tokens);
+    kh::AstModule parse(const std::vector<kh::Token>& tokens);
     kh::AstExpression* parseExpression(const std::vector<kh::Token>& tokens);
 
     /* Most of these parses stuff such as imports, includes, classes, structs, enums, functions at the
      * top level scope */
-    kh::Ast parseWhole(KH_PARSE_CTX);
+    kh::AstModule parseWhole(KH_PARSE_CTX);
     kh::AstImport parseImport(KH_PARSE_CTX, bool is_include);
     void parseAccessAttribs(KH_PARSE_CTX, bool& is_static, bool& is_public);
     kh::AstFunction parseFunction(KH_PARSE_CTX, bool is_static, bool is_public, bool is_conditional);

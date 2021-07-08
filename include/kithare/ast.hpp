@@ -15,8 +15,7 @@
 
 
 namespace kh {
-    class Ast;
-
+    class AstModule;
     class AstImport;
     class AstUserType;
     class AstEnumType;
@@ -46,13 +45,13 @@ namespace kh {
     class AstList;
     class AstDict;
 
-    std::u32string str(const kh::Ast& module_ast, size_t indent = 0);
+    std::u32string str(const kh::AstModule& module_ast, size_t indent = 0);
     std::u32string str(const kh::AstImport& import_ast, size_t indent = 0);
     std::u32string str(const kh::AstUserType& type_ast, size_t indent = 0);
     std::u32string str(const kh::AstEnumType& enum_ast, size_t indent = 0);
     std::u32string str(const kh::AstBody& body_ast, size_t indent = 0);
 
-    class Ast {
+    class AstModule {
     public:
         std::vector<kh::AstImport> imports;
         std::vector<kh::AstFunction> functions;
@@ -60,10 +59,11 @@ namespace kh {
         std::vector<kh::AstEnumType> enums;
         std::vector<kh::AstDeclaration> variables;
 
-        Ast(const std::vector<kh::AstImport>& _imports, const std::vector<kh::AstFunction>& _functions,
-            const std::vector<kh::AstUserType>& _user_types, const std::vector<kh::AstEnumType>& _enums,
-            const std::vector<kh::AstDeclaration>& _variables);
-        virtual ~Ast() {}
+        AstModule(const std::vector<kh::AstImport>& _imports,
+                  const std::vector<kh::AstFunction>& _functions,
+                  const std::vector<kh::AstUserType>& _user_types,
+                  const std::vector<kh::AstEnumType>& _enums,
+                  const std::vector<kh::AstDeclaration>& _variables);
     };
 
     class AstImport {
@@ -76,7 +76,6 @@ namespace kh {
 
         AstImport(size_t _index, const std::vector<std::string>& _path, bool _is_include,
                   bool _is_relative, const std::string& _identifier);
-        virtual ~AstImport() {}
     };
 
     class AstUserType {
@@ -94,7 +93,6 @@ namespace kh {
                     const std::vector<std::string>& _generic_args,
                     const std::vector<kh::AstDeclaration>& _members,
                     const std::vector<kh::AstFunction>& _methods, bool _is_class);
-        virtual ~AstUserType() {}
     };
 
     class AstEnumType {
@@ -106,7 +104,6 @@ namespace kh {
 
         AstEnumType(size_t _index, const std::vector<std::string>& _identifiers,
                     const std::vector<std::string>& _members, const std::vector<uint64_t>& _values);
-        virtual ~AstEnumType() {}
     };
 
     class AstBody {

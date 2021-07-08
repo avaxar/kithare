@@ -21,7 +21,7 @@
     std::u32string str;
 
 
-std::u32string kh::str(const kh::Ast& module_ast, size_t indent) {
+std::u32string kh::str(const kh::AstModule& module_ast, size_t indent) {
     std::u32string ind;
     ind.reserve(indent);
     for (size_t i = 0; i < indent; i++) {

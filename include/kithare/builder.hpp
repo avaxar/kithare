@@ -10,7 +10,5 @@
 
 
 namespace kh {
-    class Builder {
-
-    };
+    class Builder {};
 }
