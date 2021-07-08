@@ -1,3 +1,8 @@
+# Test files
+test.kh
+test.bat
+test.sh
+
 # Couple of IDEs' temporary/cache directory
 *~
 *.swp
@@ -16,3 +21,4 @@
 *.a
 *.lib
 icon.res
+
