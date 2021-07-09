@@ -221,7 +221,7 @@ class KithareBuilder:
         for dll in sdl_mingw.glob("bin/*.dll"):
             shutil.copyfile(dll, self.distdir / dll.name)
 
-        inc_dir = sdl_mingw / "include" / "SDL2"
+        inc_dir = sdl_mingw / "include"
         lib_dir = sdl_mingw / "lib"
         self.cflags.extend([f"-I {inc_dir}", f"-L {lib_dir}"])
 
@@ -302,16 +302,6 @@ class KithareBuilder:
             self.download_dir.mkdir(parents=True, exist_ok=True)
             for package, ver in SDL_DEPS.items():
                 self.download_sdl_deps(package, ver)
-
-        else:
-            usr = Path("/usr")
-            for inc_dir in {
-                usr / "include" / "SDL2",
-                usr / "local" / "include" / "SDL2",
-            }:
-                if inc_dir.is_dir():
-                    self.cflags.append(f"-I {inc_dir}")
-                    break
 
         self.build_exe()
         print("Done!")
