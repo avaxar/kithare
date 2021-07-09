@@ -44,6 +44,7 @@ import platform
 import shutil
 import sys
 import tarfile
+import time
 import urllib.request as urllib
 from pathlib import Path
 from typing import Union
@@ -52,7 +53,8 @@ INCLUDE_DIRNAME = "include"
 ICO_RES = "icon.res"
 EXE = "kcr"
 
-if platform.system() == "Windows":
+COMPILER = "MinGW" if platform.system() == "Windows" else "GCC"
+if COMPILER == "MinGW":
     EXE += ".exe"
 
 # While we recursively search for include files, we don't want to seach
@@ -68,6 +70,14 @@ SDL_DEPS = {
     "SDL2_ttf": "2.0.15",
     "SDL2_net": "2.0.1",
 }
+
+
+def run_cmd(cmd: str):
+    """
+    Helper function to run command in shell
+    """
+    print(cmd)
+    return os.system(cmd)
 
 
 def find_includes(file: Path, basedir: Path):
@@ -111,30 +121,21 @@ class KithareBuilder:
         """
         Initialise kithare builder
         """
-        self.args = list(args)
         self.basepath = basepath
         self.objfiles = []  # populated later by a call to self.build_sources
-        self.set_machine()
-        self.parse_args()
-        self.init_cflags()
 
-    def set_machine(self):
-        """
-        Set machine type
-        """
-        self.is_32_bit = "--arch=x86" in self.args
+        is_32_bit = "--arch=x86" in args
         self.machine = platform.machine()
-
         if self.machine.endswith("86"):
             self.machine = "x86"
             self.machine_alt = "i686"
 
         elif self.machine.lower() in ["x86_64", "amd64"]:
-            self.machine = "x86" if self.is_32_bit else "x64"
-            self.machine_alt = "i686" if self.is_32_bit else "x86_64"
+            self.machine = "x86" if is_32_bit else "x64"
+            self.machine_alt = "i686" if is_32_bit else "x86_64"
 
         elif self.machine.lower() in ["armv8l", "arm64", "aarch64"]:
-            self.machine = "ARM" if self.is_32_bit else "ARM64"
+            self.machine = "ARM" if is_32_bit else "ARM64"
 
         elif self.machine.lower().startswith("arm"):
             self.machine = "ARM"
@@ -142,31 +143,17 @@ class KithareBuilder:
         elif not self.machine:
             self.machine = "None"
 
-    def parse_args(self):
-        """
-        Parse any arguments into respective flags
-        """
-        self.compiler = "MinGW" if platform.system() == "Windows" else "GCC"
+        self.sdl_dir = self.basepath / "deps" / "SDL"
+        self.sdl_mingw_include = self.sdl_dir / "include" / "SDL2"
 
-        self.download_dir = self.basepath / "deps" / "SDL"
-        self.sdl_mingw_include = self.download_dir / "include" / "SDL2"
-
-        dirname = f"{self.compiler}-{self.machine}"
+        dirname = f"{COMPILER}-{self.machine}"
         self.builddir = self.basepath / "build" / dirname
         self.distdir = self.basepath / "dist" / dirname
         self.exepath = self.distdir / EXE
 
-        self.run_tests = "--run-tests" in self.args
+        if "--run-tests" in args:
+            sys.exit(os.system(f"{self.exepath} --test"))
 
-        # Prune unneeded args
-        for i in list(self.args):
-            if i.startswith("--arch="):
-                self.args.remove(i)
-
-    def init_cflags(self):
-        """
-        Initailise compiler flags into a list
-        """
         self.cflags = [
             "-O3",
             "-std=c++14",
@@ -179,13 +166,15 @@ class KithareBuilder:
             "-lSDL2_net",
         ]
 
-        if self.compiler == "MinGW":
+        if COMPILER == "MinGW":
             self.cflags.append("-municode")
 
-        if self.is_32_bit and "-m32" not in self.args:
+        if is_32_bit and "-m32" not in args:
             self.cflags.append("-m32")
 
-        self.cflags.extend(self.args)
+        for i in args:
+            if not i.startswith("--arch="):
+                self.cflags.append(i)
 
     def download_sdl_deps(self, name: str, version: str):
         """
@@ -197,7 +186,7 @@ class KithareBuilder:
 
         download_link += f"release/{name}-devel-{version}-mingw.tar.gz"
 
-        download_path = self.download_dir / f"{name}-{version}"
+        download_path = self.sdl_dir / f"{name}-{version}"
         if download_path.is_dir():
             print(f"Skipping {name} download because it already exists")
 
@@ -213,7 +202,7 @@ class KithareBuilder:
             print("Extracting compressed files")
             with io.BytesIO(response) as fileobj:
                 with tarfile.open(mode="r:gz", fileobj=fileobj) as tarred:
-                    tarred.extractall(self.download_dir)
+                    tarred.extractall(self.sdl_dir)
 
             print(f"Finished downloading {name}")
 
@@ -236,8 +225,7 @@ class KithareBuilder:
         cmd = f"g++ -o {output} {srcflag}{src} {' '.join(self.cflags)}"
 
         print("\nBuilding", f"file: {src}" if is_src else "executable")
-        print(cmd)
-        return os.system(cmd)
+        return run_cmd(cmd)
 
     def build_sources(self):
         """
@@ -246,14 +234,18 @@ class KithareBuilder:
         isfailed = False
         ecode = 0
 
-        for file in self.basepath.glob(f"src/**/*.cpp"):
+        for file in self.basepath.glob("src/**/*.cpp"):
             ofile = self.builddir / f"{file.stem}.o"
             self.objfiles.append(ofile)
-            if should_build(file, ofile, self.basepath):
-                ecode = self.compile_gpp(file, ofile, is_src=True)
-                if ecode:
-                    isfailed = True
-                    print("g++ command exited with an error code:", ecode)
+            if not should_build(file, ofile, self.basepath):
+                print(f"\nSkipping file: {file}")
+                print("Because the intermediate object file is already built")
+                continue
+
+            ecode = self.compile_gpp(file, ofile, is_src=True)
+            if ecode:
+                isfailed = True
+                print("g++ command exited with an error code:", ecode)
 
         if isfailed:
             print("Skipped building executable, because all files didn't build")
@@ -269,10 +261,16 @@ class KithareBuilder:
 
         # Handle exe icon on MinGW
         ico_res = self.basepath / ICO_RES
-        if self.compiler == "MinGW":
+        if COMPILER == "MinGW":
             assetfile = self.basepath / "assets" / "Kithare.rc"
-            os.system(f"windres {assetfile} -O coff -o {ico_res}")
-            args += f" {ico_res}"
+
+            print("\nRunning windres command to set icon for exe")
+            ret = run_cmd(f"windres {assetfile} -O coff -o {ico_res}")
+            if ret:
+                print(f"windres command failed with exit code {ret}")
+                print("This means the final exe will not have the kithare logo")
+            else:
+                args += f" {ico_res}"
 
         try:
             dist_m = None
@@ -286,6 +284,9 @@ class KithareBuilder:
                     if ecode:
                         sys.exit(ecode)
                     break
+            else:
+                print("\nSkipping final exe build, since it is already built")
+
         finally:
             if ico_res.is_file():
                 ico_res.unlink()
@@ -297,20 +298,25 @@ class KithareBuilder:
         self.builddir.mkdir(parents=True, exist_ok=True)
         self.distdir.mkdir(parents=True, exist_ok=True)
 
-        if self.run_tests:
-            sys.exit(os.system(f"{self.exepath} --test"))
-
+        t1 = time.perf_counter()
         # Prepare dependencies and cflags with SDL flags
-        if platform.system() == "Windows":
-            # This also creates self.download_dir dir
+        if COMPILER == "MinGW":
+            # This also creates self.sdl_dir dir
             self.sdl_mingw_include.mkdir(parents=True, exist_ok=True)
             for package, ver in SDL_DEPS.items():
                 self.download_sdl_deps(package, ver)
 
             self.cflags.append(f"-I {self.sdl_mingw_include.parent}")
 
+        t2 = time.perf_counter()
         self.build_exe()
         print("Done!")
+
+        t3 = time.perf_counter()
+        print("\nSome timing stats for peeps who like to 'optimise':")
+        if COMPILER == "MinGW":
+            print(f"SDL deps took {t2 - t1:.3f} seconds to install")
+        print(f"Kithare took {t3 - t2:.3f} seconds to compile")
 
 
 if __name__ == "__main__":
