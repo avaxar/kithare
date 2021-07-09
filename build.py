@@ -38,16 +38,18 @@ This feature might fall of use for advanced users, who know what they are doing.
 """
 
 
-import glob
+import io
 import os
 import platform
 import shutil
 import sys
 import tarfile
 import urllib.request as urllib
+from pathlib import Path
+from typing import Union
 
+INCLUDE_DIRNAME = "include"
 ICO_RES = "icon.res"
-
 EXE = "kcr"
 
 if platform.system() == "Windows":
@@ -68,56 +70,36 @@ SDL_DEPS = {
 }
 
 
-def mkdir(file: str):
-    """
-    Make a directory, don't error if it exists
-    """
-    os.makedirs(file, exist_ok=True)
-
-
-def find_includes(file: str, basedir: str):
+def find_includes(file: Path, basedir: Path):
     """
     Recursively find include files for a given file
     Returns an iterator
     """
-    with open(file, "r") as fobj:
-        for cnt, line in enumerate(fobj.read().splitlines()):
-            words = line.split()
-            if len(words) < 2:
-                continue
+    for line in file.read_text().splitlines()[:INC_FILE_LINE_LIMIT]:
+        words = line.split()
+        if len(words) < 2 or words[0] != "#include":
+            continue
 
-            if words[0] == "#include":
-                retfile = words[1]
-                for char in ['"', "<", ">"]:
-                    retfile = retfile.replace(char, "")
-
-                retfile = os.path.join(
-                    basedir, "include", os.path.normcase(retfile.strip())
-                )
-
-                if os.path.isfile(retfile):
-                    yield retfile
-                    yield from find_includes(retfile, basedir)
-
-            if cnt >= INC_FILE_LINE_LIMIT:
-                break
+        retfile = basedir / INCLUDE_DIRNAME / words[1].strip('"<>').strip()
+        if retfile.is_file():
+            yield retfile
+            yield from find_includes(retfile, basedir)
 
 
-def should_build(file: str, ofile: str, basedir: str):
+def should_build(file: Path, ofile: Path, basedir: Path):
     """
     Determines whether a particular cpp file should be rebuilt
     """
-    if not os.path.isfile(ofile):
+    if not ofile.is_file():
         return True
 
-    ofile_m = os.stat(ofile).st_mtime
-    if os.stat(file).st_mtime > ofile_m:
+    ofile_m = ofile.stat().st_mtime
+    if file.stat().st_mtime > ofile_m:
         return True
 
-    for incfile in find_includes(file, basedir):
-        if os.stat(incfile).st_mtime > ofile_m:
-            return True
-    return False
+    return any(
+        incfile.stat().st_mtime > ofile_m for incfile in find_includes(file, basedir)
+    )
 
 
 class KithareBuilder:
@@ -125,7 +107,7 @@ class KithareBuilder:
     Kithare builder class
     """
 
-    def __init__(self, basepath: str, *args: str):
+    def __init__(self, basepath: Path, *args: str):
         """
         Initialise kithare builder
         """
@@ -166,12 +148,12 @@ class KithareBuilder:
         """
         self.compiler = "MinGW" if platform.system() == "Windows" else "GCC"
 
-        self.download_dir = f"{self.basepath}/deps/SDL-{self.compiler}"
+        self.download_dir = self.basepath / "deps" / "SDL"
 
         dirname = f"{self.compiler}-{self.machine}"
-
-        self.builddir = f"{self.basepath}/build/{dirname}"
-        self.distdir = f"{self.basepath}/dist/{dirname}"
+        self.builddir = self.basepath / "build" / dirname
+        self.distdir = self.basepath / "dist" / dirname
+        self.exepath = self.distdir / EXE
 
         self.run_tests = "--run-tests" in self.args
 
@@ -184,17 +166,17 @@ class KithareBuilder:
         """
         Initailise compiler flags into a list
         """
-        self.cflags = ["-O3", "-std=c++14", f"-I {self.basepath}/include"]
-        self.cflags.extend(
-            [
-                "-lSDL2",
-                "-lSDL2main",
-                "-lSDL2_image",
-                "-lSDL2_ttf",
-                "-lSDL2_mixer",
-                "-lSDL2_net",
-            ]
-        )
+        self.cflags = [
+            "-O3",
+            "-std=c++14",
+            f"-I {self.basepath/INCLUDE_DIRNAME}",
+            "-lSDL2",
+            "-lSDL2main",
+            "-lSDL2_image",
+            "-lSDL2_ttf",
+            "-lSDL2_mixer",
+            "-lSDL2_net",
+        ]
 
         if self.compiler == "MinGW":
             self.cflags.append("-municode")
@@ -214,9 +196,8 @@ class KithareBuilder:
 
         download_link += f"release/{name}-devel-{version}-mingw.tar.gz"
 
-        download_path = f"{self.download_dir}/{name}"
-
-        if os.path.isdir(download_path):
+        download_path = self.download_dir / f"{name}-{version}"
+        if download_path.is_dir():
             print(f"Skipping {name} download because it already exists")
 
         else:
@@ -229,110 +210,106 @@ class KithareBuilder:
                 response = download.read()
 
             print("Extracting compressed files")
-            # Tarfile does not support bytes IO, so use temp file
-            try:
-                with open("temp", "wb") as tar:
-                    tar.write(response)
-
-                with tarfile.open("temp", "r:gz") as tarred:
+            with io.BytesIO(response) as fileobj:
+                with tarfile.open(mode="r:gz", fileobj=fileobj) as tarred:
                     tarred.extractall(self.download_dir)
-            finally:
-                if os.path.exists("temp"):
-                    os.remove("temp")
 
-            os.rename(f"{download_path}-{version}", download_path)
             print(f"Finished downloading {name}")
 
         # Copy DLLs
-        sdl_mingw = f"{download_path}/{self.machine_alt}-w64-mingw32"
-        for dll in glob.iglob(f"{sdl_mingw}/bin/*.dll"):
-            shutil.copyfile(
-                dll,
-                os.path.join(self.distdir, os.path.basename(dll)),
-            )
+        sdl_mingw = download_path / f"{self.machine_alt}-w64-mingw32"
+        for dll in sdl_mingw.glob("bin/*.dll"):
+            shutil.copyfile(dll, self.distdir / dll.name)
 
-        self.cflags.extend([f"-I {sdl_mingw}/include/SDL2", f"-L {sdl_mingw}/lib"])
+        inc_dir = sdl_mingw / "include" / "SDL2"
+        lib_dir = sdl_mingw / "lib"
+        self.cflags.extend([f"-I {inc_dir}", f"-L {lib_dir}"])
 
-    def compile_gpp(self, src: str, output: str, is_src: bool):
+    def compile_gpp(self, src: Union[str, Path], output: Path, is_src: bool):
         """
         Used to execute g++ commands
         """
         srcflag = "-c " if is_src else ""
         cmd = f"g++ -o {output} {srcflag}{src} {' '.join(self.cflags)}"
-        src_repr = src.replace("\\", "/")
 
-        print("\nBuilding", f"file: {src_repr}" if is_src else "executable")
-        print(cmd.replace("\\", "/"))
+        print("\nBuilding", f"file: {src}" if is_src else "executable")
+        print(cmd)
         return os.system(cmd)
 
     def build_sources(self):
         """
         Generate obj files from source files
         """
-        isfailed = 0
+        isfailed = False
+        ecode = 0
 
-        for file in glob.iglob(f"{self.basepath}/src/**/*.cpp", recursive=True):
-            ofile = f"{self.builddir}/{os.path.basename(file)}".replace(".cpp", ".o")
+        for file in self.basepath.glob(f"src/**/*.cpp"):
+            ofile = self.builddir / f"{file.stem}.o"
             self.objfiles.append(ofile)
             if should_build(file, ofile, self.basepath):
-                isfailed = self.compile_gpp(file, ofile, is_src=True)
-                if isfailed:
-                    print("g++ command exited with an error code:", isfailed)
+                ecode = self.compile_gpp(file, ofile, is_src=True)
+                if ecode:
+                    isfailed = True
+                    print("g++ command exited with an error code:", ecode)
 
         if isfailed:
             print("Skipped building executable, because all files didn't build")
-            sys.exit(isfailed)
+            sys.exit(ecode)
 
     def build_exe(self):
         """
         Generate final exe.
         """
-        exepath = f"{self.distdir}/{EXE}"
         self.build_sources()
 
-        args = " ".join(self.objfiles).replace("\\", "/")
+        args = " ".join(map(str, self.objfiles))
 
-        # Handle exe icon
+        # Handle exe icon on MinGW
+        ico_res = self.basepath / ICO_RES
+        if self.compiler == "MinGW":
+            assetfile = self.basepath / "assets" / "Kithare.rc"
+            os.system(f"windres {assetfile} -O coff -o {ico_res}")
+            args += f" {ico_res}"
+
         try:
-            if self.compiler == "MinGW":
-                assetfile = f"{self.basepath}/assets/Kithare.rc"
-                os.system(f"windres {assetfile} -O coff -o {ICO_RES}")
-                args += f" {ICO_RES}"
-
             dist_m = None
-            if os.path.exists(exepath):
-                dist_m = os.stat(exepath).st_mtime
+            if self.exepath.is_file():
+                dist_m = self.exepath.stat().st_mtime
 
+            ofile: Path
             for ofile in self.objfiles:
-                if dist_m is None or os.stat(ofile).st_mtime > dist_m:
-                    ecode = self.compile_gpp(args, exepath, is_src=False)
+                if dist_m is None or ofile.stat().st_mtime > dist_m:
+                    ecode = self.compile_gpp(args, self.exepath, is_src=False)
                     if ecode:
                         sys.exit(ecode)
                     break
         finally:
-            if os.path.exists(ICO_RES):
-                os.remove(ICO_RES)
+            if ico_res.is_file():
+                ico_res.unlink()
 
     def build(self):
         """
         Build Kithare
         """
-        mkdir(self.builddir)
-        mkdir(self.distdir)
+        self.builddir.mkdir(parents=True, exist_ok=True)
+        self.distdir.mkdir(parents=True, exist_ok=True)
 
         if self.run_tests:
-            sys.exit(os.system(os.path.normpath(f"{self.distdir}/{EXE} --test")))
+            sys.exit(os.system(f"{self.exepath} --test"))
 
         # Prepare dependencies and cflags with SDL flags
         if platform.system() == "Windows":
-            mkdir(self.download_dir)
-
+            self.download_dir.mkdir(parents=True, exist_ok=True)
             for package, ver in SDL_DEPS.items():
                 self.download_sdl_deps(package, ver)
 
         else:
-            for inc_dir in ["/usr/include/SDL2", "/usr/local/include/SDL2"]:
-                if os.path.isdir(inc_dir):
+            usr = Path("/usr")
+            for inc_dir in {
+                usr / "include" / "SDL2",
+                usr / "local" / "include" / "SDL2",
+            }:
+                if inc_dir.is_dir():
                     self.cflags.append(f"-I {inc_dir}")
                     break
 
@@ -342,9 +319,7 @@ class KithareBuilder:
 
 if __name__ == "__main__":
     argv = sys.argv.copy()
-    dname = os.path.dirname(argv.pop(0))
-    if not dname:
-        dname = "."
+    dname = Path(argv.pop(0)).parent
 
     kithare = KithareBuilder(dname, *argv)
     kithare.build()

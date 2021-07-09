@@ -12,10 +12,10 @@
 
 
 namespace kh {
-    class FileReadError : public kh::Exception {
+    class FileError : public kh::Exception {
     public:
-        FileReadError() {}
-        virtual ~FileReadError() {}
+        FileError() {}
+        virtual ~FileError() {}
         virtual std::string format() const;
     };
 
