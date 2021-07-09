@@ -9,7 +9,7 @@
 #include <kithare/utf8.hpp>
 
 
-std::string kh::FileReadError::format() const {
+std::string kh::FileError::format() const {
     return "unable to read file";
 }
 
@@ -35,7 +35,7 @@ std::string kh::readFileBinary(const std::u32string& path) {
 #endif
 
     if (!file) {
-        throw kh::FileReadError();
+        throw kh::FileError();
     }
 
     int c; /* Note: int, not char, required to handle EOF */
@@ -44,7 +44,7 @@ std::string kh::readFileBinary(const std::u32string& path) {
     }
 
     if (ferror(file)) {
-        throw kh::FileReadError();
+        throw kh::FileError();
     }
 
     fclose(file);

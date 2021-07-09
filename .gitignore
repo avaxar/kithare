@@ -11,7 +11,7 @@ test.sh
 
 # Executable/compiler generated files
 /build
-/deps/SDL-MinGW/
+/deps/SDL/
 /dist
 *.o
 *.obj
