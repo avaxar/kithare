@@ -149,6 +149,7 @@ class KithareBuilder:
         self.compiler = "MinGW" if platform.system() == "Windows" else "GCC"
 
         self.download_dir = self.basepath / "deps" / "SDL"
+        self.sdl_mingw_include = self.download_dir / "include" / "SDL2"
 
         dirname = f"{self.compiler}-{self.machine}"
         self.builddir = self.basepath / "build" / dirname
@@ -221,9 +222,11 @@ class KithareBuilder:
         for dll in sdl_mingw.glob("bin/*.dll"):
             shutil.copyfile(dll, self.distdir / dll.name)
 
-        inc_dir = sdl_mingw / "include"
-        lib_dir = sdl_mingw / "lib"
-        self.cflags.extend([f"-I {inc_dir}", f"-L {lib_dir}"])
+        # Copy includes
+        for header in sdl_mingw.glob("include/SDL2/*.h"):
+            shutil.copyfile(header, self.sdl_mingw_include / header.name)
+
+        self.cflags.append(f"-L {sdl_mingw / 'lib'}")
 
     def compile_gpp(self, src: Union[str, Path], output: Path, is_src: bool):
         """
@@ -299,9 +302,12 @@ class KithareBuilder:
 
         # Prepare dependencies and cflags with SDL flags
         if platform.system() == "Windows":
-            self.download_dir.mkdir(parents=True, exist_ok=True)
+            # This also creates self.download_dir dir
+            self.sdl_mingw_include.mkdir(parents=True, exist_ok=True)
             for package, ver in SDL_DEPS.items():
                 self.download_sdl_deps(package, ver)
+
+            self.cflags.append(f"-I {self.sdl_mingw_include.parent}")
 
         self.build_exe()
         print("Done!")
