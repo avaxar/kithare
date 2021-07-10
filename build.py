@@ -102,6 +102,7 @@ def find_includes(file: Path, incdir: Path):
     for line in file.read_text().splitlines()[:INC_FILE_LINE_LIMIT]:
         words = line.split()
         if len(words) < 2 or words[0] != "#include":
+            # not an include line
             continue
 
         retfile = incdir / words[1][1:-1]
@@ -156,7 +157,9 @@ class KithareBuilder:
         """
         self.basepath = basepath
         self.baseinc = basepath / INCLUDE_DIRNAME
-        self.objfiles = []  # populated later by a call to self.build_sources
+
+        # populated later by a call to self.build_sources
+        self.objfiles: list[Path] = []
 
         is_32_bit = "--arch=x86" in args
         self.machine = platform.machine()
@@ -199,16 +202,17 @@ class KithareBuilder:
                 rmtree(self.sdl_dir)
                 sys.exit(0)
 
+        # compiler flags
         self.cflags = [
             "-O3",
             "-std=c++14",
-            f"-I {self.baseinc}",
             "-lSDL2",
             "-lSDL2main",
             "-lSDL2_image",
             "-lSDL2_ttf",
             "-lSDL2_mixer",
             "-lSDL2_net",
+            f"-I {self.baseinc}",
         ]
 
         if COMPILER == "MinGW":
@@ -217,6 +221,7 @@ class KithareBuilder:
         if is_32_bit and "-m32" not in args:
             self.cflags.append("-m32")
 
+        # update compiler flags with more args
         for i in args:
             if not i.startswith("--arch="):
                 self.cflags.append(i)
@@ -283,7 +288,7 @@ class KithareBuilder:
         isfailed = False
         ecode = 0
 
-        skipped_files = []
+        skipped_files: list[str] = []
         for file in self.basepath.glob("src/**/*.cpp"):
             ofile = self.builddir / f"{file.stem}.o"
             self.objfiles.append(ofile)
@@ -297,8 +302,11 @@ class KithareBuilder:
                 print("g++ command exited with an error code:", ecode)
 
         if skipped_files:
-            print("\nSkipping file(s):")
-            print("\n".join(skipped_files))
+            if len(skipped_files) == 1:
+                print(f"\nSkipping file {skipped_files[0]}")
+            else:
+                print("\nSkipping files:")
+                print("\n".join(skipped_files))
             print("Because the intermediate object file is already built")
 
         if isfailed:
@@ -356,8 +364,15 @@ class KithareBuilder:
         # Prepare dependencies and cflags with SDL flags
         sdl_update = 0
         if COMPILER == "MinGW":
-            # This also creates self.sdl_dir dir
-            self.sdl_mingw_include.mkdir(parents=True, exist_ok=True)
+            self.sdl_dir.mkdir(exist_ok=True)
+
+            # delete old SDL version installations, if any
+            saved_dirs = [f"{n}-{v}" for n, v in SDL_DEPS.items()]
+            for dir in self.sdl_dir.iterdir():
+                if dir.name not in saved_dirs:
+                    rmtree(dir)
+
+            self.sdl_mingw_include.mkdir(parents=True)
             for package, ver in SDL_DEPS.items():
                 sdl_update += self.download_sdl_deps(package, ver)
 
