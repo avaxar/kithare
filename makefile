@@ -16,5 +16,8 @@ endif
 make:
 	${PYTHON} build.py
 
-tests: make
-	${PYTHON} build.py --run-tests
+test: make
+	${PYTHON} build.py test
+
+clean:
+	${PYTHON} build.py clean

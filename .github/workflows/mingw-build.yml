@@ -50,7 +50,7 @@ jobs:
       run: python3 build.py --arch=${{matrix.arch}}
     
     - name: Run tests
-      run: python3 build.py --run-tests --arch=${{matrix.arch}}
+      run: python3 build.py test --arch=${{matrix.arch}}
 
     #- name: Upload dist
       #uses: actions/upload-artifact@v2

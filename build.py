@@ -30,11 +30,21 @@ If you are on a 64-bit system, and want to compile for 32-bit architecture, pass
 '--arch=x86' as an argument to the build script (note that this might not work
 in some cases)
 
-To just run tests, pass '--run-tests'. Note that this command is only going to
-run the tests, it does not do anything else.
+To just run tests, do 'python3 build.py test'. Note that this command is only
+going to run the tests, it does not do anything else.
+
+'python3 build.py clean' deletes folders that contain generated executable(s)
+and temporary build files that are cached for performance reasons. In normal
+usage one need not run this command, but in cases like change in compiler flags,
+change in version of compiler and/or deps, one needs to run this command before
+installation.
+
+Additionally on windows, one can run 'python3 build.py cleandep' to delete the
+installed SDL dependencies. Note that this command is not required at all in
+normal usage, and has been only provided for completeness sake, use only if
+you know what you are doing.
 
 Any other arguments passed to this builder will be forwarded to the compiler.
-This feature might fall of use for advanced users, who know what they are doing.
 """
 
 
@@ -42,10 +52,12 @@ import io
 import os
 import platform
 import shutil
+import stat
 import sys
 import tarfile
 import time
 import urllib.request as urllib
+from functools import lru_cache
 from pathlib import Path
 from typing import Union
 
@@ -80,23 +92,27 @@ def run_cmd(cmd: str):
     return os.system(cmd)
 
 
-def find_includes(file: Path, basedir: Path):
+@lru_cache(maxsize=128)
+def find_includes(file: Path, incdir: Path):
     """
-    Recursively find include files for a given file
-    Returns an iterator
+    Recursively find include files for a given file. Returns a tuple. Uses
+    function output caching for optimisation.
     """
+    ret: list[Path] = []
     for line in file.read_text().splitlines()[:INC_FILE_LINE_LIMIT]:
         words = line.split()
         if len(words) < 2 or words[0] != "#include":
             continue
 
-        retfile = basedir / INCLUDE_DIRNAME / words[1].strip('"<>').strip()
+        retfile = incdir / words[1][1:-1]
         if retfile.is_file():
-            yield retfile
-            yield from find_includes(retfile, basedir)
+            ret.append(retfile)
+            ret.extend(find_includes(retfile, incdir))
+
+    return tuple(ret)
 
 
-def should_build(file: Path, ofile: Path, basedir: Path):
+def should_build(file: Path, ofile: Path, incdir: Path):
     """
     Determines whether a particular cpp file should be rebuilt
     """
@@ -108,8 +124,25 @@ def should_build(file: Path, ofile: Path, basedir: Path):
         return True
 
     return any(
-        incfile.stat().st_mtime > ofile_m for incfile in find_includes(file, basedir)
+        incfile.stat().st_mtime > ofile_m for incfile in find_includes(file, incdir)
     )
+
+
+def rmtree(top: Path):
+    """
+    Reimplementation of shutil.rmtree. The reason shutil.rmtree itself is not
+    used, is of a permission error in windows.
+    """
+    for root, dirs, files in os.walk(top, topdown=False):
+        for name in files:
+            filename = os.path.join(root, name)
+            os.chmod(filename, stat.S_IWUSR)
+            os.remove(filename)
+
+        for name in dirs:
+            os.rmdir(os.path.join(root, name))
+
+    top.rmdir()
 
 
 class KithareBuilder:
@@ -122,6 +155,7 @@ class KithareBuilder:
         Initialise kithare builder
         """
         self.basepath = basepath
+        self.baseinc = basepath / INCLUDE_DIRNAME
         self.objfiles = []  # populated later by a call to self.build_sources
 
         is_32_bit = "--arch=x86" in args
@@ -151,13 +185,24 @@ class KithareBuilder:
         self.distdir = self.basepath / "dist" / dirname
         self.exepath = self.distdir / EXE
 
-        if "--run-tests" in args:
-            sys.exit(os.system(f"{self.exepath} --test"))
+        if args:
+            if args[0] == "test":
+                sys.exit(os.system(f"{self.exepath} --test"))
+
+            if args[0] == "clean":
+                for dist in {self.builddir, self.distdir}:
+                    if dist.parent.is_dir():
+                        rmtree(dist.parent)
+                sys.exit(0)
+
+            if args[0] == "cleandep" and self.sdl_dir.is_dir() and COMPILER == "MinGW":
+                rmtree(self.sdl_dir)
+                sys.exit(0)
 
         self.cflags = [
             "-O3",
             "-std=c++14",
-            f"-I {self.basepath/INCLUDE_DIRNAME}",
+            f"-I {self.baseinc}",
             "-lSDL2",
             "-lSDL2main",
             "-lSDL2_image",
@@ -178,7 +223,8 @@ class KithareBuilder:
 
     def download_sdl_deps(self, name: str, version: str):
         """
-        SDL Dependency download utility for windows
+        SDL Dependency download utility for windows. Returns a bool on whether
+        the download actually happened or not
         """
         download_link = "https://www.libsdl.org/"
         if name != "SDL2":
@@ -188,9 +234,11 @@ class KithareBuilder:
 
         download_path = self.sdl_dir / f"{name}-{version}"
         if download_path.is_dir():
+            ret = False
             print(f"Skipping {name} download because it already exists")
 
         else:
+            ret = True
             print(f"Downloading {name} from {download_link}")
             request = urllib.Request(
                 download_link,
@@ -215,31 +263,32 @@ class KithareBuilder:
         for header in sdl_mingw.glob("include/SDL2/*.h"):
             shutil.copyfile(header, self.sdl_mingw_include / header.name)
 
-        self.cflags.append(f"-L {sdl_mingw / 'lib'}")
+        self.cflags.extend(("-L", str(sdl_mingw / "lib")))
+        return ret
 
     def compile_gpp(self, src: Union[str, Path], output: Path, is_src: bool):
         """
         Used to execute g++ commands
         """
         srcflag = "-c " if is_src else ""
-        cmd = f"g++ -o {output} {srcflag}{src} {' '.join(self.cflags)}"
+        cmd = f"g++ -o {output} {srcflag}{src} " + " ".join(self.cflags)
 
         print("\nBuilding", f"file: {src}" if is_src else "executable")
         return run_cmd(cmd)
 
-    def build_sources(self):
+    def build_sources(self, sdl_unupdated: bool):
         """
         Generate obj files from source files
         """
         isfailed = False
         ecode = 0
 
+        skipped_files = []
         for file in self.basepath.glob("src/**/*.cpp"):
             ofile = self.builddir / f"{file.stem}.o"
             self.objfiles.append(ofile)
-            if not should_build(file, ofile, self.basepath):
-                print(f"\nSkipping file: {file}")
-                print("Because the intermediate object file is already built")
+            if sdl_unupdated and not should_build(file, ofile, self.baseinc):
+                skipped_files.append(str(file))
                 continue
 
             ecode = self.compile_gpp(file, ofile, is_src=True)
@@ -247,15 +296,20 @@ class KithareBuilder:
                 isfailed = True
                 print("g++ command exited with an error code:", ecode)
 
+        if skipped_files:
+            print("\nSkipping file(s):")
+            print("\n".join(skipped_files))
+            print("Because the intermediate object file is already built")
+
         if isfailed:
             print("Skipped building executable, because all files didn't build")
-            sys.exit(ecode)
+            sys.exit(1)
 
-    def build_exe(self):
+    def build_exe(self, sdl_unupdated: bool):
         """
         Generate final exe.
         """
-        self.build_sources()
+        self.build_sources(sdl_unupdated)
 
         args = " ".join(map(str, self.objfiles))
 
@@ -300,21 +354,22 @@ class KithareBuilder:
 
         t1 = time.perf_counter()
         # Prepare dependencies and cflags with SDL flags
+        sdl_update = 0
         if COMPILER == "MinGW":
             # This also creates self.sdl_dir dir
             self.sdl_mingw_include.mkdir(parents=True, exist_ok=True)
             for package, ver in SDL_DEPS.items():
-                self.download_sdl_deps(package, ver)
+                sdl_update += self.download_sdl_deps(package, ver)
 
-            self.cflags.append(f"-I {self.sdl_mingw_include.parent}")
+            self.cflags.extend(("-I", str(self.sdl_mingw_include.parent)))
 
         t2 = time.perf_counter()
-        self.build_exe()
+        self.build_exe(not sdl_update)
         print("Done!")
 
         t3 = time.perf_counter()
         print("\nSome timing stats for peeps who like to 'optimise':")
-        if COMPILER == "MinGW":
+        if COMPILER == "MinGW" and sdl_update:
             print(f"SDL deps took {t2 - t1:.3f} seconds to install")
         print(f"Kithare took {t3 - t2:.3f} seconds to compile")
 

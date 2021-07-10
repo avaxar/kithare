@@ -48,7 +48,7 @@ jobs:
       run: python3 build.py
     
     - name: Run tests
-      run: python3 build.py --run-tests
+      run: python3 build.py test
     
     #- name: Upload dist
       #uses: actions/upload-artifact@v2
