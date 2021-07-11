@@ -417,7 +417,7 @@ kh::AstExpression* kh::parseOthers(KH_PARSE_CTX) {
             if (token.value.identifier == "def") {
                 context.ti++;
                 KH_PARSE_GUARD();
-                kh::AstFunction lambda = kh::parseFunction(context, false, true, false);
+                kh::AstFunction lambda = kh::parseFunction(context, false);
 
                 if (!lambda.identifiers.empty()) {
                     context.exceptions.emplace_back(
@@ -427,17 +427,10 @@ kh::AstExpression* kh::parseOthers(KH_PARSE_CTX) {
                 return new kh::AstFunction(lambda);
             }
             /* Variable declaration */
-            else if (token.value.identifier == "ref" || token.value.identifier == "static" ||
-                     token.value.identifier == "private" || token.value.identifier == "public") {
-                bool is_static, is_public;
-                kh::parseAccessAttribs(context, is_static, is_public);
-                KH_PARSE_GUARD();
-
-                if (!is_public) {
-                    context.exceptions.emplace_back("a local variable cannot be private", token);
-                }
-
-                return new kh::AstDeclaration(kh::parseDeclaration(context, is_static, is_public));
+            else if (token.value.identifier == "ref" || token.value.identifier == "static") {
+                kh::AstDeclaration* declaration = new kh::AstDeclaration(kh::parseDeclaration(context));
+                declaration->is_static = token.value.identifier == "static";
+                return declaration;
             }
             else {
                 size_t _ti = context.ti;
@@ -451,7 +444,7 @@ kh::AstExpression* kh::parseOthers(KH_PARSE_CTX) {
                     token.value.identifier != "else") {
                     context.ti = _ti;
                     delete expr;
-                    expr = new kh::AstDeclaration(kh::parseDeclaration(context, false, true));
+                    expr = new kh::AstDeclaration(kh::parseDeclaration(context));
                 }
                 /* An opening square parentheses next to an idenifier, possible array variable
                  * declaration */
@@ -480,7 +473,7 @@ kh::AstExpression* kh::parseOthers(KH_PARSE_CTX) {
                         if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier != "if" &&
                             token.value.identifier != "else") {
                             context.ti = _ti;
-                            expr = new kh::AstDeclaration(kh::parseDeclaration(context, false, true));
+                            expr = new kh::AstDeclaration(kh::parseDeclaration(context));
                         }
                         /* Probably was just a normal subscript */
                         else {

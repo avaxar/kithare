@@ -47,6 +47,7 @@ std::u32string kh::str(const kh::AstImport& import_ast, size_t indent) {
 
     std::u32string str = import_ast.is_include ? U"include:" : U"import:";
     str += U"\n\t" + ind + U"type: " + (import_ast.is_relative ? U"relative" : U"absolute");
+    str += U"\n\t" + ind + U"access: " + (import_ast.is_public ? U"public" : U"private");
 
     str += U"\n\t" + ind + U"path: ";
     for (const std::string& dir : import_ast.path) {
@@ -71,6 +72,8 @@ std::u32string kh::str(const kh::AstUserType& type_ast, size_t indent) {
     for (const std::string& identifier : type_ast.identifiers) {
         str += kh::decodeUtf8(identifier) + (&identifier == &type_ast.identifiers.back() ? U"" : U".");
     }
+
+    str += U"\n\t" + ind + U"access: " + (type_ast.is_public ? U"public" : U"private");
 
     if (type_ast.base) {
         str += U"\n\t" + ind + U"base " + (type_ast.is_class ? U"class:" : U"struct:");
@@ -113,6 +116,8 @@ std::u32string kh::str(const kh::AstEnumType& enum_ast, size_t indent) {
     for (const std::string& identifier : enum_ast.identifiers) {
         str += kh::decodeUtf8(identifier) + (&identifier == &enum_ast.identifiers.back() ? U"" : U".");
     }
+
+    str += U"\n\t" + ind + U"access: " + (enum_ast.is_public ? U"public" : U"private");
 
     str += U"\n\t" + ind + U"member(s):";
     for (size_t member = 0; member < enum_ast.members.size(); member++) {

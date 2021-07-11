@@ -63,10 +63,10 @@ namespace kh {
     /* Most of these parses stuff such as imports, includes, classes, structs, enums, functions at the
      * top level scope */
     kh::AstModule parseWhole(KH_PARSE_CTX);
+    void parseAccessAttribs(KH_PARSE_CTX, bool& is_public, bool& is_static);
     kh::AstImport parseImport(KH_PARSE_CTX, bool is_include);
-    void parseAccessAttribs(KH_PARSE_CTX, bool& is_static, bool& is_public);
-    kh::AstFunction parseFunction(KH_PARSE_CTX, bool is_static, bool is_public, bool is_conditional);
-    kh::AstDeclaration parseDeclaration(KH_PARSE_CTX, bool is_static, bool is_public);
+    kh::AstFunction parseFunction(KH_PARSE_CTX, bool is_conditional);
+    kh::AstDeclaration parseDeclaration(KH_PARSE_CTX);
     kh::AstUserType parseUserType(KH_PARSE_CTX, bool is_class);
     kh::AstEnumType parseEnum(KH_PARSE_CTX);
     std::vector<std::shared_ptr<kh::AstBody>> parseBody(KH_PARSE_CTX, size_t loop_count = 0);

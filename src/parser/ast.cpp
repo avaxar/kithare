@@ -47,10 +47,9 @@ kh::AstIdentifiers::AstIdentifiers(size_t _index, const std::vector<std::string>
 kh::AstDeclaration::AstDeclaration(size_t _index, const kh::AstIdentifiers& _var_type,
                                    const std::vector<uint64_t>& _var_array,
                                    const std::string& _var_name,
-                                   std::shared_ptr<kh::AstExpression>& _expression, size_t _refs,
-                                   bool _is_static, bool _is_public)
+                                   std::shared_ptr<kh::AstExpression>& _expression, size_t _refs)
     : var_type(_var_type), var_array(_var_array), var_name(_var_name), expression(_expression),
-      refs(_refs), is_static(_is_static), is_public(_is_public) {
+      refs(_refs) {
     this->index = _index;
     this->type = kh::AstBody::Type::EXPRESSION;
     this->expression_type = kh::AstExpression::ExType::DECLARE;
@@ -63,11 +62,10 @@ kh::AstFunction::AstFunction(size_t _index, const std::vector<std::string>& _ide
                              const kh::AstIdentifiers& _return_type, size_t _return_refs,
                              const std::vector<kh::AstDeclaration>& _arguments,
                              const std::vector<std::shared_ptr<kh::AstBody>>& _body,
-                             bool _is_conditional, bool _is_static, bool _is_public)
+                             bool _is_conditional)
     : identifiers(_identifiers), generic_args(_generic_args), id_array(_id_array),
       return_array(_return_array), return_type(_return_type), return_refs(_return_refs),
-      arguments(_arguments), body(_body), is_conditional(_is_conditional), is_static(_is_static),
-      is_public(_is_public) {
+      arguments(_arguments), body(_body), is_conditional(_is_conditional) {
     this->index = _index;
     this->type = kh::AstBody::Type::EXPRESSION;
     this->expression_type = kh::AstExpression::ExType::FUNCTION;

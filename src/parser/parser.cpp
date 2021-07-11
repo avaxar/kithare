@@ -35,8 +35,13 @@ kh::AstModule kh::parseWhole(KH_PARSE_CTX) {
     std::vector<kh::AstEnumType> enums;
     std::vector<kh::AstDeclaration> variables;
 
-    for (context.ti = 0; context.ti < context.tokens.size();) {
+    for (context.ti = 0; context.ti < context.tokens.size(); /* Nothing */) {
         kh::Token token = context.tok();
+
+        bool is_public, is_static;
+        kh::parseAccessAttribs(context, is_public, is_static);
+        KH_PARSE_GUARD();
+        token = context.tok();
 
         switch (token.type) {
             case kh::TokenType::IDENTIFIER: {
@@ -64,18 +69,18 @@ kh::AstModule kh::parseWhole(KH_PARSE_CTX) {
                         }
                     }
 
-                    /* Parses access type */
-                    bool is_static, is_public;
-                    kh::parseAccessAttribs(context, is_static, is_public);
-
                     KH_PARSE_GUARD();
                     /* Parses return type, name, arguments, and body */
-                    functions.push_back(kh::parseFunction(context, is_static, is_public, conditional));
+                    functions.push_back(kh::parseFunction(context, conditional));
+
+                    functions.back().is_public = is_public;
+                    functions.back().is_static = is_static;
 
                     if (functions.back().identifiers.empty()) {
                         context.exceptions.emplace_back(
                             "a lambda function cannot be declared at the top scope", token);
                     }
+
                     if (is_static && functions.back().identifiers.size() == 1) {
                         context.exceptions.emplace_back("a top scope function cannot be static", token);
                     }
@@ -85,42 +90,60 @@ kh::AstModule kh::parseWhole(KH_PARSE_CTX) {
                     context.ti++;
                     KH_PARSE_GUARD();
                     user_types.push_back(kh::parseUserType(context, true));
+
+                    user_types.back().is_public = is_public;
+                    if (is_static) {
+                        context.exceptions.emplace_back("a class cannot be static", token);
+                    }
                 }
                 /* Parses struct declaration */
                 else if (identifier == "struct") {
                     context.ti++;
                     KH_PARSE_GUARD();
                     user_types.push_back(kh::parseUserType(context, false));
+
+                    user_types.back().is_public = is_public;
+                    if (is_static) {
+                        context.exceptions.emplace_back("a struct cannot be static", token);
+                    }
                 }
                 /* Parses enum declaration */
                 else if (identifier == "enum") {
                     context.ti++;
                     KH_PARSE_GUARD();
                     enums.push_back(kh::parseEnum(context));
+
+                    enums.back().is_public = is_public;
+                    if (is_static) {
+                        context.exceptions.emplace_back("an enum cannot be static", token);
+                    }
                 }
                 /* Parses import statement */
                 else if (identifier == "import") {
                     context.ti++;
                     KH_PARSE_GUARD();
                     imports.push_back(kh::parseImport(context, false)); /* is_include = false */
+
+                    imports.back().is_public = is_public;
+                    if (is_static) {
+                        context.exceptions.emplace_back("an import cannot be static", token);
+                    }
                 }
                 /* Parses include statement */
                 else if (identifier == "include") {
                     context.ti++;
                     KH_PARSE_GUARD();
                     imports.push_back(kh::parseImport(context, true)); /* is_include = true */
+
+                    imports.back().is_public = is_public;
+                    if (is_static) {
+                        context.exceptions.emplace_back("an include cannot be static", token);
+                    }
                 }
                 /* If it was none of those above, it's probably a variable declaration */
                 else {
-                    /* Gets variable's declaration access type */
-                    bool is_static, is_public;
-                    kh::parseAccessAttribs(context, is_static, is_public);
-                    KH_PARSE_GUARD();
-                    if (is_static) {
-                        context.exceptions.emplace_back("a top scope variable cannot be static", token);
-                    }
                     /* Parses the variable's return type, name, and assignment value */
-                    variables.push_back(kh::parseDeclaration(context, is_static, is_public));
+                    variables.push_back(kh::parseDeclaration(context));
 
                     /* Makes sure it ends with a semicolon */
                     KH_PARSE_GUARD();
@@ -133,23 +156,22 @@ kh::AstModule kh::parseWhole(KH_PARSE_CTX) {
                         context.exceptions.emplace_back(
                             "expected a semicolon after a variable declaration", token);
                     }
+
+                    if (is_static) {
+                        context.exceptions.emplace_back("a top scope variable cannot be static", token);
+                    }
                 }
             } break;
 
             case kh::TokenType::SYMBOL:
-                switch (token.value.symbol_type) {
-                    /* Placeholder semicolon, ignore */
-                    case kh::Symbol::SEMICOLON: {
-                        context.ti++;
-                    } break;
-
-                        /* Unknown symbol */
-                    default:
-                        context.ti++;
-                        context.exceptions.emplace_back("unexpected `" +
-                                                            kh::encodeUtf8(kh::str(token)) +
-                                                            "` while parsing the top scope",
-                                                        token);
+                if (token.value.symbol_type == kh::Symbol::SEMICOLON) {
+                    context.ti++;
+                }
+                else {
+                    context.ti++;
+                    context.exceptions.emplace_back("unexpected `" + kh::encodeUtf8(kh::str(token)) +
+                                                        "` while parsing the top scope",
+                                                    token);
                 }
                 break;
 
@@ -184,6 +206,34 @@ end:
     }
 
     return {imports, functions, user_types, enums, variables};
+}
+
+void kh::parseAccessAttribs(KH_PARSE_CTX, bool& is_public, bool& is_static) {
+    is_public = true;
+    is_static = false;
+
+    /* It parses these kinds of access types: `[static | private/public] int x = 3` */
+    kh::Token token = context.tok();
+    while (token.type == kh::TokenType::IDENTIFIER) {
+        if (token.value.identifier == "static") {
+            is_static = true;
+        }
+        else if (token.value.identifier == "public") {
+            is_public = true;
+        }
+        else if (token.value.identifier == "private") {
+            is_public = false;
+        }
+        else {
+            break;
+        }
+        context.ti++;
+        KH_PARSE_GUARD();
+        token = context.tok();
+    }
+
+end:
+    return;
 }
 
 kh::AstImport kh::parseImport(KH_PARSE_CTX, bool is_include) {
@@ -281,36 +331,7 @@ end:
             path.empty() ? "" : (identifier.empty() ? path.back() : identifier)};
 }
 
-void kh::parseAccessAttribs(KH_PARSE_CTX, bool& is_static, bool& is_public) {
-    is_static = false;
-    is_public = true;
-
-    /* It parses these kinds of access types: `[static | private/public] int x = 3` */
-
-    kh::Token token = context.tok();
-    while (token.type == kh::TokenType::IDENTIFIER) {
-        if (token.value.identifier == "static") {
-            is_static = true;
-        }
-        else if (token.value.identifier == "public") {
-            is_public = true;
-        }
-        else if (token.value.identifier == "private") {
-            is_public = false;
-        }
-        else {
-            break;
-        }
-        context.ti++;
-        KH_PARSE_GUARD();
-        token = context.tok();
-    }
-
-end:
-    return;
-}
-
-kh::AstFunction kh::parseFunction(KH_PARSE_CTX, bool is_static, bool is_public, bool is_conditional) {
+kh::AstFunction kh::parseFunction(KH_PARSE_CTX, bool is_conditional) {
     std::vector<std::string> identifiers;
     std::vector<std::string> generic_args;
     std::vector<uint64_t> id_array;
@@ -401,7 +422,7 @@ kh::AstFunction kh::parseFunction(KH_PARSE_CTX, bool is_static, bool is_public, 
             break;
         }
         /* Parses the argument */
-        arguments.emplace_back(kh::parseDeclaration(context, false, true));
+        arguments.emplace_back(kh::parseDeclaration(context));
 
         KH_PARSE_GUARD();
         token = context.tok();
@@ -478,11 +499,11 @@ kh::AstFunction kh::parseFunction(KH_PARSE_CTX, bool is_static, bool is_public, 
     /* Parses the function's body */
     body = kh::parseBody(context);
 end:
-    return {index,       identifiers, generic_args, id_array,       return_array, return_type,
-            return_refs, arguments,   body,         is_conditional, is_static,    is_public};
+    return {index,       identifiers, generic_args, id_array, return_array,
+            return_type, return_refs, arguments,    body,     is_conditional};
 }
 
-kh::AstDeclaration kh::parseDeclaration(KH_PARSE_CTX, bool is_static, bool is_public) {
+kh::AstDeclaration kh::parseDeclaration(KH_PARSE_CTX) {
     kh::AstIdentifiers var_type{0, {}, {}, {}, {}};
     std::vector<uint64_t> var_array = {};
     std::string var_name;
@@ -542,7 +563,7 @@ kh::AstDeclaration kh::parseDeclaration(KH_PARSE_CTX, bool is_static, bool is_pu
         goto end;
     }
 end:
-    return {index, var_type, var_array, var_name, expression, refs, is_static, is_public};
+    return {index, var_type, var_array, var_name, expression, refs};
 }
 
 kh::AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
@@ -599,6 +620,11 @@ kh::AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
             KH_PARSE_GUARD();
             kh::Token token = context.tok();
 
+            bool is_public, is_static;
+            kh::parseAccessAttribs(context, is_public, is_static);
+            KH_PARSE_GUARD();
+            token = context.tok();
+
             switch (token.type) {
                 case kh::TokenType::IDENTIFIER: {
                     /* Methods */
@@ -622,17 +648,11 @@ kh::AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
                             }
                         }
 
-                        bool is_static, is_public;
-                        /* Parse access types */
-                        kh::parseAccessAttribs(context, is_static, is_public);
-                        KH_PARSE_GUARD();
-
                         /* Parse function declaration */
-                        methods.push_back(
-                            kh::parseFunction(context, is_static, is_public, conditional));
+                        methods.push_back(kh::parseFunction(context, conditional));
 
                         /* Ensures that methods don't have generic argument(s) */
-                        if (methods.back().generic_args.empty()) {
+                        if (!methods.back().generic_args.empty()) {
                             context.exceptions.emplace_back("a method cannot have generic arguments",
                                                             token);
                         }
@@ -641,16 +661,14 @@ kh::AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
                         if (methods.back().identifiers.empty()) {
                             context.exceptions.emplace_back("a method cannot be a lambda", token);
                         }
+
+                        methods.back().is_public = is_public;
+                        methods.back().is_static = is_static;
                     }
                     /* Member/class variables */
                     else {
-                        bool is_static, is_public;
-                        /* Parse access types */
-                        kh::parseAccessAttribs(context, is_static, is_public);
-                        KH_PARSE_GUARD();
-
                         /* Parse variable declaration */
-                        members.push_back(kh::parseDeclaration(context, is_static, is_public));
+                        members.push_back(kh::parseDeclaration(context));
 
                         KH_PARSE_GUARD();
                         token = context.tok();
@@ -666,6 +684,9 @@ kh::AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
                                                                 type_name + " body",
                                                             token);
                         }
+
+                        members.back().is_public = is_public;
+                        members.back().is_static = is_static;
                     }
                 } break;
 

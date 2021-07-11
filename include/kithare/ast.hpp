@@ -74,6 +74,8 @@ namespace kh {
         bool is_relative;
         std::string identifier;
 
+        bool is_public = true;
+
         AstImport(size_t _index, const std::vector<std::string>& _path, bool _is_include,
                   bool _is_relative, const std::string& _identifier);
     };
@@ -88,6 +90,8 @@ namespace kh {
         std::vector<kh::AstFunction> methods;
         bool is_class;
 
+        bool is_public = true;
+
         AstUserType(size_t _index, const std::vector<std::string>& _identifiers,
                     const std::shared_ptr<kh::AstIdentifiers>& _base,
                     const std::vector<std::string>& _generic_args,
@@ -101,6 +105,8 @@ namespace kh {
         std::vector<std::string> identifiers;
         std::vector<std::string> members;
         std::vector<uint64_t> values;
+
+        bool is_public = true;
 
         AstEnumType(size_t _index, const std::vector<std::string>& _identifiers,
                     const std::vector<std::string>& _members, const std::vector<uint64_t>& _values);
@@ -174,13 +180,13 @@ namespace kh {
         std::string var_name;
         std::shared_ptr<kh::AstExpression> expression;
         size_t refs;
-        bool is_static;
-        bool is_public;
+
+        bool is_public = true;
+        bool is_static = false;
 
         AstDeclaration(size_t _index, const kh::AstIdentifiers& _var_type,
                        const std::vector<uint64_t>& _var_array, const std::string& _var_name,
-                       std::shared_ptr<kh::AstExpression>& _expression, size_t _refs, bool _is_static,
-                       bool _is_public);
+                       std::shared_ptr<kh::AstExpression>& _expression, size_t _refs);
         virtual ~AstDeclaration() {}
 
         virtual std::u32string str(size_t indent = 0) const;
@@ -199,16 +205,16 @@ namespace kh {
         std::vector<kh::AstDeclaration> arguments;
         std::vector<std::shared_ptr<kh::AstBody>> body;
         bool is_conditional;
-        bool is_static;
-        bool is_public;
+
+        bool is_public = true;
+        bool is_static = false;
 
         AstFunction(size_t _index, const std::vector<std::string>& _identifiers,
                     const std::vector<std::string>& _generic_args,
                     const std::vector<uint64_t>& _id_array, const std::vector<uint64_t>& _return_array,
                     const kh::AstIdentifiers& _return_type, size_t _return_refs,
                     const std::vector<kh::AstDeclaration>& _arguments,
-                    const std::vector<std::shared_ptr<kh::AstBody>>& _body, bool _is_conditional,
-                    bool _is_static, bool _is_public);
+                    const std::vector<std::shared_ptr<kh::AstBody>>& _body, bool _is_conditional);
         virtual ~AstFunction() {}
 
         virtual std::u32string str(size_t indent = 0) const;
