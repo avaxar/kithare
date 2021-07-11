@@ -330,6 +330,10 @@ kh::AstExpression* kh::parseRevUnary(KH_PARSE_CTX) {
                     expr = new kh::AstSubscriptExpression(index, exprptr, arguments);
                     delete tuple;
                 } break;
+
+                default: {
+                    /* Unlikely to happen; This is to silence a compiler warning */
+                }
             }
         }
 
