@@ -93,40 +93,36 @@ def run_cmd(cmd: str):
 
 
 @lru_cache(maxsize=128)
-def find_includes(file: Path, incdir: Path):
+def find_includes_max_time(file: Path, incdir: Path) -> float:
     """
-    Recursively find include files for a given file. Returns a tuple. Uses
-    function output caching for optimisation.
+    Recursively find include files for a given file. Returns the latest time a
+    file was modified
     """
-    ret: list[Path] = []
+    try:
+        ret = file.stat().st_mtime
+    except FileNotFoundError:
+        return -1
+
     for line in file.read_text().splitlines()[:INC_FILE_LINE_LIMIT]:
         words = line.split()
         if len(words) < 2 or words[0] != "#include":
             # not an include line
             continue
 
-        retfile = incdir / words[1][1:-1]
-        if retfile.is_file():
-            ret.append(retfile)
-            ret.extend(find_includes(retfile, incdir))
+        ret = max(ret, find_includes_max_time(incdir / words[1][1:-1], incdir))
 
-    return tuple(ret)
+    return ret
 
 
 def should_build(file: Path, ofile: Path, incdir: Path):
     """
     Determines whether a particular cpp file should be rebuilt
     """
-    if not ofile.is_file():
+    try:
+        # a file, or an included file was newer than the object file
+        return find_includes_max_time(file, incdir) > ofile.stat().st_mtime
+    except FileNotFoundError:
         return True
-
-    ofile_m = ofile.stat().st_mtime
-    if file.stat().st_mtime > ofile_m:
-        return True
-
-    return any(
-        incfile.stat().st_mtime > ofile_m for incfile in find_includes(file, incdir)
-    )
 
 
 def rmtree(top: Path):
@@ -158,9 +154,6 @@ class KithareBuilder:
         self.basepath = basepath
         self.baseinc = basepath / INCLUDE_DIRNAME
 
-        # populated later by a call to self.build_sources
-        self.objfiles: list[Path] = []
-
         is_32_bit = "--arch=x86" in args
         self.machine = platform.machine()
         if self.machine.endswith("86"):
@@ -185,15 +178,14 @@ class KithareBuilder:
 
         dirname = f"{COMPILER}-{self.machine}"
         self.builddir = self.basepath / "build" / dirname
-        self.distdir = self.basepath / "dist" / dirname
-        self.exepath = self.distdir / EXE
+        self.exepath = self.basepath / "dist" / dirname / EXE
 
         if args:
             if args[0] == "test":
                 sys.exit(os.system(f"{self.exepath} --test"))
 
             if args[0] == "clean":
-                for dist in {self.builddir, self.distdir}:
+                for dist in {self.builddir, self.exepath.parent}:
                     if dist.parent.is_dir():
                         rmtree(dist.parent)
                 sys.exit(0)
@@ -238,6 +230,7 @@ class KithareBuilder:
         download_link += f"release/{name}-devel-{version}-mingw.tar.gz"
 
         download_path = self.sdl_dir / f"{name}-{version}"
+        sdl_mingw = download_path / f"{self.machine_alt}-w64-mingw32"
         if download_path.is_dir():
             ret = False
             print(f"Skipping {name} download because it already exists")
@@ -259,14 +252,14 @@ class KithareBuilder:
 
             print(f"Finished downloading {name}")
 
-        # Copy DLLs
-        sdl_mingw = download_path / f"{self.machine_alt}-w64-mingw32"
-        for dll in sdl_mingw.glob("bin/*.dll"):
-            shutil.copyfile(dll, self.distdir / dll.name)
+            # Copy includes
+            for header in sdl_mingw.glob("include/SDL2/*.h"):
+                shutil.copyfile(header, self.sdl_mingw_include / header.name)
 
-        # Copy includes
-        for header in sdl_mingw.glob("include/SDL2/*.h"):
-            shutil.copyfile(header, self.sdl_mingw_include / header.name)
+        # Copy DLLs that have not been copied already
+        for dll in sdl_mingw.glob("bin/*.dll"):
+            if dll.name not in (x.name for x in self.exepath.parent.glob("*.dll")):
+                shutil.copyfile(dll, self.exepath.parent / dll.name)
 
         self.cflags.extend(("-L", str(sdl_mingw / "lib")))
         return ret
@@ -289,9 +282,14 @@ class KithareBuilder:
         ecode = 0
 
         skipped_files: list[str] = []
+        objfiles: list[Path] = []
         for file in self.basepath.glob("src/**/*.cpp"):
             ofile = self.builddir / f"{file.stem}.o"
-            self.objfiles.append(ofile)
+            if ofile in objfiles:
+                print("BuildError: Got duplicate filename in Kithare source")
+                sys.exit(1)
+
+            objfiles.append(ofile)
             if sdl_unupdated and not should_build(file, ofile, self.baseinc):
                 skipped_files.append(str(file))
                 continue
@@ -304,22 +302,32 @@ class KithareBuilder:
         if skipped_files:
             if len(skipped_files) == 1:
                 print(f"\nSkipping file {skipped_files[0]}")
+                print("Because the intermediate object file is already built")
             else:
                 print("\nSkipping files:")
                 print("\n".join(skipped_files))
-            print("Because the intermediate object file is already built")
+                print("Because the intermediate object files are already built")
 
         if isfailed:
             print("Skipped building executable, because all files didn't build")
             sys.exit(1)
 
+        if len(objfiles) == len(skipped_files) and self.exepath.is_file():
+            # exe is already up to date
+            return None
+
+        return objfiles
+
     def build_exe(self, sdl_unupdated: bool):
         """
         Generate final exe.
         """
-        self.build_sources(sdl_unupdated)
+        objfiles = self.build_sources(sdl_unupdated)
+        if objfiles is None:
+            print("\nSkipping final exe build, since it is already built")
+            return
 
-        args = " ".join(map(str, self.objfiles))
+        args = " ".join(map(str, objfiles))
 
         # Handle exe icon on MinGW
         ico_res = self.basepath / ICO_RES
@@ -334,45 +342,33 @@ class KithareBuilder:
             else:
                 args += f" {ico_res}"
 
-        try:
-            dist_m = None
-            if self.exepath.is_file():
-                dist_m = self.exepath.stat().st_mtime
+        ecode = self.compile_gpp(args, self.exepath, is_src=False)
+        if ico_res.is_file():
+            ico_res.unlink()
 
-            ofile: Path
-            for ofile in self.objfiles:
-                if dist_m is None or ofile.stat().st_mtime > dist_m:
-                    ecode = self.compile_gpp(args, self.exepath, is_src=False)
-                    if ecode:
-                        sys.exit(ecode)
-                    break
-            else:
-                print("\nSkipping final exe build, since it is already built")
-
-        finally:
-            if ico_res.is_file():
-                ico_res.unlink()
+        if ecode:
+            sys.exit(ecode)
 
     def build(self):
         """
         Build Kithare
         """
         self.builddir.mkdir(parents=True, exist_ok=True)
-        self.distdir.mkdir(parents=True, exist_ok=True)
+        self.exepath.parent.mkdir(parents=True, exist_ok=True)
 
         t1 = time.perf_counter()
         # Prepare dependencies and cflags with SDL flags
         sdl_update = 0
         if COMPILER == "MinGW":
-            self.sdl_dir.mkdir(exist_ok=True)
+            if self.sdl_dir.is_dir():
+                # delete old SDL version installations, if any
+                saved_dirs = [f"{n}-{v}" for n, v in SDL_DEPS.items()]
+                saved_dirs.append("include")
+                for subdir in self.sdl_dir.iterdir():
+                    if subdir.name not in saved_dirs:
+                        rmtree(subdir)
 
-            # delete old SDL version installations, if any
-            saved_dirs = [f"{n}-{v}" for n, v in SDL_DEPS.items()]
-            for dir in self.sdl_dir.iterdir():
-                if dir.name not in saved_dirs:
-                    rmtree(dir)
-
-            self.sdl_mingw_include.mkdir(parents=True)
+            self.sdl_mingw_include.mkdir(parents=True, exist_ok=True)
             for package, ver in SDL_DEPS.items():
                 sdl_update += self.download_sdl_deps(package, ver)
 
