@@ -408,7 +408,7 @@ std::u32string kh::AstValue::str(size_t indent) const {
 
     switch (this->value_type) {
         case kh::AstValue::ValueType::CHARACTER:
-            str = U"character: " + this->character;
+            str = U"character: " + kh::str(this->character);
             break;
 
         case kh::AstValue::ValueType::UINTEGER:
