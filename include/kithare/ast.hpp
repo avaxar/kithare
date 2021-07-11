@@ -252,16 +252,16 @@ namespace kh {
         virtual std::u32string str(size_t indent = 0) const;
     };
 
-    class AstComparisonOperation : public kh::AstExpression {
+    class AstTernaryOperation : public kh::AstExpression {
     public:
         std::shared_ptr<kh::AstExpression> condition;
         std::shared_ptr<kh::AstExpression> value;
         std::shared_ptr<kh::AstExpression> otherwise;
 
-        AstComparisonOperation(size_t _index, std::shared_ptr<kh::AstExpression>& _condition,
-                               std::shared_ptr<kh::AstExpression>& _value,
-                               std::shared_ptr<kh::AstExpression>& _otherwise);
-        virtual ~AstComparisonOperation() {}
+        AstTernaryOperation(size_t _index, std::shared_ptr<kh::AstExpression>& _condition,
+                            std::shared_ptr<kh::AstExpression>& _value,
+                            std::shared_ptr<kh::AstExpression>& _otherwise);
+        virtual ~AstTernaryOperation() {}
 
         virtual std::u32string str(size_t indent = 0) const;
     };

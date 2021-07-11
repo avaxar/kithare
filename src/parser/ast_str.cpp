@@ -214,7 +214,7 @@ std::u32string kh::AstBinaryOperation::str(size_t indent) const {
     return str;
 }
 
-std::u32string kh::AstComparisonOperation::str(size_t indent) const {
+std::u32string kh::AstTernaryOperation::str(size_t indent) const {
     BODY_HEADER();
     str = U"ternary expression:";
 

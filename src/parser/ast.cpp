@@ -98,10 +98,10 @@ kh::AstBinaryOperation::AstBinaryOperation(size_t _index, kh::Operator _operatio
     this->expression_type = kh::AstExpression::ExType::BINARY;
 }
 
-kh::AstComparisonOperation::AstComparisonOperation(size_t _index,
-                                                   std::shared_ptr<kh::AstExpression>& _condition,
-                                                   std::shared_ptr<kh::AstExpression>& _value,
-                                                   std::shared_ptr<kh::AstExpression>& _otherwise)
+kh::AstTernaryOperation::AstTernaryOperation(size_t _index,
+                                             std::shared_ptr<kh::AstExpression>& _condition,
+                                             std::shared_ptr<kh::AstExpression>& _value,
+                                             std::shared_ptr<kh::AstExpression>& _otherwise)
     : condition(_condition), value(_value), otherwise(_otherwise) {
     this->index = _index;
     this->type = kh::AstBody::Type::EXPRESSION;

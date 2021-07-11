@@ -100,7 +100,7 @@ kh::AstExpression* kh::parseTernary(KH_PARSE_CTX) {
 
         std::shared_ptr<kh::AstExpression> value(expr);
         std::shared_ptr<kh::AstExpression> otherwise(kh::parseOr(context));
-        expr = new kh::AstComparisonOperation(index, condition, value, otherwise);
+        expr = new kh::AstTernaryOperation(index, condition, value, otherwise);
 
         KH_PARSE_GUARD();
         token = context.tok();
