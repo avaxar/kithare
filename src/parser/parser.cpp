@@ -212,21 +212,50 @@ void kh::parseAccessAttribs(KH_PARSE_CTX, bool& is_public, bool& is_static) {
     is_public = true;
     is_static = false;
 
+    bool specified_public = false;
+    bool specified_private = false;
+    bool specified_static = false;
+
     /* It parses these kinds of access types: `[static | private/public] int x = 3` */
     kh::Token token = context.tok();
     while (token.type == kh::TokenType::IDENTIFIER) {
-        if (token.value.identifier == "static") {
-            is_static = true;
-        }
-        else if (token.value.identifier == "public") {
+        if (token.value.identifier == "public") {
             is_public = true;
+
+            if (specified_public) {
+                context.exceptions.emplace_back("`public` was already specified", token);
+            }
+            if (specified_private) {
+                context.exceptions.emplace_back("`private` was already specified", token);
+            }
+
+            specified_public = true;
         }
         else if (token.value.identifier == "private") {
             is_public = false;
+
+            if (specified_public) {
+                context.exceptions.emplace_back("`public` was already specified", token);
+            }
+            if (specified_private) {
+                context.exceptions.emplace_back("`private` was already specified", token);
+            }
+
+            specified_private = true;
+        }
+        else if (token.value.identifier == "static") {
+            is_static = true;
+
+            if (specified_static) {
+                context.exceptions.emplace_back("`static` was already specified", token);
+            }
+
+            specified_static = true;
         }
         else {
             break;
         }
+
         context.ti++;
         KH_PARSE_GUARD();
         token = context.tok();
