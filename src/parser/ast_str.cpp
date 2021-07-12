@@ -300,19 +300,13 @@ std::u32string kh::AstDeclaration::str(size_t indent) const {
     BODY_HEADER();
     str = U"declare:";
 
+    str += U"\n\t" + ind + U"access: " + (this->is_static ? U"static " : U"") +
+           (this->is_public ? U"public" : U"private");
+
     str += U"\n\t" + ind + U"type: ";
-
-    if (this->is_static) {
-        str += U"static ";
-    }
-    if (!this->is_public) {
-        str += U"private ";
-    }
-
     for (size_t refs = 0; refs < this->refs; refs++) {
         str += U"ref ";
     }
-
     str += kh::str(this->var_type, indent + 1);
 
     for (uint64_t dimension : this->var_array) {
@@ -332,8 +326,8 @@ std::u32string kh::AstFunction::str(size_t indent) const {
     BODY_HEADER();
     str = this->is_conditional ? U"conditional function:" : U"function:";
 
-    str += U"\n\t" + ind + U"static: " + (this->is_static ? U"true" : U"false");
-    str += U"\n\t" + ind + U"access: " + (this->is_public ? U"public" : U"private");
+    str += U"\n\t" + ind + U"access: " + (this->is_static ? U"static " : U"") +
+           (this->is_public ? U"public" : U"private");
 
     if (this->identifiers.empty()) {
         str += U"\n\t" + ind + U"name: (lambda)";
