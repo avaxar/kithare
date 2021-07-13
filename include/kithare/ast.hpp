@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <complex>
 #include <memory>
 #include <vector>
 
@@ -115,7 +114,7 @@ namespace kh {
     class AstBody {
     public:
         size_t index;
-        enum class Type {
+        enum Type {
             NONE,
             EXPRESSION,
             IF,
@@ -124,7 +123,7 @@ namespace kh {
             FOR,
             FOREACH,
             STATEMENT
-        } type = Type::NONE;
+        } type = kh::AstBody::NONE;
 
         virtual ~AstBody() {}
 
@@ -133,7 +132,7 @@ namespace kh {
 
     class AstExpression : public kh::AstBody {
     public:
-        enum class ExType {
+        enum ExType {
             NONE,
             IDENTIFIER,
             DECLARE,
@@ -150,7 +149,7 @@ namespace kh {
             TUPLE,
             LIST,
             DICT
-        } expression_type = ExType::NONE;
+        } expression_type = kh::AstExpression::NONE;
 
         virtual ~AstExpression() {}
 
@@ -322,15 +321,7 @@ namespace kh {
 
     class AstValue : public kh::AstExpression {
     public:
-        enum class ValueType {
-            CHARACTER,
-            UINTEGER,
-            INTEGER,
-            FLOATING,
-            IMAGINARY,
-            BUFFER,
-            STRING
-        } value_type;
+        enum ValueType { CHARACTER, UINTEGER, INTEGER, FLOATING, IMAGINARY, BUFFER, STRING } value_type;
 
         union {
             char32_t character;
