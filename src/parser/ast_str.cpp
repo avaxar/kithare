@@ -8,6 +8,8 @@
 #include <kithare/utf8.hpp>
 
 
+using namespace std;
+
 #define REPR_ALL_IN(var)   \
     for (auto& _var : var) \
     str += U"\n\t" + ind + kh::str(_var, indent + 1)
@@ -19,9 +21,6 @@
         ind += '\t';                    \
                                         \
     u32string str;
-
-
-using namespace std;
 
 u32string kh::str(const kh::AstModule& module_ast, size_t indent) {
     u32string ind;
