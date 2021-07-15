@@ -8,10 +8,12 @@
 #include <kithare/test.hpp>
 
 
-static std::vector<std::string>* errors_ptr;
+using namespace std;
 
-static void lexerTypeTest() {
-    std::vector<kh::LexException> lex_exceptions;
+static vector<string>* errors_ptr;
+
+void lexerTypeTest() {
+    vector<kh::LexException> lex_exceptions;
     kh::LexerContext lexer_context{U"import std;                            \n"
                                    U"def main() {                           \n"
                                    U"    // Inline comments                 \n"
@@ -19,7 +21,7 @@ static void lexerTypeTest() {
                                    U"    std.print(\"Hello, world!\");      \n"
                                    U"}                                      \n",
                                    lex_exceptions};
-    std::vector<kh::Token> tokens = kh::lex(lexer_context);
+    vector<kh::Token> tokens = kh::lex(lexer_context);
 
     KH_TEST_ASSERT(lex_exceptions.empty());
     KH_TEST_ASSERT(tokens.size() == 21);
@@ -49,8 +51,8 @@ error:
     errors_ptr->back() += "lexerTypeTest";
 }
 
-static void lexerNumeralTest() {
-    std::vector<kh::LexException> lex_exceptions;
+void lexerNumeralTest() {
+    vector<kh::LexException> lex_exceptions;
     kh::LexerContext lexer_context{U"0 1 2 8 9  " /* Single digit decimal integers */
                                    U"00 10 29U  " /* Multi-digit + Unsigned */
                                    U"0.1 0.2    " /* Floating point */
@@ -60,7 +62,7 @@ static void lexerNumeralTest() {
                                    U"0b111 0b01 " /* Binary */
                                    U"4i 2i 5.6i " /* Imaginary */,
                                    lex_exceptions};
-    std::vector<kh::Token> tokens = kh::lex(lexer_context);
+    vector<kh::Token> tokens = kh::lex(lexer_context);
 
     KH_TEST_ASSERT(lex_exceptions.empty());
     KH_TEST_ASSERT(tokens.size() == 21);
@@ -111,8 +113,8 @@ error:
     errors_ptr->back() += "lexerNumeralTest";
 }
 
-static void lexerStringTest() {
-    std::vector<kh::LexException> lex_exceptions;
+void lexerStringTest() {
+    vector<kh::LexException> lex_exceptions;
     kh::LexerContext lexer_context{
         U"\"AB\\x42\\x88\\u1234\\u9876\\v\\U00001234\\U00010000\\\"\\n\"" /* Escape tests */
         U"b'' '' b\"aFd\\x87\\x90\\xff\" 'K' b'\\b' b'\\x34''\\U0001AF21' '\\r' "
@@ -123,12 +125,12 @@ static void lexerStringTest() {
         U"b\"\"\"Hello,\n"
         U"world!\"\"\" " /* Multiline buffer */,
         lex_exceptions};
-    std::vector<kh::Token> tokens = kh::lex(lexer_context);
+    vector<kh::Token> tokens = kh::lex(lexer_context);
 
     KH_TEST_ASSERT(lex_exceptions.empty());
     KH_TEST_ASSERT(tokens.size() == 13);
     KH_TEST_ASSERT(tokens[0].type == kh::TokenType::STRING);
-    KH_TEST_ASSERT(tokens[0].value.string == U"AB\x42\x88\u1234\u9876\v\U00001234\U00010000\"\n");
+    KH_TEST_ASSERT(tokens[0].value.ustring == U"AB\x42\x88\u1234\u9876\v\U00001234\U00010000\"\n");
     KH_TEST_ASSERT(tokens[1].type == kh::TokenType::INTEGER);
     KH_TEST_ASSERT(tokens[1].value.integer == '\0');
     KH_TEST_ASSERT(tokens[2].type == kh::TokenType::CHARACTER);
@@ -146,11 +148,11 @@ static void lexerStringTest() {
     KH_TEST_ASSERT(tokens[8].type == kh::TokenType::CHARACTER);
     KH_TEST_ASSERT(tokens[8].value.character == U'\r');
     KH_TEST_ASSERT(tokens[9].type == kh::TokenType::STRING);
-    KH_TEST_ASSERT(tokens[9].value.string == U"Hello, world!");
+    KH_TEST_ASSERT(tokens[9].value.ustring == U"Hello, world!");
     KH_TEST_ASSERT(tokens[10].type == kh::TokenType::BUFFER);
     KH_TEST_ASSERT(tokens[10].value.buffer == "Hello, world!");
     KH_TEST_ASSERT(tokens[11].type == kh::TokenType::STRING);
-    KH_TEST_ASSERT(tokens[11].value.string == U"Hello,\nworld!");
+    KH_TEST_ASSERT(tokens[11].value.ustring == U"Hello,\nworld!");
     KH_TEST_ASSERT(tokens[12].type == kh::TokenType::BUFFER);
     KH_TEST_ASSERT(tokens[12].value.buffer == "Hello,\nworld!");
     return;
@@ -158,7 +160,7 @@ error:
     errors_ptr->back() += "lexerStringTest";
 }
 
-void kh_test::lexerTest(std::vector<std::string>& errors) {
+void kh_test::lexerTest(vector<string>& errors) {
     errors_ptr = &errors;
     lexerTypeTest();
     lexerNumeralTest();

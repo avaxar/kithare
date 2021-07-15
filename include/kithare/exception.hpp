@@ -10,10 +10,12 @@
 
 
 namespace kh {
+    using namespace std;
+
     class Exception {
     public:
         virtual ~Exception() {}
-        virtual std::string format() const {
+        virtual string format() const {
             return "";
         }
     };

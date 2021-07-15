@@ -11,15 +11,16 @@
 #include <kithare/utf8.hpp>
 
 
-std::string kh::LexException::format() const {
-    return this->what + " at line " + std::to_string(this->line) + " column " +
-           std::to_string(this->column);
+using namespace std;
+
+string kh::LexException::format() const {
+    return this->what + " at line " + to_string(this->line) + " column " + to_string(this->column);
 }
 
-std::vector<kh::Token> kh::lex(const std::u32string& source) {
-    std::vector<kh::LexException> exceptions;
+vector<kh::Token> kh::lex(const u32string& source) {
+    vector<kh::LexException> exceptions;
     kh::LexerContext context{source, exceptions};
-    std::vector<kh::Token> tokens = kh::lex(context);
+    vector<kh::Token> tokens = kh::lex(context);
 
     if (exceptions.empty()) {
         return tokens;
@@ -35,7 +36,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
 /* Use this macro to export a variable hex_str from a given start and len relative
  * to the file index */
 #define HANDLE_HEX_INTO_HEXSTR(_start, _len)                   \
-    std::string hex_str;                                       \
+    string hex_str;                                            \
     for (size_t j = _start; j < _start + _len; j++) {          \
         if (kh::isHex(chAt(i + j)))                            \
             hex_str += (char)chAt(i + j);                      \
@@ -47,7 +48,7 @@ std::vector<kh::Token> kh::lex(const std::u32string& source) {
 /* Helper macro */
 #define _PLACE_HEXSTR_AS_TYPE(_var, ttype)               \
     if (chAt(i) == '\'') {                               \
-        _var = std::stoul(hex_str, nullptr, 16);         \
+        _var = stoul(hex_str, nullptr, 16);              \
         tokens.emplace_back(start, i + 1, ttype, value); \
     }                                                    \
     else                                                 \
@@ -155,17 +156,17 @@ namespace kh {
     };
 }
 
-std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
+vector<kh::Token> kh::lex(KH_LEX_CTX) {
     kh::TokenizeState state = kh::TokenizeState::NONE;
-    std::vector<kh::Token> tokens;
+    vector<kh::Token> tokens;
 
     size_t start = 0;
-    std::u32string temp_str;
-    std::string temp_buf;
+    u32string temp_str;
+    string temp_buf;
 
     /* Lambda function which accesses the string, and throws an error directly to the console if it
      * had passed the length */
-    std::function<char32_t(const size_t)> chAt = [&](const size_t index) -> char32_t {
+    function<char32_t(const size_t)> chAt = [&](const size_t index) -> char32_t {
         if (index < context.source.size()) {
             return context.source[index];
         }
@@ -187,12 +188,12 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                     temp_buf.clear();
 
                     /* Skips whitespace and newlines */
-                    if (chAt(i) == '\n' || std::iswspace(chAt(i)) > 0) {
+                    if (chAt(i) == '\n' || iswspace(chAt(i)) > 0) {
                         continue;
                     }
 
                     /* Possible identifier start */
-                    else if (std::iswalpha(chAt(i)) > 0 || chAt(i) == '_') {
+                    else if (iswalpha(chAt(i)) > 0 || chAt(i) == '_') {
                         /* Possible start of a byte-string/byte-string constant */
                         if (chAt(i) == 'b' || chAt(i) == 'B') {
                             /* Possible byte-char */
@@ -519,7 +520,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                     /* Follows the identifier's characters */
                 case kh::TokenizeState::IDENTIFIER:
                     /* Checks if it's still a valid identifier character */
-                    if (std::iswalpha(chAt(i)) > 0 || kh::isDec(chAt(i)) || chAt(i) == '_') {
+                    if (iswalpha(chAt(i)) > 0 || kh::isDec(chAt(i)) || chAt(i) == '_') {
                         temp_str += chAt(i);
                     }
                     else {
@@ -557,7 +558,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                         /* Is unsigned */
                         kh::TokenValue value;
                         try {
-                            value.uinteger = std::stoull(kh::encodeUtf8(temp_str));
+                            value.uinteger = stoull(kh::encodeUtf8(temp_str));
                         }
                         catch (...) {
                             KH_RAISE_ERROR("unsigned integer too large to be interpret", 0);
@@ -570,7 +571,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                         /* Is imaginary */
                         kh::TokenValue value;
                         try {
-                            value.imaginary = std::stoull(kh::encodeUtf8(temp_str));
+                            value.imaginary = stoull(kh::encodeUtf8(temp_str));
                         }
                         catch (...) {
                             KH_RAISE_ERROR("imaginary integer too large to be interpret", 0);
@@ -587,7 +588,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                     else {
                         kh::TokenValue value;
                         try {
-                            value.integer = std::stoll(kh::encodeUtf8(temp_str));
+                            value.integer = stoll(kh::encodeUtf8(temp_str));
                         }
                         catch (...) {
                             KH_RAISE_ERROR("integer too large to be interpret", -1);
@@ -611,7 +612,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                         }
 
                         kh::TokenValue value;
-                        value.imaginary = std::stod(kh::encodeUtf8(temp_str));
+                        value.imaginary = stod(kh::encodeUtf8(temp_str));
                         tokens.emplace_back(start, i + 1, kh::TokenType::IMAGINARY, value);
 
                         state = kh::TokenizeState::NONE;
@@ -624,7 +625,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                         }
 
                         kh::TokenValue value;
-                        value.floating = std::stod(kh::encodeUtf8(temp_str));
+                        value.floating = stod(kh::encodeUtf8(temp_str));
                         tokens.emplace_back(start, i, kh::TokenType::FLOATING, value);
 
                         state = kh::TokenizeState::NONE;
@@ -641,7 +642,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                         /* Is unsigned */
                         kh::TokenValue value;
                         try {
-                            value.uinteger = std::stoull(kh::encodeUtf8(temp_str), nullptr, 16);
+                            value.uinteger = stoull(kh::encodeUtf8(temp_str), nullptr, 16);
                         }
                         catch (...) {
                             KH_RAISE_ERROR("unsigned hex integer too large to be interpret", 0);
@@ -654,7 +655,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                         /* Is imaginary */
                         kh::TokenValue value;
                         try {
-                            value.imaginary = std::stoull(kh::encodeUtf8(temp_str), nullptr, 16);
+                            value.imaginary = stoull(kh::encodeUtf8(temp_str), nullptr, 16);
                         }
                         catch (...) {
                             KH_RAISE_ERROR("imaginary hex integer too large to be interpret", 0);
@@ -666,7 +667,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                     else {
                         kh::TokenValue value;
                         try {
-                            value.integer = std::stoull(kh::encodeUtf8(temp_str), nullptr, 16);
+                            value.integer = stoull(kh::encodeUtf8(temp_str), nullptr, 16);
                         }
                         catch (...) {
                             KH_RAISE_ERROR("hex integer too large to be interpret", -1);
@@ -687,7 +688,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                         /* Is unsigned */
                         kh::TokenValue value;
                         try {
-                            value.uinteger = std::stoull(kh::encodeUtf8(temp_str), nullptr, 8);
+                            value.uinteger = stoull(kh::encodeUtf8(temp_str), nullptr, 8);
                         }
                         catch (...) {
                             KH_RAISE_ERROR("unsigned octal integer too large to be interpret", 0);
@@ -700,7 +701,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                         /* Is imaginary */
                         kh::TokenValue value;
                         try {
-                            value.imaginary = std::stoull(kh::encodeUtf8(temp_str), nullptr, 8);
+                            value.imaginary = stoull(kh::encodeUtf8(temp_str), nullptr, 8);
                         }
                         catch (...) {
                             KH_RAISE_ERROR("imaginary octal integer too large to be interpret", 0);
@@ -712,7 +713,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                     else {
                         kh::TokenValue value;
                         try {
-                            value.integer = std::stoull(kh::encodeUtf8(temp_str), nullptr, 8);
+                            value.integer = stoull(kh::encodeUtf8(temp_str), nullptr, 8);
                         }
                         catch (...) {
                             KH_RAISE_ERROR("octal integer too large to be interpret", -1);
@@ -734,7 +735,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                         /* Is unsigned */
                         kh::TokenValue value;
                         try {
-                            value.uinteger = std::stoull(kh::encodeUtf8(temp_str), nullptr, 2);
+                            value.uinteger = stoull(kh::encodeUtf8(temp_str), nullptr, 2);
                         }
                         catch (...) {
                             KH_RAISE_ERROR("unsigned binary integer too large to be interpret", 0);
@@ -747,7 +748,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                         /* Is imaginary */
                         kh::TokenValue value;
                         try {
-                            value.imaginary = std::stoull(kh::encodeUtf8(temp_str), nullptr, 2);
+                            value.imaginary = stoull(kh::encodeUtf8(temp_str), nullptr, 2);
                         }
                         catch (...) {
                             KH_RAISE_ERROR("imaginary binary integer too large to be interpret", 0);
@@ -759,7 +760,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                     else {
                         kh::TokenValue value;
                         try {
-                            value.integer = std::stoull(kh::encodeUtf8(temp_str), nullptr, 2);
+                            value.integer = stoull(kh::encodeUtf8(temp_str), nullptr, 2);
                         }
                         catch (...) {
                             KH_RAISE_ERROR("binary integer too large to be interpret", -1);
@@ -794,7 +795,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                 case 'x':
                                 case 'X': {
                                     HANDLE_HEX_INTO_HEXSTR(2, 2);
-                                    temp_buf.push_back(std::stoul(hex_str, nullptr, 16));
+                                    temp_buf.push_back(stoul(hex_str, nullptr, 16));
                                     i--;
                                 } break;
 
@@ -836,7 +837,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                 case 'x':
                                 case 'X': {
                                     HANDLE_HEX_INTO_HEXSTR(2, 2);
-                                    temp_buf.push_back(std::stoul(hex_str, nullptr, 16));
+                                    temp_buf.push_back(stoul(hex_str, nullptr, 16));
                                     i--;
                                 } break;
 
@@ -863,7 +864,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                     if (chAt(i) == '"') {
                         /* End string */
                         kh::TokenValue value;
-                        value.string = temp_str;
+                        value.ustring = temp_str;
                         tokens.emplace_back(start, i + 1, kh::TokenType::STRING, value);
 
                         state = kh::TokenizeState::NONE;
@@ -880,21 +881,21 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                 case 'x':
                                 case 'X': {
                                     HANDLE_HEX_INTO_HEXSTR(2, 2);
-                                    temp_str += std::stoul(hex_str, nullptr, 16);
+                                    temp_str += stoul(hex_str, nullptr, 16);
                                     i--;
                                 } break;
 
                                     /* 2 bytes unicode escape */
                                 case 'u': {
                                     HANDLE_HEX_INTO_HEXSTR(2, 4);
-                                    temp_str += std::stoul(hex_str, nullptr, 16);
+                                    temp_str += stoul(hex_str, nullptr, 16);
                                     i--;
                                 } break;
 
                                     /* 4 bytes unicode escape */
                                 case 'U': {
                                     HANDLE_HEX_INTO_HEXSTR(2, 8);
-                                    temp_str += std::stoul(hex_str, nullptr, 16);
+                                    temp_str += stoul(hex_str, nullptr, 16);
                                     i--;
                                 } break;
 
@@ -917,7 +918,7 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                     if (chAt(i) == '"' && chAt(i + 1) == '"' && chAt(i + 2) == '"') {
                         /* End string */
                         kh::TokenValue value;
-                        value.string = temp_str;
+                        value.ustring = temp_str;
                         tokens.emplace_back(start, i + 3, kh::TokenType::STRING, value);
 
                         state = kh::TokenizeState::NONE;
@@ -932,21 +933,21 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                                 case 'x':
                                 case 'X': {
                                     HANDLE_HEX_INTO_HEXSTR(2, 2);
-                                    temp_str += std::stoul(hex_str, nullptr, 16);
+                                    temp_str += stoul(hex_str, nullptr, 16);
                                     i--;
                                 } break;
 
                                     /* 2 bytes unicode escape */
                                 case 'u': {
                                     HANDLE_HEX_INTO_HEXSTR(2, 4);
-                                    temp_str += std::stoul(hex_str, nullptr, 16);
+                                    temp_str += stoul(hex_str, nullptr, 16);
                                     i--;
                                 } break;
 
                                     /* 4 bytes unicode escape */
                                 case 'U': {
                                     HANDLE_HEX_INTO_HEXSTR(2, 8);
-                                    temp_str += std::stoul(hex_str, nullptr, 16);
+                                    temp_str += stoul(hex_str, nullptr, 16);
                                     i--;
                                 } break;
 

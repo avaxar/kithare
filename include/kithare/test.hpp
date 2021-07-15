@@ -17,7 +17,9 @@
 
 
 namespace kh_test {
-    void utf8Test(std::vector<std::string>& errors);
-    void lexerTest(std::vector<std::string>& errors);
-    void parserTest(std::vector<std::string>& errors);
+    using namespace std;
+
+    void utf8Test(vector<string>& errors);
+    void lexerTest(vector<string>& errors);
+    void parserTest(vector<string>& errors);
 }

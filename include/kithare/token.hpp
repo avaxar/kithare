@@ -10,16 +10,18 @@
 
 
 namespace kh {
+    using namespace std;
+
     struct Token;
     struct TokenValue;
     enum class Operator;
     enum class Symbol;
     enum class TokenType;
 
-    std::u32string str(const kh::Token& token, bool show_token_type = false);
-    std::u32string str(kh::TokenType type);
-    std::u32string str(kh::Operator op);
-    std::u32string str(kh::Symbol sym);
+    u32string str(const kh::Token& token, bool show_token_type = false);
+    u32string str(kh::TokenType type);
+    u32string str(kh::Operator op);
+    u32string str(kh::Symbol sym);
 
     enum class Operator {
         ADD,
@@ -100,10 +102,10 @@ namespace kh {
             double imaginary;
         };
 
-        std::u32string string;
+        u32string ustring;
 
-        std::string identifier;
-        std::string buffer;
+        string identifier;
+        string buffer;
     };
 
     struct Token {

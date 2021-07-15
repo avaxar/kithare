@@ -10,6 +10,8 @@
 
 
 namespace kh {
+    using namespace std;
+
     class IrModule;
     class IrScope;
     class IrVariable;

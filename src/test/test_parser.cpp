@@ -9,17 +9,19 @@
 #include <kithare/test.hpp>
 
 
-static std::vector<std::string>* errors_ptr;
+using namespace std;
 
-static void parserImportTest() {
-    std::vector<kh::LexException> lex_exceptions;
+static vector<string>* errors_ptr;
+
+void parserImportTest() {
+    vector<kh::LexException> lex_exceptions;
     kh::LexerContext lexer_context{U"import stuff;          \n"
                                    U"import stuff as other; \n"
                                    U"import stuff.other;    \n"
                                    U"include this;          \n",
                                    lex_exceptions};
-    std::vector<kh::Token> tokens = kh::lex(lexer_context);
-    std::vector<kh::ParseException> parse_exceptions;
+    vector<kh::Token> tokens = kh::lex(lexer_context);
+    vector<kh::ParseException> parse_exceptions;
     kh::ParserContext parser_context{tokens, parse_exceptions};
     kh::AstModule ast = kh::parseWhole(parser_context);
 
@@ -38,7 +40,7 @@ error:
     errors_ptr->back() += "parserImportTest";
 }
 
-void kh_test::parserTest(std::vector<std::string>& errors) {
+void kh_test::parserTest(vector<string>& errors) {
     errors_ptr = &errors;
     parserImportTest();
 }

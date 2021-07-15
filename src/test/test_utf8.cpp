@@ -7,13 +7,15 @@
 #include <kithare/test.hpp>
 #include <kithare/utf8.hpp>
 
+
+using namespace std;
+
 #define KH_TEST_U32STRING U"\x42\x63\xf6\xf3\u4242\u6363\U00010000"
 #define KH_TEST_U8STRING "\x42\x63\xc3\xb6\xc3\xb3\xe4\x89\x82\xe6\x8d\xa3\xf0\x90\x80\x80"
 
+static vector<string>* errors_ptr;
 
-static std::vector<std::string>* errors_ptr;
-
-static void utf8EncodeTest() {
+void utf8EncodeTest() {
     try {
         KH_TEST_ASSERT(kh::encodeUtf8(KH_TEST_U32STRING) == KH_TEST_U8STRING);
     }
@@ -27,7 +29,7 @@ error:
     errors_ptr->back() += "utf8EncodeTest";
 }
 
-static void utf8DecodeTest() {
+void utf8DecodeTest() {
     try {
         KH_TEST_ASSERT(kh::decodeUtf8(KH_TEST_U8STRING) == KH_TEST_U32STRING);
     }
@@ -41,7 +43,7 @@ error:
     errors_ptr->back() += "utf8DecodeTest";
 }
 
-void kh_test::utf8Test(std::vector<std::string>& errors) {
+void kh_test::utf8Test(vector<string>& errors) {
     errors_ptr = &errors;
     utf8EncodeTest();
     utf8DecodeTest();

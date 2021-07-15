@@ -11,23 +11,25 @@
 
 
 namespace kh {
-    void getLineColumn(const std::u32string& str, size_t index, size_t& column, size_t& line);
+    using namespace std;
 
-    std::u32string quote(const std::u32string& str);
-    std::u32string quote(const std::string& str);
+    void getLineColumn(const u32string& str, size_t index, size_t& column, size_t& line);
 
-    std::u32string str(const std::wstring& str);
-    std::u32string str(const std::string& str);
+    u32string quote(const u32string& str);
+    u32string quote(const string& str);
 
-    std::u32string str(char chr);
-    std::u32string str(wchar_t chr);
-    std::u32string str(char32_t chr);
+    u32string str(const wstring& str);
+    u32string str(const string& str);
 
-    std::u32string str(int64_t n);
-    std::u32string str(uint64_t n);
-    std::u32string str(float n);
-    std::u32string str(double n);
+    u32string str(char chr);
+    u32string str(wchar_t chr);
+    u32string str(char32_t chr);
 
-    std::u32string str(const std::complex<float>& n);
-    std::u32string str(const std::complex<double>& n);
+    u32string str(int64_t n);
+    u32string str(uint64_t n);
+    u32string str(float n);
+    u32string str(double n);
+
+    u32string str(const complex<float>& n);
+    u32string str(const complex<double>& n);
 }

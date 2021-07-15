@@ -3,3 +3,5 @@
  * The source code for Kithare programming language is distributed under the MIT license.
  * Copyright (C) 2021 Kithare Organization
  */
+
+using namespace std;

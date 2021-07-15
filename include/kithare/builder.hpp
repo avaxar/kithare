@@ -10,5 +10,7 @@
 
 
 namespace kh {
+    using namespace std;
+
     class Builder {};
 }

@@ -8,8 +8,10 @@
 #include <kithare/utf8.hpp>
 
 
-std::u32string kh::quote(const std::u32string& str) {
-    std::u32string quoted_str = U"\"";
+using namespace std;
+
+u32string kh::quote(const u32string& str) {
+    u32string quoted_str = U"\"";
     quoted_str.reserve(str.size() + str.size() / 8 + 2);
 
     for (char32_t chr : str) {
@@ -49,8 +51,8 @@ std::u32string kh::quote(const std::u32string& str) {
                     quoted_str += (char32_t)chr;
                 }
                 else {
-                    std::stringstream sstream;
-                    sstream << std::hex << (uint32_t)chr;
+                    stringstream sstream;
+                    sstream << hex << (uint32_t)chr;
 
                     if (chr <= 0xff)
                         quoted_str +=
@@ -77,8 +79,8 @@ std::u32string kh::quote(const std::u32string& str) {
     return quoted_str;
 }
 
-std::u32string kh::quote(const std::string& str) {
-    std::u32string quoted_str = U"\"";
+u32string kh::quote(const string& str) {
+    u32string quoted_str = U"\"";
     quoted_str.reserve(str.size() + str.size() / 8 + 2);
 
     for (char chr : str) {
@@ -118,8 +120,8 @@ std::u32string kh::quote(const std::string& str) {
                     quoted_str += (char32_t)chr;
                 }
                 else {
-                    std::stringstream sstream;
-                    sstream << std::hex << (int)(uint8_t)chr;
+                    stringstream sstream;
+                    sstream << hex << (int)(uint8_t)chr;
                     quoted_str +=
                         U"\\x" + kh::str((sstream.str().size() == 1 ? "0" : "") + sstream.str());
                 }
@@ -130,7 +132,7 @@ std::u32string kh::quote(const std::string& str) {
     return quoted_str;
 }
 
-void kh::getLineColumn(const std::u32string& str, size_t index, size_t& column, size_t& line) {
+void kh::getLineColumn(const u32string& str, size_t index, size_t& column, size_t& line) {
     column = 0;
     line = 1;
 
@@ -145,8 +147,8 @@ void kh::getLineColumn(const std::u32string& str, size_t index, size_t& column, 
     }
 }
 
-std::u32string kh::str(const std::wstring& str) {
-    std::u32string str32;
+u32string kh::str(const wstring& str) {
+    u32string str32;
     str32.reserve(str.size());
 
     for (wchar_t chr : str) {
@@ -156,8 +158,8 @@ std::u32string kh::str(const std::wstring& str) {
     return str32;
 }
 
-std::u32string kh::str(const std::string& str) {
-    std::u32string str32;
+u32string kh::str(const string& str) {
+    u32string str32;
     str32.reserve(str.size());
 
     for (char chr : str) {
@@ -167,23 +169,23 @@ std::u32string kh::str(const std::string& str) {
     return str32;
 }
 
-std::u32string kh::str(char chr) {
+u32string kh::str(char chr) {
     char32_t chr32 = chr;
-    return std::u32string(&chr32, &chr32 + 1);
+    return u32string(&chr32, &chr32 + 1);
 }
 
-std::u32string kh::str(wchar_t chr) {
+u32string kh::str(wchar_t chr) {
     char32_t chr32 = chr;
-    return std::u32string(&chr32, &chr32 + 1);
+    return u32string(&chr32, &chr32 + 1);
 }
 
-std::u32string kh::str(char32_t chr) {
-    return std::u32string(&chr, &chr + 1);
+u32string kh::str(char32_t chr) {
+    return u32string(&chr, &chr + 1);
 }
 
-#define KH_REPR_TO_STRING(TYPE)            \
-    std::u32string kh::str(TYPE n) {       \
-        return kh::str(std::to_string(n)); \
+#define KH_REPR_TO_STRING(TYPE)       \
+    u32string kh::str(TYPE n) {       \
+        return kh::str(to_string(n)); \
     }
 
 KH_REPR_TO_STRING(int64_t);
@@ -191,10 +193,10 @@ KH_REPR_TO_STRING(uint64_t);
 KH_REPR_TO_STRING(float);
 KH_REPR_TO_STRING(double);
 
-std::u32string kh::str(const std::complex<float>& n) {
+u32string kh::str(const complex<float>& n) {
     return kh::str(n.real()) + U" + " + kh::str(n.imag()) + U"i";
 }
 
-std::u32string kh::str(const std::complex<double>& n) {
+u32string kh::str(const complex<double>& n) {
     return kh::str(n.real()) + U" + " + kh::str(n.imag()) + U"i";
 }

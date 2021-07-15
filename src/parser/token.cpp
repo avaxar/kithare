@@ -9,13 +9,15 @@
 #include <kithare/utf8.hpp>
 
 
+using namespace std;
+
 kh::Token::Token() : column(0), line(0), index(0), length(0), type(), value() {}
 
 kh::Token::Token(size_t _index, size_t _end, kh::TokenType _type, const kh::TokenValue& _value)
     : column(0), line(0), index(_index), length(_end - index), type(_type), value(_value) {}
 
-std::u32string kh::str(const kh::Token& token, bool show_token_type) {
-    std::u32string str;
+u32string kh::str(const kh::Token& token, bool show_token_type) {
+    u32string str;
     if (show_token_type) {
         str = kh::str(token.type) + U' ';
     }
@@ -35,7 +37,7 @@ std::u32string kh::str(const kh::Token& token, bool show_token_type) {
             str += kh::str(token.value.character);
             break;
         case kh::TokenType::STRING:
-            str += kh::quote(token.value.string);
+            str += kh::quote(token.value.ustring);
             break;
         case kh::TokenType::BUFFER:
             str += kh::quote(token.value.buffer);
@@ -61,7 +63,7 @@ std::u32string kh::str(const kh::Token& token, bool show_token_type) {
     return str;
 }
 
-std::u32string kh::str(kh::TokenType type) {
+u32string kh::str(kh::TokenType type) {
     switch (type) {
         case kh::TokenType::IDENTIFIER:
             return U"identifier";
@@ -91,7 +93,7 @@ std::u32string kh::str(kh::TokenType type) {
     }
 }
 
-std::u32string kh::str(kh::Operator op) {
+u32string kh::str(kh::Operator op) {
     switch (op) {
         case kh::Operator::ADD:
             return U"+";
@@ -168,7 +170,7 @@ std::u32string kh::str(kh::Operator op) {
     }
 }
 
-std::u32string kh::str(kh::Symbol sym) {
+u32string kh::str(kh::Symbol sym) {
     switch (sym) {
         case kh::Symbol::SEMICOLON:
             return U";";

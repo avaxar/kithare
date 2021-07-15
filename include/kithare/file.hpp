@@ -12,13 +12,15 @@
 
 
 namespace kh {
+    using namespace std;
+
     class FileError : public kh::Exception {
     public:
         FileError() {}
         virtual ~FileError() {}
-        virtual std::string format() const;
+        virtual string format() const;
     };
 
-    std::u32string readFile(const std::u32string& path);
-    std::string readFileBinary(const std::u32string& path);
+    u32string readFile(const u32string& path);
+    string readFileBinary(const u32string& path);
 }

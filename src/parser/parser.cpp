@@ -8,13 +8,15 @@
 #include <kithare/utf8.hpp>
 
 
-std::string kh::ParseException::format() const {
-    return this->what + " at line " + std::to_string(this->token.line) + " column " +
-           std::to_string(this->token.column);
+using namespace std;
+
+string kh::ParseException::format() const {
+    return this->what + " at line " + to_string(this->token.line) + " column " +
+           to_string(this->token.column);
 }
 
-kh::AstModule kh::parse(const std::vector<kh::Token>& tokens) {
-    std::vector<kh::ParseException> exceptions;
+kh::AstModule kh::parse(const vector<kh::Token>& tokens) {
+    vector<kh::ParseException> exceptions;
     kh::ParserContext context{tokens, exceptions};
     kh::AstModule ast = kh::parseWhole(context);
 
@@ -29,11 +31,11 @@ kh::AstModule kh::parse(const std::vector<kh::Token>& tokens) {
 kh::AstModule kh::parseWhole(KH_PARSE_CTX) {
     context.exceptions.clear();
 
-    std::vector<kh::AstImport> imports;
-    std::vector<kh::AstFunction> functions;
-    std::vector<kh::AstUserType> user_types;
-    std::vector<kh::AstEnumType> enums;
-    std::vector<kh::AstDeclaration> variables;
+    vector<kh::AstImport> imports;
+    vector<kh::AstFunction> functions;
+    vector<kh::AstUserType> user_types;
+    vector<kh::AstEnumType> enums;
+    vector<kh::AstDeclaration> variables;
 
     for (context.ti = 0; context.ti < context.tokens.size(); /* Nothing */) {
         kh::Token token = context.tok();
@@ -45,7 +47,7 @@ kh::AstModule kh::parseWhole(KH_PARSE_CTX) {
 
         switch (token.type) {
             case kh::TokenType::IDENTIFIER: {
-                const std::string& identifier = token.value.identifier;
+                const string& identifier = token.value.identifier;
 
                 /* Function declaration identifier keyword */
                 if (identifier == "def" || identifier == "try") {
@@ -190,7 +192,7 @@ end:
         size_t last_index = -1;
         kh::ParseException* last_element = nullptr;
 
-        std::vector<kh::ParseException> cleaned_exceptions;
+        vector<kh::ParseException> cleaned_exceptions;
         cleaned_exceptions.reserve(context.exceptions.size());
 
         for (kh::ParseException& exc : context.exceptions) {
@@ -266,13 +268,13 @@ end:
 }
 
 kh::AstImport kh::parseImport(KH_PARSE_CTX, bool is_include) {
-    std::vector<std::string> path;
+    vector<string> path;
     bool is_relative = false;
-    std::string identifier;
+    string identifier;
     kh::Token token = context.tok();
     size_t index = token.index;
 
-    std::string type = is_include ? "include" : "import";
+    string type = is_include ? "include" : "import";
 
     /* Check if an import/include is relative */
     if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::DOT) {
@@ -361,14 +363,14 @@ end:
 }
 
 kh::AstFunction kh::parseFunction(KH_PARSE_CTX, bool is_conditional) {
-    std::vector<std::string> identifiers;
-    std::vector<std::string> generic_args;
-    std::vector<uint64_t> id_array;
+    vector<string> identifiers;
+    vector<string> generic_args;
+    vector<uint64_t> id_array;
     kh::AstIdentifiers return_type{0, {}, {}, {}, {}};
-    std::vector<uint64_t> return_array = {};
+    vector<uint64_t> return_array = {};
     size_t return_refs = 0;
-    std::vector<kh::AstDeclaration> arguments;
-    std::vector<std::shared_ptr<kh::AstBody>> body;
+    vector<kh::AstDeclaration> arguments;
+    vector<shared_ptr<kh::AstBody>> body;
 
     kh::Token token = context.tok();
     size_t index = token.index;
@@ -534,9 +536,9 @@ end:
 
 kh::AstDeclaration kh::parseDeclaration(KH_PARSE_CTX) {
     kh::AstIdentifiers var_type{0, {}, {}, {}, {}};
-    std::vector<uint64_t> var_array = {};
-    std::string var_name;
-    std::shared_ptr<kh::AstExpression> expression = nullptr;
+    vector<uint64_t> var_array = {};
+    string var_name;
+    shared_ptr<kh::AstExpression> expression = nullptr;
     size_t refs = 0;
 
     kh::Token token = context.tok();
@@ -596,16 +598,16 @@ end:
 }
 
 kh::AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
-    std::vector<std::string> identifiers;
-    std::shared_ptr<kh::AstIdentifiers> base;
-    std::vector<std::string> generic_args;
-    std::vector<kh::AstDeclaration> members;
-    std::vector<kh::AstFunction> methods;
+    vector<string> identifiers;
+    shared_ptr<kh::AstIdentifiers> base;
+    vector<string> generic_args;
+    vector<kh::AstDeclaration> members;
+    vector<kh::AstFunction> methods;
 
     kh::Token token = context.tok();
     size_t index = token.index;
 
-    std::string type_name = is_class ? "class" : "struct";
+    string type_name = is_class ? "class" : "struct";
 
     /* Parses the class'/struct's identifiers and generic arguments */
     kh::parseTopScopeIdentifiersAndGenericArgs(context, identifiers, generic_args);
@@ -758,9 +760,9 @@ end:
 }
 
 kh::AstEnumType kh::parseEnum(KH_PARSE_CTX) {
-    std::vector<std::string> identifiers;
-    std::vector<std::string> members;
-    std::vector<uint64_t> values;
+    vector<string> identifiers;
+    vector<string> members;
+    vector<uint64_t> values;
 
     /* Internal enum counter */
     uint64_t counter = 0;
@@ -769,7 +771,7 @@ kh::AstEnumType kh::parseEnum(KH_PARSE_CTX) {
     size_t index = token.index;
 
     /* Gets the enum identifiers */
-    std::vector<std::string> _generic_args;
+    vector<string> _generic_args;
     kh::parseTopScopeIdentifiersAndGenericArgs(context, identifiers, _generic_args);
     if (!_generic_args.empty()) {
         context.exceptions.emplace_back("an enum could not have generic arguments", token);
@@ -846,7 +848,7 @@ kh::AstEnumType kh::parseEnum(KH_PARSE_CTX) {
             for (size_t member = 0; member < members.size() - 1; member++) {
                 if (members[member] == members.back()) {
                     context.exceptions.emplace_back("this enum member has the same name as the #" +
-                                                        std::to_string(member + 1) + " member",
+                                                        to_string(member + 1) + " member",
                                                     token);
                     break;
                 }
@@ -884,8 +886,8 @@ end:
     return {index, identifiers, members, values};
 }
 
-std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loop_count) {
-    std::vector<std::shared_ptr<kh::AstBody>> body;
+vector<shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loop_count) {
+    vector<shared_ptr<kh::AstBody>> body;
     kh::Token token = context.tok();
 
     /* Expects an opening curly bracket */
@@ -905,9 +907,9 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
         switch (token.type) {
             case kh::TokenType::IDENTIFIER: {
                 if (token.value.identifier == "if") {
-                    std::vector<std::shared_ptr<kh::AstExpression>> conditions;
-                    std::vector<std::vector<std::shared_ptr<kh::AstBody>>> bodies;
-                    std::vector<std::shared_ptr<kh::AstBody>> else_body;
+                    vector<shared_ptr<kh::AstExpression>> conditions;
+                    vector<vector<shared_ptr<kh::AstBody>>> bodies;
+                    vector<shared_ptr<kh::AstBody>> else_body;
 
                     do {
                         /* Parses the expression and if body */
@@ -939,9 +941,8 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                     KH_PARSE_GUARD();
 
                     /* Parses the expression and body */
-                    std::shared_ptr<kh::AstExpression> condition(kh::parseExpression(context));
-                    std::vector<std::shared_ptr<kh::AstBody>> while_body =
-                        kh::parseBody(context, loop_count + 1);
+                    shared_ptr<kh::AstExpression> condition(kh::parseExpression(context));
+                    vector<shared_ptr<kh::AstBody>> while_body = kh::parseBody(context, loop_count + 1);
 
                     body.emplace_back(new kh::AstWhile(index, condition, while_body));
                 }
@@ -951,9 +952,9 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                     KH_PARSE_GUARD();
 
                     /* Parses the body */
-                    std::vector<std::shared_ptr<kh::AstBody>> do_while_body =
+                    vector<shared_ptr<kh::AstBody>> do_while_body =
                         kh::parseBody(context, loop_count + 1);
-                    std::shared_ptr<kh::AstExpression> condition;
+                    shared_ptr<kh::AstExpression> condition;
 
                     KH_PARSE_GUARD();
                     token = context.tok();
@@ -985,8 +986,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                     context.ti++;
                     KH_PARSE_GUARD();
 
-                    std::shared_ptr<kh::AstExpression> target_or_initializer(
-                        kh::parseExpression(context));
+                    shared_ptr<kh::AstExpression> target_or_initializer(kh::parseExpression(context));
 
                     KH_PARSE_GUARD();
                     token = context.tok();
@@ -996,9 +996,9 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                         KH_PARSE_GUARD();
                         token = context.tok();
 
-                        std::shared_ptr<kh::AstExpression> iterator(kh::parseExpression(context));
+                        shared_ptr<kh::AstExpression> iterator(kh::parseExpression(context));
                         KH_PARSE_GUARD();
-                        std::vector<std::shared_ptr<kh::AstBody>> foreach_body =
+                        vector<shared_ptr<kh::AstBody>> foreach_body =
                             kh::parseBody(context, loop_count + 1);
 
                         body.emplace_back(
@@ -1008,7 +1008,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                              token.value.symbol_type == kh::Symbol::COMMA) {
                         context.ti++;
                         KH_PARSE_GUARD();
-                        std::shared_ptr<kh::AstExpression> condition(kh::parseExpression(context));
+                        shared_ptr<kh::AstExpression> condition(kh::parseExpression(context));
                         KH_PARSE_GUARD();
                         token = context.tok();
 
@@ -1021,9 +1021,9 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                             context.exceptions.emplace_back("expected a comma after `for ..., ...`",
                                                             token);
                         }
-                        std::shared_ptr<kh::AstExpression> step(kh::parseExpression(context));
+                        shared_ptr<kh::AstExpression> step(kh::parseExpression(context));
                         KH_PARSE_GUARD();
-                        std::vector<std::shared_ptr<kh::AstBody>> for_body =
+                        vector<shared_ptr<kh::AstBody>> for_body =
                             kh::parseBody(context, loop_count + 1);
 
                         body.emplace_back(
@@ -1110,7 +1110,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                     KH_PARSE_GUARD();
                     token = context.tok();
 
-                    std::shared_ptr<kh::AstExpression> expression((kh::AstExpression*)nullptr);
+                    shared_ptr<kh::AstExpression> expression((kh::AstExpression*)nullptr);
 
                     /* No expression given */
                     if (token.type == kh::TokenType::SYMBOL &&
@@ -1162,7 +1162,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
             default:
             parse_expr : {
                 /* If it isn't any of the statements above, it's probably an expression */
-                std::shared_ptr<kh::AstExpression> expr(kh::parseExpression(context));
+                shared_ptr<kh::AstExpression> expr(kh::parseExpression(context));
                 KH_PARSE_GUARD();
                 token = context.tok();
 
@@ -1183,8 +1183,8 @@ end:
     return body;
 }
 
-void kh::parseTopScopeIdentifiersAndGenericArgs(KH_PARSE_CTX, std::vector<std::string>& identifiers,
-                                                std::vector<std::string>& generic_args) {
+void kh::parseTopScopeIdentifiersAndGenericArgs(KH_PARSE_CTX, vector<string>& identifiers,
+                                                vector<string>& generic_args) {
     kh::Token token = context.tok();
     goto forceIn;
 

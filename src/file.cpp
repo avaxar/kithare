@@ -9,21 +9,23 @@
 #include <kithare/utf8.hpp>
 
 
-std::string kh::FileError::format() const {
+using namespace std;
+
+string kh::FileError::format() const {
     return "unable to read file";
 }
 
-std::u32string kh::readFile(const std::u32string& path) {
+u32string kh::readFile(const u32string& path) {
     return kh::decodeUtf8(kh::readFileBinary(path));
 }
 
-std::string kh::readFileBinary(const std::u32string& path) {
+string kh::readFileBinary(const u32string& path) {
     /* Use C style file handling, because it's "superior" (as @ankith26 would say it -.-), and also
      * handles UTF-8 file paths on MinGW correctly */
-    std::string ret;
+    string ret;
     FILE* file;
 #if _WIN32
-    std::wstring u16path;
+    wstring u16path;
     u16path.reserve(path.size());
     for (char32_t ch : path) {
         u16path += (wchar_t)ch;

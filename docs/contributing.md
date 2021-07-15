@@ -33,8 +33,4 @@ int& reference_var = *var;
 void function(const std::string& str, const int value) {
 
 }
-
-/* NO */
-using namespace std;
-using namespace kh;
 ```

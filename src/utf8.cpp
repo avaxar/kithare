@@ -8,12 +8,14 @@
 #include <kithare/utf8.hpp>
 
 
-std::string kh::Utf8DecodingException::format() const {
-    return this->what + " at index " + std::to_string(this->index);
+using namespace std;
+
+string kh::Utf8DecodingException::format() const {
+    return this->what + " at index " + to_string(this->index);
 }
 
-std::string kh::encodeUtf8(const std::u32string& str) {
-    std::string str8;
+string kh::encodeUtf8(const u32string& str) {
+    string str8;
     str8.reserve(str.size());
 
     for (char32_t chr : str) {
@@ -40,8 +42,8 @@ std::string kh::encodeUtf8(const std::u32string& str) {
     return str8;
 }
 
-std::u32string kh::decodeUtf8(const std::string& str) {
-    std::u32string str32;
+u32string kh::decodeUtf8(const string& str) {
+    u32string str32;
     str32.reserve(str.size());
 
     uint8_t continuation = 0;

@@ -8,6 +8,8 @@
 #include <kithare/utf8.hpp>
 
 
+using namespace std;
+
 #define RECURSIVE_DESCENT_SINGULAR_OP(lower)                                                       \
     do {                                                                                           \
         kh::AstExpression* expr = lower(context);                                                  \
@@ -28,8 +30,8 @@
                 break;                                                                             \
             context.ti++;                                                                          \
             KH_PARSE_GUARD();                                                                      \
-            std::shared_ptr<kh::AstExpression> lval(expr);                                         \
-            std::shared_ptr<kh::AstExpression> rval(lower(context));                               \
+            shared_ptr<kh::AstExpression> lval(expr);                                              \
+            shared_ptr<kh::AstExpression> rval(lower(context));                                    \
             expr = new kh::AstBinaryOperation(token.index, token.value.operator_type, lval, rval); \
             KH_PARSE_GUARD();                                                                      \
             token = context.tok();                                                                 \
@@ -40,9 +42,8 @@
         return expr;                                                                               \
     } while (false)
 
-
-kh::AstExpression* kh::parseExpression(const std::vector<kh::Token>& tokens) {
-    std::vector<kh::ParseException> exceptions;
+kh::AstExpression* kh::parseExpression(const vector<kh::Token>& tokens) {
+    vector<kh::ParseException> exceptions;
     kh::ParserContext context{tokens, exceptions};
     kh::AstExpression* ast = kh::parseExpression(context);
 
@@ -64,7 +65,7 @@ end:
 }
 
 kh::AstExpression* kh::parseAssignOps(KH_PARSE_CTX) {
-    static std::vector<kh::Operator> operators = {
+    static vector<kh::Operator> operators = {
         kh::Operator::ASSIGN, kh::Operator::IADD, kh::Operator::ISUB, kh::Operator::IMUL,
         kh::Operator::IDIV,   kh::Operator::IMOD, kh::Operator::IPOW};
     RECURSIVE_DESCENT_SINGULAR_OP(kh::parseTernary);
@@ -84,7 +85,7 @@ kh::AstExpression* kh::parseTernary(KH_PARSE_CTX) {
 
         context.ti++;
         KH_PARSE_GUARD();
-        std::shared_ptr<kh::AstExpression> condition(kh::parseOr(context));
+        shared_ptr<kh::AstExpression> condition(kh::parseOr(context));
 
         KH_PARSE_GUARD();
         token = context.tok();
@@ -98,8 +99,8 @@ kh::AstExpression* kh::parseTernary(KH_PARSE_CTX) {
         context.ti++;
         KH_PARSE_GUARD();
 
-        std::shared_ptr<kh::AstExpression> value(expr);
-        std::shared_ptr<kh::AstExpression> otherwise(kh::parseOr(context));
+        shared_ptr<kh::AstExpression> value(expr);
+        shared_ptr<kh::AstExpression> otherwise(kh::parseOr(context));
         expr = new kh::AstTernaryOperation(index, condition, value, otherwise);
 
         KH_PARSE_GUARD();
@@ -110,12 +111,12 @@ end:
 }
 
 kh::AstExpression* kh::parseOr(KH_PARSE_CTX) {
-    static std::vector<kh::Operator> operators = {kh::Operator::OR};
+    static vector<kh::Operator> operators = {kh::Operator::OR};
     RECURSIVE_DESCENT_SINGULAR_OP(kh::parseAnd);
 }
 
 kh::AstExpression* kh::parseAnd(KH_PARSE_CTX) {
-    static std::vector<kh::Operator> operators = {kh::Operator::AND};
+    static vector<kh::Operator> operators = {kh::Operator::AND};
     RECURSIVE_DESCENT_SINGULAR_OP(kh::parseNot);
 }
 
@@ -128,7 +129,7 @@ kh::AstExpression* kh::parseNot(KH_PARSE_CTX) {
         context.ti++;
         KH_PARSE_GUARD();
 
-        std::shared_ptr<kh::AstExpression> rval(kh::parseNot(context));
+        shared_ptr<kh::AstExpression> rval(kh::parseNot(context));
         expr = new kh::AstUnaryOperation(token.index, token.value.operator_type, rval);
     }
     else {
@@ -160,7 +161,7 @@ kh::AstExpression* kh::parseComparison(KH_PARSE_CTX) {
          token.value.operator_type == kh::Operator::MORE ||
          token.value.operator_type == kh::Operator::MORE_EQUAL)) {
         comparison_expr =
-            new kh::AstComparisonExpression(index, {}, {std::shared_ptr<kh::AstExpression>(expr)});
+            new kh::AstComparisonExpression(index, {}, {shared_ptr<kh::AstExpression>(expr)});
 
         while (token.type == kh::TokenType::OPERATOR &&
                (token.value.operator_type == kh::Operator::EQUAL ||
@@ -183,28 +184,27 @@ end:
 }
 
 kh::AstExpression* kh::parseBitwiseOr(KH_PARSE_CTX) {
-    static std::vector<kh::Operator> operators = {kh::Operator::BIT_OR};
+    static vector<kh::Operator> operators = {kh::Operator::BIT_OR};
     RECURSIVE_DESCENT_SINGULAR_OP(kh::parseBitwiseAnd);
 }
 
 kh::AstExpression* kh::parseBitwiseAnd(KH_PARSE_CTX) {
-    static std::vector<kh::Operator> operators = {kh::Operator::BIT_OR};
+    static vector<kh::Operator> operators = {kh::Operator::BIT_OR};
     RECURSIVE_DESCENT_SINGULAR_OP(kh::parseBitwiseShift);
 }
 
 kh::AstExpression* kh::parseBitwiseShift(KH_PARSE_CTX) {
-    static std::vector<kh::Operator> operators = {kh::Operator::BIT_LSHIFT, kh::Operator::BIT_RSHIFT};
+    static vector<kh::Operator> operators = {kh::Operator::BIT_LSHIFT, kh::Operator::BIT_RSHIFT};
     RECURSIVE_DESCENT_SINGULAR_OP(kh::parseAddSub);
 }
 
 kh::AstExpression* kh::parseAddSub(KH_PARSE_CTX) {
-    static std::vector<kh::Operator> operators = {kh::Operator::ADD, kh::Operator::SUB};
+    static vector<kh::Operator> operators = {kh::Operator::ADD, kh::Operator::SUB};
     RECURSIVE_DESCENT_SINGULAR_OP(kh::parseMulDivMod);
 }
 
 kh::AstExpression* kh::parseMulDivMod(KH_PARSE_CTX) {
-    static std::vector<kh::Operator> operators = {kh::Operator::MUL, kh::Operator::DIV,
-                                                  kh::Operator::MOD};
+    static vector<kh::Operator> operators = {kh::Operator::MUL, kh::Operator::DIV, kh::Operator::MOD};
     RECURSIVE_DESCENT_SINGULAR_OP(kh::parseUnary);
 }
 
@@ -225,7 +225,7 @@ kh::AstExpression* kh::parseUnary(KH_PARSE_CTX) {
                 context.ti++;
                 KH_PARSE_GUARD();
 
-                std::shared_ptr<kh::AstExpression> rval(kh::parseUnary(context));
+                shared_ptr<kh::AstExpression> rval(kh::parseUnary(context));
                 expr = new kh::AstUnaryOperation(token.index, token.value.operator_type, rval);
             } break;
 
@@ -243,7 +243,7 @@ end:
 }
 
 kh::AstExpression* kh::parseExponentiation(KH_PARSE_CTX) {
-    static std::vector<kh::Operator> operators = {kh::Operator::POW};
+    static vector<kh::Operator> operators = {kh::Operator::POW};
     RECURSIVE_DESCENT_SINGULAR_OP(kh::parseRevUnary);
 }
 
@@ -266,7 +266,7 @@ kh::AstExpression* kh::parseRevUnary(KH_PARSE_CTX) {
 
         /* Post-incrementation and decrementation */
         if (token.type == kh::TokenType::OPERATOR) {
-            std::shared_ptr<kh::AstExpression> expr_ptr(expr);
+            shared_ptr<kh::AstExpression> expr_ptr(expr);
             expr = new kh::AstRevUnaryOperation(index, token.value.operator_type, expr_ptr);
             context.ti++;
         }
@@ -274,7 +274,7 @@ kh::AstExpression* kh::parseRevUnary(KH_PARSE_CTX) {
             switch (token.value.symbol_type) {
                 /* Scoping expression */
                 case kh::Symbol::DOT: {
-                    std::vector<std::string> identifiers;
+                    vector<string> identifiers;
 
                     do {
                         context.ti++;
@@ -296,18 +296,18 @@ kh::AstExpression* kh::parseRevUnary(KH_PARSE_CTX) {
                     } while (token.type == kh::TokenType::SYMBOL &&
                              token.value.symbol_type == kh::Symbol::DOT);
 
-                    std::shared_ptr<kh::AstExpression> exprptr(expr);
+                    shared_ptr<kh::AstExpression> exprptr(expr);
                     expr = new kh::AstScoping(index, exprptr, identifiers);
                 } break;
 
                     /* Calling expression */
                 case kh::Symbol::PARENTHESES_OPEN: {
-                    std::shared_ptr<kh::AstExpression> exprptr(expr);
+                    shared_ptr<kh::AstExpression> exprptr(expr);
                     /* Parses the argument(s) */
                     kh::AstTuple* tuple = static_cast<kh::AstTuple*>(kh::parseTuple(context));
-                    std::vector<std::shared_ptr<kh::AstExpression>> arguments;
+                    vector<shared_ptr<kh::AstExpression>> arguments;
 
-                    for (std::shared_ptr<kh::AstExpression>& element : tuple->elements) {
+                    for (shared_ptr<kh::AstExpression>& element : tuple->elements) {
                         arguments.push_back(element);
                     }
 
@@ -317,13 +317,13 @@ kh::AstExpression* kh::parseRevUnary(KH_PARSE_CTX) {
 
                     /* Subscription expression */
                 case kh::Symbol::SQUARE_OPEN: {
-                    std::shared_ptr<kh::AstExpression> exprptr(expr);
+                    shared_ptr<kh::AstExpression> exprptr(expr);
                     /* Parses argument(s) */
                     kh::AstTuple* tuple = static_cast<kh::AstTuple*>(
                         kh::parseTuple(context, kh::Symbol::SQUARE_OPEN, kh::Symbol::SQUARE_CLOSE));
-                    std::vector<std::shared_ptr<kh::AstExpression>> arguments;
+                    vector<shared_ptr<kh::AstExpression>> arguments;
 
-                    for (std::shared_ptr<kh::AstExpression>& element : tuple->elements) {
+                    for (shared_ptr<kh::AstExpression>& element : tuple->elements) {
                         arguments.push_back(element);
                     }
 
@@ -379,7 +379,7 @@ kh::AstExpression* kh::parseOthers(KH_PARSE_CTX) {
             break;
 
         case kh::TokenType::STRING:
-            expr = new kh::AstValue(token.index, token.value.string);
+            expr = new kh::AstValue(token.index, token.value.ustring);
             context.ti++;
 
             KH_PARSE_GUARD();
@@ -387,7 +387,7 @@ kh::AstExpression* kh::parseOthers(KH_PARSE_CTX) {
 
             /* Auto concatenation */
             while (token.type == kh::TokenType::STRING) {
-                ((kh::AstValue*)expr)->string += token.value.string;
+                ((kh::AstValue*)expr)->ustring += token.value.ustring;
                 context.ti++;
                 KH_PARSE_GUARD();
                 token = context.tok();
@@ -522,10 +522,10 @@ end:
 }
 
 kh::AstIdentifiers kh::parseIdentifiers(KH_PARSE_CTX) {
-    std::vector<std::string> identifiers;
-    std::vector<kh::AstIdentifiers> generics;
-    std::vector<size_t> generics_refs;
-    std::vector<std::vector<uint64_t>> generics_array;
+    vector<string> identifiers;
+    vector<kh::AstIdentifiers> generics;
+    vector<size_t> generics_refs;
+    vector<vector<uint64_t>> generics_array;
 
     bool is_function = false;
 
@@ -695,7 +695,7 @@ end:
 
 kh::AstExpression* kh::parseTuple(KH_PARSE_CTX, kh::Symbol opening, kh::Symbol closing,
                                   bool explicit_tuple) {
-    std::vector<kh::AstExpression*> elements;
+    vector<kh::AstExpression*> elements;
 
     kh::Token token = context.tok();
     size_t index = token.index;
@@ -761,7 +761,7 @@ end:
         return elements[0];
     }
     else {
-        std::vector<std::shared_ptr<kh::AstExpression>> _elements;
+        vector<shared_ptr<kh::AstExpression>> _elements;
         _elements.reserve(elements.size());
 
         for (kh::AstExpression* element : elements) {
@@ -785,8 +785,8 @@ kh::AstExpression* kh::parseList(KH_PARSE_CTX) {
 }
 
 kh::AstExpression* kh::parseDict(KH_PARSE_CTX) {
-    std::vector<std::shared_ptr<kh::AstExpression>> keys;
-    std::vector<std::shared_ptr<kh::AstExpression>> items;
+    vector<shared_ptr<kh::AstExpression>> keys;
+    vector<shared_ptr<kh::AstExpression>> items;
 
     kh::Token token = context.tok();
     size_t index = token.index;
@@ -841,8 +841,8 @@ end:
     return new kh::AstDict(index, keys, items);
 }
 
-std::vector<uint64_t> kh::parseArrayDimension(KH_PARSE_CTX, kh::AstIdentifiers& type) {
-    std::vector<uint64_t> dimension;
+vector<uint64_t> kh::parseArrayDimension(KH_PARSE_CTX, kh::AstIdentifiers& type) {
+    vector<uint64_t> dimension;
 
     kh::Token token = context.tok();
     size_t index = token.index;
@@ -855,8 +855,8 @@ std::vector<uint64_t> kh::parseArrayDimension(KH_PARSE_CTX, kh::AstIdentifiers& 
         if (token.type == kh::TokenType::SYMBOL &&
             token.value.symbol_type == kh::Symbol::SQUARE_CLOSE) {
             type = kh::AstIdentifiers(token.index, {"list"}, {type}, {false},
-                                      dimension.size() ? std::vector<std::vector<uint64_t>>{dimension}
-                                                       : std::vector<std::vector<uint64_t>>{{}});
+                                      dimension.size() ? vector<vector<uint64_t>>{dimension}
+                                                       : vector<vector<uint64_t>>{{}});
 
             dimension.clear();
         }

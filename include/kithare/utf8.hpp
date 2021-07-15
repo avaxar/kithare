@@ -12,16 +12,18 @@
 
 
 namespace kh {
+    using namespace std;
+
     class Utf8DecodingException : public kh::Exception {
     public:
-        std::string what;
+        string what;
         size_t index;
 
-        Utf8DecodingException(const std::string _what, size_t _index) : what(_what), index(_index) {}
+        Utf8DecodingException(const string _what, size_t _index) : what(_what), index(_index) {}
         virtual ~Utf8DecodingException() {}
-        virtual std::string format() const;
+        virtual string format() const;
     };
 
-    std::string encodeUtf8(const std::u32string& str);
-    std::u32string decodeUtf8(const std::string& str);
+    string encodeUtf8(const u32string& str);
+    u32string decodeUtf8(const string& str);
 }

@@ -24,19 +24,21 @@
 
 
 namespace kh {
+    using namespace std;
+
     class ParseException : public kh::Exception {
     public:
-        std::string what;
+        string what;
         kh::Token token;
 
-        ParseException(const std::string _what, const kh::Token& _token) : what(_what), token(_token) {}
+        ParseException(const string _what, const kh::Token& _token) : what(_what), token(_token) {}
         virtual ~ParseException() {}
-        virtual std::string format() const;
+        virtual string format() const;
     };
 
     struct ParserContext {
-        const std::vector<kh::Token>& tokens;
-        std::vector<kh::ParseException>& exceptions;
+        const vector<kh::Token>& tokens;
+        vector<kh::ParseException>& exceptions;
 
         /* Token iterator */
         size_t ti = 0;
@@ -47,7 +49,7 @@ namespace kh {
         }
     };
 
-    inline bool isReservedKeyword(const std::string& identifier) {
+    inline bool isReservedKeyword(const string& identifier) {
         return identifier == "public" || identifier == "private" || identifier == "static" ||
                identifier == "try" || identifier == "def" || identifier == "class" ||
                identifier == "struct" || identifier == "enum" || identifier == "import" ||
@@ -57,8 +59,8 @@ namespace kh {
                identifier == "return" || identifier == "ref";
     }
 
-    kh::AstModule parse(const std::vector<kh::Token>& tokens);
-    kh::AstExpression* parseExpression(const std::vector<kh::Token>& tokens);
+    kh::AstModule parse(const vector<kh::Token>& tokens);
+    kh::AstExpression* parseExpression(const vector<kh::Token>& tokens);
 
     /* Most of these parses stuff such as imports, includes, classes, structs, enums, functions at the
      * top level scope */
@@ -69,9 +71,9 @@ namespace kh {
     kh::AstDeclaration parseDeclaration(KH_PARSE_CTX);
     kh::AstUserType parseUserType(KH_PARSE_CTX, bool is_class);
     kh::AstEnumType parseEnum(KH_PARSE_CTX);
-    std::vector<std::shared_ptr<kh::AstBody>> parseBody(KH_PARSE_CTX, size_t loop_count = 0);
-    void parseTopScopeIdentifiersAndGenericArgs(KH_PARSE_CTX, std::vector<std::string>& identifiers,
-                                                std::vector<std::string>& generic_args);
+    vector<shared_ptr<kh::AstBody>> parseBody(KH_PARSE_CTX, size_t loop_count = 0);
+    void parseTopScopeIdentifiersAndGenericArgs(KH_PARSE_CTX, vector<string>& identifiers,
+                                                vector<string>& generic_args);
 
     /* These parse expressions below are ordered based from their precedence from lowest to
      * highest */
@@ -97,5 +99,5 @@ namespace kh {
                                   bool explicit_tuple = true);
     kh::AstExpression* parseList(KH_PARSE_CTX);
     kh::AstExpression* parseDict(KH_PARSE_CTX);
-    std::vector<uint64_t> parseArrayDimension(KH_PARSE_CTX, kh::AstIdentifiers& type);
+    vector<uint64_t> parseArrayDimension(KH_PARSE_CTX, kh::AstIdentifiers& type);
 }

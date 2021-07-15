@@ -16,22 +16,24 @@
 
 
 namespace kh {
+    using namespace std;
+
     class LexException : public kh::Exception {
     public:
-        std::string what;
+        string what;
         size_t column;
         size_t line;
         size_t index;
 
-        LexException(const std::string& _what, /* size_t _column, size_t _line, */ size_t _index)
+        LexException(const string& _what, /* size_t _column, size_t _line, */ size_t _index)
             : what(_what), /* column(_column), line(_line), */ index(_index) {}
         virtual ~LexException() {}
-        virtual std::string format() const;
+        virtual string format() const;
     };
 
     struct LexerContext {
-        const std::u32string& source;
-        std::vector<kh::LexException>& exceptions;
+        const u32string& source;
+        vector<kh::LexException>& exceptions;
 
         /* Character iterator */
         size_t ci = 0;
@@ -59,7 +61,7 @@ namespace kh {
                (U'A' <= chr && chr <= U'F');
     }
 
-    std::vector<kh::Token> lex(const std::u32string& source);
+    vector<kh::Token> lex(const u32string& source);
 
-    std::vector<kh::Token> lex(KH_LEX_CTX);
+    vector<kh::Token> lex(KH_LEX_CTX);
 }
