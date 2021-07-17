@@ -532,10 +532,6 @@ std::vector<kh::Token> kh::lex(KH_LEX_CTX) {
                             value.operator_type = kh::Operator::OR;
                             tokens.emplace_back(start, i, kh::TokenType::OPERATOR, value);
                         }
-                        else if (temp_str == U"not") {
-                            value.operator_type = kh::Operator::NOT;
-                            tokens.emplace_back(start, i, kh::TokenType::OPERATOR, value);
-                        }
                         else {
                             /* If it's not, reset the state and appends the concatenated identifier
                              * characters as a token */
