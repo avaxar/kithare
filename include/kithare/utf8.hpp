@@ -12,7 +12,7 @@
 
 
 namespace kh {
-    class Utf8DecodingException : public kh::Exception {
+    class Utf8DecodingException : public Exception {
     public:
         std::string what;
         size_t index;

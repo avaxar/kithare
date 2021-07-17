@@ -12,11 +12,11 @@
 #include <kithare/string.hpp>
 #include <kithare/token.hpp>
 
-#define KH_LEX_CTX kh::LexerContext& context
+#define KH_LEX_CTX LexerContext& context
 
 
 namespace kh {
-    class LexException : public kh::Exception {
+    class LexException : public Exception {
     public:
         std::string what;
         size_t column;
@@ -31,7 +31,7 @@ namespace kh {
 
     struct LexerContext {
         const std::u32string& source;
-        std::vector<kh::LexException>& exceptions;
+        std::vector<LexException>& exceptions;
 
         /* Character iterator */
         size_t ci = 0;
@@ -59,7 +59,7 @@ namespace kh {
                (U'A' <= chr && chr <= U'F');
     }
 
-    std::vector<kh::Token> lex(const std::u32string& source);
+    std::vector<Token> lex(const std::u32string& source);
 
-    std::vector<kh::Token> lex(KH_LEX_CTX);
+    std::vector<Token> lex(KH_LEX_CTX);
 }

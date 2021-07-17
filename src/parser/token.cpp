@@ -9,49 +9,51 @@
 #include <kithare/utf8.hpp>
 
 
-kh::Token::Token() : column(0), line(0), index(0), length(0), type(), value() {}
+using namespace kh;
 
-kh::Token::Token(size_t _index, size_t _end, kh::TokenType _type, const kh::TokenValue& _value)
+Token::Token() : column(0), line(0), index(0), length(0), type(), value() {}
+
+Token::Token(size_t _index, size_t _end, TokenType _type, const TokenValue& _value)
     : column(0), line(0), index(_index), length(_end - index), type(_type), value(_value) {}
 
-std::u32string kh::str(const kh::Token& token, bool show_token_type) {
+std::u32string kh::strfy(const Token& token, bool show_token_type) {
     std::u32string str;
     if (show_token_type) {
-        str = kh::str(token.type) + U' ';
+        str = strfy(token.type) + U' ';
     }
 
     switch (token.type) {
-        case kh::TokenType::IDENTIFIER:
-            str += kh::decodeUtf8(token.value.identifier);
+        case TokenType::IDENTIFIER:
+            str += decodeUtf8(token.value.identifier);
             break;
-        case kh::TokenType::OPERATOR:
-            str += kh::str(token.value.operator_type);
+        case TokenType::OPERATOR:
+            str += strfy(token.value.operator_type);
             break;
-        case kh::TokenType::SYMBOL:
-            str += kh::str(token.value.symbol_type);
-            break;
-
-        case kh::TokenType::CHARACTER:
-            str += kh::str(token.value.character);
-            break;
-        case kh::TokenType::STRING:
-            str += kh::quote(token.value.string);
-            break;
-        case kh::TokenType::BUFFER:
-            str += kh::quote(token.value.buffer);
+        case TokenType::SYMBOL:
+            str += strfy(token.value.symbol_type);
             break;
 
-        case kh::TokenType::UINTEGER:
-            str += kh::str(token.value.uinteger);
+        case TokenType::CHARACTER:
+            str += strfy(token.value.character);
             break;
-        case kh::TokenType::INTEGER:
-            str += kh::str(token.value.integer);
+        case TokenType::STRING:
+            str += quote(token.value.string);
             break;
-        case kh::TokenType::FLOATING:
-            str += kh::str(token.value.floating);
+        case TokenType::BUFFER:
+            str += quote(token.value.buffer);
             break;
-        case kh::TokenType::IMAGINARY:
-            str += kh::str(token.value.imaginary) + U"i";
+
+        case TokenType::UINTEGER:
+            str += strfy(token.value.uinteger);
+            break;
+        case TokenType::INTEGER:
+            str += strfy(token.value.integer);
+            break;
+        case TokenType::FLOATING:
+            str += strfy(token.value.floating);
+            break;
+        case TokenType::IMAGINARY:
+            str += strfy(token.value.imaginary) + U"i";
             break;
 
         default:
@@ -61,29 +63,29 @@ std::u32string kh::str(const kh::Token& token, bool show_token_type) {
     return str;
 }
 
-std::u32string kh::str(kh::TokenType type) {
+std::u32string kh::strfy(TokenType type) {
     switch (type) {
-        case kh::TokenType::IDENTIFIER:
+        case TokenType::IDENTIFIER:
             return U"identifier";
-        case kh::TokenType::OPERATOR:
+        case TokenType::OPERATOR:
             return U"operator";
-        case kh::TokenType::SYMBOL:
+        case TokenType::SYMBOL:
             return U"symbol";
 
-        case kh::TokenType::CHARACTER:
+        case TokenType::CHARACTER:
             return U"character";
-        case kh::TokenType::STRING:
+        case TokenType::STRING:
             return U"string";
-        case kh::TokenType::BUFFER:
+        case TokenType::BUFFER:
             return U"buffer";
 
-        case kh::TokenType::UINTEGER:
+        case TokenType::UINTEGER:
             return U"uinteger";
-        case kh::TokenType::INTEGER:
+        case TokenType::INTEGER:
             return U"integer";
-        case kh::TokenType::FLOATING:
+        case TokenType::FLOATING:
             return U"floating";
-        case kh::TokenType::IMAGINARY:
+        case TokenType::IMAGINARY:
             return U"imaginary";
 
         default:
@@ -91,76 +93,76 @@ std::u32string kh::str(kh::TokenType type) {
     }
 }
 
-std::u32string kh::str(kh::Operator op) {
+std::u32string kh::strfy(Operator op) {
     switch (op) {
-        case kh::Operator::ADD:
+        case Operator::ADD:
             return U"+";
-        case kh::Operator::SUB:
+        case Operator::SUB:
             return U"-";
-        case kh::Operator::MUL:
+        case Operator::MUL:
             return U"*";
-        case kh::Operator::DIV:
+        case Operator::DIV:
             return U"/";
-        case kh::Operator::MOD:
+        case Operator::MOD:
             return U"%";
-        case kh::Operator::POW:
+        case Operator::POW:
             return U"^";
 
-        case kh::Operator::IADD:
+        case Operator::IADD:
             return U"+=";
-        case kh::Operator::ISUB:
+        case Operator::ISUB:
             return U"-=";
-        case kh::Operator::IMUL:
+        case Operator::IMUL:
             return U"*=";
-        case kh::Operator::IDIV:
+        case Operator::IDIV:
             return U"/=";
-        case kh::Operator::IMOD:
+        case Operator::IMOD:
             return U"%=";
-        case kh::Operator::IPOW:
+        case Operator::IPOW:
             return U"^=";
 
-        case kh::Operator::INCREMENT:
+        case Operator::INCREMENT:
             return U"++";
-        case kh::Operator::DECREMENT:
+        case Operator::DECREMENT:
             return U"--";
 
-        case kh::Operator::EQUAL:
+        case Operator::EQUAL:
             return U"==";
-        case kh::Operator::NOT_EQUAL:
+        case Operator::NOT_EQUAL:
             return U"!=";
-        case kh::Operator::LESS:
+        case Operator::LESS:
             return U"<";
-        case kh::Operator::MORE:
+        case Operator::MORE:
             return U">";
-        case kh::Operator::LESS_EQUAL:
+        case Operator::LESS_EQUAL:
             return U"<=";
-        case kh::Operator::MORE_EQUAL:
+        case Operator::MORE_EQUAL:
             return U">=";
 
-        case kh::Operator::BIT_AND:
+        case Operator::BIT_AND:
             return U"&";
-        case kh::Operator::BIT_OR:
+        case Operator::BIT_OR:
             return U"|";
-        case kh::Operator::BIT_NOT:
+        case Operator::BIT_NOT:
             return U"~";
 
-        case kh::Operator::BIT_LSHIFT:
+        case Operator::BIT_LSHIFT:
             return U"<<";
-        case kh::Operator::BIT_RSHIFT:
+        case Operator::BIT_RSHIFT:
             return U">>";
 
-        case kh::Operator::AND:
+        case Operator::AND:
             return U"and";
-        case kh::Operator::OR:
+        case Operator::OR:
             return U"or";
-        case kh::Operator::NOT:
+        case Operator::NOT:
             return U"not";
 
-        case kh::Operator::ASSIGN:
+        case Operator::ASSIGN:
             return U"=";
-        case kh::Operator::SIZEOF:
+        case Operator::SIZEOF:
             return U"#";
-        case kh::Operator::ADDRESS:
+        case Operator::ADDRESS:
             return U"@";
 
         default:
@@ -168,30 +170,30 @@ std::u32string kh::str(kh::Operator op) {
     }
 }
 
-std::u32string kh::str(kh::Symbol sym) {
+std::u32string kh::strfy(Symbol sym) {
     switch (sym) {
-        case kh::Symbol::SEMICOLON:
+        case Symbol::SEMICOLON:
             return U";";
-        case kh::Symbol::DOT:
+        case Symbol::DOT:
             return U".";
-        case kh::Symbol::COMMA:
+        case Symbol::COMMA:
             return U",";
-        case kh::Symbol::COLON:
+        case Symbol::COLON:
             return U":";
 
-        case kh::Symbol::PARENTHESES_OPEN:
+        case Symbol::PARENTHESES_OPEN:
             return U"(";
-        case kh::Symbol::PARENTHESES_CLOSE:
+        case Symbol::PARENTHESES_CLOSE:
             return U")";
 
-        case kh::Symbol::CURLY_OPEN:
+        case Symbol::CURLY_OPEN:
             return U"{";
-        case kh::Symbol::CURLY_CLOSE:
+        case Symbol::CURLY_CLOSE:
             return U"}";
 
-        case kh::Symbol::SQUARE_OPEN:
+        case Symbol::SQUARE_OPEN:
             return U"[";
-        case kh::Symbol::SQUARE_CLOSE:
+        case Symbol::SQUARE_CLOSE:
             return U"]";
 
         default:

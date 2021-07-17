@@ -12,7 +12,7 @@
 
 
 namespace kh {
-    class FileError : public kh::Exception {
+    class FileError : public Exception {
     public:
         FileError() {}
         virtual ~FileError() {}

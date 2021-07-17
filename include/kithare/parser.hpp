@@ -20,30 +20,30 @@
         }                                                                                   \
     } while (false)
 
-#define KH_PARSE_CTX kh::ParserContext& context
+#define KH_PARSE_CTX ParserContext& context
 
 
 namespace kh {
-    class ParseException : public kh::Exception {
+    class ParseException : public Exception {
     public:
         std::string what;
-        kh::Token token;
+        Token token;
 
-        ParseException(const std::string _what, const kh::Token& _token) : what(_what), token(_token) {}
+        ParseException(const std::string _what, const Token& _token) : what(_what), token(_token) {}
         virtual ~ParseException() {}
         virtual std::string format() const;
     };
 
     struct ParserContext {
-        const std::vector<kh::Token>& tokens;
-        std::vector<kh::ParseException>& exceptions;
+        const std::vector<Token>& tokens;
+        std::vector<ParseException>& exceptions;
 
         /* Token iterator */
         size_t ti = 0;
 
         /* Gets token of the current iterator index */
-        inline kh::Token& tok() const {
-            return *(kh::Token*)(size_t) & this->tokens[this->ti];
+        inline Token& tok() const {
+            return *(Token*)(size_t) & this->tokens[this->ti];
         }
     };
 
@@ -57,45 +57,44 @@ namespace kh {
                identifier == "return" || identifier == "ref";
     }
 
-    kh::AstModule parse(const std::vector<kh::Token>& tokens);
-    kh::AstExpression* parseExpression(const std::vector<kh::Token>& tokens);
+    AstModule parse(const std::vector<Token>& tokens);
+    AstExpression* parseExpression(const std::vector<Token>& tokens);
 
     /* Most of these parses stuff such as imports, includes, classes, structs, enums, functions at the
      * top level scope */
-    kh::AstModule parseWhole(KH_PARSE_CTX);
+    AstModule parseWhole(KH_PARSE_CTX);
     void parseAccessAttribs(KH_PARSE_CTX, bool& is_public, bool& is_static);
-    kh::AstImport parseImport(KH_PARSE_CTX, bool is_include);
-    kh::AstFunction parseFunction(KH_PARSE_CTX, bool is_conditional);
-    kh::AstDeclaration parseDeclaration(KH_PARSE_CTX);
-    kh::AstUserType parseUserType(KH_PARSE_CTX, bool is_class);
-    kh::AstEnumType parseEnum(KH_PARSE_CTX);
-    std::vector<std::shared_ptr<kh::AstBody>> parseBody(KH_PARSE_CTX, size_t loop_count = 0);
+    AstImport parseImport(KH_PARSE_CTX, bool is_include);
+    AstFunction parseFunction(KH_PARSE_CTX, bool is_conditional);
+    AstDeclaration parseDeclaration(KH_PARSE_CTX);
+    AstUserType parseUserType(KH_PARSE_CTX, bool is_class);
+    AstEnumType parseEnum(KH_PARSE_CTX);
+    std::vector<std::shared_ptr<AstBody>> parseBody(KH_PARSE_CTX, size_t loop_count = 0);
     void parseTopScopeIdentifiersAndGenericArgs(KH_PARSE_CTX, std::vector<std::string>& identifiers,
                                                 std::vector<std::string>& generic_args);
 
     /* These parse expressions below are ordered based from their precedence from lowest to
      * highest */
-    kh::AstExpression* parseExpression(KH_PARSE_CTX);
-    kh::AstExpression* parseAssignOps(KH_PARSE_CTX);
-    kh::AstExpression* parseTernary(KH_PARSE_CTX);
-    kh::AstExpression* parseOr(KH_PARSE_CTX);
-    kh::AstExpression* parseAnd(KH_PARSE_CTX);
-    kh::AstExpression* parseNot(KH_PARSE_CTX);
-    kh::AstExpression* parseComparison(KH_PARSE_CTX);
-    kh::AstExpression* parseBitwiseOr(KH_PARSE_CTX);
-    kh::AstExpression* parseBitwiseAnd(KH_PARSE_CTX);
-    kh::AstExpression* parseBitwiseShift(KH_PARSE_CTX);
-    kh::AstExpression* parseAddSub(KH_PARSE_CTX);
-    kh::AstExpression* parseMulDivMod(KH_PARSE_CTX);
-    kh::AstExpression* parseUnary(KH_PARSE_CTX);
-    kh::AstExpression* parseExponentiation(KH_PARSE_CTX);
-    kh::AstExpression* parseRevUnary(KH_PARSE_CTX);
-    kh::AstExpression* parseOthers(KH_PARSE_CTX);
-    kh::AstIdentifiers parseIdentifiers(KH_PARSE_CTX);
-    kh::AstExpression* parseTuple(KH_PARSE_CTX, kh::Symbol opening = kh::Symbol::PARENTHESES_OPEN,
-                                  kh::Symbol closing = kh::Symbol::PARENTHESES_CLOSE,
-                                  bool explicit_tuple = true);
-    kh::AstExpression* parseList(KH_PARSE_CTX);
-    kh::AstExpression* parseDict(KH_PARSE_CTX);
-    std::vector<uint64_t> parseArrayDimension(KH_PARSE_CTX, kh::AstIdentifiers& type);
+    AstExpression* parseExpression(KH_PARSE_CTX);
+    AstExpression* parseAssignOps(KH_PARSE_CTX);
+    AstExpression* parseTernary(KH_PARSE_CTX);
+    AstExpression* parseOr(KH_PARSE_CTX);
+    AstExpression* parseAnd(KH_PARSE_CTX);
+    AstExpression* parseNot(KH_PARSE_CTX);
+    AstExpression* parseComparison(KH_PARSE_CTX);
+    AstExpression* parseBitwiseOr(KH_PARSE_CTX);
+    AstExpression* parseBitwiseAnd(KH_PARSE_CTX);
+    AstExpression* parseBitwiseShift(KH_PARSE_CTX);
+    AstExpression* parseAddSub(KH_PARSE_CTX);
+    AstExpression* parseMulDivMod(KH_PARSE_CTX);
+    AstExpression* parseUnary(KH_PARSE_CTX);
+    AstExpression* parseExponentiation(KH_PARSE_CTX);
+    AstExpression* parseRevUnary(KH_PARSE_CTX);
+    AstExpression* parseOthers(KH_PARSE_CTX);
+    AstIdentifiers parseIdentifiers(KH_PARSE_CTX);
+    AstExpression* parseTuple(KH_PARSE_CTX, Symbol opening = Symbol::PARENTHESES_OPEN,
+                              Symbol closing = Symbol::PARENTHESES_CLOSE, bool explicit_tuple = true);
+    AstExpression* parseList(KH_PARSE_CTX);
+    AstExpression* parseDict(KH_PARSE_CTX);
+    std::vector<uint64_t> parseArrayDimension(KH_PARSE_CTX, AstIdentifiers& type);
 }

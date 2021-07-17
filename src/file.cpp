@@ -9,12 +9,14 @@
 #include <kithare/utf8.hpp>
 
 
+using namespace kh;
+
 std::string kh::FileError::format() const {
     return "unable to read file";
 }
 
 std::u32string kh::readFile(const std::u32string& path) {
-    return kh::decodeUtf8(kh::readFileBinary(path));
+    return decodeUtf8(readFileBinary(path));
 }
 
 std::string kh::readFileBinary(const std::u32string& path) {
@@ -31,11 +33,11 @@ std::string kh::readFileBinary(const std::u32string& path) {
 
     file = _wfopen(u16path.c_str(), L"rb");
 #else
-    file = fopen(kh::encodeUtf8(path).c_str(), "rb");
+    file = fopen(encodeUtf8(path).c_str(), "rb");
 #endif
 
     if (!file) {
-        throw kh::FileError();
+        throw FileError();
     }
 
     int c; /* Note: int, not char, required to handle EOF */
@@ -44,7 +46,7 @@ std::string kh::readFileBinary(const std::u32string& path) {
     }
 
     if (ferror(file)) {
-        throw kh::FileError();
+        throw FileError();
     }
 
     fclose(file);
