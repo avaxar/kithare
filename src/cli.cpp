@@ -222,7 +222,7 @@ int main(const int argc, char* argv[])
     /* Ignore the first argument */
     for (int arg = 1; arg < argc; arg++)
 #ifdef _WIN32
-        args.push_back(str(std::wstring(argv[arg])));
+        args.push_back(strfy(std::wstring(argv[arg])));
 #else
         args.push_back(decodeUtf8(std::string(argv[arg])));
 #endif
