@@ -8,6 +8,8 @@
 #include <kithare/utf8.hpp>
 
 
+using namespace kh;
+
 std::string kh::Utf8DecodingException::format() const {
     return this->what + " at index " + std::to_string(this->index);
 }
@@ -52,7 +54,7 @@ std::u32string kh::decodeUtf8(const std::string& str) {
 
         if (continuation) {
             if ((chr & 0b11000000) != 0b10000000) {
-                throw kh::Utf8DecodingException("expected continuation byte", i);
+                throw Utf8DecodingException("expected continuation byte", i);
             }
 
             temp = (temp << 6) + (chr & 0b00111111);
@@ -80,14 +82,13 @@ std::u32string kh::decodeUtf8(const std::string& str) {
                 continuation = 3;
             }
             else {
-                throw kh::Utf8DecodingException("invalid start byte", i);
+                throw Utf8DecodingException("invalid start byte", i);
             }
         }
     }
 
     if (continuation) {
-        throw kh::Utf8DecodingException("expected continuation byte but hit end of file",
-                                        str.size() - 1);
+        throw Utf8DecodingException("expected continuation byte but hit end of file", str.size() - 1);
     }
 
     if (temp) {

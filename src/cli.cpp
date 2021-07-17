@@ -24,6 +24,9 @@
 #include <kithare/test.hpp>
 #include <kithare/utf8.hpp>
 
+
+using namespace kh;
+
 #define CLI_ERROR_BEGIN() \
     if (!nocolor)         \
         std::cerr << KH_ANSI_FG_RED;
@@ -31,7 +34,6 @@
 #define CLI_ERROR_END() \
     if (!nocolor)       \
         std::cerr << KH_ANSI_RESET;
-
 
 static std::vector<std::u32string> args;
 static bool nocolor = false, help = false, show_tokens = false, show_ast = false, show_timer = false,
@@ -83,7 +85,7 @@ static void handleArgs() {
         else {
             if (!silent) {
                 CLI_ERROR_BEGIN();
-                std::cout << "Unrecognized flag argument: " << kh::encodeUtf8(arg) << '\n';
+                std::cout << "Unrecognized flag argument: " << encodeUtf8(arg) << '\n';
                 CLI_ERROR_END();
             }
             std::exit(1);
@@ -128,9 +130,9 @@ static int execute() {
         std::u32string source;
 
         try {
-            source = kh::readFile(excess_args[0]);
+            source = readFile(excess_args[0]);
         }
-        catch (kh::Exception& exc) {
+        catch (Exception& exc) {
             if (!silent) {
                 CLI_ERROR_BEGIN();
                 std::cerr << exc.format() << '\n';
@@ -140,9 +142,9 @@ static int execute() {
         }
 
         auto lex_start = std::chrono::high_resolution_clock::now();
-        std::vector<kh::LexException> lex_exceptions;
-        kh::LexerContext lexer_context{source, lex_exceptions};
-        std::vector<kh::Token> tokens = kh::lex(lexer_context);
+        std::vector<LexException> lex_exceptions;
+        LexerContext lexer_context{source, lex_exceptions};
+        std::vector<Token> tokens = lex(lexer_context);
         auto lex_end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> lex_elapsed = lex_end - lex_start;
 
@@ -152,7 +154,7 @@ static int execute() {
         if (!lex_exceptions.empty()) {
             if (!silent) {
                 CLI_ERROR_BEGIN();
-                for (kh::LexException& exc : lex_exceptions) {
+                for (LexException& exc : lex_exceptions) {
                     std::cerr << "LexException: " << exc.format() << '\n';
                 }
                 CLI_ERROR_END();
@@ -162,15 +164,15 @@ static int execute() {
         }
         if (show_tokens && !silent) {
             std::cout << "tokens:\n";
-            for (kh::Token& token : tokens) {
-                std::cout << '\t' << kh::encodeUtf8(kh::str(token, true)) << '\n';
+            for (Token& token : tokens) {
+                std::cout << '\t' << encodeUtf8(strfy(token, true)) << '\n';
             }
         }
 
         auto parse_start = std::chrono::high_resolution_clock::now();
-        std::vector<kh::ParseException> parse_exceptions;
-        kh::ParserContext parser_context{tokens, parse_exceptions};
-        kh::AstModule ast = parseWhole(parser_context);
+        std::vector<ParseException> parse_exceptions;
+        ParserContext parser_context{tokens, parse_exceptions};
+        AstModule ast = parseWhole(parser_context);
         auto parse_end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> parse_elapsed = parse_end - parse_start;
 
@@ -180,7 +182,7 @@ static int execute() {
         if (!parse_exceptions.empty()) {
             if (!silent) {
                 CLI_ERROR_BEGIN();
-                for (kh::ParseException& exc : parse_exceptions) {
+                for (ParseException& exc : parse_exceptions) {
                     std::cerr << "ParseException: " << exc.format() << '\n';
                 }
                 CLI_ERROR_END();
@@ -189,7 +191,7 @@ static int execute() {
             code += parse_exceptions.size();
         }
         if (show_ast && !code && !silent) {
-            std::cout << kh::encodeUtf8(kh::str(ast)) << '\n';
+            std::cout << encodeUtf8(strfy(ast)) << '\n';
         }
     }
 
@@ -220,9 +222,9 @@ int main(const int argc, char* argv[])
     /* Ignore the first argument */
     for (int arg = 1; arg < argc; arg++)
 #ifdef _WIN32
-        args.push_back(kh::str(std::wstring(argv[arg])));
+        args.push_back(str(std::wstring(argv[arg])));
 #else
-        args.push_back(kh::decodeUtf8(std::string(argv[arg])));
+        args.push_back(decodeUtf8(std::string(argv[arg])));
 #endif
 
     handleArgs();

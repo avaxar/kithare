@@ -8,15 +8,17 @@
 #include <kithare/utf8.hpp>
 
 
+using namespace kh;
+
 std::string kh::ParseException::format() const {
     return this->what + " at line " + std::to_string(this->token.line) + " column " +
            std::to_string(this->token.column);
 }
 
-kh::AstModule kh::parse(const std::vector<kh::Token>& tokens) {
-    std::vector<kh::ParseException> exceptions;
-    kh::ParserContext context{tokens, exceptions};
-    kh::AstModule ast = kh::parseWhole(context);
+AstModule kh::parse(const std::vector<Token>& tokens) {
+    std::vector<ParseException> exceptions;
+    ParserContext context{tokens, exceptions};
+    AstModule ast = parseWhole(context);
 
     if (exceptions.empty()) {
         return ast;
@@ -26,25 +28,25 @@ kh::AstModule kh::parse(const std::vector<kh::Token>& tokens) {
     }
 }
 
-kh::AstModule kh::parseWhole(KH_PARSE_CTX) {
+AstModule kh::parseWhole(KH_PARSE_CTX) {
     context.exceptions.clear();
 
-    std::vector<kh::AstImport> imports;
-    std::vector<kh::AstFunction> functions;
-    std::vector<kh::AstUserType> user_types;
-    std::vector<kh::AstEnumType> enums;
-    std::vector<kh::AstDeclaration> variables;
+    std::vector<AstImport> imports;
+    std::vector<AstFunction> functions;
+    std::vector<AstUserType> user_types;
+    std::vector<AstEnumType> enums;
+    std::vector<AstDeclaration> variables;
 
     for (context.ti = 0; context.ti < context.tokens.size(); /* Nothing */) {
-        kh::Token token = context.tok();
+        Token token = context.tok();
 
         bool is_public, is_static;
-        kh::parseAccessAttribs(context, is_public, is_static);
+        parseAccessAttribs(context, is_public, is_static);
         KH_PARSE_GUARD();
         token = context.tok();
 
         switch (token.type) {
-            case kh::TokenType::IDENTIFIER: {
+            case TokenType::IDENTIFIER: {
                 const std::string& identifier = token.value.identifier;
 
                 /* Function declaration identifier keyword */
@@ -58,8 +60,7 @@ kh::AstModule kh::parseWhole(KH_PARSE_CTX) {
                     if (identifier == "try") {
                         conditional = true;
                         token = context.tok();
-                        if (token.type == kh::TokenType::IDENTIFIER &&
-                            token.value.identifier == "def") {
+                        if (token.type == TokenType::IDENTIFIER && token.value.identifier == "def") {
                             context.ti++;
                             KH_PARSE_GUARD();
                         }
@@ -71,7 +72,7 @@ kh::AstModule kh::parseWhole(KH_PARSE_CTX) {
 
                     KH_PARSE_GUARD();
                     /* Parses return type, name, arguments, and body */
-                    functions.push_back(kh::parseFunction(context, conditional));
+                    functions.push_back(parseFunction(context, conditional));
 
                     functions.back().is_public = is_public;
                     functions.back().is_static = is_static;
@@ -89,7 +90,7 @@ kh::AstModule kh::parseWhole(KH_PARSE_CTX) {
                 else if (identifier == "class") {
                     context.ti++;
                     KH_PARSE_GUARD();
-                    user_types.push_back(kh::parseUserType(context, true));
+                    user_types.push_back(parseUserType(context, true));
 
                     user_types.back().is_public = is_public;
                     if (is_static) {
@@ -100,7 +101,7 @@ kh::AstModule kh::parseWhole(KH_PARSE_CTX) {
                 else if (identifier == "struct") {
                     context.ti++;
                     KH_PARSE_GUARD();
-                    user_types.push_back(kh::parseUserType(context, false));
+                    user_types.push_back(parseUserType(context, false));
 
                     user_types.back().is_public = is_public;
                     if (is_static) {
@@ -111,7 +112,7 @@ kh::AstModule kh::parseWhole(KH_PARSE_CTX) {
                 else if (identifier == "enum") {
                     context.ti++;
                     KH_PARSE_GUARD();
-                    enums.push_back(kh::parseEnum(context));
+                    enums.push_back(parseEnum(context));
 
                     enums.back().is_public = is_public;
                     if (is_static) {
@@ -122,7 +123,7 @@ kh::AstModule kh::parseWhole(KH_PARSE_CTX) {
                 else if (identifier == "import") {
                     context.ti++;
                     KH_PARSE_GUARD();
-                    imports.push_back(kh::parseImport(context, false)); /* is_include = false */
+                    imports.push_back(parseImport(context, false)); /* is_include = false */
 
                     imports.back().is_public = is_public;
                     if (is_static) {
@@ -133,7 +134,7 @@ kh::AstModule kh::parseWhole(KH_PARSE_CTX) {
                 else if (identifier == "include") {
                     context.ti++;
                     KH_PARSE_GUARD();
-                    imports.push_back(kh::parseImport(context, true)); /* is_include = true */
+                    imports.push_back(parseImport(context, true)); /* is_include = true */
 
                     imports.back().is_public = is_public;
                     if (is_static) {
@@ -143,13 +144,13 @@ kh::AstModule kh::parseWhole(KH_PARSE_CTX) {
                 /* If it was none of those above, it's probably a variable declaration */
                 else {
                     /* Parses the variable's return type, name, and assignment value */
-                    variables.push_back(kh::parseDeclaration(context));
+                    variables.push_back(parseDeclaration(context));
 
                     /* Makes sure it ends with a semicolon */
                     KH_PARSE_GUARD();
                     token = context.tok();
-                    if (token.type == kh::TokenType::SYMBOL &&
-                        token.value.symbol_type == kh::Symbol::SEMICOLON) {
+                    if (token.type == TokenType::SYMBOL &&
+                        token.value.symbol_type == Symbol::SEMICOLON) {
                         context.ti++;
                     }
                     else {
@@ -163,13 +164,13 @@ kh::AstModule kh::parseWhole(KH_PARSE_CTX) {
                 }
             } break;
 
-            case kh::TokenType::SYMBOL:
-                if (token.value.symbol_type == kh::Symbol::SEMICOLON) {
+            case TokenType::SYMBOL:
+                if (token.value.symbol_type == Symbol::SEMICOLON) {
                     context.ti++;
                 }
                 else {
                     context.ti++;
-                    context.exceptions.emplace_back("unexpected `" + kh::encodeUtf8(kh::str(token)) +
+                    context.exceptions.emplace_back("unexpected `" + encodeUtf8(strfy(token)) +
                                                         "` while parsing the top scope",
                                                     token);
                 }
@@ -178,9 +179,8 @@ kh::AstModule kh::parseWhole(KH_PARSE_CTX) {
                 /* Unknown token */
             default:
                 context.ti++;
-                context.exceptions.emplace_back("unexpected `" + kh::encodeUtf8(kh::str(token)) +
-                                                    "` while parsing the top scope",
-                                                token);
+                context.exceptions.emplace_back(
+                    "unexpected `" + encodeUtf8(strfy(token)) + "` while parsing the top scope", token);
         }
     }
 
@@ -188,12 +188,12 @@ end:
     /* Removes exceptions that's got duplicate errors at the same index */
     if (context.exceptions.size() > 1) {
         size_t last_index = -1;
-        kh::ParseException* last_element = nullptr;
+        ParseException* last_element = nullptr;
 
-        std::vector<kh::ParseException> cleaned_exceptions;
+        std::vector<ParseException> cleaned_exceptions;
         cleaned_exceptions.reserve(context.exceptions.size());
 
-        for (kh::ParseException& exc : context.exceptions) {
+        for (ParseException& exc : context.exceptions) {
             if (last_element == nullptr || last_index != exc.token.index ||
                 last_element->what != exc.what) {
                 cleaned_exceptions.push_back(exc);
@@ -217,8 +217,8 @@ void kh::parseAccessAttribs(KH_PARSE_CTX, bool& is_public, bool& is_static) {
     bool specified_static = false;
 
     /* It parses these kinds of access types: `[static | private/public] int x = 3` */
-    kh::Token token = context.tok();
-    while (token.type == kh::TokenType::IDENTIFIER) {
+    Token token = context.tok();
+    while (token.type == TokenType::IDENTIFIER) {
         if (token.value.identifier == "public") {
             is_public = true;
 
@@ -265,17 +265,17 @@ end:
     return;
 }
 
-kh::AstImport kh::parseImport(KH_PARSE_CTX, bool is_include) {
+AstImport kh::parseImport(KH_PARSE_CTX, bool is_include) {
     std::vector<std::string> path;
     bool is_relative = false;
     std::string identifier;
-    kh::Token token = context.tok();
+    Token token = context.tok();
     size_t index = token.index;
 
     std::string type = is_include ? "include" : "import";
 
     /* Check if an import/include is relative */
-    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::DOT) {
+    if (token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::DOT) {
         is_relative = true;
         context.ti++;
         KH_PARSE_GUARD();
@@ -284,8 +284,8 @@ kh::AstImport kh::parseImport(KH_PARSE_CTX, bool is_include) {
 
     /* Making sure that it starts with an identifier (an import/include statement must has at least
      * one identifier to be imported) */
-    if (token.type == kh::TokenType::IDENTIFIER) {
-        if (kh::isReservedKeyword(token.value.identifier)) {
+    if (token.type == TokenType::IDENTIFIER) {
+        if (isReservedKeyword(token.value.identifier)) {
             context.exceptions.emplace_back("was trying to " + type + " a reserved keyword", token);
         }
 
@@ -302,14 +302,14 @@ kh::AstImport kh::parseImport(KH_PARSE_CTX, bool is_include) {
     token = context.tok();
 
     /* Parses each identifier after a dot `import a.b.c.d ...` */
-    while (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::DOT) {
+    while (token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::DOT) {
         context.ti++;
         KH_PARSE_GUARD();
         token = context.tok();
 
         /* Appends the identifier */
-        if (token.type == kh::TokenType::IDENTIFIER) {
-            if (kh::isReservedKeyword(token.value.identifier)) {
+        if (token.type == TokenType::IDENTIFIER) {
+            if (isReservedKeyword(token.value.identifier)) {
                 context.exceptions.emplace_back("was trying to " + type + " a reserved keyword", token);
             }
             path.push_back(token.value.identifier);
@@ -325,14 +325,14 @@ kh::AstImport kh::parseImport(KH_PARSE_CTX, bool is_include) {
     }
 
     /* An optional `as` for changing the namespace name in import statements */
-    if (!is_include && token.type == kh::TokenType::IDENTIFIER && token.value.identifier == "as") {
+    if (!is_include && token.type == TokenType::IDENTIFIER && token.value.identifier == "as") {
         context.ti++;
         KH_PARSE_GUARD();
         token = context.tok();
 
         /* Gets the set namespace identifier */
-        if (token.type == kh::TokenType::IDENTIFIER) {
-            if (kh::isReservedKeyword(token.value.identifier)) {
+        if (token.type == TokenType::IDENTIFIER) {
+            if (isReservedKeyword(token.value.identifier)) {
                 context.exceptions.emplace_back(
                     "could not use a reserved keyword as the alias of the import", token);
             }
@@ -349,7 +349,7 @@ kh::AstImport kh::parseImport(KH_PARSE_CTX, bool is_include) {
     }
 
     /* Ensure that it ends with a semicolon */
-    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::SEMICOLON) {
+    if (token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::SEMICOLON) {
         context.ti++;
     }
     else {
@@ -360,35 +360,33 @@ end:
             path.empty() ? "" : (identifier.empty() ? path.back() : identifier)};
 }
 
-kh::AstFunction kh::parseFunction(KH_PARSE_CTX, bool is_conditional) {
+AstFunction kh::parseFunction(KH_PARSE_CTX, bool is_conditional) {
     std::vector<std::string> identifiers;
     std::vector<std::string> generic_args;
     std::vector<uint64_t> id_array;
-    kh::AstIdentifiers return_type{0, {}, {}, {}, {}};
+    AstIdentifiers return_type{0, {}, {}, {}, {}};
     std::vector<uint64_t> return_array = {};
     size_t return_refs = 0;
-    std::vector<kh::AstDeclaration> arguments;
-    std::vector<std::shared_ptr<kh::AstBody>> body;
+    std::vector<AstDeclaration> arguments;
+    std::vector<std::shared_ptr<AstBody>> body;
 
-    kh::Token token = context.tok();
+    Token token = context.tok();
     size_t index = token.index;
 
-    if (!(token.type == kh::TokenType::SYMBOL &&
-          token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN)) {
+    if (!(token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::PARENTHESES_OPEN)) {
         /* Parses the function's identifiers and generic args */
-        kh::parseTopScopeIdentifiersAndGenericArgs(context, identifiers, generic_args);
+        parseTopScopeIdentifiersAndGenericArgs(context, identifiers, generic_args);
         KH_PARSE_GUARD();
         token = context.tok();
 
         /* Array dimension method extension/overloading/overriding specifier `def float[3].add(float[3]
          * other) {}` */
-        while (token.type == kh::TokenType::SYMBOL &&
-               token.value.symbol_type == kh::Symbol::SQUARE_OPEN) {
+        while (token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::SQUARE_OPEN) {
             context.ti++;
             KH_PARSE_GUARD();
             token = context.tok();
 
-            if (token.type == kh::TokenType::INTEGER || token.type == kh::TokenType::UINTEGER) {
+            if (token.type == TokenType::INTEGER || token.type == TokenType::UINTEGER) {
                 if (token.value.uinteger == 0) {
                     context.exceptions.emplace_back("an array could not be zero sized", token);
                 }
@@ -401,8 +399,7 @@ kh::AstFunction kh::parseFunction(KH_PARSE_CTX, bool is_conditional) {
             else {
                 context.exceptions.emplace_back("expected an integer for the array size", token);
             }
-            if (!(token.type == kh::TokenType::SYMBOL &&
-                  token.value.symbol_type == kh::Symbol::SQUARE_CLOSE)) {
+            if (!(token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::SQUARE_CLOSE)) {
                 context.exceptions.emplace_back("expected a closing square bracket", token);
             }
             context.ti++;
@@ -413,12 +410,12 @@ kh::AstFunction kh::parseFunction(KH_PARSE_CTX, bool is_conditional) {
         /* Extra identifier `def something!int.extraIdentifier() {}` */
         KH_PARSE_GUARD();
         token = context.tok();
-        if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::DOT) {
+        if (token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::DOT) {
             context.ti++;
             KH_PARSE_GUARD();
             token = context.tok();
 
-            if (token.type == kh::TokenType::IDENTIFIER) {
+            if (token.type == TokenType::IDENTIFIER) {
                 identifiers.push_back(token.value.identifier);
                 context.ti++;
             }
@@ -431,8 +428,7 @@ kh::AstFunction kh::parseFunction(KH_PARSE_CTX, bool is_conditional) {
         /* Ensures it has an opening parentheses */
         KH_PARSE_GUARD();
         token = context.tok();
-        if (!(token.type == kh::TokenType::SYMBOL &&
-              token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN)) {
+        if (!(token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::PARENTHESES_OPEN)) {
             context.exceptions.emplace_back(
                 "expected an opening parentheses of the argument(s) in the function declaration",
                 token);
@@ -446,25 +442,24 @@ kh::AstFunction kh::parseFunction(KH_PARSE_CTX, bool is_conditional) {
 
     /* Loops until it reaches a closing parentheses */
     while (true) {
-        if (token.type == kh::TokenType::SYMBOL &&
-            token.value.symbol_type == kh::Symbol::PARENTHESES_CLOSE) {
+        if (token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::PARENTHESES_CLOSE) {
             break;
         }
         /* Parses the argument */
-        arguments.emplace_back(kh::parseDeclaration(context));
+        arguments.emplace_back(parseDeclaration(context));
 
         KH_PARSE_GUARD();
         token = context.tok();
 
-        if (token.type == kh::TokenType::SYMBOL) {
+        if (token.type == TokenType::SYMBOL) {
             /* Continues on parsing an argument if there's a comma */
-            if (token.value.symbol_type == kh::Symbol::COMMA) {
+            if (token.value.symbol_type == Symbol::COMMA) {
                 context.ti++;
                 KH_PARSE_GUARD();
                 continue;
             }
             /* Stops parsing arguments */
-            else if (token.value.symbol_type == kh::Symbol::PARENTHESES_CLOSE) {
+            else if (token.value.symbol_type == Symbol::PARENTHESES_CLOSE) {
                 break;
             }
             else {
@@ -487,63 +482,62 @@ kh::AstFunction kh::parseFunction(KH_PARSE_CTX, bool is_conditional) {
     token = context.tok();
 
     /* Specifying return type `def function() -> int {}` */
-    if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::SUB) {
+    if (token.type == TokenType::OPERATOR && token.value.operator_type == Operator::SUB) {
         context.ti++;
         KH_PARSE_GUARD();
         token = context.tok();
 
-        if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::MORE) {
+        if (token.type == TokenType::OPERATOR && token.value.operator_type == Operator::MORE) {
             context.ti++;
             KH_PARSE_GUARD();
             token = context.tok();
 
             /* Checks if the return type is a `ref`erence type */
-            while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == "ref") {
+            while (token.type == TokenType::IDENTIFIER && token.value.identifier == "ref") {
                 return_refs += 1;
                 context.ti++;
                 KH_PARSE_GUARD();
                 token = context.tok();
             }
 
-            return_type = kh::parseIdentifiers(context);
+            return_type = parseIdentifiers(context);
             KH_PARSE_GUARD();
             token = context.tok();
 
             /* Array return type */
-            if (token.type == kh::TokenType::SYMBOL &&
-                token.value.symbol_type == kh::Symbol::SQUARE_OPEN) {
-                return_array = kh::parseArrayDimension(context, return_type);
+            if (token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::SQUARE_OPEN) {
+                return_array = parseArrayDimension(context, return_type);
             }
         }
         else {
-            return_type = kh::AstIdentifiers(token.index, {"void"}, {}, {}, {});
+            return_type = AstIdentifiers(token.index, {"void"}, {}, {}, {});
 
             context.exceptions.emplace_back("expected a `->` specifying a return type", token);
         }
     }
     else {
-        return_type = kh::AstIdentifiers(token.index, {"void"}, {}, {}, {});
+        return_type = AstIdentifiers(token.index, {"void"}, {}, {}, {});
     }
 
     /* Parses the function's body */
-    body = kh::parseBody(context);
+    body = parseBody(context);
 end:
     return {index,       identifiers, generic_args, id_array, return_array,
             return_type, return_refs, arguments,    body,     is_conditional};
 }
 
-kh::AstDeclaration kh::parseDeclaration(KH_PARSE_CTX) {
-    kh::AstIdentifiers var_type{0, {}, {}, {}, {}};
+AstDeclaration kh::parseDeclaration(KH_PARSE_CTX) {
+    AstIdentifiers var_type{0, {}, {}, {}, {}};
     std::vector<uint64_t> var_array = {};
     std::string var_name;
-    std::shared_ptr<kh::AstExpression> expression = nullptr;
+    std::shared_ptr<AstExpression> expression = nullptr;
     size_t refs = 0;
 
-    kh::Token token = context.tok();
+    Token token = context.tok();
     size_t index = token.index;
 
     /* Checks if the variable type is a `ref`erence type */
-    while (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == "ref") {
+    while (token.type == TokenType::IDENTIFIER && token.value.identifier == "ref") {
         refs += 1;
         context.ti++;
         KH_PARSE_GUARD();
@@ -551,23 +545,23 @@ kh::AstDeclaration kh::parseDeclaration(KH_PARSE_CTX) {
     }
 
     /* Parses the variable's type */
-    var_type = kh::parseIdentifiers(context);
+    var_type = parseIdentifiers(context);
 
     /* Possible array type `float[3] var;` */
     KH_PARSE_GUARD();
     token = context.tok();
-    var_array = kh::parseArrayDimension(context, var_type);
+    var_array = parseArrayDimension(context, var_type);
 
     /* Gets the variable's name */
     KH_PARSE_GUARD();
     token = context.tok();
-    if (token.type != kh::TokenType::IDENTIFIER) {
+    if (token.type != TokenType::IDENTIFIER) {
         context.exceptions.emplace_back(
             "expected an identifier of the name of the variable declaration", token);
         goto end;
     }
 
-    if (kh::isReservedKeyword(token.value.identifier)) {
+    if (isReservedKeyword(token.value.identifier)) {
         context.exceptions.emplace_back("cannot use a reserved keyword as a variable name", token);
     }
 
@@ -577,16 +571,14 @@ kh::AstDeclaration kh::parseDeclaration(KH_PARSE_CTX) {
     token = context.tok();
 
     /* The case where: `SomeClass x(1, 2, 3)` */
-    if (token.type == kh::TokenType::SYMBOL &&
-        token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
-        expression.reset(kh::parseTuple(context));
+    if (token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::PARENTHESES_OPEN) {
+        expression.reset(parseTuple(context));
     }
     /* The case where: `int x = 3` */
-    else if (token.type == kh::TokenType::OPERATOR &&
-             token.value.operator_type == kh::Operator::ASSIGN) {
+    else if (token.type == TokenType::OPERATOR && token.value.operator_type == Operator::ASSIGN) {
         context.ti++;
         KH_PARSE_GUARD();
-        expression.reset(kh::parseExpression(context));
+        expression.reset(parseExpression(context));
     }
     else {
         goto end;
@@ -595,37 +587,35 @@ end:
     return {index, var_type, var_array, var_name, expression, refs};
 }
 
-kh::AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
+AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
     std::vector<std::string> identifiers;
-    std::shared_ptr<kh::AstIdentifiers> base;
+    std::shared_ptr<AstIdentifiers> base;
     std::vector<std::string> generic_args;
-    std::vector<kh::AstDeclaration> members;
-    std::vector<kh::AstFunction> methods;
+    std::vector<AstDeclaration> members;
+    std::vector<AstFunction> methods;
 
-    kh::Token token = context.tok();
+    Token token = context.tok();
     size_t index = token.index;
 
     std::string type_name = is_class ? "class" : "struct";
 
     /* Parses the class'/struct's identifiers and generic arguments */
-    kh::parseTopScopeIdentifiersAndGenericArgs(context, identifiers, generic_args);
+    parseTopScopeIdentifiersAndGenericArgs(context, identifiers, generic_args);
     KH_PARSE_GUARD();
     token = context.tok();
 
     /* Optional inheriting */
-    if (token.type == kh::TokenType::SYMBOL &&
-        token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
+    if (token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::PARENTHESES_OPEN) {
         context.ti++;
         KH_PARSE_GUARD();
 
         /* Parses base class' identifier */
-        base.reset(new kh::AstIdentifiers(kh::parseIdentifiers(context)));
+        base.reset(new AstIdentifiers(parseIdentifiers(context)));
         KH_PARSE_GUARD();
         token = context.tok();
 
         /* Expects a closing parentheses */
-        if (token.type == kh::TokenType::SYMBOL &&
-            token.value.symbol_type == kh::Symbol::PARENTHESES_CLOSE) {
+        if (token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::PARENTHESES_CLOSE) {
             context.ti++;
         }
         else {
@@ -640,22 +630,22 @@ kh::AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
     token = context.tok();
 
     /* Parses the body */
-    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_OPEN) {
+    if (token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::CURLY_OPEN) {
         context.ti++;
         KH_PARSE_GUARD();
         token = context.tok();
 
         while (true) {
             KH_PARSE_GUARD();
-            kh::Token token = context.tok();
+            Token token = context.tok();
 
             bool is_public, is_static;
-            kh::parseAccessAttribs(context, is_public, is_static);
+            parseAccessAttribs(context, is_public, is_static);
             KH_PARSE_GUARD();
             token = context.tok();
 
             switch (token.type) {
-                case kh::TokenType::IDENTIFIER: {
+                case TokenType::IDENTIFIER: {
                     /* Methods */
                     if (token.value.identifier == "def" || token.value.identifier == "try") {
                         bool conditional = token.value.identifier == "try";
@@ -666,7 +656,7 @@ kh::AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
                         /* Case for conditional methods */
                         if (conditional) {
                             token = context.tok();
-                            if (token.type == kh::TokenType::IDENTIFIER &&
+                            if (token.type == TokenType::IDENTIFIER &&
                                 token.value.identifier == "def") {
                                 context.ti++;
                                 KH_PARSE_GUARD();
@@ -678,7 +668,7 @@ kh::AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
                         }
 
                         /* Parse function declaration */
-                        methods.push_back(kh::parseFunction(context, conditional));
+                        methods.push_back(parseFunction(context, conditional));
 
                         /* Ensures that methods don't have generic argument(s) */
                         if (!methods.back().generic_args.empty()) {
@@ -697,13 +687,13 @@ kh::AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
                     /* Member/class variables */
                     else {
                         /* Parse variable declaration */
-                        members.push_back(kh::parseDeclaration(context));
+                        members.push_back(parseDeclaration(context));
 
                         KH_PARSE_GUARD();
                         token = context.tok();
                         /* Expects semicolon */
-                        if (token.type == kh::TokenType::SYMBOL &&
-                            token.value.symbol_type == kh::Symbol::SEMICOLON) {
+                        if (token.type == TokenType::SYMBOL &&
+                            token.value.symbol_type == Symbol::SEMICOLON) {
                             context.ti++;
                         }
                         else {
@@ -719,31 +709,31 @@ kh::AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
                     }
                 } break;
 
-                case kh::TokenType::SYMBOL: {
+                case TokenType::SYMBOL: {
                     switch (token.value.symbol_type) {
                         /* Placeholder "does nothing" semicolon */
-                        case kh::Symbol::SEMICOLON: {
+                        case Symbol::SEMICOLON: {
                             context.ti++;
                         } break;
 
                             /* Closing curly bracket where it ends the class body */
-                        case kh::Symbol::CURLY_CLOSE: {
+                        case Symbol::CURLY_CLOSE: {
                             context.ti++;
                             goto end;
                         } break;
 
                         default:
                             context.ti++;
-                            context.exceptions.emplace_back(
-                                "unexpected `" + kh::encodeUtf8(kh::str(token)) +
-                                    "` while parsing the " + type_name + " body",
-                                token);
+                            context.exceptions.emplace_back("unexpected `" + encodeUtf8(strfy(token)) +
+                                                                "` while parsing the " + type_name +
+                                                                " body",
+                                                            token);
                     }
                 } break;
 
                 default:
                     context.ti++;
-                    context.exceptions.emplace_back("unexpected `" + kh::encodeUtf8(kh::str(token)) +
+                    context.exceptions.emplace_back("unexpected `" + encodeUtf8(strfy(token)) +
                                                         "` while parsing the " + type_name + " body",
                                                     token);
             }
@@ -757,7 +747,7 @@ end:
     return {index, identifiers, base, generic_args, members, methods, is_class};
 }
 
-kh::AstEnumType kh::parseEnum(KH_PARSE_CTX) {
+AstEnumType kh::parseEnum(KH_PARSE_CTX) {
     std::vector<std::string> identifiers;
     std::vector<std::string> members;
     std::vector<uint64_t> values;
@@ -765,12 +755,12 @@ kh::AstEnumType kh::parseEnum(KH_PARSE_CTX) {
     /* Internal enum counter */
     uint64_t counter = 0;
 
-    kh::Token token = context.tok();
+    Token token = context.tok();
     size_t index = token.index;
 
     /* Gets the enum identifiers */
     std::vector<std::string> _generic_args;
-    kh::parseTopScopeIdentifiersAndGenericArgs(context, identifiers, _generic_args);
+    parseTopScopeIdentifiersAndGenericArgs(context, identifiers, _generic_args);
     if (!_generic_args.empty()) {
         context.exceptions.emplace_back("an enum could not have generic arguments", token);
     }
@@ -779,7 +769,7 @@ kh::AstEnumType kh::parseEnum(KH_PARSE_CTX) {
     token = context.tok();
 
     /* Opens with a curly bracket */
-    if (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_OPEN) {
+    if (token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::CURLY_OPEN) {
         context.ti++;
         KH_PARSE_GUARD();
         token = context.tok();
@@ -787,19 +777,17 @@ kh::AstEnumType kh::parseEnum(KH_PARSE_CTX) {
         /* Parses the enum content */
         while (true) {
             /* Stops parsing enum body */
-            if (token.type == kh::TokenType::SYMBOL &&
-                token.value.symbol_type == kh::Symbol::CURLY_CLOSE) {
+            if (token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::CURLY_CLOSE) {
                 context.ti++;
                 break;
             }
             /* Appends member */
-            else if (token.type == kh::TokenType::IDENTIFIER) {
+            else if (token.type == TokenType::IDENTIFIER) {
                 members.push_back(token.value.identifier);
             }
             else {
-                context.exceptions.emplace_back("unexpected `" + kh::encodeUtf8(kh::str(token)) +
-                                                    "` while parsing the enum body",
-                                                token);
+                context.exceptions.emplace_back(
+                    "unexpected `" + encodeUtf8(strfy(token)) + "` while parsing the enum body", token);
 
                 context.ti++;
                 KH_PARSE_GUARD();
@@ -812,14 +800,13 @@ kh::AstEnumType kh::parseEnum(KH_PARSE_CTX) {
             token = context.tok();
 
             /* Checks if there's an assignment operation on an enum member */
-            if (token.type == kh::TokenType::OPERATOR &&
-                token.value.operator_type == kh::Operator::ASSIGN) {
+            if (token.type == TokenType::OPERATOR && token.value.operator_type == Operator::ASSIGN) {
                 context.ti++;
                 KH_PARSE_GUARD();
                 token = context.tok();
 
                 /* Ensures there's an integer constant */
-                if (token.type == kh::TokenType::INTEGER || token.type == kh::TokenType::UINTEGER) {
+                if (token.type == TokenType::INTEGER || token.type == TokenType::UINTEGER) {
                     /* Don't worry about this line as it's a union */
                     values.push_back(token.value.uinteger);
                     counter = token.value.uinteger + 1;
@@ -859,14 +846,12 @@ kh::AstEnumType kh::parseEnum(KH_PARSE_CTX) {
             }
 
             /* Stops parsing enum body */
-            if (token.type == kh::TokenType::SYMBOL &&
-                token.value.symbol_type == kh::Symbol::CURLY_CLOSE) {
+            if (token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::CURLY_CLOSE) {
                 context.ti++;
                 break;
             }
             /* Ensures a comma after an enum member */
-            else if (!(token.type == kh::TokenType::SYMBOL &&
-                       token.value.symbol_type == kh::Symbol::COMMA)) {
+            else if (!(token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::COMMA)) {
                 context.exceptions.emplace_back("expected a closing curly bracket or a comma "
                                                 "after an enum member in the enum body",
                                                 token);
@@ -884,12 +869,12 @@ end:
     return {index, identifiers, members, values};
 }
 
-std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loop_count) {
-    std::vector<std::shared_ptr<kh::AstBody>> body;
-    kh::Token token = context.tok();
+std::vector<std::shared_ptr<AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loop_count) {
+    std::vector<std::shared_ptr<AstBody>> body;
+    Token token = context.tok();
 
     /* Expects an opening curly bracket */
-    if (!(token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::CURLY_OPEN)) {
+    if (!(token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::CURLY_OPEN)) {
         context.exceptions.emplace_back("expected an opening curly bracket", token);
         goto end;
     }
@@ -903,35 +888,34 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
         size_t index = token.index;
 
         switch (token.type) {
-            case kh::TokenType::IDENTIFIER: {
+            case TokenType::IDENTIFIER: {
                 if (token.value.identifier == "if") {
-                    std::vector<std::shared_ptr<kh::AstExpression>> conditions;
-                    std::vector<std::vector<std::shared_ptr<kh::AstBody>>> bodies;
-                    std::vector<std::shared_ptr<kh::AstBody>> else_body;
+                    std::vector<std::shared_ptr<AstExpression>> conditions;
+                    std::vector<std::vector<std::shared_ptr<AstBody>>> bodies;
+                    std::vector<std::shared_ptr<AstBody>> else_body;
 
                     do {
                         /* Parses the expression and if body */
                         context.ti++;
                         token = context.tok();
                         KH_PARSE_GUARD();
-                        conditions.emplace_back(kh::parseExpression(context));
+                        conditions.emplace_back(parseExpression(context));
                         KH_PARSE_GUARD();
-                        bodies.emplace_back(kh::parseBody(context, loop_count + 1));
+                        bodies.emplace_back(parseBody(context, loop_count + 1));
                         KH_PARSE_GUARD();
                         token = context.tok();
 
                         /* Recontinues if there's an else if (`elif`) clause */
-                    } while (token.type == kh::TokenType::IDENTIFIER &&
-                             token.value.identifier == "elif");
+                    } while (token.type == TokenType::IDENTIFIER && token.value.identifier == "elif");
 
                     /* Parses the body if there's an `else` clause */
-                    if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == "else") {
+                    if (token.type == TokenType::IDENTIFIER && token.value.identifier == "else") {
                         context.ti++;
                         KH_PARSE_GUARD();
-                        else_body = kh::parseBody(context, loop_count + 1);
+                        else_body = parseBody(context, loop_count + 1);
                     }
 
-                    body.emplace_back(new kh::AstIf(index, conditions, bodies, else_body));
+                    body.emplace_back(new AstIf(index, conditions, bodies, else_body));
                 }
                 /* While statement */
                 else if (token.value.identifier == "while") {
@@ -939,11 +923,11 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                     KH_PARSE_GUARD();
 
                     /* Parses the expression and body */
-                    std::shared_ptr<kh::AstExpression> condition(kh::parseExpression(context));
-                    std::vector<std::shared_ptr<kh::AstBody>> while_body =
-                        kh::parseBody(context, loop_count + 1);
+                    std::shared_ptr<AstExpression> condition(parseExpression(context));
+                    std::vector<std::shared_ptr<AstBody>> while_body =
+                        parseBody(context, loop_count + 1);
 
-                    body.emplace_back(new kh::AstWhile(index, condition, while_body));
+                    body.emplace_back(new AstWhile(index, condition, while_body));
                 }
                 /* Do while statement */
                 else if (token.value.identifier == "do") {
@@ -951,17 +935,17 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                     KH_PARSE_GUARD();
 
                     /* Parses the body */
-                    std::vector<std::shared_ptr<kh::AstBody>> do_while_body =
-                        kh::parseBody(context, loop_count + 1);
-                    std::shared_ptr<kh::AstExpression> condition;
+                    std::vector<std::shared_ptr<AstBody>> do_while_body =
+                        parseBody(context, loop_count + 1);
+                    std::shared_ptr<AstExpression> condition;
 
                     KH_PARSE_GUARD();
                     token = context.tok();
 
                     /* Expects `while` and then parses the condition expression */
-                    if (token.type == kh::TokenType::IDENTIFIER && token.value.identifier == "while") {
+                    if (token.type == TokenType::IDENTIFIER && token.value.identifier == "while") {
                         context.ti++;
-                        condition.reset(kh::parseExpression(context));
+                        condition.reset(parseExpression(context));
                     }
                     else
                         context.exceptions.emplace_back("expected `while` after the `do {...}`", token);
@@ -970,50 +954,48 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                     token = context.tok();
 
                     /* Expects a semicolon */
-                    if (token.type == kh::TokenType::SYMBOL &&
-                        token.value.symbol_type == kh::Symbol::SEMICOLON) {
+                    if (token.type == TokenType::SYMBOL &&
+                        token.value.symbol_type == Symbol::SEMICOLON) {
                         context.ti++;
                     }
                     else
                         context.exceptions.emplace_back(
                             "expected a semicolon after `do {...} while ...`", token);
 
-                    body.emplace_back(new kh::AstDoWhile(index, condition, do_while_body));
+                    body.emplace_back(new AstDoWhile(index, condition, do_while_body));
                 }
                 /* For statement */
                 else if (token.value.identifier == "for") {
                     context.ti++;
                     KH_PARSE_GUARD();
 
-                    std::shared_ptr<kh::AstExpression> target_or_initializer(
-                        kh::parseExpression(context));
+                    std::shared_ptr<AstExpression> target_or_initializer(parseExpression(context));
 
                     KH_PARSE_GUARD();
                     token = context.tok();
-                    if (token.type == kh::TokenType::SYMBOL &&
-                        token.value.symbol_type == kh::Symbol::COLON) {
+                    if (token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::COLON) {
                         context.ti++;
                         KH_PARSE_GUARD();
                         token = context.tok();
 
-                        std::shared_ptr<kh::AstExpression> iterator(kh::parseExpression(context));
+                        std::shared_ptr<AstExpression> iterator(parseExpression(context));
                         KH_PARSE_GUARD();
-                        std::vector<std::shared_ptr<kh::AstBody>> foreach_body =
-                            kh::parseBody(context, loop_count + 1);
+                        std::vector<std::shared_ptr<AstBody>> foreach_body =
+                            parseBody(context, loop_count + 1);
 
                         body.emplace_back(
-                            new kh::AstForEach(index, target_or_initializer, iterator, foreach_body));
+                            new AstForEach(index, target_or_initializer, iterator, foreach_body));
                     }
-                    else if (token.type == kh::TokenType::SYMBOL &&
-                             token.value.symbol_type == kh::Symbol::COMMA) {
+                    else if (token.type == TokenType::SYMBOL &&
+                             token.value.symbol_type == Symbol::COMMA) {
                         context.ti++;
                         KH_PARSE_GUARD();
-                        std::shared_ptr<kh::AstExpression> condition(kh::parseExpression(context));
+                        std::shared_ptr<AstExpression> condition(parseExpression(context));
                         KH_PARSE_GUARD();
                         token = context.tok();
 
-                        if (token.type == kh::TokenType::SYMBOL &&
-                            token.value.symbol_type == kh::Symbol::COMMA) {
+                        if (token.type == TokenType::SYMBOL &&
+                            token.value.symbol_type == Symbol::COMMA) {
                             context.ti++;
                             KH_PARSE_GUARD();
                         }
@@ -1021,13 +1003,13 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                             context.exceptions.emplace_back("expected a comma after `for ..., ...`",
                                                             token);
                         }
-                        std::shared_ptr<kh::AstExpression> step(kh::parseExpression(context));
+                        std::shared_ptr<AstExpression> step(parseExpression(context));
                         KH_PARSE_GUARD();
-                        std::vector<std::shared_ptr<kh::AstBody>> for_body =
-                            kh::parseBody(context, loop_count + 1);
+                        std::vector<std::shared_ptr<AstBody>> for_body =
+                            parseBody(context, loop_count + 1);
 
                         body.emplace_back(
-                            new kh::AstFor(index, target_or_initializer, condition, step, for_body));
+                            new AstFor(index, target_or_initializer, condition, step, for_body));
                     }
                     else {
                         context.exceptions.emplace_back(
@@ -1046,7 +1028,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                     }
                     size_t loop_breaks = 0;
                     /* Continuing multiple loops `continue 4;` */
-                    if (token.type == kh::TokenType::UINTEGER || token.type == kh::TokenType::INTEGER) {
+                    if (token.type == TokenType::UINTEGER || token.type == TokenType::INTEGER) {
                         if (token.value.uinteger >= loop_count) {
                             context.exceptions.emplace_back(
                                 "trying to `continue` an invalid amount of loops", token);
@@ -1058,8 +1040,8 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                     }
 
                     /* Expects semicolon */
-                    if (token.type == kh::TokenType::SYMBOL &&
-                        token.value.symbol_type == kh::Symbol::SEMICOLON) {
+                    if (token.type == TokenType::SYMBOL &&
+                        token.value.symbol_type == Symbol::SEMICOLON) {
                         context.ti++;
                     }
                     else {
@@ -1067,7 +1049,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                             "expected a semicolon or an integer after `continue`", token);
                     }
                     body.emplace_back(
-                        new kh::AstStatement(index, kh::AstStatement::Type::CONTINUE, loop_breaks));
+                        new AstStatement(index, AstStatement::Type::CONTINUE, loop_breaks));
                 }
                 /* `break` statement */
                 else if (token.value.identifier == "break") {
@@ -1081,7 +1063,7 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                     }
                     size_t loop_breaks = 0;
                     /* Breaking multiple loops `break 2;` */
-                    if (token.type == kh::TokenType::UINTEGER || token.type == kh::TokenType::INTEGER) {
+                    if (token.type == TokenType::UINTEGER || token.type == TokenType::INTEGER) {
                         if (token.value.uinteger >= loop_count) {
                             context.exceptions.emplace_back(
                                 "trying to `break` an invalid amount of loops", token);
@@ -1093,16 +1075,15 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                     }
 
                     /* Expects semicolon */
-                    if (token.type == kh::TokenType::SYMBOL &&
-                        token.value.symbol_type == kh::Symbol::SEMICOLON) {
+                    if (token.type == TokenType::SYMBOL &&
+                        token.value.symbol_type == Symbol::SEMICOLON) {
                         context.ti++;
                     }
                     else {
                         context.exceptions.emplace_back(
                             "expected a semicolon or an integer after `break`", token);
                     }
-                    body.emplace_back(
-                        new kh::AstStatement(index, kh::AstStatement::Type::BREAK, loop_breaks));
+                    body.emplace_back(new AstStatement(index, AstStatement::Type::BREAK, loop_breaks));
                 }
                 /* `return` statement */
                 else if (token.value.identifier == "return") {
@@ -1110,21 +1091,21 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                     KH_PARSE_GUARD();
                     token = context.tok();
 
-                    std::shared_ptr<kh::AstExpression> expression((kh::AstExpression*)nullptr);
+                    std::shared_ptr<AstExpression> expression((AstExpression*)nullptr);
 
                     /* No expression given */
-                    if (token.type == kh::TokenType::SYMBOL &&
-                        token.value.symbol_type == kh::Symbol::SEMICOLON) {
+                    if (token.type == TokenType::SYMBOL &&
+                        token.value.symbol_type == Symbol::SEMICOLON) {
                         context.ti++;
                     } /* If there's a provided return value expression */
                     else {
-                        expression.reset(kh::parseExpression(context));
+                        expression.reset(parseExpression(context));
                         KH_PARSE_GUARD();
                         token = context.tok();
 
                         /* Expects semicolon */
-                        if (token.type == kh::TokenType::SYMBOL &&
-                            token.value.symbol_type == kh::Symbol::SEMICOLON) {
+                        if (token.type == TokenType::SYMBOL &&
+                            token.value.symbol_type == Symbol::SEMICOLON) {
                             context.ti++;
                         }
                         else {
@@ -1133,23 +1114,22 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
                         }
                     }
 
-                    body.emplace_back(
-                        new kh::AstStatement(index, kh::AstStatement::Type::RETURN, expression));
+                    body.emplace_back(new AstStatement(index, AstStatement::Type::RETURN, expression));
                 }
                 else {
                     goto parse_expr;
                 }
             } break;
 
-            case kh::TokenType::SYMBOL:
+            case TokenType::SYMBOL:
                 switch (token.value.symbol_type) {
                     /* Placeholder semicolon */
-                    case kh::Symbol::SEMICOLON: {
+                    case Symbol::SEMICOLON: {
                         context.ti++;
                     } break;
 
                         /* Ends body */
-                    case kh::Symbol::CURLY_CLOSE: {
+                    case Symbol::CURLY_CLOSE: {
                         context.ti++;
                         goto end;
                     } break;
@@ -1162,13 +1142,12 @@ std::vector<std::shared_ptr<kh::AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loo
             default:
             parse_expr : {
                 /* If it isn't any of the statements above, it's probably an expression */
-                std::shared_ptr<kh::AstExpression> expr(kh::parseExpression(context));
+                std::shared_ptr<AstExpression> expr(parseExpression(context));
                 KH_PARSE_GUARD();
                 token = context.tok();
 
                 /* Expects a semicolon */
-                if (token.type == kh::TokenType::SYMBOL &&
-                    token.value.symbol_type == kh::Symbol::SEMICOLON) {
+                if (token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::SEMICOLON) {
                     context.ti++;
                 }
                 else {
@@ -1185,7 +1164,7 @@ end:
 
 void kh::parseTopScopeIdentifiersAndGenericArgs(KH_PARSE_CTX, std::vector<std::string>& identifiers,
                                                 std::vector<std::string>& generic_args) {
-    kh::Token token = context.tok();
+    Token token = context.tok();
     goto forceIn;
 
     /* Parses the identifiers */
@@ -1195,8 +1174,8 @@ void kh::parseTopScopeIdentifiersAndGenericArgs(KH_PARSE_CTX, std::vector<std::s
         token = context.tok();
 
     forceIn:
-        if (token.type == kh::TokenType::IDENTIFIER) {
-            if (kh::isReservedKeyword(token.value.identifier)) {
+        if (token.type == TokenType::IDENTIFIER) {
+            if (isReservedKeyword(token.value.identifier)) {
                 context.exceptions.emplace_back("cannot use a reserved keyword as an identifier",
                                                 token);
             }
@@ -1208,17 +1187,17 @@ void kh::parseTopScopeIdentifiersAndGenericArgs(KH_PARSE_CTX, std::vector<std::s
         }
         KH_PARSE_GUARD();
         token = context.tok();
-    } while (token.type == kh::TokenType::SYMBOL && token.value.symbol_type == kh::Symbol::DOT);
+    } while (token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::DOT);
 
     /* Generic arguments */
-    if (token.type == kh::TokenType::OPERATOR && token.value.operator_type == kh::Operator::NOT) {
+    if (token.type == TokenType::OPERATOR && token.value.operator_type == Operator::NOT) {
         context.ti++;
         KH_PARSE_GUARD();
         token = context.tok();
 
         /* a.b.c!T */
-        if (token.type == kh::TokenType::IDENTIFIER) {
-            if (kh::isReservedKeyword(token.value.identifier)) {
+        if (token.type == TokenType::IDENTIFIER) {
+            if (isReservedKeyword(token.value.identifier)) {
                 context.exceptions.emplace_back(
                     "cannot use a reserved keyword as an identifier of a generic argument", token);
             }
@@ -1226,8 +1205,8 @@ void kh::parseTopScopeIdentifiersAndGenericArgs(KH_PARSE_CTX, std::vector<std::s
             context.ti++;
         }
         /* a.b.c!(A, B) */
-        else if (token.type == kh::TokenType::SYMBOL &&
-                 token.value.symbol_type == kh::Symbol::PARENTHESES_OPEN) {
+        else if (token.type == TokenType::SYMBOL &&
+                 token.value.symbol_type == Symbol::PARENTHESES_OPEN) {
             context.ti++;
             KH_PARSE_GUARD();
             token = context.tok();
@@ -1239,8 +1218,8 @@ void kh::parseTopScopeIdentifiersAndGenericArgs(KH_PARSE_CTX, std::vector<std::s
                 token = context.tok();
 
             forceInGenericArgs:
-                if (token.type == kh::TokenType::IDENTIFIER) {
-                    if (kh::isReservedKeyword(token.value.identifier)) {
+                if (token.type == TokenType::IDENTIFIER) {
+                    if (isReservedKeyword(token.value.identifier)) {
                         context.exceptions.emplace_back(
                             "cannot use a reserved keyword as an identifier of a generic argument",
                             token);
@@ -1254,11 +1233,10 @@ void kh::parseTopScopeIdentifiersAndGenericArgs(KH_PARSE_CTX, std::vector<std::s
                 }
                 KH_PARSE_GUARD();
                 token = context.tok();
-            } while (token.type == kh::TokenType::SYMBOL &&
-                     token.value.symbol_type == kh::Symbol::COMMA);
+            } while (token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::COMMA);
 
-            if (token.type == kh::TokenType::SYMBOL &&
-                token.value.symbol_type == kh::Symbol::PARENTHESES_CLOSE) {
+            if (token.type == TokenType::SYMBOL &&
+                token.value.symbol_type == Symbol::PARENTHESES_CLOSE) {
                 context.ti++;
             }
             else {

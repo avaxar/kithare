@@ -16,10 +16,10 @@ namespace kh {
     enum class Symbol;
     enum class TokenType;
 
-    std::u32string str(const kh::Token& token, bool show_token_type = false);
-    std::u32string str(kh::TokenType type);
-    std::u32string str(kh::Operator op);
-    std::u32string str(kh::Symbol sym);
+    std::u32string strfy(const Token& token, bool show_token_type = false);
+    std::u32string strfy(TokenType type);
+    std::u32string strfy(Operator op);
+    std::u32string strfy(Symbol sym);
 
     enum class Operator {
         ADD,
@@ -89,8 +89,8 @@ namespace kh {
 
     struct TokenValue {
         union {
-            kh::Operator operator_type;
-            kh::Symbol symbol_type;
+            Operator operator_type;
+            Symbol symbol_type;
 
             uint64_t uinteger;
             int64_t integer;
@@ -111,10 +111,10 @@ namespace kh {
         size_t line;
         size_t index;
         size_t length;
-        kh::TokenType type;
-        kh::TokenValue value;
+        TokenType type;
+        TokenValue value;
 
         Token();
-        Token(size_t _index, size_t _end, kh::TokenType _type, const kh::TokenValue& _value);
+        Token(size_t _index, size_t _end, TokenType _type, const TokenValue& _value);
     };
 }
