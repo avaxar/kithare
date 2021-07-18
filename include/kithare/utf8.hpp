@@ -22,6 +22,6 @@ namespace kh {
         virtual std::string format() const;
     };
 
-    std::string encodeUtf8(const std::u32string& str);
-    std::u32string decodeUtf8(const std::string& str);
+    std::string utf8Encode(const std::u32string& str);
+    std::u32string utf8Decode(const std::string& str);
 }

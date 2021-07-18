@@ -170,7 +170,7 @@ AstModule kh::parseWhole(KH_PARSE_CTX) {
                 }
                 else {
                     context.ti++;
-                    context.exceptions.emplace_back("unexpected `" + encodeUtf8(strfy(token)) +
+                    context.exceptions.emplace_back("unexpected `" + utf8Encode(strfy(token)) +
                                                         "` while parsing the top scope",
                                                     token);
                 }
@@ -180,7 +180,7 @@ AstModule kh::parseWhole(KH_PARSE_CTX) {
             default:
                 context.ti++;
                 context.exceptions.emplace_back(
-                    "unexpected `" + encodeUtf8(strfy(token)) + "` while parsing the top scope", token);
+                    "unexpected `" + utf8Encode(strfy(token)) + "` while parsing the top scope", token);
         }
     }
 
@@ -724,7 +724,7 @@ AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
 
                         default:
                             context.ti++;
-                            context.exceptions.emplace_back("unexpected `" + encodeUtf8(strfy(token)) +
+                            context.exceptions.emplace_back("unexpected `" + utf8Encode(strfy(token)) +
                                                                 "` while parsing the " + type_name +
                                                                 " body",
                                                             token);
@@ -733,7 +733,7 @@ AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
 
                 default:
                     context.ti++;
-                    context.exceptions.emplace_back("unexpected `" + encodeUtf8(strfy(token)) +
+                    context.exceptions.emplace_back("unexpected `" + utf8Encode(strfy(token)) +
                                                         "` while parsing the " + type_name + " body",
                                                     token);
             }
@@ -787,7 +787,7 @@ AstEnumType kh::parseEnum(KH_PARSE_CTX) {
             }
             else {
                 context.exceptions.emplace_back(
-                    "unexpected `" + encodeUtf8(strfy(token)) + "` while parsing the enum body", token);
+                    "unexpected `" + utf8Encode(strfy(token)) + "` while parsing the enum body", token);
 
                 context.ti++;
                 KH_PARSE_GUARD();

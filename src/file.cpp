@@ -15,11 +15,11 @@ std::string kh::FileError::format() const {
     return "unable to read file";
 }
 
-std::u32string kh::readFile(const std::u32string& path) {
-    return decodeUtf8(readFileBinary(path));
+std::u32string kh::fileRead(const std::u32string& path) {
+    return utf8Decode(fileReadBinary(path));
 }
 
-std::string kh::readFileBinary(const std::u32string& path) {
+std::string kh::fileReadBinary(const std::u32string& path) {
     /* Use C style file handling, because it's "superior" (as @ankith26 would say it -.-), and also
      * handles UTF-8 file paths on MinGW correctly */
     std::string ret;
@@ -33,7 +33,7 @@ std::string kh::readFileBinary(const std::u32string& path) {
 
     file = _wfopen(u16path.c_str(), L"rb");
 #else
-    file = fopen(encodeUtf8(path).c_str(), "rb");
+    file = fopen(utf8Encode(path).c_str(), "rb");
 #endif
 
     if (!file) {

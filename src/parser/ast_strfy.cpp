@@ -52,11 +52,11 @@ std::u32string kh::strfy(const AstImport& import_ast, size_t indent) {
 
     str += U"\n\t" + ind + U"path: ";
     for (const std::string& dir : import_ast.path) {
-        str += decodeUtf8(dir) + (&dir == &import_ast.path.back() ? U"" : U".");
+        str += utf8Decode(dir) + (&dir == &import_ast.path.back() ? U"" : U".");
     }
 
     if (!import_ast.is_include) {
-        str += U"\n\t" + ind + U"identifier: " + decodeUtf8(import_ast.identifier);
+        str += U"\n\t" + ind + U"identifier: " + utf8Decode(import_ast.identifier);
     }
 
     return str;
@@ -71,7 +71,7 @@ std::u32string kh::strfy(const AstUserType& type_ast, size_t indent) {
 
     std::u32string str = (type_ast.is_class ? U"class:\n\t" : U"struct:\n\t") + ind + U"name: ";
     for (const std::string& identifier : type_ast.identifiers) {
-        str += decodeUtf8(identifier) + (&identifier == &type_ast.identifiers.back() ? U"" : U".");
+        str += utf8Decode(identifier) + (&identifier == &type_ast.identifiers.back() ? U"" : U".");
     }
 
     str += U"\n\t" + ind + U"access: " + (type_ast.is_public ? U"public" : U"private");
@@ -84,7 +84,7 @@ std::u32string kh::strfy(const AstUserType& type_ast, size_t indent) {
     if (!type_ast.generic_args.empty()) {
         str += U"\n\t" + ind + U"generic argument(s): ";
         for (const std::string& generic_ : type_ast.generic_args) {
-            str += decodeUtf8(generic_) + (&generic_ == &type_ast.generic_args.back() ? U"" : U", ");
+            str += utf8Decode(generic_) + (&generic_ == &type_ast.generic_args.back() ? U"" : U", ");
         }
     }
 
@@ -114,14 +114,14 @@ std::u32string kh::strfy(const AstEnumType& enum_ast, size_t indent) {
 
     std::u32string str = U"enum:\n\t" + ind + U"name: ";
     for (const std::string& identifier : enum_ast.identifiers) {
-        str += decodeUtf8(identifier) + (&identifier == &enum_ast.identifiers.back() ? U"" : U".");
+        str += utf8Decode(identifier) + (&identifier == &enum_ast.identifiers.back() ? U"" : U".");
     }
 
     str += U"\n\t" + ind + U"access: " + (enum_ast.is_public ? U"public" : U"private");
 
     str += U"\n\t" + ind + U"member(s):";
     for (size_t member = 0; member < enum_ast.members.size(); member++) {
-        str += U"\n\t\t" + ind + decodeUtf8(enum_ast.members[member]) + U": " +
+        str += U"\n\t\t" + ind + utf8Decode(enum_ast.members[member]) + U": " +
                strfy(enum_ast.values[member]);
     }
 
@@ -145,7 +145,7 @@ std::u32string kh::AstIdentifiers::strfy(size_t indent) const {
     str = U"identifier(s): ";
 
     for (const std::string& identifier : this->identifiers) {
-        str += decodeUtf8(identifier) + (&identifier == &this->identifiers.back() ? U"" : U".");
+        str += utf8Decode(identifier) + (&identifier == &this->identifiers.back() ? U"" : U".");
     }
 
     bool is_function = this->identifiers.size() == 1 && this->identifiers[0] == "func";
@@ -313,7 +313,7 @@ std::u32string kh::AstDeclaration::strfy(size_t indent) const {
         str += U'[' + strfy(dimension) + U']';
     }
 
-    str += U"\n\t" + ind + U"name: " + decodeUtf8(this->var_name);
+    str += U"\n\t" + ind + U"name: " + utf8Decode(this->var_name);
 
     if (this->expression)
         str += U"\n\t" + ind + U"initializer expression:\n\t\t" + ind +
@@ -335,13 +335,13 @@ std::u32string kh::AstFunction::strfy(size_t indent) const {
     else {
         str += U"\n\t" + ind + U"name: ";
         for (const std::string& identifier : this->identifiers) {
-            str += decodeUtf8(identifier) + (&identifier == &this->identifiers.back() ? U"" : U".");
+            str += utf8Decode(identifier) + (&identifier == &this->identifiers.back() ? U"" : U".");
         }
 
         if (!this->generic_args.empty()) {
             str += U"\n\t" + ind + U"generic argument(s): ";
             for (const std::string& generic_ : this->generic_args) {
-                str += decodeUtf8(generic_) + (&generic_ == &this->generic_args.back() ? U"" : U", ");
+                str += utf8Decode(generic_) + (&generic_ == &this->generic_args.back() ? U"" : U", ");
             }
         }
 
@@ -388,7 +388,7 @@ std::u32string kh::AstScoping::strfy(size_t indent) const {
 
     if (!this->identifiers.empty()) {
         for (const std::string& identifier : this->identifiers) {
-            str += (&this->identifiers.back() == &identifier ? U"" : U".") + decodeUtf8(identifier);
+            str += (&this->identifiers.back() == &identifier ? U"" : U".") + utf8Decode(identifier);
         }
     }
 

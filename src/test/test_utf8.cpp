@@ -17,7 +17,7 @@ static std::vector<std::string>* errors_ptr;
 
 static void utf8EncodeTest() {
     try {
-        KH_TEST_ASSERT(encodeUtf8(KH_TEST_U32STRING) == KH_TEST_U8STRING);
+        KH_TEST_ASSERT(utf8Encode(KH_TEST_U32STRING) == KH_TEST_U8STRING);
     }
     catch (...) {
         errors_ptr->push_back("An exception was thrown in ");
@@ -31,7 +31,7 @@ error:
 
 static void utf8DecodeTest() {
     try {
-        KH_TEST_ASSERT(decodeUtf8(KH_TEST_U8STRING) == KH_TEST_U32STRING);
+        KH_TEST_ASSERT(utf8Decode(KH_TEST_U8STRING) == KH_TEST_U32STRING);
     }
     catch (...) {
         errors_ptr->push_back("An exception was thrown in ");

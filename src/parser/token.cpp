@@ -24,7 +24,7 @@ std::u32string kh::strfy(const Token& token, bool show_token_type) {
 
     switch (token.type) {
         case TokenType::IDENTIFIER:
-            str += decodeUtf8(token.value.identifier);
+            str += utf8Decode(token.value.identifier);
             break;
         case TokenType::OPERATOR:
             str += strfy(token.value.operator_type);

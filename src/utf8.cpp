@@ -14,7 +14,7 @@ std::string kh::Utf8DecodingException::format() const {
     return this->what + " at index " + std::to_string(this->index);
 }
 
-std::string kh::encodeUtf8(const std::u32string& str) {
+std::string kh::utf8Encode(const std::u32string& str) {
     std::string str8;
     str8.reserve(str.size());
 
@@ -42,7 +42,7 @@ std::string kh::encodeUtf8(const std::u32string& str) {
     return str8;
 }
 
-std::u32string kh::decodeUtf8(const std::string& str) {
+std::u32string kh::utf8Decode(const std::string& str) {
     std::u32string str32;
     str32.reserve(str.size());
 

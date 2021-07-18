@@ -85,7 +85,7 @@ static void handleArgs() {
         else {
             if (!silent) {
                 CLI_ERROR_BEGIN();
-                std::cout << "Unrecognized flag argument: " << encodeUtf8(arg) << '\n';
+                std::cout << "Unrecognized flag argument: " << utf8Encode(arg) << '\n';
                 CLI_ERROR_END();
             }
             std::exit(1);
@@ -130,7 +130,7 @@ static int execute() {
         std::u32string source;
 
         try {
-            source = readFile(excess_args[0]);
+            source = fileRead(excess_args[0]);
         }
         catch (Exception& exc) {
             if (!silent) {
@@ -165,7 +165,7 @@ static int execute() {
         if (show_tokens && !silent) {
             std::cout << "tokens:\n";
             for (Token& token : tokens) {
-                std::cout << '\t' << encodeUtf8(strfy(token, true)) << '\n';
+                std::cout << '\t' << utf8Encode(strfy(token, true)) << '\n';
             }
         }
 
@@ -191,7 +191,7 @@ static int execute() {
             code += parse_exceptions.size();
         }
         if (show_ast && !code && !silent) {
-            std::cout << encodeUtf8(strfy(ast)) << '\n';
+            std::cout << utf8Encode(strfy(ast)) << '\n';
         }
     }
 
@@ -224,7 +224,7 @@ int main(const int argc, char* argv[])
 #ifdef _WIN32
         args.push_back(strfy(std::wstring(argv[arg])));
 #else
-        args.push_back(decodeUtf8(std::string(argv[arg])));
+        args.push_back(utf8Decode(std::string(argv[arg])));
 #endif
 
     handleArgs();
