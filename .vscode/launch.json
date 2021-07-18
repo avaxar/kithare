@@ -7,7 +7,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/dist/GCC-Debug/kcr",
-            "preLaunchTask": "Kithare Build",
+            "preLaunchTask": "Kithare Debug Build",
             "args": [
                 "--test"
             ], // If we have any args to pass to kcr, set it here
