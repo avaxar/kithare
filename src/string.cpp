@@ -5,7 +5,6 @@
  */
 
 #include <kithare/string.hpp>
-#include <kithare/utf8.hpp>
 
 
 std::u32string kh::quote(const std::u32string& str) {

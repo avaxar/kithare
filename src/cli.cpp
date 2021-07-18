@@ -11,18 +11,14 @@
 #endif
 
 #include <chrono>
-#include <clocale>
 #include <iostream>
-#include <vector>
 
 #include <kithare/ansi.hpp>
 #include <kithare/file.hpp>
 #include <kithare/info.hpp>
 #include <kithare/lexer.hpp>
 #include <kithare/parser.hpp>
-#include <kithare/string.hpp>
 #include <kithare/test.hpp>
-#include <kithare/utf8.hpp>
 
 
 using namespace kh;
@@ -41,8 +37,16 @@ static bool nocolor = false, help = false, show_tokens = false, show_ast = false
 static std::vector<std::u32string> excess_args;
 
 static void handleArgs() {
+    bool got_file = false;
+
     for (std::u32string& _arg : args) {
         std::u32string arg;
+
+        /* Any arguments after the file name must be forwarded to the program*/
+        if (got_file) {
+            excess_args.push_back(_arg);
+            continue;
+        }
 
         /* Indicates that it is a flag argument (which starts with `-`. `--`, or `/`) */
         if (_arg.size() > 1 && _arg[0] == '-' && _arg[1] == '-') {
@@ -51,14 +55,15 @@ static void handleArgs() {
         else if (_arg.size() > 0 && (_arg[0] == '-' || _arg[0] == '/')) {
             arg = std::u32string(_arg.begin() + 1, _arg.end());
         }
-        /* Excess arguments */
         else {
+            /* Got the file argument */
+            got_file = true;
             excess_args.push_back(_arg);
             continue;
         }
 
         /* Sets the booleans of the specified flags */
-        if (arg == U"nocolor" || arg == U"nocolour" || arg == U"colorless" || arg == U"colourless") {
+        if (arg == U"nocolor") {
             nocolor = true;
         }
         else if (arg == U"h" || arg == U"help") {

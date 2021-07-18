@@ -7,7 +7,8 @@
 #pragma once
 
 #include <complex>
-#include <string>
+
+#include <kithare/utf8.hpp>
 
 
 namespace kh {

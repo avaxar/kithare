@@ -9,7 +9,6 @@
 #include <memory>
 #include <vector>
 
-#include <kithare/string.hpp>
 #include <kithare/token.hpp>
 
 

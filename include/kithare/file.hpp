@@ -6,9 +6,8 @@
 
 #pragma once
 
-#include <string>
 
-#include <kithare/exception.hpp>
+#include <kithare/utf8.hpp>
 
 
 namespace kh {

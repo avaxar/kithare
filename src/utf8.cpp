@@ -4,7 +4,6 @@
  * Copyright (C) 2021 Kithare Organization
  */
 
-#include <kithare/string.hpp>
 #include <kithare/utf8.hpp>
 
 

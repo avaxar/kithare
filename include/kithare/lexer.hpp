@@ -6,10 +6,10 @@
 
 #pragma once
 
+#include <cwctype>
+#include <functional>
 #include <vector>
 
-#include <kithare/exception.hpp>
-#include <kithare/string.hpp>
 #include <kithare/token.hpp>
 
 #define KH_LEX_CTX LexerContext& context

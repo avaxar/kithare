@@ -4,11 +4,8 @@
  * Copyright (C) 2021 Kithare Organization
  */
 
-#include <cwctype>
-#include <functional>
 
 #include <kithare/lexer.hpp>
-#include <kithare/utf8.hpp>
 
 
 using namespace kh;

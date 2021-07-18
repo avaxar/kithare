@@ -4,9 +4,7 @@
  * Copyright (C) 2021 Kithare Organization
  */
 
-#include <kithare/string.hpp>
 #include <kithare/token.hpp>
-#include <kithare/utf8.hpp>
 
 
 using namespace kh;

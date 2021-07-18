@@ -5,8 +5,6 @@
  */
 
 #include <kithare/file.hpp>
-#include <kithare/string.hpp>
-#include <kithare/utf8.hpp>
 
 
 using namespace kh;
