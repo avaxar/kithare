@@ -11,6 +11,7 @@
 #endif
 
 #include <chrono>
+#include <clocale>
 #include <iostream>
 
 #include <kithare/ansi.hpp>
