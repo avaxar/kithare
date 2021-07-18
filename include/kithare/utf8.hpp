@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <string>
-
 #include <kithare/exception.hpp>
 
 

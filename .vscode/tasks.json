@@ -6,8 +6,25 @@
             "label": "Kithare Debug Build",
             "command": "python3 build.py debug",
             "windows": {
-                // Windows override for builder command
-                "command": "python build.py debug",
+                "command": "python build.py debug"
+            },
+            "type": "shell",
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Kithare Release Build",
+            "command": "python3 build.py",
+            "windows": {
+                "command": "python build.py"
             },
             "type": "shell",
             "problemMatcher": [
@@ -17,6 +34,21 @@
                 "reveal": "always"
             },
             "group": "build"
+        },
+        {
+            "label": "Kithare Unit Tests",
+            "command": "python3 build.py test",
+            "windows": {
+                "command": "python build.py test"
+            },
+            "type": "shell",
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "test"
         }
     ]
 }

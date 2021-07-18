@@ -7,9 +7,6 @@
 #pragma once
 
 #include <kithare/ast.hpp>
-#include <kithare/exception.hpp>
-#include <kithare/string.hpp>
-#include <kithare/token.hpp>
 
 #define KH_PARSE_GUARD()                                                                    \
     do {                                                                                    \
