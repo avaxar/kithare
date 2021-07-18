@@ -21,3 +21,6 @@ test: make
 
 clean:
 	${PYTHON} build.py clean
+
+debug:
+	${PYTHON} build.py debug

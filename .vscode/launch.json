@@ -1,0 +1,44 @@
+// VS Code launch file for Kithare Debug builds
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Kithare Debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/dist/GCC-Debug/kcr",
+            "preLaunchTask": "Kithare Build",
+            "args": [
+                "--test"
+            ], // If we have any args to pass to kcr, set it here
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            // Windows specific overrides
+            "windows": {
+                "name": "Kithare Debug",
+                "type": "cppdbg",
+                "request": "launch",
+                // different program path
+                "program": "${workspaceFolder}/dist/MinGW-Debug/kcr.exe",
+            },
+            // Mac specific overrides
+            "osx": {
+                "name": "Kithare Debug",
+                "type": "cppdbg",
+                "request": "launch",
+                "program": "${workspaceFolder}/dist/GCC-Debug/kcr",
+                "MIMode": "lldb", // use lldb on mac
+            },
+        }
+    ]
+}

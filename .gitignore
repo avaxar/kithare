@@ -6,8 +6,12 @@ test.sh
 # Couple of IDEs' temporary/cache directory
 *~
 *.swp
-.vscode/
 .vs/
+
+# Ingnore only a few VS Code specific files, we want the user to still use
+# launch.json and tasks.json
+.vscode/c_cpp_properties.json
+.vscode/settings.json
 
 # Executable/compiler generated files
 /build

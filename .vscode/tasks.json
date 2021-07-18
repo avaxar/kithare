@@ -1,0 +1,22 @@
+// VS Code task to generate a Debug Kithare build
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Kithare Debug Build",
+            "command": "python3 build.py debug",
+            "windows": {
+                // Windows override for builder command
+                "command": "python build.py debug",
+            },
+            "type": "shell",
+            "problemMatcher": [
+                "$tsc"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        }
+    ]
+}

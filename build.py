@@ -35,9 +35,8 @@ going to run the tests, it does not do anything else.
 
 'python3 build.py clean' deletes folders that contain generated executable(s)
 and temporary build files that are cached for performance reasons. In normal
-usage one need not run this command, but in cases like change in compiler flags,
-change in version of compiler and/or deps, one needs to run this command before
-installation.
+usage one need not run this command, but in cases like change in version of
+compiler and/or deps, one needs to run this command before installation.
 
 Additionally on windows, one can run 'python3 build.py cleandep' to delete the
 installed SDL dependencies. Note that this command is not required at all in
@@ -49,6 +48,7 @@ Any other arguments passed to this builder will be forwarded to the compiler.
 
 
 import io
+import json
 import os
 import platform
 import shutil
@@ -58,6 +58,7 @@ import tarfile
 import time
 import urllib.request as urllib
 from functools import lru_cache
+from json.decoder import JSONDecodeError
 from pathlib import Path
 from typing import Union
 
@@ -176,9 +177,19 @@ class KithareBuilder:
         self.sdl_dir = self.basepath / "deps" / "SDL"
         self.sdl_mingw_include = self.sdl_dir / "include" / "SDL2"
 
-        dirname = f"{COMPILER}-{self.machine}"
+        # debug mode for the builder
+        debug = False
+        if args and args[0] == "debug":
+            debug = True
+            args = args[1:]
+
+        dirname = f"{COMPILER}-Debug" if debug else f"{COMPILER}-{self.machine}"
         self.builddir = self.basepath / "build" / dirname
         self.exepath = self.basepath / "dist" / dirname / EXE
+
+        # store a build conf file that contains cflags, so that all the source
+        # files are rebuilt if the cflags change
+        self.build_conf = self.builddir / "build_conf.json"
 
         if args:
             if args[0] == "test":
@@ -196,7 +207,7 @@ class KithareBuilder:
 
         # compiler flags
         self.cflags = [
-            "-O3",
+            "-g" if debug else "-O3",  # no -O3 on debug mode
             "-std=c++14",
             "-lSDL2",
             "-lSDL2main",
@@ -220,8 +231,7 @@ class KithareBuilder:
 
     def download_sdl_deps(self, name: str, version: str):
         """
-        SDL Dependency download utility for windows. Returns a bool on whether
-        the download actually happened or not
+        SDL Dependency download utility for windows.
         """
         download_link = "https://www.libsdl.org/"
         if name != "SDL2":
@@ -232,11 +242,9 @@ class KithareBuilder:
         download_path = self.sdl_dir / f"{name}-{version}"
         sdl_mingw = download_path / f"{self.machine_alt}-w64-mingw32"
         if download_path.is_dir():
-            ret = False
             print(f"Skipping {name} download because it already exists")
 
         else:
-            ret = True
             print(f"Downloading {name} from {download_link}")
             request = urllib.Request(
                 download_link,
@@ -262,7 +270,6 @@ class KithareBuilder:
                 shutil.copyfile(dll, self.exepath.parent / dll.name)
 
         self.cflags.extend(("-L", str(sdl_mingw / "lib")))
-        return ret
 
     def compile_gpp(self, src: Union[str, Path], output: Path, is_src: bool):
         """
@@ -274,7 +281,7 @@ class KithareBuilder:
         print("\nBuilding", f"file: {src}" if is_src else "executable")
         return run_cmd(cmd)
 
-    def build_sources(self, sdl_unupdated: bool):
+    def build_sources(self, build_skippable: bool):
         """
         Generate obj files from source files
         """
@@ -290,7 +297,7 @@ class KithareBuilder:
                 sys.exit(1)
 
             objfiles.append(ofile)
-            if sdl_unupdated and not should_build(file, ofile, self.baseinc):
+            if build_skippable and not should_build(file, ofile, self.baseinc):
                 skipped_files.append(str(file))
                 continue
 
@@ -318,11 +325,22 @@ class KithareBuilder:
 
         return objfiles
 
-    def build_exe(self, sdl_unupdated: bool):
+    def build_exe(self):
         """
         Generate final exe.
         """
-        objfiles = self.build_sources(sdl_unupdated)
+        # load old cflags from the previous build
+        try:
+            old_cflags = json.loads(self.build_conf.read_text())
+        except (FileNotFoundError, JSONDecodeError):
+            old_cflags = None
+
+        build_skippable = self.cflags == old_cflags
+        if not build_skippable:
+            # update conf file with latest cflags
+            self.build_conf.write_text(json.dumps(self.cflags))
+
+        objfiles = self.build_sources(build_skippable)
         if objfiles is None:
             print("\nSkipping final exe build, since it is already built")
             return
@@ -343,6 +361,8 @@ class KithareBuilder:
                 args += f" {ico_res}"
 
         ecode = self.compile_gpp(args, self.exepath, is_src=False)
+
+        # delete icon file
         if ico_res.is_file():
             ico_res.unlink()
 
@@ -353,12 +373,13 @@ class KithareBuilder:
         """
         Build Kithare
         """
+
+        # prepare directories
         self.builddir.mkdir(parents=True, exist_ok=True)
         self.exepath.parent.mkdir(parents=True, exist_ok=True)
 
         t1 = time.perf_counter()
         # Prepare dependencies and cflags with SDL flags
-        sdl_update = 0
         if COMPILER == "MinGW":
             if self.sdl_dir.is_dir():
                 # delete old SDL version installations, if any
@@ -368,20 +389,23 @@ class KithareBuilder:
                     if subdir.name not in saved_dirs:
                         rmtree(subdir)
 
+            # Download SDL deps if unavailable, and also updates cflags with
+            # SDL includes and libs
             self.sdl_mingw_include.mkdir(parents=True, exist_ok=True)
             for package, ver in SDL_DEPS.items():
-                sdl_update += self.download_sdl_deps(package, ver)
+                self.download_sdl_deps(package, ver)
 
             self.cflags.extend(("-I", str(self.sdl_mingw_include.parent)))
 
         t2 = time.perf_counter()
-        self.build_exe(not sdl_update)
+        self.build_exe()
         print("Done!")
 
         t3 = time.perf_counter()
+        # display stats
         print("\nSome timing stats for peeps who like to 'optimise':")
-        if COMPILER == "MinGW" and sdl_update:
-            print(f"SDL deps took {t2 - t1:.3f} seconds to install")
+        if COMPILER == "MinGW":
+            print(f"SDL deps took {t2 - t1:.3f} seconds to configure and install")
         print(f"Kithare took {t3 - t2:.3f} seconds to compile")
 
 
