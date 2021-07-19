@@ -101,7 +101,7 @@ def run_cmd(*cmd):
     proc = subprocess.run(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True
     )
-    print(proc.stdout)
+    print(proc.stdout, end="")
     if proc.returncode:
         print(f"{cmd[0]} command failed with exit code {proc.returncode}")
 
@@ -170,7 +170,7 @@ class CompilerPool:
         """
         Initialise CompilerPool instance. cflags are a list of compiler flags,
         while maxpoolsize is the limit on number of subprocesses that can be
-        opened at a given point. If not specifies (None), defaults to number of
+        opened at a given point. If not specified (None), defaults to number of
         cores on the machine
         """
         self.procs: dict[Path, subprocess.Popen] = {}
@@ -186,7 +186,7 @@ class CompilerPool:
 
     def _start_proc(self, cfile: Path, ofile: Path):
         """
-        Internal function to start a compile sub process
+        Internal function to start a compile subprocess
         """
         args = ["g++", "-o", ofile, "-c", cfile]
         args.extend(self.cflags)
@@ -468,7 +468,7 @@ class KithareBuilder:
             else:
                 args.append(ico_res)
 
-        print("Building executable")
+        print("\nBuilding executable")
         ecode = run_cmd("g++", "-o", self.exepath, *args)
 
         # delete icon file
