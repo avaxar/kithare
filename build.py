@@ -30,6 +30,12 @@ If you are on a 64-bit system, and want to compile for 32-bit architecture, pass
 '--arch=x86' as an argument to the build script (note that this might not work
 in some cases)
 
+By default, the builder uses all cores on the machine to build kithare. But if
+you want the builder to consume less CPU power while compiling (at the cost of
+longer compile times), you can use the '-j' flag to set the number of cores you
+want the builder to use. '-j1' means that you want to use only one core, '-j4'
+means that you want to use 4 cores, and so on.
+
 To just run tests, do 'python3 build.py test'. Note that this command is only
 going to run the tests, it does not do anything else.
 
@@ -57,11 +63,12 @@ import sys
 import tarfile
 import threading
 import time
+import subprocess
 import urllib.request as urllib
 from functools import lru_cache
 from json.decoder import JSONDecodeError
 from pathlib import Path
-from typing import Union
+from typing import Optional, Sequence
 
 INCLUDE_DIRNAME = "include"
 ICO_RES = "icon.res"
@@ -86,12 +93,19 @@ SDL_DEPS = {
 }
 
 
-def run_cmd(cmd: str):
+def run_cmd(*cmd):
     """
-    Helper function to run command in shell
+    Helper function to run command in subprocess
     """
-    print(cmd)
-    return os.system(cmd)
+    print(" ".join(map(str, cmd)))
+    proc = subprocess.run(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True
+    )
+    print(proc.stdout)
+    if proc.returncode:
+        print(f"{cmd[0]} command failed with exit code {proc.returncode}")
+
+    return proc.returncode
 
 
 @lru_cache(maxsize=256)
@@ -145,6 +159,102 @@ def rmtree(top: Path):
         newpath.unlink()
 
     top.rmdir()
+
+
+class CompilerPool:
+    """
+    A pool of C++ files to be compiled in multiple subprocesses
+    """
+
+    def __init__(self, cflags: list, maxpoolsize: Optional[int] = None):
+        """
+        Initialise CompilerPool instance. cflags are a list of compiler flags,
+        while maxpoolsize is the limit on number of subprocesses that can be
+        opened at a given point. If not specifies (None), defaults to number of
+        cores on the machine
+        """
+        self.procs: dict[Path, subprocess.Popen] = {}
+        self.queued_procs: list[tuple[Path, Path]] = []
+        self.failed: bool = False
+        self.cflags: list[str] = cflags
+
+        if maxpoolsize is None:
+            cpu_count = os.cpu_count()
+            self.maxpoolsize = cpu_count if cpu_count is not None else 1
+        else:
+            self.maxpoolsize = maxpoolsize
+
+    def _start_proc(self, cfile: Path, ofile: Path):
+        """
+        Internal function to start a compile sub process
+        """
+        args = ["g++", "-o", ofile, "-c", cfile]
+        args.extend(self.cflags)
+
+        self.procs[cfile] = subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+        )
+
+    def update(self):
+        """
+        If we have room for running more procs, start them up
+        """
+        for cfile, proc in tuple(self.procs.items()):
+            if proc.poll() is None:
+                # proc is still running
+                continue
+
+            print(f"\nBuilding file: {cfile}")
+            stdout, _ = proc.communicate()
+
+            if isinstance(proc.args, str):
+                cmd = proc.args
+            elif isinstance(proc.args, bytes):
+                cmd = proc.args.decode()
+            elif isinstance(proc.args, Sequence):
+                cmd = " ".join(map(str, proc.args))
+            else:
+                cmd = proc.args
+
+            print(cmd, stdout, sep="\n", end="")
+            if proc.returncode:
+                print(f"g++ exited with error code: {proc.returncode}")
+                self.failed = True
+
+            # pop finished process from dict
+            self.procs.pop(cfile)
+
+            # start a new process
+            if self.queued_procs:
+                self._start_proc(*self.queued_procs.pop())
+
+    def add_proc(self, cfile: Path, ofile: Path):
+        """
+        Add a command to be executed in the queue
+        """
+        self.update()
+        if len(self.procs) >= self.maxpoolsize:
+            # pool is full, queue the command
+            self.queued_procs.append((cfile, ofile))
+        else:
+            self._start_proc(cfile, ofile)
+
+    def poll(self):
+        """
+        Returns False when all files in the pool were compiled
+        """
+        return bool(self.queued_procs or self.procs)
+
+    def wait(self):
+        """
+        Block until all queued files are compiled
+        """
+        while self.poll():
+            self.update()
+            time.sleep(0.001)
 
 
 class KithareBuilder:
@@ -220,7 +330,7 @@ class KithareBuilder:
             "-lSDL2_ttf",
             "-lSDL2_mixer",
             "-lSDL2_net",
-            f"-I {self.baseinc}",
+            f"-I{self.baseinc}",
         ]
 
         if COMPILER == "MinGW":
@@ -229,9 +339,17 @@ class KithareBuilder:
         if is_32_bit and "-m32" not in args:
             self.cflags.append("-m32")
 
+        self.j_flag: Optional[int] = None
+
         # update compiler flags with more args
         for i in args:
-            if not i.startswith("--arch="):
+            if i.startswith("-j"):
+                try:
+                    self.j_flag = int(i[2:])
+                except ValueError:
+                    pass
+
+            elif not i.startswith("--arch="):
                 self.cflags.append(i)
 
     def download_sdl_deps(self, name: str, version: str):
@@ -273,27 +391,16 @@ class KithareBuilder:
             if dll.name not in (x.name for x in self.exepath.parent.glob("*.dll")):
                 shutil.copyfile(dll, self.exepath.parent / dll.name)
 
-        self.cflags.extend(("-L", str(sdl_mingw / "lib")))
-
-    def compile_gpp(self, src: Union[str, Path], output: Path, is_src: bool):
-        """
-        Used to execute g++ commands
-        """
-        srcflag = "-c " if is_src else ""
-        cmd = f"g++ -o {output} {srcflag}{src} " + " ".join(self.cflags)
-
-        print("\nBuilding", f"file: {src}" if is_src else "executable")
-        return run_cmd(cmd)
+        self.cflags.append(f"-L{sdl_mingw / 'lib'}")
 
     def build_sources(self, build_skippable: bool):
         """
         Generate obj files from source files
         """
-        isfailed = False
-        ecode = 0
-
         skipped_files: list[str] = []
         objfiles: list[Path] = []
+
+        compilerpool = CompilerPool(self.cflags, self.j_flag)
         for file in self.basepath.glob("src/**/*.cpp"):
             ofile = self.builddir / f"{file.stem}.o"
             if ofile in objfiles:
@@ -305,11 +412,9 @@ class KithareBuilder:
                 skipped_files.append(str(file))
                 continue
 
-            ecode = self.compile_gpp(file, ofile, is_src=True)
-            if ecode:
-                isfailed = True
-                print("g++ command exited with an error code:", ecode)
+            compilerpool.add_proc(file, ofile)
 
+        compilerpool.wait()
         if skipped_files:
             if len(skipped_files) == 1:
                 print(f"\nSkipping file {skipped_files[0]}")
@@ -319,7 +424,7 @@ class KithareBuilder:
                 print("\n".join(skipped_files))
                 print("Because the intermediate object files are already built")
 
-        if isfailed:
+        if compilerpool.failed:
             print("Skipped building executable, because all files didn't build")
             sys.exit(1)
 
@@ -341,16 +446,15 @@ class KithareBuilder:
 
         # because order of args should not matter here
         build_skippable = sorted(self.cflags) == sorted(old_cflags)
-        if not build_skippable:
-            # update conf file with latest cflags
-            self.build_conf.write_text(json.dumps(self.cflags))
 
         objfiles = self.build_sources(build_skippable)
         if objfiles is None:
             print("\nSkipping final exe build, since it is already built")
             return
 
-        args = " ".join(map(str, objfiles))
+        args = []
+        args.extend(objfiles)
+        args.extend(self.cflags)
 
         # Handle exe icon on MinGW
         ico_res = self.basepath / ICO_RES
@@ -358,14 +462,14 @@ class KithareBuilder:
             assetfile = self.basepath / "assets" / "Kithare.rc"
 
             print("\nRunning windres command to set icon for exe")
-            ret = run_cmd(f"windres {assetfile} -O coff -o {ico_res}")
+            ret = run_cmd("windres", assetfile, "-O", "coff", "-o", ico_res)
             if ret:
-                print(f"windres command failed with exit code {ret}")
                 print("This means the final exe will not have the kithare logo")
             else:
-                args += f" {ico_res}"
+                args.append(ico_res)
 
-        ecode = self.compile_gpp(args, self.exepath, is_src=False)
+        print("Building executable")
+        ecode = run_cmd("g++", "-o", self.exepath, *args)
 
         # delete icon file
         if ico_res.is_file():
@@ -373,6 +477,10 @@ class KithareBuilder:
 
         if ecode:
             sys.exit(ecode)
+
+        if not build_skippable:
+            # update conf file with latest cflags
+            self.build_conf.write_text(json.dumps(self.cflags))
 
     def build(self):
         """
@@ -411,7 +519,7 @@ class KithareBuilder:
                 thread.join()
 
             # update cflags with SDL include
-            self.cflags.extend(("-I", str(self.sdl_mingw_include.parent)))
+            self.cflags.append(f"-I{self.sdl_mingw_include.parent}")
 
         t2 = time.perf_counter()
         self.build_exe()
