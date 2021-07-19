@@ -41,7 +41,7 @@ jobs:
         sudo apt-get install libsdl2-dev libjpeg-dev libwebp-dev libtiff5-dev libsdl2-image-dev libmikmod-dev libfishsound1-dev libsmpeg-dev liboggz2-dev libflac-dev libfluidsynth-dev libsdl2-mixer-dev libfreetype6-dev libsdl2-ttf-dev libsdl2-net-dev -y
 
     - name: Build source and tests
-      run: python3 build.py
+      run: python3 build.py -j4
     
     - name: Run tests
       run: python3 build.py test
