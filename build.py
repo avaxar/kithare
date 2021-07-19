@@ -55,6 +55,7 @@ import shutil
 import stat
 import sys
 import tarfile
+import threading
 import time
 import urllib.request as urllib
 from functools import lru_cache
@@ -73,7 +74,7 @@ if COMPILER == "MinGW":
 # While we recursively search for include files, we don't want to seach
 # the whole file, because that would waste a lotta time. So, we just take
 # an arbitrary line number limit, beyond which, we won't search
-INC_FILE_LINE_LIMIT = 50
+INC_FILE_LINE_LIMIT = 75
 
 # SDL project-version pairs, remember to keep updated
 SDL_DEPS = {
@@ -93,12 +94,16 @@ def run_cmd(cmd: str):
     return os.system(cmd)
 
 
-@lru_cache(maxsize=128)
+@lru_cache(maxsize=256)
 def find_includes_max_time(file: Path, incdir: Path) -> float:
     """
     Recursively find include files for a given file. Returns the latest time a
     file was modified
     """
+    if not file.suffix:
+        # no suffix for filename, C++ stdlib header
+        return -1
+
     try:
         ret = file.stat().st_mtime
     except FileNotFoundError:
@@ -131,14 +136,13 @@ def rmtree(top: Path):
     Reimplementation of shutil.rmtree. The reason shutil.rmtree itself is not
     used, is of a permission error in windows.
     """
-    for root, dirs, files in os.walk(top, topdown=False):
-        for name in files:
-            filename = os.path.join(root, name)
-            os.chmod(filename, stat.S_IWUSR)
-            os.remove(filename)
+    for newpath in top.iterdir():
+        if newpath.is_dir():
+            rmtree(newpath)
+            continue
 
-        for name in dirs:
-            os.rmdir(os.path.join(root, name))
+        newpath.chmod(stat.S_IWUSR)
+        newpath.unlink()
 
     top.rmdir()
 
@@ -201,8 +205,9 @@ class KithareBuilder:
                         rmtree(dist.parent)
                 sys.exit(0)
 
-            if args[0] == "cleandep" and self.sdl_dir.is_dir() and COMPILER == "MinGW":
-                rmtree(self.sdl_dir)
+            if args[0] == "cleandep" and COMPILER == "MinGW":
+                if self.sdl_dir.is_dir():
+                    rmtree(self.sdl_dir)
                 sys.exit(0)
 
         # compiler flags
@@ -253,7 +258,6 @@ class KithareBuilder:
             with urllib.urlopen(request) as download:
                 response = download.read()
 
-            print("Extracting compressed files")
             with io.BytesIO(response) as fileobj:
                 with tarfile.open(mode="r:gz", fileobj=fileobj) as tarred:
                     tarred.extractall(self.sdl_dir)
@@ -333,9 +337,10 @@ class KithareBuilder:
         try:
             old_cflags = json.loads(self.build_conf.read_text())
         except (FileNotFoundError, JSONDecodeError):
-            old_cflags = None
+            old_cflags = []
 
-        build_skippable = self.cflags == old_cflags
+        # because order of args should not matter here
+        build_skippable = sorted(self.cflags) == sorted(old_cflags)
         if not build_skippable:
             # update conf file with latest cflags
             self.build_conf.write_text(json.dumps(self.cflags))
@@ -389,12 +394,23 @@ class KithareBuilder:
                     if subdir.name not in saved_dirs:
                         rmtree(subdir)
 
-            # Download SDL deps if unavailable, and also updates cflags with
-            # SDL includes and libs
+            # make SDL include dir
             self.sdl_mingw_include.mkdir(parents=True, exist_ok=True)
-            for package, ver in SDL_DEPS.items():
-                self.download_sdl_deps(package, ver)
 
+            # Download SDL deps if unavailable, use threading to download deps
+            # concurrently
+            threads: set[threading.Thread] = set()
+            for package_and_ver in SDL_DEPS.items():
+                thread = threading.Thread(
+                    target=self.download_sdl_deps, args=package_and_ver, daemon=True
+                )
+                thread.start()
+                threads.add(thread)
+
+            for thread in threads:
+                thread.join()
+
+            # update cflags with SDL include
             self.cflags.extend(("-I", str(self.sdl_mingw_include.parent)))
 
         t2 = time.perf_counter()
@@ -402,6 +418,7 @@ class KithareBuilder:
         print("Done!")
 
         t3 = time.perf_counter()
+
         # display stats
         print("\nSome timing stats for peeps who like to 'optimise':")
         if COMPILER == "MinGW":
