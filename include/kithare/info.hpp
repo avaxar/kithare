@@ -14,9 +14,8 @@
 
 #define KH_VERSION_STR "v0.0.1rc1"
 
-#if defined(_MSC_VER)
-#define KH_COMPILER "MSVC"
-#elif defined(__MINGW64__)
+
+#if defined(__MINGW64__)
 #define KH_COMPILER "MinGW-x64"
 #elif defined(__MINGW32__)
 #define KH_COMPILER "MinGW"

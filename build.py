@@ -30,7 +30,7 @@ If you are on a 64-bit system, and want to compile for 32-bit architecture, pass
 '--arch=x86' as an argument to the build script (note that this might not work
 in some cases)
 
-By default, the builder uses all cores on the machine to build kithare. But if
+By default, the builder uses all cores on the machine to build Kithare. But if
 you want the builder to consume less CPU power while compiling (at the cost of
 longer compile times), you can use the '-j' flag to set the number of cores you
 want the builder to use. '-j1' means that you want to use only one core, '-j4'
@@ -44,7 +44,7 @@ and temporary build files that are cached for performance reasons. In normal
 usage one need not run this command, but in cases like change in version of
 compiler and/or deps, one needs to run this command before installation.
 
-Additionally on windows, one can run 'python3 build.py cleandep' to delete the
+Additionally on Windows, one can run 'python3 build.py cleandep' to delete the
 installed SDL dependencies. Note that this command is not required at all in
 normal usage, and has been only provided for completeness sake, use only if
 you know what you are doing.
@@ -59,16 +59,17 @@ import os
 import platform
 import shutil
 import stat
+import subprocess
 import sys
 import tarfile
 import threading
 import time
-import subprocess
 import urllib.request as urllib
 from functools import lru_cache
 from json.decoder import JSONDecodeError
 from pathlib import Path
-from typing import Optional, Sequence
+from queue import Queue
+from typing import Optional, Sequence, Union
 
 INCLUDE_DIRNAME = "include"
 ICO_RES = "icon.res"
@@ -77,6 +78,10 @@ EXE = "kcr"
 COMPILER = "MinGW" if platform.system() == "Windows" else "GCC"
 if COMPILER == "MinGW":
     EXE += ".exe"
+
+    if sys.version_info < (3, 8):
+        # Because there is a pathlib + subprocess bug on py < 3.8 on windows
+        raise RuntimeError("Kithare builder needs atleast Python v3.8 on Windows")
 
 # While we recursively search for include files, we don't want to seach
 # the whole file, because that would waste a lotta time. So, we just take
@@ -93,17 +98,40 @@ SDL_DEPS = {
 }
 
 
-def run_cmd(*cmd):
+class BuildError(Exception):
     """
-    Helper function to run command in subprocess
+    Exception class for all build related exceptions
     """
-    print(" ".join(map(str, cmd)))
+
+    def __init__(self, emsg: str, ecode: int = 1):
+        """
+        Initialise exception object
+        """
+        super().__init__(self, emsg)
+        self.emsg = emsg
+        self.ecode = ecode
+
+
+def run_cmd(*cmds: Union[str, Path]):
+    """
+    Helper function to run command in subprocess.
+    Prints the command, command output, and error exit code (if nonzero), and
+    also returns the exit code
+    """
+    print(*cmds)
+
+    # run with subprocess
     proc = subprocess.run(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True
+        cmds,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        universal_newlines=True,
+        check=False,
     )
+
     print(proc.stdout, end="")
     if proc.returncode:
-        print(f"{cmd[0]} command failed with exit code {proc.returncode}")
+        print(f"{cmds[0]} command failed with exit code {proc.returncode}")
 
     return proc.returncode
 
@@ -147,18 +175,198 @@ def should_build(file: Path, ofile: Path, incdir: Path):
 
 def rmtree(top: Path):
     """
-    Reimplementation of shutil.rmtree. The reason shutil.rmtree itself is not
-    used, is of a permission error in windows.
+    Reimplementation of shutil.rmtree, used to remove a directory. Returns a
+    boolean on whether top was a directory or not (in the latter case this
+    function does nothing). This function may raise BuildErrors on any internal
+    OSErrors that happen.
+    The reason shutil.rmtree itself is not used, is of a permission error on
+    Windows.
     """
-    for newpath in top.iterdir():
-        if newpath.is_dir():
-            rmtree(newpath)
-            continue
+    if not top.is_dir():
+        return False
 
-        newpath.chmod(stat.S_IWUSR)
-        newpath.unlink()
+    try:
+        for newpath in top.iterdir():
+            if not rmtree(newpath):
+                # could not rmtree newpath because it is a file, hence unlink
+                newpath.chmod(stat.S_IWUSR)
+                newpath.unlink()
 
-    top.rmdir()
+        top.rmdir()
+        return True
+    except OSError:
+        raise BuildError(f"Could not delete directory {top}") from None
+
+
+def copy(file: Path, dest: Path, overwrite: bool = True):
+    """
+    Thin wrapper around shutil.copy, raises BuildError if the copy failed. Also,
+    overwrite arg is a bool that indicates whether the file is overwritten if it
+    already exists
+    """
+    if dest.exists() and not overwrite:
+        return
+
+    try:
+        shutil.copy(file, dest)
+    except OSError:
+        raise BuildError(f"Could not copy file {file} to {dest} directory") from None
+
+
+def get_machine(is_32_bit: bool):
+    """
+    Utility to get string representation of the machine name
+    """
+    machine = platform.machine()
+    if machine.endswith("86"):
+        machine = "x86"
+
+    elif machine.lower() in ["x86_64", "amd64"]:
+        machine = "x86" if is_32_bit else "x64"
+
+    elif machine.lower() in ["armv8l", "arm64", "aarch64"]:
+        machine = "ARM" if is_32_bit else "ARM64"
+
+    elif machine.lower().startswith("arm"):
+        machine = "ARM"
+
+    elif not machine:
+        machine = "Unknown"
+
+    return machine
+
+
+class SDLInstaller:
+    """
+    Helper class to install SDL deps on MinGW
+    """
+
+    def __init__(self, basepath: Path, dist_dir: Path, machine: str):
+        """
+        Initialise SDLInstaller class
+        """
+        self.sdl_dir = basepath / "deps" / "SDL"
+        self.sdl_include = self.sdl_dir / "include" / "SDL2"
+
+        self.dist_dir = dist_dir
+        if machine == "x64":
+            self.sdl_type = "x86_64-w64-mingw32"
+        elif machine == "x86":
+            self.sdl_type = "i686-w64-mingw32"
+        else:
+            raise BuildError("Windows on ARM CPU is not supported yet")
+
+        self.flag_q: Queue[str] = Queue()
+        self.updated: bool = False
+
+    def clean(self):
+        """
+        Clean (remove) SDL install directory
+        """
+        rmtree(self.sdl_dir)
+
+    def download_dep(self, name: str, version: str):
+        """
+        Download an SDL dep using urllib. Returns whether download was
+        successful or not.
+        """
+        download_link = "https://www.libsdl.org/"
+        if name != "SDL2":
+            download_link += f"projects/{name}/".replace("2", "")
+
+        download_link += f"release/{name}-devel-{version}-mingw.tar.gz"
+
+        print(f"Downloading {name} from {download_link}")
+        request = urllib.Request(
+            download_link,
+            headers={"User-Agent": "Chrome/35.0.1916.47 Safari/537.36"},
+        )
+        try:
+            with urllib.urlopen(request) as download:
+                response = download.read()
+        except OSError:
+            # some networking error
+            print(
+                f"Failed to download {name} due to some networking error\n"
+                "This error will be ignored for now, but may cause build "
+                "errors later on during compilation"
+            )
+            return False
+
+        # extract downloaded dep into SDL dir
+        with io.BytesIO(response) as fileobj:
+            with tarfile.open(mode="r:gz", fileobj=fileobj) as tarred:
+                tarred.extractall(self.sdl_dir)
+
+        print(f"Finished downloading {name}")
+        return True
+
+    def install(self, name: str, version: str):
+        """
+        SDL dependency download utility for Windows. Given a SDL dep name and
+        version, this function installs that dependency into the SDL folder,
+        bundles the include files into their own folder, bundles the DLLs in the
+        exe dir, and updates flag_q with the path to the lib dir
+        """
+        sdl_mingw_dep = self.sdl_dir / f"{name}-{version}" / self.sdl_type
+        if sdl_mingw_dep.is_dir():
+            is_downloaded = True
+            overwrite_existing = False
+            print(f"Skipping {name} download because it already exists")
+
+        else:
+            self.updated = overwrite_existing = True
+            is_downloaded = self.download_dep(name, version)
+
+            if is_downloaded:
+                # Copy includes
+                for header in sdl_mingw_dep.glob("include/SDL2/*.h"):
+                    copy(header, self.sdl_include)
+
+        if is_downloaded:
+            # Copy DLLs that have not been copied already
+            for dll in sdl_mingw_dep.glob("bin/*.dll"):
+                copy(dll, self.dist_dir, overwrite_existing)
+
+            self.flag_q.put(f"-L{sdl_mingw_dep / 'lib'}")
+
+    def install_all(self):
+        """
+        Utility function to install all SDL deps. Deletes any old SDL install,
+        and downloads the deps concurrently, and returns a list of compiler
+        flags needed to include SDL
+        """
+        if self.sdl_dir.is_dir():
+            # delete old SDL version installations, if any
+            saved_dirs = [f"{n}-{v}" for n, v in SDL_DEPS.items()]
+            saved_dirs.append("include")
+            for subdir in self.sdl_dir.iterdir():
+                if subdir.name not in saved_dirs:
+                    rmtree(subdir)
+
+        # make SDL include dir
+        self.sdl_include.mkdir(parents=True, exist_ok=True)
+
+        # Download SDL deps if unavailable, use threading to download deps
+        # concurrently
+        threads: set[threading.Thread] = set()
+        for package_and_ver in SDL_DEPS.items():
+            thread = threading.Thread(
+                target=self.install, args=package_and_ver, daemon=True
+            )
+            thread.start()
+            threads.add(thread)
+
+        ret: list[str] = []
+        for thread in threads:
+            thread.join()
+            # after thread finishes, get from queue the path of the lib
+            if not self.flag_q.empty():
+                ret.append(self.flag_q.get())
+
+        # update cflags with SDL include
+        ret.append(f"-I{self.sdl_include.parent}")
+        return ret
 
 
 class CompilerPool:
@@ -166,17 +374,18 @@ class CompilerPool:
     A pool of C++ files to be compiled in multiple subprocesses
     """
 
-    def __init__(self, cflags: list, maxpoolsize: Optional[int] = None):
+    def __init__(self, maxpoolsize: Optional[int], *cflags: str):
         """
-        Initialise CompilerPool instance. cflags are a list of compiler flags,
-        while maxpoolsize is the limit on number of subprocesses that can be
-        opened at a given point. If not specified (None), defaults to number of
-        cores on the machine
+        Initialise CompilerPool instance. maxpoolsize is the limit on number of
+        subprocesses that can be opened at a given point. If not specified
+        (None), defaults to number of cores on the machine. The varargs cflags
+        are compiler flags to be passed
         """
-        self.procs: dict[Path, subprocess.Popen] = {}
+        self.cflags = cflags
+
+        self.procs: dict[Path, subprocess.Popen[str]] = {}
         self.queued_procs: list[tuple[Path, Path]] = []
         self.failed: bool = False
-        self.cflags: list[str] = cflags
 
         if maxpoolsize is None:
             cpu_count = os.cpu_count()
@@ -188,9 +397,10 @@ class CompilerPool:
         """
         Internal function to start a compile subprocess
         """
-        args = ["g++", "-o", ofile, "-c", cfile]
+        args: list[Union[str, Path]] = ["g++", "-o", ofile, "-c", cfile]
         args.extend(self.cflags)
 
+        # pylint: disable=consider-using-with
         self.procs[cfile] = subprocess.Popen(
             args,
             stdout=subprocess.PIPE,
@@ -200,7 +410,10 @@ class CompilerPool:
 
     def update(self):
         """
-        If we have room for running more procs, start them up
+        Runs an "update" operation. Any processes that have been finished are
+        removed from the process pool after the subprocess output has been
+        printed along with the return code (on error). Starts a new subprocess
+        from the queued pending process pool.
         """
         for cfile, proc in tuple(self.procs.items()):
             if proc.poll() is None:
@@ -208,18 +421,20 @@ class CompilerPool:
                 continue
 
             print(f"\nBuilding file: {cfile}")
+
+            # stderr is redirected to stdout here
             stdout, _ = proc.communicate()
 
             if isinstance(proc.args, str):
-                cmd = proc.args
+                print(proc.args)
             elif isinstance(proc.args, bytes):
-                cmd = proc.args.decode()
+                print(proc.args.decode())
             elif isinstance(proc.args, Sequence):
-                cmd = " ".join(map(str, proc.args))
+                print(*proc.args)
             else:
-                cmd = proc.args
+                print(proc.args)
 
-            print(cmd, stdout, sep="\n", end="")
+            print(stdout, end="")
             if proc.returncode:
                 print(f"g++ exited with error code: {proc.returncode}")
                 self.failed = True
@@ -227,24 +442,29 @@ class CompilerPool:
             # pop finished process from dict
             self.procs.pop(cfile)
 
-            # start a new process
+            # start a new process from queued process
             if self.queued_procs:
                 self._start_proc(*self.queued_procs.pop())
 
-    def add_proc(self, cfile: Path, ofile: Path):
+    def add(self, cfile: Path, ofile: Path):
         """
-        Add a command to be executed in the queue
+        Add a source file to be compiled into the compiler pool. cfile is the
+        Path object to the source file, while ofile is the Path object to the
+        output file
         """
-        self.update()
         if len(self.procs) >= self.maxpoolsize:
             # pool is full, queue the command
             self.queued_procs.append((cfile, ofile))
         else:
             self._start_proc(cfile, ofile)
 
+        # call an update
+        self.update()
+
     def poll(self):
         """
-        Returns False when all files in the pool were compiled
+        Returns False when all files in the pool finished compiling, True
+        otherwise
         """
         return bool(self.queued_procs or self.procs)
 
@@ -267,29 +487,9 @@ class KithareBuilder:
         Initialise kithare builder
         """
         self.basepath = basepath
-        self.baseinc = basepath / INCLUDE_DIRNAME
 
         is_32_bit = "--arch=x86" in args
-        self.machine = platform.machine()
-        if self.machine.endswith("86"):
-            self.machine = "x86"
-            self.machine_alt = "i686"
-
-        elif self.machine.lower() in ["x86_64", "amd64"]:
-            self.machine = "x86" if is_32_bit else "x64"
-            self.machine_alt = "i686" if is_32_bit else "x86_64"
-
-        elif self.machine.lower() in ["armv8l", "arm64", "aarch64"]:
-            self.machine = "ARM" if is_32_bit else "ARM64"
-
-        elif self.machine.lower().startswith("arm"):
-            self.machine = "ARM"
-
-        elif not self.machine:
-            self.machine = "None"
-
-        self.sdl_dir = self.basepath / "deps" / "SDL"
-        self.sdl_mingw_include = self.sdl_dir / "include" / "SDL2"
+        machine = get_machine(is_32_bit)
 
         # debug mode for the builder
         debug = False
@@ -297,28 +497,13 @@ class KithareBuilder:
             debug = True
             args = args[1:]
 
-        dirname = f"{COMPILER}-Debug" if debug else f"{COMPILER}-{self.machine}"
+        dirname = f"{COMPILER}-Debug" if debug else f"{COMPILER}-{machine}"
         self.builddir = self.basepath / "build" / dirname
         self.exepath = self.basepath / "dist" / dirname / EXE
 
-        # store a build conf file that contains cflags, so that all the source
-        # files are rebuilt if the cflags change
-        self.build_conf = self.builddir / "build_conf.json"
-
+        self.sdl_installer = SDLInstaller(basepath, self.exepath.parent, machine)
         if args:
-            if args[0] == "test":
-                sys.exit(os.system(f"{self.exepath} --test"))
-
-            if args[0] == "clean":
-                for dist in {self.builddir, self.exepath.parent}:
-                    if dist.parent.is_dir():
-                        rmtree(dist.parent)
-                sys.exit(0)
-
-            if args[0] == "cleandep" and COMPILER == "MinGW":
-                if self.sdl_dir.is_dir():
-                    rmtree(self.sdl_dir)
-                sys.exit(0)
+            self.handle_first_arg(args[0])
 
         # compiler flags
         self.cflags = [
@@ -330,7 +515,7 @@ class KithareBuilder:
             "-lSDL2_ttf",
             "-lSDL2_mixer",
             "-lSDL2_net",
-            f"-I{self.baseinc}",
+            f"-I{basepath / INCLUDE_DIRNAME}",
         ]
 
         if COMPILER == "MinGW":
@@ -352,67 +537,46 @@ class KithareBuilder:
             elif not i.startswith("--arch="):
                 self.cflags.append(i)
 
-    def download_sdl_deps(self, name: str, version: str):
+    def handle_first_arg(self, arg: str):
         """
-        SDL Dependency download utility for windows.
+        Utility method to handle the first argument
         """
-        download_link = "https://www.libsdl.org/"
-        if name != "SDL2":
-            download_link += f"projects/{name}/".replace("2", "")
+        if arg == "test":
+            sys.exit(run_cmd(self.exepath, "--test"))
 
-        download_link += f"release/{name}-devel-{version}-mingw.tar.gz"
+        if arg == "clean":
+            for dist in {self.builddir, self.exepath.parent}:
+                rmtree(dist.parent)
+            sys.exit(0)
 
-        download_path = self.sdl_dir / f"{name}-{version}"
-        sdl_mingw = download_path / f"{self.machine_alt}-w64-mingw32"
-        if download_path.is_dir():
-            print(f"Skipping {name} download because it already exists")
+        if arg == "cleandep":
+            if COMPILER == "GCC":
+                raise BuildError("The flag 'cleandep' is not supported on your OS")
 
-        else:
-            print(f"Downloading {name} from {download_link}")
-            request = urllib.Request(
-                download_link,
-                headers={"User-Agent": "Chrome/35.0.1916.47 Safari/537.36"},
-            )
-            with urllib.urlopen(request) as download:
-                response = download.read()
-
-            with io.BytesIO(response) as fileobj:
-                with tarfile.open(mode="r:gz", fileobj=fileobj) as tarred:
-                    tarred.extractall(self.sdl_dir)
-
-            print(f"Finished downloading {name}")
-
-            # Copy includes
-            for header in sdl_mingw.glob("include/SDL2/*.h"):
-                shutil.copyfile(header, self.sdl_mingw_include / header.name)
-
-        # Copy DLLs that have not been copied already
-        for dll in sdl_mingw.glob("bin/*.dll"):
-            if dll.name not in (x.name for x in self.exepath.parent.glob("*.dll")):
-                shutil.copyfile(dll, self.exepath.parent / dll.name)
-
-        self.cflags.append(f"-L{sdl_mingw / 'lib'}")
+            self.sdl_installer.clean()
+            sys.exit(0)
 
     def build_sources(self, build_skippable: bool):
         """
         Generate obj files from source files
         """
-        skipped_files: list[str] = []
+        skipped_files: list[Path] = []
         objfiles: list[Path] = []
 
-        compilerpool = CompilerPool(self.cflags, self.j_flag)
+        compilerpool = CompilerPool(self.j_flag, *self.cflags)
         for file in self.basepath.glob("src/**/*.cpp"):
             ofile = self.builddir / f"{file.stem}.o"
             if ofile in objfiles:
-                print("BuildError: Got duplicate filename in Kithare source")
-                sys.exit(1)
+                raise BuildError("Got duplicate filename in Kithare source")
 
             objfiles.append(ofile)
-            if build_skippable and not should_build(file, ofile, self.baseinc):
-                skipped_files.append(str(file))
+            if build_skippable and not should_build(
+                file, ofile, self.basepath / INCLUDE_DIRNAME
+            ):
+                skipped_files.append(file)
                 continue
 
-            compilerpool.add_proc(file, ofile)
+            compilerpool.add(file, ofile)
 
         compilerpool.wait()
         if skipped_files:
@@ -421,12 +585,13 @@ class KithareBuilder:
                 print("Because the intermediate object file is already built")
             else:
                 print("\nSkipping files:")
-                print("\n".join(skipped_files))
+                print(*skipped_files, sep="\n")
                 print("Because the intermediate object files are already built")
 
         if compilerpool.failed:
-            print("Skipped building executable, because all files didn't build")
-            sys.exit(1)
+            raise BuildError(
+                "Skipped building executable, because all files didn't build"
+            )
 
         if len(objfiles) == len(skipped_files) and self.exepath.is_file():
             # exe is already up to date
@@ -439,8 +604,9 @@ class KithareBuilder:
         Generate final exe.
         """
         # load old cflags from the previous build
+        build_conf = self.builddir / "build_conf.json"
         try:
-            old_cflags = json.loads(self.build_conf.read_text())
+            old_cflags = json.loads(build_conf.read_text())
         except (FileNotFoundError, JSONDecodeError):
             old_cflags = []
 
@@ -452,10 +618,6 @@ class KithareBuilder:
             print("\nSkipping final exe build, since it is already built")
             return
 
-        args = []
-        args.extend(objfiles)
-        args.extend(self.cflags)
-
         # Handle exe icon on MinGW
         ico_res = self.basepath / ICO_RES
         if COMPILER == "MinGW":
@@ -466,10 +628,10 @@ class KithareBuilder:
             if ret:
                 print("This means the final exe will not have the kithare logo")
             else:
-                args.append(ico_res)
+                objfiles.append(ico_res)
 
         print("\nBuilding executable")
-        ecode = run_cmd("g++", "-o", self.exepath, *args)
+        ecode = run_cmd("g++", "-o", self.exepath, *objfiles, *self.cflags)
 
         # delete icon file
         if ico_res.is_file():
@@ -480,63 +642,41 @@ class KithareBuilder:
 
         if not build_skippable:
             # update conf file with latest cflags
-            self.build_conf.write_text(json.dumps(self.cflags))
+            build_conf.write_text(json.dumps(self.cflags))
 
     def build(self):
         """
         Build Kithare
         """
-
         # prepare directories
         self.builddir.mkdir(parents=True, exist_ok=True)
         self.exepath.parent.mkdir(parents=True, exist_ok=True)
 
-        t1 = time.perf_counter()
+        t_1 = time.perf_counter()
         # Prepare dependencies and cflags with SDL flags
         if COMPILER == "MinGW":
-            if self.sdl_dir.is_dir():
-                # delete old SDL version installations, if any
-                saved_dirs = [f"{n}-{v}" for n, v in SDL_DEPS.items()]
-                saved_dirs.append("include")
-                for subdir in self.sdl_dir.iterdir():
-                    if subdir.name not in saved_dirs:
-                        rmtree(subdir)
+            self.cflags.extend(self.sdl_installer.install_all())
 
-            # make SDL include dir
-            self.sdl_mingw_include.mkdir(parents=True, exist_ok=True)
-
-            # Download SDL deps if unavailable, use threading to download deps
-            # concurrently
-            threads: set[threading.Thread] = set()
-            for package_and_ver in SDL_DEPS.items():
-                thread = threading.Thread(
-                    target=self.download_sdl_deps, args=package_and_ver, daemon=True
-                )
-                thread.start()
-                threads.add(thread)
-
-            for thread in threads:
-                thread.join()
-
-            # update cflags with SDL include
-            self.cflags.append(f"-I{self.sdl_mingw_include.parent}")
-
-        t2 = time.perf_counter()
+        t_2 = time.perf_counter()
         self.build_exe()
         print("Done!")
 
-        t3 = time.perf_counter()
+        t_3 = time.perf_counter()
 
         # display stats
         print("\nSome timing stats for peeps who like to 'optimise':")
-        if COMPILER == "MinGW":
-            print(f"SDL deps took {t2 - t1:.3f} seconds to configure and install")
-        print(f"Kithare took {t3 - t2:.3f} seconds to compile")
+        if self.sdl_installer.updated:
+            print(f"SDL deps took {t_2 - t_1:.3f} seconds to configure and install")
+        print(f"Kithare took {t_3 - t_2:.3f} seconds to compile")
 
 
 if __name__ == "__main__":
     argv = sys.argv.copy()
     dname = Path(argv.pop(0)).parent
 
-    kithare = KithareBuilder(dname, *argv)
-    kithare.build()
+    try:
+        kithare = KithareBuilder(dname, *argv)
+        kithare.build()
+    except BuildError as err:
+        print("\nBuildError:", err.emsg)
+        sys.exit(err.ecode)

@@ -6,7 +6,7 @@
             "label": "Kithare Debug Build",
             "command": "python3 build.py debug",
             "windows": {
-                "command": "python build.py debug"
+                "command": "py -3 build.py debug"
             },
             "type": "shell",
             "problemMatcher": [
@@ -24,7 +24,7 @@
             "label": "Kithare Release Build",
             "command": "python3 build.py",
             "windows": {
-                "command": "python build.py"
+                "command": "py -3 build.py"
             },
             "type": "shell",
             "problemMatcher": [

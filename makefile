@@ -8,7 +8,7 @@
 # python needs to be installed for this makefile to work
 
 ifeq ($(OS),Windows_NT)
-	PYTHON = python
+	PYTHON = py -3
 else
 	PYTHON = python3
 endif
