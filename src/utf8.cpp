@@ -4,13 +4,14 @@
  * Copyright (C) 2021 Kithare Organization
  */
 
+#include <kithare/string.hpp>
 #include <kithare/utf8.hpp>
 
 
 using namespace kh;
 
 std::string kh::Utf8DecodingException::format() const {
-    return this->what + " at index " + std::to_string(this->index);
+    return this->what + " at index " + strfy((uint64_t)this->index);
 }
 
 std::string kh::utf8Encode(const std::u32string& str) {

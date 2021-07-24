@@ -10,8 +10,8 @@
 using namespace kh;
 
 std::string kh::ParseException::format() const {
-    return this->what + " at line " + std::to_string(this->token.line) + " column " +
-           std::to_string(this->token.column);
+    return this->what + " at line " + strfy((uint64_t)this->token.line) + " column " +
+           strfy((uint64_t)this->token.column);
 }
 
 AstModule kh::parse(const std::vector<Token>& tokens) {
@@ -169,9 +169,8 @@ AstModule kh::parseWhole(KH_PARSE_CTX) {
                 }
                 else {
                     context.ti++;
-                    context.exceptions.emplace_back("unexpected `" + utf8Encode(strfy(token)) +
-                                                        "` while parsing the top scope",
-                                                    token);
+                    context.exceptions.emplace_back(
+                        "unexpected `" + strfy(token) + "` while parsing the top scope", token);
                 }
                 break;
 
@@ -179,7 +178,7 @@ AstModule kh::parseWhole(KH_PARSE_CTX) {
             default:
                 context.ti++;
                 context.exceptions.emplace_back(
-                    "unexpected `" + utf8Encode(strfy(token)) + "` while parsing the top scope", token);
+                    "unexpected `" + strfy(token) + "` while parsing the top scope", token);
         }
     }
 
@@ -723,7 +722,7 @@ AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
 
                         default:
                             context.ti++;
-                            context.exceptions.emplace_back("unexpected `" + utf8Encode(strfy(token)) +
+                            context.exceptions.emplace_back("unexpected `" + strfy(token) +
                                                                 "` while parsing the " + type_name +
                                                                 " body",
                                                             token);
@@ -732,7 +731,7 @@ AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
 
                 default:
                     context.ti++;
-                    context.exceptions.emplace_back("unexpected `" + utf8Encode(strfy(token)) +
+                    context.exceptions.emplace_back("unexpected `" + strfy(token) +
                                                         "` while parsing the " + type_name + " body",
                                                     token);
             }
@@ -786,7 +785,7 @@ AstEnumType kh::parseEnum(KH_PARSE_CTX) {
             }
             else {
                 context.exceptions.emplace_back(
-                    "unexpected `" + utf8Encode(strfy(token)) + "` while parsing the enum body", token);
+                    "unexpected `" + strfy(token) + "` while parsing the enum body", token);
 
                 context.ti++;
                 KH_PARSE_GUARD();
@@ -832,7 +831,7 @@ AstEnumType kh::parseEnum(KH_PARSE_CTX) {
             for (size_t member = 0; member < members.size() - 1; member++) {
                 if (members[member] == members.back()) {
                     context.exceptions.emplace_back("this enum member has the same name as the #" +
-                                                        std::to_string(member + 1) + " member",
+                                                        strfy(member + 1) + " member",
                                                     token);
                     break;
                 }

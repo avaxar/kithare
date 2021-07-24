@@ -229,8 +229,8 @@ AstExpression* kh::parseUnary(KH_PARSE_CTX) {
 
             default:
                 context.ti++;
-                context.exceptions.emplace_back(
-                    "unexpected `" + utf8Encode(strfy(token)) + "` in an expression", token);
+                context.exceptions.emplace_back("unexpected `" + strfy(token) + "` in an expression",
+                                                token);
         }
     }
     else {
@@ -499,15 +499,15 @@ AstExpression* kh::parseOthers(KH_PARSE_CTX) {
 
                 default:
                     context.exceptions.emplace_back(
-                        "unexpected `" + utf8Encode(strfy(token)) + "` in an expression", token);
+                        "unexpected `" + strfy(token) + "` in an expression", token);
                     context.ti++;
                     goto end;
             }
             break;
 
         default:
-            context.exceptions.emplace_back(
-                "unexpected `" + utf8Encode(strfy(token)) + "` in an expression", token);
+            context.exceptions.emplace_back("unexpected `" + strfy(token) + "` in an expression",
+                                            token);
             context.ti++;
             goto end;
     }
@@ -865,7 +865,7 @@ std::vector<uint64_t> kh::parseArrayDimension(KH_PARSE_CTX, AstIdentifiers& type
         }
         else {
             context.exceptions.emplace_back(
-                "unexpected `" + utf8Encode(strfy(token)) + "` while parsing the array size", token);
+                "unexpected `" + strfy(token) + "` while parsing the array size", token);
         }
         context.ti++;
         KH_PARSE_GUARD();

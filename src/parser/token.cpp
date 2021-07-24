@@ -14,15 +14,15 @@ Token::Token() : column(0), line(0), index(0), length(0), type(), value() {}
 Token::Token(size_t _index, size_t _end, TokenType _type, const TokenValue& _value)
     : column(0), line(0), index(_index), length(_end - index), type(_type), value(_value) {}
 
-std::u32string kh::strfy(const Token& token, bool show_token_type) {
-    std::u32string str;
+std::string kh::strfy(const Token& token, bool show_token_type) {
+    std::string str;
     if (show_token_type) {
-        str = strfy(token.type) + U' ';
+        str = strfy(token.type) + ' ';
     }
 
     switch (token.type) {
         case TokenType::IDENTIFIER:
-            str += utf8Decode(token.value.identifier);
+            str += token.value.identifier;
             break;
         case TokenType::OPERATOR:
             str += strfy(token.value.operator_type);
@@ -51,150 +51,150 @@ std::u32string kh::strfy(const Token& token, bool show_token_type) {
             str += strfy(token.value.floating);
             break;
         case TokenType::IMAGINARY:
-            str += strfy(token.value.imaginary) + U"i";
+            str += strfy(token.value.imaginary) + 'i';
             break;
 
         default:
-            str = U"unknown";
+            str = "unknown";
     }
 
     return str;
 }
 
-std::u32string kh::strfy(TokenType type) {
+std::string kh::strfy(TokenType type) {
     switch (type) {
         case TokenType::IDENTIFIER:
-            return U"identifier";
+            return "identifier";
         case TokenType::OPERATOR:
-            return U"operator";
+            return "operator";
         case TokenType::SYMBOL:
-            return U"symbol";
+            return "symbol";
 
         case TokenType::CHARACTER:
-            return U"character";
+            return "character";
         case TokenType::STRING:
-            return U"string";
+            return "string";
         case TokenType::BUFFER:
-            return U"buffer";
+            return "buffer";
 
         case TokenType::UINTEGER:
-            return U"uinteger";
+            return "uinteger";
         case TokenType::INTEGER:
-            return U"integer";
+            return "integer";
         case TokenType::FLOATING:
-            return U"floating";
+            return "floating";
         case TokenType::IMAGINARY:
-            return U"imaginary";
+            return "imaginary";
 
         default:
-            return U"unknown";
+            return "unknown";
     }
 }
 
-std::u32string kh::strfy(Operator op) {
+std::string kh::strfy(Operator op) {
     switch (op) {
         case Operator::ADD:
-            return U"+";
+            return "+";
         case Operator::SUB:
-            return U"-";
+            return "-";
         case Operator::MUL:
-            return U"*";
+            return "*";
         case Operator::DIV:
-            return U"/";
+            return "/";
         case Operator::MOD:
-            return U"%";
+            return "%";
         case Operator::POW:
-            return U"^";
+            return "^";
 
         case Operator::IADD:
-            return U"+=";
+            return "+=";
         case Operator::ISUB:
-            return U"-=";
+            return "-=";
         case Operator::IMUL:
-            return U"*=";
+            return "*=";
         case Operator::IDIV:
-            return U"/=";
+            return "/=";
         case Operator::IMOD:
-            return U"%=";
+            return "%=";
         case Operator::IPOW:
-            return U"^=";
+            return "^=";
 
         case Operator::INCREMENT:
-            return U"++";
+            return "++";
         case Operator::DECREMENT:
-            return U"--";
+            return "--";
 
         case Operator::EQUAL:
-            return U"==";
+            return "==";
         case Operator::NOT_EQUAL:
-            return U"!=";
+            return "!=";
         case Operator::LESS:
-            return U"<";
+            return "<";
         case Operator::MORE:
-            return U">";
+            return ">";
         case Operator::LESS_EQUAL:
-            return U"<=";
+            return "<=";
         case Operator::MORE_EQUAL:
-            return U">=";
+            return ">=";
 
         case Operator::BIT_AND:
-            return U"&";
+            return "&";
         case Operator::BIT_OR:
-            return U"|";
+            return "|";
         case Operator::BIT_NOT:
-            return U"~";
+            return "~";
 
         case Operator::BIT_LSHIFT:
-            return U"<<";
+            return "<<";
         case Operator::BIT_RSHIFT:
-            return U">>";
+            return ">>";
 
         case Operator::AND:
-            return U"and";
+            return "and";
         case Operator::OR:
-            return U"or";
+            return "or";
         case Operator::NOT:
-            return U"not";
+            return "not";
 
         case Operator::ASSIGN:
-            return U"=";
+            return "=";
         case Operator::SIZEOF:
-            return U"#";
+            return "#";
         case Operator::ADDRESS:
-            return U"@";
+            return "@";
 
         default:
-            return U"unknown";
+            return "unknown";
     }
 }
 
-std::u32string kh::strfy(Symbol sym) {
+std::string kh::strfy(Symbol sym) {
     switch (sym) {
         case Symbol::SEMICOLON:
-            return U";";
+            return ";";
         case Symbol::DOT:
-            return U".";
+            return ".";
         case Symbol::COMMA:
-            return U",";
+            return ",";
         case Symbol::COLON:
-            return U":";
+            return ":";
 
         case Symbol::PARENTHESES_OPEN:
-            return U"(";
+            return "(";
         case Symbol::PARENTHESES_CLOSE:
-            return U")";
+            return ")";
 
         case Symbol::CURLY_OPEN:
-            return U"{";
+            return "{";
         case Symbol::CURLY_CLOSE:
-            return U"}";
+            return "}";
 
         case Symbol::SQUARE_OPEN:
-            return U"[";
+            return "[";
         case Symbol::SQUARE_CLOSE:
-            return U"]";
+            return "]";
 
         default:
-            return U"unknown";
+            return "unknown";
     }
 }

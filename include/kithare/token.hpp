@@ -16,10 +16,10 @@ namespace kh {
     enum class Symbol;
     enum class TokenType;
 
-    std::u32string strfy(const Token& token, bool show_token_type = false);
-    std::u32string strfy(TokenType type);
-    std::u32string strfy(Operator op);
-    std::u32string strfy(Symbol sym);
+    std::string strfy(const Token& token, bool show_token_type = false);
+    std::string strfy(TokenType type);
+    std::string strfy(Operator op);
+    std::string strfy(Symbol sym);
 
     enum class Operator {
         ADD,

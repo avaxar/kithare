@@ -32,16 +32,16 @@ using namespace kh;
     if (!nocolor)       \
         std::cerr << KH_ANSI_RESET;
 
-static std::vector<std::u32string> args;
+static std::vector<std::string> args;
 static bool nocolor = false, help = false, show_tokens = false, show_ast = false, show_timer = false,
             silent = false, test_mode = false, version = false;
-static std::vector<std::u32string> excess_args;
+static std::vector<std::string> excess_args;
 
 static void handleArgs() {
     bool got_file = false;
 
-    for (std::u32string& _arg : args) {
-        std::u32string arg;
+    for (std::string& _arg : args) {
+        std::string arg;
 
         /* Any arguments after the file name must be forwarded to the program*/
         if (got_file) {
@@ -51,10 +51,10 @@ static void handleArgs() {
 
         /* Indicates that it is a flag argument (which starts with `-`. `--`, or `/`) */
         if (_arg.size() > 1 && _arg[0] == '-' && _arg[1] == '-') {
-            arg = std::u32string(_arg.begin() + 2, _arg.end());
+            arg = std::string(_arg.begin() + 2, _arg.end());
         }
         else if (_arg.size() > 0 && (_arg[0] == '-' || _arg[0] == '/')) {
-            arg = std::u32string(_arg.begin() + 1, _arg.end());
+            arg = std::string(_arg.begin() + 1, _arg.end());
         }
         else {
             /* Got the file argument */
@@ -64,34 +64,34 @@ static void handleArgs() {
         }
 
         /* Sets the booleans of the specified flags */
-        if (arg == U"nocolor") {
+        if (arg == "nocolor") {
             nocolor = true;
         }
-        else if (arg == U"h" || arg == U"help") {
+        else if (arg == "h" || arg == "help") {
             help = true;
         }
-        else if (arg == U"tokens") {
+        else if (arg == "tokens") {
             show_tokens = true;
         }
-        else if (arg == U"ast") {
+        else if (arg == "ast") {
             show_ast = true;
         }
-        else if (arg == U"t" || arg == U"timer") {
+        else if (arg == "t" || arg == "timer") {
             show_timer = true;
         }
-        else if (arg == U"s" || arg == U"silent") {
+        else if (arg == "s" || arg == "silent") {
             silent = true;
         }
-        else if (arg == U"test") {
+        else if (arg == "test") {
             test_mode = true;
         }
-        else if (arg == U"v" || arg == U"version") {
+        else if (arg == "v" || arg == "version") {
             version = true;
         }
         else {
             if (!silent) {
                 CLI_ERROR_BEGIN();
-                std::cout << "Unrecognized flag argument: " << utf8Encode(arg) << '\n';
+                std::cout << "Unrecognized flag argument: " << arg << '\n';
                 CLI_ERROR_END();
             }
             std::exit(1);
@@ -171,7 +171,7 @@ static int execute() {
         if (show_tokens && !silent) {
             std::cout << "tokens:\n";
             for (Token& token : tokens) {
-                std::cout << '\t' << utf8Encode(strfy(token, true)) << '\n';
+                std::cout << '\t' << strfy(token, true) << '\n';
             }
         }
 
@@ -197,7 +197,7 @@ static int execute() {
             code += parse_exceptions.size();
         }
         if (show_ast && !code && !silent) {
-            std::cout << utf8Encode(strfy(ast)) << '\n';
+            std::cout << strfy(ast) << '\n';
         }
     }
 
@@ -226,12 +226,13 @@ int main(const int argc, char* argv[])
     args.reserve(argc - 1);
 
     /* Ignore the first argument */
-    for (int arg = 1; arg < argc; arg++)
+    for (int arg = 1; arg < argc; arg++) {
 #ifdef _WIN32
         args.push_back(strfy(std::wstring(argv[arg])));
 #else
-        args.push_back(utf8Decode(std::string(argv[arg])));
+        args.push_back(std::string(argv[arg]));
 #endif
+    }
 
     handleArgs();
     return execute();

@@ -18,6 +18,6 @@ namespace kh {
         virtual std::string format() const;
     };
 
-    std::u32string fileRead(const std::u32string& path);
-    std::string fileReadBinary(const std::u32string& path);
+    std::u32string fileRead(const std::string& path);
+    std::string fileReadBinary(const std::string& path);
 }

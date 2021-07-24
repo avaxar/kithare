@@ -11,8 +11,8 @@
 using namespace kh;
 
 std::string kh::LexException::format() const {
-    return this->what + " at line " + std::to_string(this->line) + " column " +
-           std::to_string(this->column);
+    return this->what + " at line " + strfy((uint64_t)this->line) + " column " +
+           strfy((uint64_t)this->column);
 }
 
 std::vector<Token> kh::lex(const std::u32string& source) {
