@@ -204,7 +204,7 @@ def copy(file: Path, dest: Path, overwrite: bool = True):
     overwrite arg is a bool that indicates whether the file is overwritten if it
     already exists
     """
-    if dest.exists() and not overwrite:
+    if not overwrite and (dest / file.name).exists():
         return
 
     try:
@@ -364,6 +364,8 @@ class SDLInstaller:
             if not self.flag_q.empty():
                 ret.append(self.flag_q.get())
 
+        print()  # newline
+
         # update cflags with SDL include
         ret.append(f"-I{self.sdl_include.parent}")
         return ret
@@ -420,7 +422,7 @@ class CompilerPool:
                 # proc is still running
                 continue
 
-            print(f"\nBuilding file: {cfile}")
+            print(f"Building file: {cfile}")
 
             # stderr is redirected to stdout here
             stdout, _ = proc.communicate()
@@ -434,10 +436,12 @@ class CompilerPool:
             else:
                 print(proc.args)
 
-            print(stdout, end="")
             if proc.returncode:
-                print(f"g++ exited with error code: {proc.returncode}")
+                print(stdout, end="")
+                print(f"g++ exited with error code: {proc.returncode}\n")
                 self.failed = True
+            else:
+                print(stdout)
 
             # pop finished process from dict
             self.procs.pop(cfile)
@@ -488,7 +492,7 @@ class KithareBuilder:
         """
         self.basepath = basepath
 
-        is_32_bit = "--arch=x86" in args
+        is_32_bit = "--arch=x86" in args or "-m32" in args
         machine = get_machine(is_32_bit)
 
         # debug mode for the builder
@@ -531,8 +535,13 @@ class KithareBuilder:
             if i.startswith("-j"):
                 try:
                     self.j_flag = int(i[2:])
+                    if self.j_flag <= 0:
+                        raise ValueError()
+
                 except ValueError:
-                    pass
+                    raise BuildError(
+                        "Argument '-j' must be a positive integer"
+                    ) from None
 
             elif not i.startswith("--arch="):
                 self.cflags.append(i)
@@ -558,7 +567,9 @@ class KithareBuilder:
 
     def build_sources(self, build_skippable: bool):
         """
-        Generate obj files from source files
+        Generate obj files from source files, returns a list of generated
+        objfiles. May also return None if all older objfiles are up date and
+        dist exe already exists.
         """
         skipped_files: list[Path] = []
         objfiles: list[Path] = []
@@ -581,12 +592,12 @@ class KithareBuilder:
         compilerpool.wait()
         if skipped_files:
             if len(skipped_files) == 1:
-                print(f"\nSkipping file {skipped_files[0]}")
-                print("Because the intermediate object file is already built")
+                print(f"Skipping file {skipped_files[0]}")
+                print("Because the intermediate object file is already built\n")
             else:
-                print("\nSkipping files:")
+                print("Skipping files:")
                 print(*skipped_files, sep="\n")
-                print("Because the intermediate object files are already built")
+                print("Because the intermediate object files are already built\n")
 
         if compilerpool.failed:
             raise BuildError(
@@ -615,7 +626,7 @@ class KithareBuilder:
 
         objfiles = self.build_sources(build_skippable)
         if objfiles is None:
-            print("\nSkipping final exe build, since it is already built")
+            print("Skipping final exe build, since it is already built")
             return
 
         # Handle exe icon on MinGW
@@ -623,14 +634,16 @@ class KithareBuilder:
         if COMPILER == "MinGW":
             assetfile = self.basepath / "assets" / "Kithare.rc"
 
-            print("\nRunning windres command to set icon for exe")
+            print("Running windres command to set icon for exe")
             ret = run_cmd("windres", assetfile, "-O", "coff", "-o", ico_res)
             if ret:
                 print("This means the final exe will not have the kithare logo")
             else:
                 objfiles.append(ico_res)
 
-        print("\nBuilding executable")
+            print()  # newline
+
+        print("Building executable")
         ecode = run_cmd("g++", "-o", self.exepath, *objfiles, *self.cflags)
 
         # delete icon file
@@ -659,12 +672,12 @@ class KithareBuilder:
 
         t_2 = time.perf_counter()
         self.build_exe()
-        print("Done!")
+        print("Done!\n")
 
         t_3 = time.perf_counter()
 
         # display stats
-        print("\nSome timing stats for peeps who like to 'optimise':")
+        print("Some timing stats for peeps who like to 'optimise':")
         if self.sdl_installer.updated:
             print(f"SDL deps took {t_2 - t_1:.3f} seconds to configure and install")
         print(f"Kithare took {t_3 - t_2:.3f} seconds to compile")
@@ -678,5 +691,5 @@ if __name__ == "__main__":
         kithare = KithareBuilder(dname, *argv)
         kithare.build()
     except BuildError as err:
-        print("\nBuildError:", err.emsg)
+        print("BuildError:", err.emsg)
         sys.exit(err.ecode)
