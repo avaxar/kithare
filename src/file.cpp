@@ -22,7 +22,7 @@ std::string kh::fileReadBinary(const std::u32string& path) {
      * handles UTF-8 file paths on MinGW correctly */
     std::string ret;
     FILE* file;
-#if _WIN32
+#ifdef _WIN32
     std::wstring u16path;
     u16path.reserve(path.size());
     for (char32_t ch : path) {
