@@ -1005,7 +1005,7 @@ std::vector<Token> kh::lex(KH_LEX_CTX) {
             line++;
         }
 
-        if (tokens[token_index].index == i) {
+        if (tokens[token_index].begin == i) {
             tokens[token_index].column = column;
             tokens[token_index].line = line;
             token_index++;

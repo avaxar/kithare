@@ -192,11 +192,11 @@ end:
         cleaned_exceptions.reserve(context.exceptions.size());
 
         for (ParseException& exc : context.exceptions) {
-            if (last_element == nullptr || last_index != exc.token.index ||
+            if (last_element == nullptr || last_index != exc.token.begin ||
                 last_element->what != exc.what) {
                 cleaned_exceptions.push_back(exc);
             }
-            last_index = exc.token.index;
+            last_index = exc.token.begin;
             last_element = &exc;
         }
 
@@ -268,7 +268,7 @@ AstImport kh::parseImport(KH_PARSE_CTX, bool is_include) {
     bool is_relative = false;
     std::string identifier;
     Token token = context.tok();
-    size_t index = token.index;
+    size_t index = token.begin;
 
     std::string type = is_include ? "include" : "import";
 
@@ -369,7 +369,7 @@ AstFunction kh::parseFunction(KH_PARSE_CTX, bool is_conditional) {
     std::vector<std::shared_ptr<AstBody>> body;
 
     Token token = context.tok();
-    size_t index = token.index;
+    size_t index = token.begin;
 
     if (!(token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::PARENTHESES_OPEN)) {
         /* Parses the function's identifiers and generic args */
@@ -508,13 +508,13 @@ AstFunction kh::parseFunction(KH_PARSE_CTX, bool is_conditional) {
             }
         }
         else {
-            return_type = AstIdentifiers(token.index, {"void"}, {}, {}, {});
+            return_type = AstIdentifiers(token.begin, {"void"}, {}, {}, {});
 
             context.exceptions.emplace_back("expected a `->` specifying a return type", token);
         }
     }
     else {
-        return_type = AstIdentifiers(token.index, {"void"}, {}, {}, {});
+        return_type = AstIdentifiers(token.begin, {"void"}, {}, {}, {});
     }
 
     /* Parses the function's body */
@@ -532,7 +532,7 @@ AstDeclaration kh::parseDeclaration(KH_PARSE_CTX) {
     size_t refs = 0;
 
     Token token = context.tok();
-    size_t index = token.index;
+    size_t index = token.begin;
 
     /* Checks if the variable type is a `ref`erence type */
     while (token.type == TokenType::IDENTIFIER && token.value.identifier == "ref") {
@@ -593,7 +593,7 @@ AstUserType kh::parseUserType(KH_PARSE_CTX, bool is_class) {
     std::vector<AstFunction> methods;
 
     Token token = context.tok();
-    size_t index = token.index;
+    size_t index = token.begin;
 
     std::string type_name = is_class ? "class" : "struct";
 
@@ -754,7 +754,7 @@ AstEnumType kh::parseEnum(KH_PARSE_CTX) {
     uint64_t counter = 0;
 
     Token token = context.tok();
-    size_t index = token.index;
+    size_t index = token.begin;
 
     /* Gets the enum identifiers */
     std::vector<std::string> _generic_args;
@@ -883,7 +883,7 @@ std::vector<std::shared_ptr<AstBody>> kh::parseBody(KH_PARSE_CTX, size_t loop_co
     while (true) {
         KH_PARSE_GUARD();
         token = context.tok();
-        size_t index = token.index;
+        size_t index = token.begin;
 
         switch (token.type) {
             case TokenType::IDENTIFIER: {

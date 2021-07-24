@@ -107,14 +107,16 @@ namespace kh {
     };
 
     struct Token {
-        size_t column;
-        size_t line;
-        size_t index;
-        size_t length;
+        size_t begin;
+        size_t end;
         TokenType type;
         TokenValue value;
 
+        /* To be filled later */
+        size_t column;
+        size_t line;
+
         Token();
-        Token(size_t _index, size_t _end, TokenType _type, const TokenValue& _value);
+        Token(size_t _begin, size_t _end, TokenType _type, const TokenValue& _value);
     };
 }

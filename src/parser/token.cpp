@@ -9,10 +9,10 @@
 
 using namespace kh;
 
-Token::Token() : column(0), line(0), index(0), length(0), type(), value() {}
+Token::Token() : begin(0), end(0), type(), value(), column(0), line(0) {}
 
-Token::Token(size_t _index, size_t _end, TokenType _type, const TokenValue& _value)
-    : column(0), line(0), index(_index), length(_end - index), type(_type), value(_value) {}
+Token::Token(size_t _begin, size_t _end, TokenType _type, const TokenValue& _value)
+    : begin(_begin), end(_end), type(_type), value(_value), column(0), line(0) {}
 
 std::string kh::strfy(const Token& token, bool show_token_type) {
     std::string str;

@@ -141,11 +141,11 @@ std::string kh::AstIdentifiers::strfy(size_t indent) const {
             str += kh::strfy(this->generics[i], indent);
 
             for (size_t d = 0; d < this->generics_array[i].size(); d++) {
-                str += "[" + kh::strfy(this->generics_array[i][d]) + "]";
+                str += '[' + kh::strfy(this->generics_array[i][d]) + ']';
             }
 
             if (is_function && i == 0) {
-                str += "(";
+                str += '(';
             }
             else if (i != this->generics.size() - 1) {
                 str += ", ";
@@ -403,7 +403,7 @@ std::string kh::AstValue::strfy(size_t indent) const {
             break;
 
         case AstValue::ValueType::IMAGINARY:
-            str = "imaginary: " + kh::strfy(this->imaginary) + "i";
+            str = "imaginary: " + kh::strfy(this->imaginary) + 'i';
             break;
 
         case AstValue::ValueType::BUFFER:
