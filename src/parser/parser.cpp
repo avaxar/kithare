@@ -831,7 +831,7 @@ AstEnumType kh::parseEnum(KH_PARSE_CTX) {
             for (size_t member = 0; member < members.size() - 1; member++) {
                 if (members[member] == members.back()) {
                     context.exceptions.emplace_back("this enum member has the same name as the #" +
-                                                        strfy(member + 1) + " member",
+                                                        strfy((uint64_t)member + 1) + " member",
                                                     token);
                     break;
                 }
