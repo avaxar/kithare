@@ -267,9 +267,9 @@ AstImport kh::parseImport(KH_PARSE_CTX, bool is_include) {
     std::vector<std::string> path;
     bool is_relative = false;
     std::string identifier;
+
     Token token = context.tok();
     size_t index = token.begin;
-
     std::string type = is_include ? "include" : "import";
 
     /* Check if an import/include is relative */
@@ -362,9 +362,11 @@ AstFunction kh::parseFunction(KH_PARSE_CTX, bool is_conditional) {
     std::vector<std::string> identifiers;
     std::vector<std::string> generic_args;
     std::vector<uint64_t> id_array;
+
     AstIdentifiers return_type{0, {}, {}, {}, {}};
     std::vector<uint64_t> return_array = {};
     size_t return_refs = 0;
+
     std::vector<AstDeclaration> arguments;
     std::vector<std::shared_ptr<AstBody>> body;
 
@@ -520,8 +522,8 @@ AstFunction kh::parseFunction(KH_PARSE_CTX, bool is_conditional) {
     /* Parses the function's body */
     body = parseBody(context);
 end:
-    return {index,       identifiers, generic_args, id_array, return_array,
-            return_type, return_refs, arguments,    body,     is_conditional};
+    return {index,        identifiers, generic_args, id_array, return_type,
+            return_array, return_refs, arguments,    body,     is_conditional};
 }
 
 AstDeclaration kh::parseDeclaration(KH_PARSE_CTX) {

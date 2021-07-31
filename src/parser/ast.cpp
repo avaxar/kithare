@@ -14,8 +14,8 @@ kh::AstModule::AstModule(const std::vector<AstImport>& _imports,
                          const std::vector<AstUserType>& _user_types,
                          const std::vector<AstEnumType>& _enums,
                          const std::vector<AstDeclaration>& _variables)
-    : variables(_variables), imports(_imports), functions(_functions), user_types(_user_types),
-      enums(_enums) {}
+    : imports(_imports), functions(_functions), user_types(_user_types), enums(_enums),
+      variables(_variables) {}
 
 kh::AstImport::AstImport(size_t _index, const std::vector<std::string>& _path, bool _is_include,
                          bool _is_relative, const std::string& _identifier)
@@ -59,13 +59,12 @@ kh::AstDeclaration::AstDeclaration(size_t _index, const AstIdentifiers& _var_typ
 
 kh::AstFunction::AstFunction(size_t _index, const std::vector<std::string>& _identifiers,
                              const std::vector<std::string>& _generic_args,
-                             const std::vector<uint64_t>& _id_array,
-                             const std::vector<uint64_t>& _return_array,
-                             const AstIdentifiers& _return_type, size_t _return_refs,
+                             const std::vector<uint64_t>& _id_array, const AstIdentifiers& _return_type,
+                             const std::vector<uint64_t>& _return_array, size_t _return_refs,
                              const std::vector<AstDeclaration>& _arguments,
                              const std::vector<std::shared_ptr<AstBody>>& _body, bool _is_conditional)
     : identifiers(_identifiers), generic_args(_generic_args), id_array(_id_array),
-      return_array(_return_array), return_type(_return_type), return_refs(_return_refs),
+      return_type(_return_type), return_array(_return_array), return_refs(_return_refs),
       arguments(_arguments), body(_body), is_conditional(_is_conditional) {
     this->index = _index;
     this->type = AstBody::EXPRESSION;

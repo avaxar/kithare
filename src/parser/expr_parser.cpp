@@ -13,10 +13,8 @@ using namespace kh;
     do {                                                                                       \
         AstExpression* expr = lower(context);                                                  \
         Token token;                                                                           \
-        size_t index;                                                                          \
         KH_PARSE_GUARD();                                                                      \
         token = context.tok();                                                                 \
-        index = token.begin;                                                                   \
         while (token.type == TokenType::OPERATOR) {                                            \
             bool has_op = false;                                                               \
             for (const Operator op : operators) {                                              \
@@ -55,12 +53,7 @@ AstExpression* kh::parseExpression(const std::vector<Token>& tokens) {
 }
 
 AstExpression* kh::parseExpression(KH_PARSE_CTX) {
-    Token token = context.tok();
-    size_t index = token.begin;
-
     return parseAssignOps(context);
-end:
-    return nullptr;
 }
 
 AstExpression* kh::parseAssignOps(KH_PARSE_CTX) {
@@ -122,7 +115,6 @@ AstExpression* kh::parseAnd(KH_PARSE_CTX) {
 AstExpression* kh::parseNot(KH_PARSE_CTX) {
     AstExpression* expr = nullptr;
     Token token = context.tok();
-    size_t index = token.begin;
 
     if (token.type == TokenType::OPERATOR && token.value.operator_type == Operator::NOT) {
         context.ti++;
@@ -209,7 +201,6 @@ AstExpression* kh::parseMulDivMod(KH_PARSE_CTX) {
 AstExpression* kh::parseUnary(KH_PARSE_CTX) {
     AstExpression* expr = nullptr;
     Token token = context.tok();
-    size_t index = token.begin;
 
     if (token.type == TokenType::OPERATOR) {
         switch (token.value.operator_type) {
@@ -253,8 +244,8 @@ AstExpression* kh::parseRevUnary(KH_PARSE_CTX) {
     KH_PARSE_GUARD();
     token = context.tok();
 
-    while ((token.type == TokenType::OPERATOR && token.value.operator_type == Operator::INCREMENT ||
-            token.value.operator_type == Operator::DECREMENT) ||
+    while ((token.type == TokenType::OPERATOR && (token.value.operator_type == Operator::INCREMENT ||
+                                                  token.value.operator_type == Operator::DECREMENT)) ||
            (token.type == TokenType::SYMBOL && (token.value.symbol_type == Symbol::DOT ||
                                                 token.value.symbol_type == Symbol::PARENTHESES_OPEN ||
                                                 token.value.symbol_type == Symbol::SQUARE_OPEN))) {
@@ -342,7 +333,6 @@ end:
 AstExpression* kh::parseOthers(KH_PARSE_CTX) {
     AstExpression* expr = nullptr;
     Token token = context.tok();
-    size_t index = token.begin;
 
     switch (token.type) {
             /* For all of these literal values be given the AST constant value instance */
@@ -764,8 +754,6 @@ end:
 
 AstExpression* kh::parseList(KH_PARSE_CTX) {
     Token token = context.tok();
-    size_t index = token.begin;
-
     AstTuple* tuple = (AstTuple*)parseTuple(context, Symbol::SQUARE_OPEN, Symbol::SQUARE_CLOSE, false);
     AstList* list = new AstList(tuple->index, tuple->elements);
     delete tuple;
@@ -832,9 +820,7 @@ end:
 
 std::vector<uint64_t> kh::parseArrayDimension(KH_PARSE_CTX, AstIdentifiers& type) {
     std::vector<uint64_t> dimension;
-
     Token token = context.tok();
-    size_t index = token.begin;
 
     while (token.type == TokenType::SYMBOL && token.value.symbol_type == Symbol::SQUARE_OPEN) {
         context.ti++;

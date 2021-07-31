@@ -205,8 +205,8 @@ namespace kh {
 
         AstFunction(size_t _index, const std::vector<std::string>& _identifiers,
                     const std::vector<std::string>& _generic_args,
-                    const std::vector<uint64_t>& _id_array, const std::vector<uint64_t>& _return_array,
-                    const AstIdentifiers& _return_type, size_t _return_refs,
+                    const std::vector<uint64_t>& _id_array, const AstIdentifiers& _return_type,
+                    const std::vector<uint64_t>& _return_array, size_t _return_refs,
                     const std::vector<AstDeclaration>& _arguments,
                     const std::vector<std::shared_ptr<AstBody>>& _body, bool _is_conditional);
         virtual ~AstFunction() {}
