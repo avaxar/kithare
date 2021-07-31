@@ -69,7 +69,7 @@ from functools import lru_cache
 from json.decoder import JSONDecodeError
 from pathlib import Path
 from queue import Queue
-from typing import Optional, Sequence, Union
+from typing import Optional, Sequence, Set, Union
 
 INCLUDE_DIRNAME = "include"
 ICO_RES = "icon.res"
@@ -236,7 +236,69 @@ def get_machine(is_32_bit: bool):
     return machine
 
 
-class SDLInstaller:
+class DummySDLInstaller:
+    """
+    Dummy SDLInstaller class, with limited functionality. This class is kept
+    for compatability with non-windows OSes
+    """
+
+    def __init__(self):
+        """
+        Initialise DummySDLInstaller class
+        """
+        self.updated: bool = False
+        self.download_failed: bool = False
+
+        self._flag_q: Queue[str] = Queue()
+
+    def clean(self):  # pylint: disable=no-self-use
+        """
+        Dummy(abstract) method, subclasses override this
+        """
+        raise BuildError("The flag 'cleandep' is not supported on your OS")
+
+    def install_threaded(self, threads: Set[threading.Thread], package: str, ver: str):
+        """
+        Dummy(abstract) method, subclasses override this
+        """
+
+    def install_all(self):
+        """
+        Utility function to install all SDL deps. Deletes any old SDL install,
+        and downloads the deps concurrently, and returns a two element tuple,
+        first being flag for SDL include, and second is a list of SDL linking
+        linker flags.
+        """
+        # return linker args
+        ret: list[str] = []
+        threads: Set[threading.Thread] = set()
+
+        # Download SDL deps if unavailable, use threading to download deps
+        # concurrently
+        for package, ver in SDL_DEPS.items():
+            ret.append(f"-l{package}")
+            if package == "SDL2":
+                ret.append("-lSDL2main")
+
+            self.install_threaded(threads, package, ver)
+
+        for thread in threads:
+            # join all threads
+            thread.join()
+
+            if not self._flag_q.empty():
+                ret.append(self._flag_q.get())
+
+        if self.download_failed:
+            print(
+                "These error(s) will be ignored for now, but may cause build "
+                "errors later"
+            )
+
+        return "", ret
+
+
+class SDLInstaller(DummySDLInstaller):
     """
     Helper class to install SDL deps on MinGW
     """
@@ -245,19 +307,23 @@ class SDLInstaller:
         """
         Initialise SDLInstaller class
         """
+        super().__init__()
         self.sdl_dir = basepath / "deps" / "SDL"
         self.sdl_include = self.sdl_dir / "include" / "SDL2"
 
         self.dist_dir = dist_dir
+
         if machine == "x64":
             self.sdl_type = "x86_64-w64-mingw32"
         elif machine == "x86":
             self.sdl_type = "i686-w64-mingw32"
+        elif machine.startswith("ARM"):
+            raise BuildError("Windows builds are not supported yet on ARM CPU")
         else:
-            raise BuildError("Windows on ARM CPU is not supported yet")
-
-        self.flag_q: Queue[str] = Queue()
-        self.updated: bool = False
+            raise BuildError(
+                "Your CPU type could not be determined by the builder. If you "
+                "are seeing this message, report it to Kithare bug tracker."
+            )
 
     def clean(self):
         """
@@ -286,17 +352,19 @@ class SDLInstaller:
                 response = download.read()
         except OSError:
             # some networking error
-            print(
-                f"Failed to download {name} due to some networking error\n"
-                "This error will be ignored for now, but may cause build "
-                "errors later on during compilation"
-            )
+            print(f"Failed to download {name} due to some networking error")
             return False
 
         # extract downloaded dep into SDL dir
-        with io.BytesIO(response) as fileobj:
-            with tarfile.open(mode="r:gz", fileobj=fileobj) as tarred:
-                tarred.extractall(self.sdl_dir)
+        try:
+            with io.BytesIO(response) as fileobj:
+                with tarfile.open(mode="r:gz", fileobj=fileobj) as tarred:
+                    tarred.extractall(self.sdl_dir)
+
+        except (tarfile.TarError, OSError):
+            # some error while extracting
+            print(f"Failed to extract tarfiles of {name} while downloading")
+            return False
 
         print(f"Finished downloading {name}")
         return True
@@ -306,35 +374,47 @@ class SDLInstaller:
         SDL dependency download utility for Windows. Given a SDL dep name and
         version, this function installs that dependency into the SDL folder,
         bundles the include files into their own folder, bundles the DLLs in the
-        exe dir, and updates flag_q with the path to the lib dir
+        exe dir, and updates flag_q with the path to the lib dir.
         """
         sdl_mingw_dep = self.sdl_dir / f"{name}-{version}" / self.sdl_type
+        is_downloaded = True
         if sdl_mingw_dep.is_dir():
-            is_downloaded = True
             overwrite_existing = False
             print(f"Skipping {name} download because it already exists")
 
         else:
             self.updated = overwrite_existing = True
-            is_downloaded = self.download_dep(name, version)
-
-            if is_downloaded:
+            if self.download_dep(name, version):
                 # Copy includes
                 for header in sdl_mingw_dep.glob("include/SDL2/*.h"):
                     copy(header, self.sdl_include)
+            else:
+                is_downloaded = False
+                rmtree(sdl_mingw_dep.parent)
 
         if is_downloaded:
             # Copy DLLs that have not been copied already
             for dll in sdl_mingw_dep.glob("bin/*.dll"):
                 copy(dll, self.dist_dir, overwrite_existing)
 
-            self.flag_q.put(f"-L{sdl_mingw_dep / 'lib'}")
+            self._flag_q.put(f"-L{sdl_mingw_dep / 'lib'}")
+        else:
+            self.download_failed = True
+
+    def install_threaded(self, threads: Set[threading.Thread], package: str, ver: str):
+        """
+        Invoke the install function on a seperate thread.
+        """
+        thread = threading.Thread(target=self.install, args=(package, ver), daemon=True)
+        thread.start()
+        threads.add(thread)
 
     def install_all(self):
         """
         Utility function to install all SDL deps. Deletes any old SDL install,
-        and downloads the deps concurrently, and returns a list of compiler
-        flags needed to include SDL
+        and downloads the deps concurrently, and returns a two element tuple,
+        first being flag for SDL include, and second is a list of SDL linking
+        linker flags.
         """
         if self.sdl_dir.is_dir():
             # delete old SDL version installations, if any
@@ -347,28 +427,7 @@ class SDLInstaller:
         # make SDL include dir
         self.sdl_include.mkdir(parents=True, exist_ok=True)
 
-        # Download SDL deps if unavailable, use threading to download deps
-        # concurrently
-        threads: set[threading.Thread] = set()
-        for package_and_ver in SDL_DEPS.items():
-            thread = threading.Thread(
-                target=self.install, args=package_and_ver, daemon=True
-            )
-            thread.start()
-            threads.add(thread)
-
-        ret: list[str] = []
-        for thread in threads:
-            thread.join()
-            # after thread finishes, get from queue the path of the lib
-            if not self.flag_q.empty():
-                ret.append(self.flag_q.get())
-
-        print()  # newline
-
-        # update cflags with SDL include
-        ret.append(f"-I{self.sdl_include.parent}")
-        return ret
+        return f"-I{self.sdl_include.parent}", super().install_all()[1]
 
 
 class CompilerPool:
@@ -505,7 +564,12 @@ class KithareBuilder:
         self.builddir = self.basepath / "build" / dirname
         self.exepath = self.basepath / "dist" / dirname / EXE
 
-        self.sdl_installer = SDLInstaller(basepath, self.exepath.parent, machine)
+        self.sdl_installer = (
+            SDLInstaller(basepath, self.exepath.parent, machine)
+            if COMPILER == "MinGW"
+            else DummySDLInstaller()
+        )
+
         if args:
             self.handle_first_arg(args[0])
 
@@ -513,12 +577,6 @@ class KithareBuilder:
         self.cflags = [
             "-g" if debug else "-O3",  # no -O3 on debug mode
             "-std=c++14",
-            "-lSDL2",
-            "-lSDL2main",
-            "-lSDL2_image",
-            "-lSDL2_ttf",
-            "-lSDL2_mixer",
-            "-lSDL2_net",
             f"-I{basepath / INCLUDE_DIRNAME}",
         ]
 
@@ -533,6 +591,10 @@ class KithareBuilder:
         # update compiler flags with more args
         for i in args:
             if i.startswith("-j"):
+                if self.j_flag is not None:
+                    # -j specified again
+                    raise BuildError("Argument '-j' can only be specified once")
+
                 try:
                     self.j_flag = int(i[2:])
                     if self.j_flag <= 0:
@@ -559,9 +621,6 @@ class KithareBuilder:
             sys.exit(0)
 
         if arg == "cleandep":
-            if COMPILER == "GCC":
-                raise BuildError("The flag 'cleandep' is not supported on your OS")
-
             self.sdl_installer.clean()
             sys.exit(0)
 
@@ -610,7 +669,7 @@ class KithareBuilder:
 
         return objfiles
 
-    def build_exe(self):
+    def build_exe(self, *lflags: str):
         """
         Generate final exe.
         """
@@ -621,8 +680,11 @@ class KithareBuilder:
         except (FileNotFoundError, JSONDecodeError):
             old_cflags = []
 
+        new_cflags = self.cflags.copy()
+        new_cflags.extend(lflags)
+
         # because order of args should not matter here
-        build_skippable = sorted(self.cflags) == sorted(old_cflags)
+        build_skippable = sorted(new_cflags) == sorted(old_cflags)
 
         objfiles = self.build_sources(build_skippable)
         if objfiles is None:
@@ -644,7 +706,7 @@ class KithareBuilder:
             print()  # newline
 
         print("Building executable")
-        ecode = run_cmd("g++", "-o", self.exepath, *objfiles, *self.cflags)
+        ecode = run_cmd("g++", "-o", self.exepath, *objfiles, *new_cflags)
 
         # delete icon file
         if ico_res.is_file():
@@ -655,7 +717,7 @@ class KithareBuilder:
 
         if not build_skippable:
             # update conf file with latest cflags
-            build_conf.write_text(json.dumps(self.cflags))
+            build_conf.write_text(json.dumps(new_cflags))
 
     def build(self):
         """
@@ -667,11 +729,12 @@ class KithareBuilder:
 
         t_1 = time.perf_counter()
         # Prepare dependencies and cflags with SDL flags
-        if COMPILER == "MinGW":
-            self.cflags.extend(self.sdl_installer.install_all())
+        incflag, lflags = self.sdl_installer.install_all()
+        if incflag:
+            self.cflags.append(incflag)
 
         t_2 = time.perf_counter()
-        self.build_exe()
+        self.build_exe(*lflags)
         print("Done!\n")
 
         t_3 = time.perf_counter()
