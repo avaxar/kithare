@@ -14,14 +14,14 @@ static std::vector<std::string>* errors_ptr;
 
 static void lexerTypeTest() {
     std::vector<LexException> lex_exceptions;
-    LexerContext lexer_context{U"import std;                            \n"
-                               U"def main() {                           \n"
-                               U"    // Inline comments                 \n"
-                               U"    float number = 6.9;                \n"
-                               U"    std.print(\"Hello, world!\");      \n"
-                               U"}                                      \n",
-                               lex_exceptions};
-    std::vector<Token> tokens = lex(lexer_context);
+    Lexer lexer{U"import std;                            \n"
+                U"def main() {                           \n"
+                U"    // Inline comments                 \n"
+                U"    float number = 6.9;                \n"
+                U"    std.print(\"Hello, world!\");      \n"
+                U"}                                      \n",
+                lex_exceptions};
+    std::vector<Token> tokens = lexer.lex();
 
     KH_TEST_ASSERT(lex_exceptions.empty());
     KH_TEST_ASSERT(tokens.size() == 21);
@@ -53,16 +53,16 @@ error:
 
 static void lexerNumeralTest() {
     std::vector<LexException> lex_exceptions;
-    LexerContext lexer_context{U"0 1 2 8 9  " /* Single digit decimal integers */
-                               U"00 10 29U  " /* Multi-digit + Unsigned */
-                               U"0.1 0.2    " /* Floating point */
-                               U"11.1 .123  " /* Several other cases */
-                               U"0xFFF 0x1  " /* Hexadecimal */
-                               U"0o77 0o11  " /* Octal */
-                               U"0b111 0b01 " /* Binary */
-                               U"4i 2i 5.6i " /* Imaginary */,
-                               lex_exceptions};
-    std::vector<Token> tokens = lex(lexer_context);
+    Lexer lexer{U"0 1 2 8 9  " /* Single digit decimal integers */
+                U"00 10 29U  " /* Multi-digit + Unsigned */
+                U"0.1 0.2    " /* Floating point */
+                U"11.1 .123  " /* Several other cases */
+                U"0xFFF 0x1  " /* Hexadecimal */
+                U"0o77 0o11  " /* Octal */
+                U"0b111 0b01 " /* Binary */
+                U"4i 2i 5.6i " /* Imaginary */,
+                lex_exceptions};
+    std::vector<Token> tokens = lexer.lex();
 
     KH_TEST_ASSERT(lex_exceptions.empty());
     KH_TEST_ASSERT(tokens.size() == 21);
@@ -115,17 +115,16 @@ error:
 
 static void lexerStringTest() {
     std::vector<LexException> lex_exceptions;
-    LexerContext lexer_context{
-        U"\"AB\\x42\\x88\\u1234\\u9876\\v\\U00001234\\U00010000\\\"\\n\"" /* Escape tests */
-        U"b'' '' b\"aFd\\x87\\x90\\xff\" 'K' b'\\b' b'\\x34''\\U0001AF21' '\\r' "
-        U"\"Hello, world!\" "  /* String */
-        U"b\"Hello, world!\" " /* Buffer / byte-string */
-        U"\"\"\"Hello,\n"
-        U"world!\"\"\" " /* Multiline string */
-        U"b\"\"\"Hello,\n"
-        U"world!\"\"\" " /* Multiline buffer */,
-        lex_exceptions};
-    std::vector<Token> tokens = lex(lexer_context);
+    Lexer lexer{U"\"AB\\x42\\x88\\u1234\\u9876\\v\\U00001234\\U00010000\\\"\\n\"" /* Escape tests */
+                U"b'' '' b\"aFd\\x87\\x90\\xff\" 'K' b'\\b' b'\\x34''\\U0001AF21' '\\r' "
+                U"\"Hello, world!\" "  /* String */
+                U"b\"Hello, world!\" " /* Buffer / byte-string */
+                U"\"\"\"Hello,\n"
+                U"world!\"\"\" " /* Multiline string */
+                U"b\"\"\"Hello,\n"
+                U"world!\"\"\" " /* Multiline buffer */,
+                lex_exceptions};
+    std::vector<Token> tokens = lexer.lex();
 
     KH_TEST_ASSERT(lex_exceptions.empty());
     KH_TEST_ASSERT(tokens.size() == 13);

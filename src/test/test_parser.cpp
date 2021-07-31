@@ -15,15 +15,15 @@ static std::vector<std::string>* errors_ptr;
 
 static void parserImportTest() {
     std::vector<LexException> lex_exceptions;
-    LexerContext lexer_context{U"import stuff;          \n"
-                               U"import stuff as other; \n"
-                               U"import stuff.other;    \n"
-                               U"include this;          \n",
-                               lex_exceptions};
-    std::vector<Token> tokens = lex(lexer_context);
+    Lexer lexer{U"import stuff;          \n"
+                U"import stuff as other; \n"
+                U"import stuff.other;    \n"
+                U"include this;          \n",
+                lex_exceptions};
+    std::vector<Token> tokens = lexer.lex();
     std::vector<ParseException> parse_exceptions;
-    ParserContext parser_context{tokens, parse_exceptions};
-    AstModule ast = parseWhole(parser_context);
+    Parser parser{tokens, parse_exceptions};
+    AstModule ast = parser.parseWhole();
 
     KH_TEST_ASSERT(lex_exceptions.empty());
     KH_TEST_ASSERT(parse_exceptions.empty());

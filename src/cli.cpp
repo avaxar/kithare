@@ -149,8 +149,8 @@ static int execute() {
 
         auto lex_start = std::chrono::high_resolution_clock::now();
         std::vector<LexException> lex_exceptions;
-        LexerContext lexer_context{source, lex_exceptions};
-        std::vector<Token> tokens = lex(lexer_context);
+        Lexer lexer{source, lex_exceptions};
+        std::vector<Token> tokens = lexer.lex();
         auto lex_end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> lex_elapsed = lex_end - lex_start;
 
@@ -177,8 +177,8 @@ static int execute() {
 
         auto parse_start = std::chrono::high_resolution_clock::now();
         std::vector<ParseException> parse_exceptions;
-        ParserContext parser_context{tokens, parse_exceptions};
-        AstModule ast = parseWhole(parser_context);
+        Parser parser{tokens, parse_exceptions};
+        AstModule ast = parser.parseWhole();
         auto parse_end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> parse_elapsed = parse_end - parse_start;
 

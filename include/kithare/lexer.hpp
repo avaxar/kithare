@@ -12,8 +12,6 @@
 
 #include <kithare/token.hpp>
 
-#define KH_LEX_CTX LexerContext& context
-
 
 namespace kh {
     class LexException : public Exception {
@@ -29,7 +27,7 @@ namespace kh {
         virtual std::string format() const;
     };
 
-    struct LexerContext {
+    struct Lexer {
         const std::u32string& source;
         std::vector<LexException>& exceptions;
 
@@ -40,7 +38,11 @@ namespace kh {
         inline char32_t chr() const {
             return this->source[this->ci];
         }
+
+        std::vector<Token> lex();
     };
+
+    std::vector<Token> lex(const std::u32string& source);
 
     inline bool isDec(char32_t chr) {
         return U'0' <= chr && chr <= U'9';
@@ -58,8 +60,4 @@ namespace kh {
         return (U'0' <= chr && chr <= U'9') || (U'a' <= chr && chr <= U'f') ||
                (U'A' <= chr && chr <= U'F');
     }
-
-    std::vector<Token> lex(const std::u32string& source);
-
-    std::vector<Token> lex(KH_LEX_CTX);
 }
