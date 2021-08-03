@@ -47,7 +47,7 @@ jobs:
         python-version: 3.9
 
     - name: Build source and tests
-      run: python3 build.py --arch=${{matrix.arch}}
+      run: python3 build.py --arch=${{matrix.arch}} -Wall -Werror
     
     - name: Run tests
       run: python3 build.py test --arch=${{matrix.arch}}

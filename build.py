@@ -17,7 +17,8 @@ On Windows and MinGW:
 On other OS:
     This assumes you have GCC (g++) installed. Also, you need to install SDL
     dependencies on your own, via your systems package manager.
-    Kithare needs 'SDL2', 'SDL2_mixer', 'SDL2_image', 'SDL2_ttf' and 'SDL2_net'.
+    Kithare needs 'SDL2', 'SDL2_mixer', 'SDL2_image', 'SDL2_ttf' and
+    'SDL2_net'.
     Make sure to install 'devel' releases of those, not just runtime shared
     libraries.
 
@@ -26,9 +27,9 @@ On other OS:
 
     And the build is really simple, just run 'python3 build.py'
 
-If you are on a 64-bit system, and want to compile for 32-bit architecture, pass
-'--arch=x86' as an argument to the build script (note that this might not work
-in some cases)
+If you are on a 64-bit system, and want to compile for 32-bit architecture,
+pass '--arch=x86' (or -m32) as an argument to the build script (note that this
+might not work in some cases)
 
 By default, the builder uses all cores on the machine to build Kithare. But if
 you want the builder to consume less CPU power while compiling (at the cost of
@@ -71,9 +72,27 @@ from pathlib import Path
 from queue import Queue
 from typing import Optional, Sequence, Set, Union
 
+INIT_TEXT = """Kithare Programming Language
+----------------------------
+An open source general purpose statically-typed cross-platform
+interpreted/transpiled C++/Python like programming language.
+
+The source code for Kithare programming language is distributed
+under the MIT license.
+Copyright (C) 2021 Kithare Organization
+
+Github: https://github.com/Kithare/Kithare
+Website: https://kithare.cf/Kithare/
+
+Building Kithare...
+"""
+
 INCLUDE_DIRNAME = "include"
 ICO_RES = "icon.res"
 EXE = "kcr"
+CPP_STD = "c++14"
+
+SUPPORTED_ARCHS = {"x86", "x64", "ARM", "ARM64"}
 
 COMPILER = "MinGW" if platform.system() == "Windows" else "GCC"
 if COMPILER == "MinGW":
@@ -103,7 +122,7 @@ class BuildError(Exception):
     Exception class for all build related exceptions
     """
 
-    def __init__(self, emsg: str, ecode: int = 1):
+    def __init__(self, emsg: str = "", ecode: int = 1):
         """
         Initialise exception object
         """
@@ -112,26 +131,41 @@ class BuildError(Exception):
         self.ecode = ecode
 
 
-def run_cmd(*cmds: Union[str, Path]):
+def run_cmd(*cmds: Union[str, Path], strict: bool = False, silent_cmds: bool = False):
     """
     Helper function to run command in subprocess.
     Prints the command, command output, and error exit code (if nonzero), and
     also returns the exit code
     """
-    print(*cmds)
+    if not silent_cmds:
+        print(*cmds)
 
     # run with subprocess
-    proc = subprocess.run(
-        cmds,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        universal_newlines=True,
-        check=False,
-    )
+    try:
+        proc = subprocess.run(
+            cmds,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+            check=False,
+        )
+    except FileNotFoundError:
+        emsg = f"The command '{cmds[0]}' was not found"
+        if strict:
+            raise BuildError(emsg)
+
+        print(emsg)
+        return 1
 
     print(proc.stdout, end="")
     if proc.returncode:
-        print(f"{cmds[0]} command failed with exit code {proc.returncode}")
+        if strict:
+            raise BuildError(f"'{cmds[0]}' command failed!", proc.returncode)
+
+        print(
+            f"'{cmds[0]}' command failed with exit code {proc.returncode} "
+            f"({hex(proc.returncode)})"
+        )
 
     return proc.returncode
 
@@ -195,14 +229,14 @@ def rmtree(top: Path):
         top.rmdir()
         return True
     except OSError:
-        raise BuildError(f"Could not delete directory {top}") from None
+        raise BuildError(f"Could not delete directory '{top}'") from None
 
 
 def copy(file: Path, dest: Path, overwrite: bool = True):
     """
-    Thin wrapper around shutil.copy, raises BuildError if the copy failed. Also,
-    overwrite arg is a bool that indicates whether the file is overwritten if it
-    already exists
+    Thin wrapper around shutil.copy, raises BuildError if the copy failed.
+    Also, overwrite arg is a bool that indicates whether the file is
+    overwritten if it already exists
     """
     if not overwrite and (dest / file.name).exists():
         return
@@ -210,7 +244,9 @@ def copy(file: Path, dest: Path, overwrite: bool = True):
     try:
         shutil.copy(file, dest)
     except OSError:
-        raise BuildError(f"Could not copy file {file} to {dest} directory") from None
+        raise BuildError(
+            f"Could not copy file '{file}' to '{dest}' directory"
+        ) from None
 
 
 def get_machine(is_32_bit: bool):
@@ -373,8 +409,8 @@ class SDLInstaller(DummySDLInstaller):
         """
         SDL dependency download utility for Windows. Given a SDL dep name and
         version, this function installs that dependency into the SDL folder,
-        bundles the include files into their own folder, bundles the DLLs in the
-        exe dir, and updates flag_q with the path to the lib dir.
+        bundles the include files into their own folder, bundles the DLLs in
+        the exe dir, and updates flag_q with the path to the lib dir.
         """
         sdl_mingw_dep = self.sdl_dir / f"{name}-{version}" / self.sdl_type
         is_downloaded = True
@@ -416,18 +452,22 @@ class SDLInstaller(DummySDLInstaller):
         first being flag for SDL include, and second is a list of SDL linking
         linker flags.
         """
+        print("Configuring SDL dependencies...")
         if self.sdl_dir.is_dir():
             # delete old SDL version installations, if any
             saved_dirs = [f"{n}-{v}" for n, v in SDL_DEPS.items()]
             saved_dirs.append("include")
             for subdir in self.sdl_dir.iterdir():
                 if subdir.name not in saved_dirs:
+                    print(f"Deleting old SDL install: '{subdir.name}'")
                     rmtree(subdir)
 
         # make SDL include dir
         self.sdl_include.mkdir(parents=True, exist_ok=True)
 
-        return f"-I{self.sdl_include.parent}", super().install_all()[1]
+        ret = super().install_all()
+        print()  # newline
+        return f"-I{self.sdl_include.parent}", ret[1]
 
 
 class CompilerPool:
@@ -444,8 +484,8 @@ class CompilerPool:
         """
         self.cflags = cflags
 
-        self.procs: dict[Path, subprocess.Popen[str]] = {}
-        self.queued_procs: list[tuple[Path, Path]] = []
+        self._procs: dict[Path, subprocess.Popen[str]] = {}
+        self._queued_procs: list[tuple[Path, Path]] = []
         self.failed: bool = False
 
         if maxpoolsize is None:
@@ -462,7 +502,7 @@ class CompilerPool:
         args.extend(self.cflags)
 
         # pylint: disable=consider-using-with
-        self.procs[cfile] = subprocess.Popen(
+        self._procs[cfile] = subprocess.Popen(
             args,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -476,7 +516,7 @@ class CompilerPool:
         printed along with the return code (on error). Starts a new subprocess
         from the queued pending process pool.
         """
-        for cfile, proc in tuple(self.procs.items()):
+        for cfile, proc in tuple(self._procs.items()):
             if proc.poll() is None:
                 # proc is still running
                 continue
@@ -503,11 +543,11 @@ class CompilerPool:
                 print(stdout)
 
             # pop finished process from dict
-            self.procs.pop(cfile)
+            self._procs.pop(cfile)
 
             # start a new process from queued process
-            if self.queued_procs:
-                self._start_proc(*self.queued_procs.pop())
+            if self._queued_procs:
+                self._start_proc(*self._queued_procs.pop())
 
     def add(self, cfile: Path, ofile: Path):
         """
@@ -515,9 +555,9 @@ class CompilerPool:
         Path object to the source file, while ofile is the Path object to the
         output file
         """
-        if len(self.procs) >= self.maxpoolsize:
+        if len(self._procs) >= self.maxpoolsize:
             # pool is full, queue the command
-            self.queued_procs.append((cfile, ofile))
+            self._queued_procs.append((cfile, ofile))
         else:
             self._start_proc(cfile, ofile)
 
@@ -529,7 +569,7 @@ class CompilerPool:
         Returns False when all files in the pool finished compiling, True
         otherwise
         """
-        return bool(self.queued_procs or self.procs)
+        return bool(self._queued_procs or self._procs)
 
     def wait(self):
         """
@@ -537,7 +577,7 @@ class CompilerPool:
         """
         while self.poll():
             self.update()
-            time.sleep(0.001)
+            time.sleep(0.005)
 
 
 class KithareBuilder:
@@ -571,12 +611,31 @@ class KithareBuilder:
         )
 
         if args:
-            self.handle_first_arg(args[0])
+            self._handle_first_arg(args[0])
+
+        print(INIT_TEXT)
+        print("Platform:", platform.platform())
+        print("Compiler:", COMPILER, CPP_STD)
+        print("Builder Python version:", platform.python_version())
+
+        if machine in SUPPORTED_ARCHS:
+            print("Machine:", machine)
+
+        else:
+            print(
+                "BuildWarning: Your CPU arch has been determined to be "
+                f"'{machine}'\nNote that this is not well supported. "
+                "If you think this is a Kithare builder bug, report it on "
+                "the bug tracker"
+            )
+
+        print("Additional compiler info:")
+        run_cmd("g++", "--version", strict=True, silent_cmds=True)
 
         # compiler flags
         self.cflags = [
             "-g" if debug else "-O3",  # no -O3 on debug mode
-            "-std=c++14",
+            f"-std={CPP_STD}",
             f"-I{basepath / INCLUDE_DIRNAME}",
         ]
 
@@ -608,7 +667,7 @@ class KithareBuilder:
             elif not i.startswith("--arch="):
                 self.cflags.append(i)
 
-    def handle_first_arg(self, arg: str):
+    def _handle_first_arg(self, arg: str):
         """
         Utility method to handle the first argument
         """
@@ -633,7 +692,10 @@ class KithareBuilder:
         skipped_files: list[Path] = []
         objfiles: list[Path] = []
 
+        print("Building Kithare sources...")
         compilerpool = CompilerPool(self.j_flag, *self.cflags)
+        print(f"Building on {compilerpool.maxpoolsize} core(s) (with subprocess)\n")
+
         for file in self.basepath.glob("src/**/*.cpp"):
             ofile = self.builddir / f"{file.stem}.o"
             if ofile in objfiles:
@@ -713,7 +775,7 @@ class KithareBuilder:
             ico_res.unlink()
 
         if ecode:
-            sys.exit(ecode)
+            raise BuildError(ecode=ecode)
 
         if not build_skippable:
             # update conf file with latest cflags
@@ -735,7 +797,7 @@ class KithareBuilder:
 
         t_2 = time.perf_counter()
         self.build_exe(*lflags)
-        print("Done!\n")
+        print("Done!\nKithare has been built successfully!\n")
 
         t_3 = time.perf_counter()
 
@@ -750,9 +812,18 @@ if __name__ == "__main__":
     argv = sys.argv.copy()
     dname = Path(argv.pop(0)).parent
 
+    ecode = 0
     try:
         kithare = KithareBuilder(dname, *argv)
         kithare.build()
+
     except BuildError as err:
-        print("BuildError:", err.emsg)
-        sys.exit(err.ecode)
+        if err.emsg:
+            print("BuildError:", err.emsg)
+        ecode = err.ecode
+
+    print(
+        "\nFor any bug reports or feature requests, check out the issue "
+        "tracker at github\n(https://github.com/Kithare/Kithare/issues)"
+    )
+    sys.exit(ecode)
