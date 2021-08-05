@@ -331,6 +331,7 @@ class ThreadedDownloader:
 
         else:
             self.downloaded.put((name, download))
+            print(f"[DEBUG] finished thread {name}")
 
     def download(self, name: str, download_link: str):
         """
@@ -516,6 +517,7 @@ class SDLInstaller(DummySDLInstaller):
 
         failed: bool = False
         for name, downloaddata in self.downloader.get_finished():
+            print(f"[DEBUG] got downloaded {name}")
             if not self._extract(name, downloaddata, downloads[name]):
                 # download failed, remove from downloads
                 downloads.pop(name)
