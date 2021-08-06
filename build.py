@@ -106,10 +106,6 @@ EXE = "kcr"
 if COMPILER == "MinGW":
     EXE += ".exe"
 
-    if sys.version_info < (3, 8):
-        # Because there is a pathlib + subprocess bug on py < 3.8 on windows
-        raise RuntimeError("Kithare builder needs atleast Python v3.8 on Windows")
-
 # While we recursively search for include files, we don't want to seach
 # the whole file, because that would waste a lotta time. So, we just take
 # an arbitrary line number limit, beyond which, we won't search
@@ -128,6 +124,9 @@ SDL_DEPS = {
     "SDL2_net": "2.0.1",
 }
 
+_CPU_COUNT = os.cpu_count()
+CPU_COUNT = 1 if _CPU_COUNT is None else _CPU_COUNT
+
 
 class BuildError(Exception):
     """
@@ -143,6 +142,36 @@ class BuildError(Exception):
         self.ecode = ecode
 
 
+def get_rel_path(dirpath: Path, basepath: Path):
+    """
+    Get dirpath as relative to basepath. This handles corner cases better than
+    Path.relative_to, uses ".." path notation so that the relative path is
+    always obtained no matter where the two paths are located. Here, dirpath
+    and basepath must be fully resolved absolute paths to directories.
+    """
+    ret_parts: list[str] = []
+    back_parts = 0
+
+    cnt = -1
+    for cnt, part in enumerate(dirpath.parts):
+        if cnt >= len(basepath.parts):
+            ret_parts.append(part)
+            continue
+
+        if basepath.parts[cnt] != part:
+            ret_parts.append(part)
+            back_parts += 1
+
+    cnt += 1
+    back_parts += max(len(basepath.parts) - cnt, 0)
+
+    ret = Path(*([".."] * back_parts))
+    for part in ret_parts:
+        ret /= part
+
+    return ret
+
+
 def run_cmd(*cmds: Union[str, Path], strict: bool = False, silent_cmds: bool = False):
     """
     Helper function to run command in subprocess.
@@ -156,7 +185,7 @@ def run_cmd(*cmds: Union[str, Path], strict: bool = False, silent_cmds: bool = F
     # run with subprocess
     try:
         proc = subprocess.run(
-            cmds,
+            list(map(str, cmds)),
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             universal_newlines=True,
@@ -287,15 +316,6 @@ def get_machine(is_32_bit: bool):
     return machine
 
 
-def get_cpu_count():
-    """
-    Get number of logical cores on CPU, thin wrapper on os.cpu_count but does
-    not return None (returns 1 instead)
-    """
-    ret = os.cpu_count()
-    return 1 if ret is None else ret
-
-
 class ThreadedDownloader:
     """
     Install file(s) concurrently using threads
@@ -305,7 +325,6 @@ class ThreadedDownloader:
         """
         Initialise ThreadedDownloader object
         """
-
         self.threads: set[threading.Thread] = set()
         self.downloaded: queue.Queue[tuple[str, bytes]] = queue.Queue()
 
@@ -379,7 +398,7 @@ class DummySDLInstaller:
         """
         Initialise DummySDLInstaller class
         """
-        self.lflags: list[str] = []
+        self.lflags: list[Union[str, Path]] = []
 
     def clean(self):  # pylint: disable=no-self-use
         """
@@ -393,11 +412,9 @@ class DummySDLInstaller:
         updates lflags to link with already installed SDL
         """
         for name in SDL_DEPS:
-            self.lflags.append(f"-l{name}")
+            self.lflags.append(name)
             if name == "SDL2":
-                self.lflags.append("-lSDL2main")
-
-        return ""
+                self.lflags.append("SDL2main")
 
 
 class SDLInstaller(DummySDLInstaller):
@@ -503,7 +520,7 @@ class SDLInstaller(DummySDLInstaller):
         for dll in path.glob("bin/*.dll"):
             copy(dll, self.dist_dir, overwrite)
 
-        self.lflags.append(f"-L{path / 'lib'}")
+        self.lflags.append(path / "lib")
 
     def _install(self, *skipped_downloads: Path, **downloads: Path):
         """
@@ -557,7 +574,7 @@ class SDLInstaller(DummySDLInstaller):
             )
 
         print()  # newline
-        return f"-I{self.sdl_include.parent}"
+        return self.sdl_include.parent
 
 
 class CompilerPool:
@@ -578,13 +595,13 @@ class CompilerPool:
         self._queued_procs: list[tuple[Path, Path]] = []
         self.failed: bool = False
 
-        self.maxpoolsize = get_cpu_count() if maxpoolsize is None else maxpoolsize
+        self.maxpoolsize = CPU_COUNT if maxpoolsize is None else maxpoolsize
 
     def _start_proc(self, cfile: Path, ofile: Path):
         """
         Internal function to start a compile subprocess
         """
-        args: list[Union[str, Path]] = [COMPILER_NAME, "-o", ofile, "-c", cfile]
+        args = [COMPILER_NAME, "-o", str(ofile), "-c", str(cfile)]
         args.extend(self.cflags)
 
         # pylint: disable=consider-using-with
@@ -604,7 +621,7 @@ class CompilerPool:
         stdout, _ = proc.communicate()
         if isinstance(proc.args, bytes):
             print(proc.args.decode())
-        elif isinstance(proc.args, Sequence):
+        elif isinstance(proc.args, Sequence) and not isinstance(proc.args, str):
             print(*proc.args)
         else:
             print(proc.args)
@@ -616,7 +633,7 @@ class CompilerPool:
         else:
             print(stdout)
 
-    def update(self):
+    def update(self, start_new: bool = True):
         """
         Runs an "update" operation. Any processes that have been finished are
         removed from the process pool after the subprocess output has been
@@ -633,7 +650,7 @@ class CompilerPool:
             self._procs.pop(cfile)
 
             # start a new process from queued process
-            if self._queued_procs:
+            if self._queued_procs and start_new:
                 self._start_proc(*self._queued_procs.pop())
 
     def add(self, cfile: Path, ofile: Path):
@@ -662,9 +679,16 @@ class CompilerPool:
         """
         Block until all queued files are compiled
         """
-        while self.poll():
-            self.update()
-            time.sleep(0.005)
+        try:
+            while self.poll():
+                self.update()
+                time.sleep(0.005)
+
+        finally:
+            # gracefully terminate subprocesses on errors like KeyboardInterrupt
+            self.update(start_new=False)
+            for proc in self._procs.values():
+                proc.terminate()
 
 
 class KithareBuilder:
@@ -720,10 +744,10 @@ class KithareBuilder:
         run_cmd(COMPILER_NAME, "--version", strict=True, silent_cmds=True)
 
         # compiler flags
-        self.cflags = [
+        self.cflags: list[Union[str, Path]] = [
             "-g" if debug else "-O3",  # no -O3 on debug mode
             f"-std={STD_FLAG}",
-            f"-I{basepath / INCLUDE_DIRNAME}",
+            basepath / INCLUDE_DIRNAME,
         ]
 
         if COMPILER == "MinGW":
@@ -754,6 +778,31 @@ class KithareBuilder:
             elif not i.startswith("--arch="):
                 self.cflags.append(i)
 
+    def get_flags(self, rel_base: bool = False, with_lflag: bool = False):
+        """
+        Get cflags/lflags, with any path objects resolved correctly. rel_base
+        arg specifies whether the paths should be relative to base dir, or
+        current working dir. If with_lflag is specified, linker flags are also
+        outputted.
+        """
+        new_flags: list[str] = []
+
+        flags = self.sdl_installer.lflags if with_lflag else self.cflags
+        for flag in flags:
+            if isinstance(flag, str):
+                new_flags.append(f"-l{flag}" if with_lflag else flag)
+                continue
+
+            if rel_base:
+                flag = flag.relative_to(self.basepath)
+
+            new_flags.append(f"-L{flag}" if with_lflag else f"-I{flag}")
+
+        if with_lflag:
+            new_flags.extend(self.get_flags(rel_base))
+
+        return new_flags
+
     def _handle_first_arg(self, arg: str):
         """
         Utility method to handle the first argument
@@ -780,10 +829,10 @@ class KithareBuilder:
         objfiles: list[Path] = []
 
         print("Building Kithare sources...")
-        compilerpool = CompilerPool(self.j_flag, *self.cflags)
+        compilerpool = CompilerPool(self.j_flag, *self.get_flags())
 
-        print(f"Building on {min(compilerpool.maxpoolsize, get_cpu_count())} core(s)")
-        if compilerpool.maxpoolsize > get_cpu_count():
+        print(f"Building on {min(compilerpool.maxpoolsize, CPU_COUNT)} core(s)")
+        if compilerpool.maxpoolsize > CPU_COUNT:
             print(f"Using {compilerpool.maxpoolsize} subprocess(es)")
 
         print()  # newline
@@ -816,6 +865,11 @@ class KithareBuilder:
                 "Skipped building executable, because all files didn't build"
             )
 
+        if not objfiles:
+            raise BuildError(
+                "Failed to generate executable because no sources were found"
+            )
+
         if len(objfiles) == len(skipped_files) and self.exepath.is_file():
             # exe is already up to date
             return None
@@ -833,14 +887,13 @@ class KithareBuilder:
         except (FileNotFoundError, JSONDecodeError):
             old_cflags = []
 
-        new_cflags = self.cflags.copy()
-        new_cflags.extend(self.sdl_installer.lflags)
+        new_store_cflags = self.get_flags(rel_base=True, with_lflag=True)
 
         # because order of args should not matter here
-        build_skippable = sorted(new_cflags) == sorted(old_cflags)
+        build_skippable = sorted(new_store_cflags) == sorted(old_cflags)
         if not build_skippable:
             # update conf file with latest cflags
-            build_conf.write_text(json.dumps(new_cflags))
+            build_conf.write_text(json.dumps(new_store_cflags))
 
         objfiles = self.build_sources(build_skippable)
         if objfiles is None:
@@ -863,6 +916,7 @@ class KithareBuilder:
 
         print("Building executable")
         try:
+            new_cflags = self.get_flags(with_lflag=True)
             run_cmd(
                 COMPILER_NAME, "-o", self.exepath, *objfiles, *new_cflags, strict=True
             )
@@ -882,7 +936,7 @@ class KithareBuilder:
         t_1 = time.perf_counter()
         # Prepare dependencies and cflags with SDL flags
         incflag = self.sdl_installer.install_all()
-        if incflag:
+        if incflag is not None:
             self.cflags.append(incflag)
 
         t_2 = time.perf_counter()
@@ -890,8 +944,6 @@ class KithareBuilder:
         print("Done!\nKithare has been built successfully!\n")
 
         t_3 = time.perf_counter()
-
-        # display stats
         print("Some timing stats for peeps who like to 'optimise':")
 
         # print SDL install time stats only if it is large enough (haha majik number)
@@ -907,10 +959,10 @@ def main():
     """
     err_code = 0
     try:
-        argv = sys.argv.copy()
-        dname = Path(argv.pop(0)).parent
+        cwdir = Path().resolve()
+        projdir = Path(__file__).parent.resolve()
 
-        kithare = KithareBuilder(dname, *argv)
+        kithare = KithareBuilder(get_rel_path(projdir, cwdir), *sys.argv[1:])
         kithare.build()
 
     except BuildError as err:
@@ -918,12 +970,11 @@ def main():
         if err.emsg:
             print("BuildError:", err.emsg)
 
-    except Exception as err:  # pylint: disable=broad-except
+    except Exception:  # pylint: disable=broad-except
         print(
             "Unknown exception occured! This is probably a bug in the build "
             "script itself. Report this bug to Kithare devs, along with the "
             f"whole buildlog here ({KITHARE_ISSUES_LINK}).\n"
-            "Reraising error:"
         )
         raise
 
@@ -933,7 +984,7 @@ def main():
 
     print(
         "\nFor any bug reports or feature requests, check out the issue "
-        f"tracker at github\n{KITHARE_ISSUES_LINK}"
+        f"tracker on github\n{KITHARE_ISSUES_LINK}"
     )
     sys.exit(err_code)
 
