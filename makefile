@@ -24,3 +24,6 @@ clean:
 
 debug:
 	${PYTHON} build.py debug
+
+installer:
+	${PYTHON} build.py --make-installer
