@@ -219,6 +219,8 @@ def get_machine(is_32_bit: bool):
     armv6   | ARM 32-bit (old)      | armhf, armv6l, armv6h
     armv7   | ARM 32-bit            | armhf, armv7l, armv7h
     arm64   | ARM 64-bit            | aarch64, armv8l, armv8 (or newer)
+    ppc64le | PowerPC achitecture   | ppc64el (debian terminology)
+    s390x   | IBM (big endian)      | None
     Unknown | Architecture could not be determined
 
     The function can also return other values platform.machine returns, without
@@ -244,6 +246,9 @@ def get_machine(is_32_bit: bool):
 
         return "arm"
 
+    if machine == "ppc64el":
+        return "ppc64le"
+
     if not machine:
         return "Unknown"
 
@@ -264,6 +269,7 @@ def convert_machine(machine: str, mode: ConvertType):
     armv6   | Errors  | Errors | Errors | armhf   | armv6h  | armv6l
     armv7   | Errors  | Errors | Errors | armhf   | armv7h  | armv7l
     arm64   | Errors  | Errors | arm64  | arm64   | aarch64 | aarch64
+    ppc64le | Errors  | Errors | Errors | ppc64el | aarch64 | ppc64le
     Others  | Errors  | Errors | Errors | Returns | Errors  | Returns
     Unknown | Errors  | Errors | Errors | Errors  | Errors  | Errors
     """
@@ -329,6 +335,17 @@ def convert_machine(machine: str, mode: ConvertType):
             return "aarch64"
 
         raise BuildError("Installers for ARM64 CPU are not supported on this platform")
+
+    if machine == "ppc64le":
+        if mode == ConvertType.LINUX_DEB:
+            return "ppc64el"
+
+        if mode == ConvertType.LINUX_RPM:
+            return "ppc64le"
+
+        raise BuildError(
+            "Installers for ppc64le CPU are not supported on this platform"
+        )
 
     if mode in {ConvertType.LINUX_DEB, ConvertType.LINUX_RPM}:
         return machine

@@ -14,7 +14,7 @@ import platform
 INCLUDE_DIRNAME = "include"
 ICO_RES = "icon.res"
 
-SUPPORTED_ARCHS = {"x86", "x64", "arm", "armv6", "armv7", "arm64"}
+SUPPORTED_ARCHS = {"x86", "x64", "arm", "armv6", "armv7", "arm64", "ppc64le", "s390x"}
 
 # Make this False, when building with C source
 CPP = True

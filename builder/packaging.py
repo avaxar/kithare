@@ -9,9 +9,9 @@ Defines classes to handle Kithare packaging into platform-specific installers
 """
 
 import platform
-from zipfile import ZipFile
 from pathlib import Path
 from typing import Optional
+from zipfile import ZipFile
 
 from .constants import KITHARE_VERSION, VERSION_PACKAGE_REV
 from .downloader import ThreadedDownloader
@@ -64,7 +64,6 @@ class WindowsPackager(Packager):
         super().__init__(basepath, exepath, machine)
 
         self.machine = convert_machine(machine, ConvertType.WINDOWS)
-
         self.downloader: Optional[ThreadedDownloader] = None
 
     def setup(self):

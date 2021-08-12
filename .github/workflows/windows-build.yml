@@ -1,4 +1,4 @@
-name: MinGW
+name: Windows
 
 on:
   push:
@@ -12,6 +12,7 @@ on:
     - 'README.md'
     - '.github/workflows/ubuntu-build.yml'
     - '.github/workflows/macos-build.yml'
+    - '.github/workflows/linux-multiarch-build.yml'
   pull_request:
     branches: [ main ]
     paths-ignore:
@@ -23,6 +24,7 @@ on:
     - 'README.md'
     - '.github/workflows/ubuntu-build.yml'
     - '.github/workflows/macos-build.yml'
+    - '.github/workflows/linux-multiarch-build.yml'
 
 jobs:
   build:

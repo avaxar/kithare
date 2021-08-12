@@ -1,0 +1,98 @@
+name: Linux Multiarch Builds
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+    - 'docs/**'
+    - 'assets/**'
+    - '.gitattributes'
+    - '.gitignore'
+    - 'LICENSE'
+    - 'README.md'
+    - '.github/workflows/windows-build.yml'
+    - '.github/workflows/macos-build.yml'
+    - '.github/workflows/ubuntu-build.yml'
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+    - 'docs/**'
+    - 'assets/**'
+    - '.gitattributes'
+    - '.gitignore'
+    - 'LICENSE'
+    - 'README.md'
+    - '.github/workflows/windows-build.yml'
+    - '.github/workflows/macos-build.yml'
+    - '.github/workflows/ubuntu-build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    
+    strategy:
+      fail-fast: false  # if a particular matrix build fails, don't skip the rest
+      matrix:
+        arch: ["armv7", "aarch64", "s390x", "ppc64le"]  # TODO: Add armv6 (on non-debian)
+        distro: ["buster"]  # TODO: Add fedora_latest, alpine_latest, archarm_latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: uraimo/run-on-arch-action@v2.0.5
+      name: Build Kithare on ${{ matrix.arch }} ${{ matrix.distro }}
+      id: build
+      with:
+        arch: ${{ matrix.arch }}
+        distro: ${{ matrix.distro }}
+
+        # Not required, but speeds up builds
+        githubToken: ${{ github.token }}
+
+        # Create an artifacts directory
+        setup: |
+          mkdir -p ~/artifacts
+
+        # Mount the artifacts directory as /artifacts in the container
+        dockerRunArgs: |
+          --volume ~/artifacts:/artifacts
+
+        # The shell to run commands with in the container
+        shell: /bin/sh
+
+        # Install some dependencies in the container. This speeds up builds if
+        # you are also using githubToken. Any dependencies installed here will
+        # be part of the container image that gets cached, so subsequent
+        # builds don't have to re-install them. The image layer is cached
+        # publicly in your project's package repository, so it is vital that
+        # no secrets are present in the container state or logs.
+        install: |
+          case "${{ matrix.distro }}" in
+            ubuntu*|jessie|stretch|buster|bullseye)
+              apt-get update --fix-missing
+              apt-get install build-essential libsdl2-dev libjpeg-dev libwebp-dev libtiff5-dev libsdl2-image-dev libmikmod-dev libfishsound1-dev libsmpeg-dev liboggz2-dev libflac-dev libfluidsynth-dev libsdl2-mixer-dev libfreetype6-dev libsdl2-ttf-dev libsdl2-net-dev -y
+              ;;
+            fedora*)
+              # TODO
+              dnf -y update
+              ;;
+            alpine*)
+              # TODO
+              apk update
+              ;;
+          esac
+
+        # Produce a binary artifact, test it and place it in the mounted volume
+        run: |
+          echo -e "\nBuilding Kithare\n"
+          python3 build.py -Wall -Werror --make-installer
+          echo -e "\nInstalling from installer\n"
+          apt-get install ./builder/packaging/dist/*
+          echo -e "\nRunning tests\n"
+          kcr --test
+          cp ./builder/packaging/dist/* /artifacts
+
+    - name: Upload installer
+      uses: actions/upload-artifact@v2
+      with:
+        path: ~/artifacts
+
