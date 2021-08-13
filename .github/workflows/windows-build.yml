@@ -1,4 +1,4 @@
-name: MinGW
+name: Windows
 
 on:
   push:
@@ -12,6 +12,7 @@ on:
     - 'README.md'
     - '.github/workflows/ubuntu-build.yml'
     - '.github/workflows/macos-build.yml'
+    - '.github/workflows/linux-multiarch-build.yml'
   pull_request:
     branches: [ main ]
     paths-ignore:
@@ -23,6 +24,7 @@ on:
     - 'README.md'
     - '.github/workflows/ubuntu-build.yml'
     - '.github/workflows/macos-build.yml'
+    - '.github/workflows/linux-multiarch-build.yml'
 
 jobs:
   build:
@@ -46,14 +48,17 @@ jobs:
       with:
         python-version: 3.9
 
-    - name: Build source and tests
-      run: python3 build.py --arch=${{matrix.arch}} -Wall -Werror
+    - name: Build sources, tests and make installer
+      run: python3 build.py --arch=${{matrix.arch}} -Wall -Werror --make-installer
+    
+    - name: Install from installer
+      run: .\\builder\\packaging\\dist\\kithare-0.0.1rc1-${{ matrix.arch }}.exe /SP- /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /NOCANCEL
     
     - name: Run tests
       run: python3 build.py test --arch=${{matrix.arch}}
-
-    #- name: Upload dist
-      #uses: actions/upload-artifact@v2
-      #with:
-        #name: dist-MinGW
-        #path: dist/
+    
+    # TODO: Test with installed kcr as well
+    - name: Upload installer
+      uses: actions/upload-artifact@v2
+      with:
+        path: builder/packaging/dist/

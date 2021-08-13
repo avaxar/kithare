@@ -13,6 +13,8 @@ test.sh
 .vscode/c_cpp_properties.json
 .vscode/settings.json
 
+__pycache__
+
 # Executable/compiler generated files
 /build
 /deps/SDL/
@@ -25,4 +27,8 @@ test.sh
 *.a
 *.lib
 icon.res
+
+# some packaging related output folders
+builder/packaging/build
+builder/packaging/dist
 

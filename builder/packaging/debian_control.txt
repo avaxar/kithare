@@ -1,0 +1,13 @@
+Package: kithare
+Depends: libsdl2-2.0-0, libsdl2-mixer-2.0-0, libsdl2-image-2.0-0, libsdl2-ttf-2.0-0, libsdl2-net-2.0-0
+Maintainer: Kithare Organization neaxture@gmail.com
+Homepage: https://kithare.cf
+Description: Kithare Programming Language
+ An open source general purpose statically-typed cross-platform
+ interpreted/transpiled C++/Python like programming language.
+ .
+ The source code for Kithare programming language is distributed
+ under the MIT license.
+ .
+ Copyright (C) 2021 Kithare Organization
+ Github: https://github.com/Kithare/Kithare
