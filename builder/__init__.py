@@ -26,7 +26,6 @@ from .constants import (
     ICO_RES,
     INCLUDE_DIRNAME,
     KITHARE_FLAGS,
-    SOURCE_GLOB,
     STD_FLAG,
     SUPPORTED_ARCHS,
 )
@@ -94,7 +93,7 @@ class KithareBuilder:
 
         print(INIT_TEXT)
         print("Platform:", platform.platform())
-        print("Compiler:", COMPILER, STD_FLAG)
+        print("Compiler:", COMPILER)
         print("Builder Python version:", platform.python_version())
 
         if machine in SUPPORTED_ARCHS:
@@ -107,12 +106,11 @@ class KithareBuilder:
             )
 
         print("Additional compiler info:")
-        run_cmd(COMPILER_NAME, "--version", strict=True, silent_cmds=True)
+        run_cmd(COMPILER_NAME[".c"], "--version", strict=True, silent_cmds=True)
 
         # compiler flags
         self.cflags: list[Union[str, Path]] = [
             "-g" if debug else "-O3",  # no -O3 on debug mode
-            f"-std={STD_FLAG}",
             basepath / INCLUDE_DIRNAME,
         ]
 
@@ -166,6 +164,8 @@ class KithareBuilder:
 
         if with_lflag:
             new_flags.extend(self.get_flags(rel_base))
+            if rel_base:
+                new_flags.extend(STD_FLAG.values())
 
         return new_flags
 
@@ -202,7 +202,11 @@ class KithareBuilder:
             print(f"Using {compilerpool.maxpoolsize} subprocess(es)")
 
         print()  # newline
-        for file in self.basepath.glob(SOURCE_GLOB):
+        for file in self.basepath.glob("src/**/*.c*"):
+            if file.suffix not in STD_FLAG:
+                # not a C or CPP file
+                continue
+
             ofile = self.builddir / f"{file.stem}.o"
             if ofile in objfiles:
                 raise BuildError("Got duplicate filename in Kithare source")
@@ -286,7 +290,12 @@ class KithareBuilder:
         try:
             new_cflags = self.get_flags(with_lflag=True)
             run_cmd(
-                COMPILER_NAME, "-o", self.exepath, *objfiles, *new_cflags, strict=True
+                COMPILER_NAME[".cpp"],
+                "-o",
+                self.exepath,
+                *objfiles,
+                *new_cflags,
+                strict=True,
             )
         finally:
             # delete icon file

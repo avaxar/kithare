@@ -15,7 +15,7 @@ import time
 from pathlib import Path
 from typing import Optional, Sequence
 
-from .constants import COMPILER_NAME, CPU_COUNT
+from .constants import COMPILER_NAME, CPU_COUNT, STD_FLAG
 
 
 class CompilerPool:
@@ -42,12 +42,17 @@ class CompilerPool:
         """
         Internal function to start a compile subprocess
         """
-        args = [COMPILER_NAME, "-o", str(ofile), "-c", str(cfile)]
-        args.extend(self.cflags)
-
         # pylint: disable=consider-using-with
         self._procs[cfile] = subprocess.Popen(
-            args,
+            (
+                COMPILER_NAME[cfile.suffix],
+                "-o",
+                str(ofile),
+                "-c",
+                str(cfile),
+                STD_FLAG[cfile.suffix],
+                *self.cflags,
+            ),
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             universal_newlines=True,

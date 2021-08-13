@@ -17,12 +17,16 @@ ICO_RES = "icon.res"
 # A set of architectures well supported by Kithare (have CI running tests on these)
 SUPPORTED_ARCHS = {"x86", "x64", "armv6", "armv7", "arm64", "ppc64le", "s390x"}
 
-# Make this False, when building with C source
-CPP = True
 
-STD_FLAG = "c++14" if CPP else "c99"
-COMPILER_NAME = "g++" if CPP else "gcc"
-SOURCE_GLOB = "src/**/*.cpp" if CPP else "src/**/*.c"
+STD_FLAG = {
+    ".cpp": "--std=c++14",
+    ".c": "--std=c99",
+}
+
+COMPILER_NAME = {
+    ".cpp": "g++",
+    ".c": "gcc",
+}
 
 # Kithare version and rev, remember to keep updated
 KITHARE_VERSION = "0.0.1rc1"
