@@ -68,6 +68,7 @@ def get_rel_path(dirpath: Path, basepath: Path):
             ret_parts.append(part)
             continue
 
+        # got a mismatching parent dir
         if basepath.parts[cnt] != part:
             has_seperated = True
 
@@ -269,13 +270,13 @@ def convert_machine(machine: str, mode: ConvertType):
     armv6   | Errors  | Errors | Errors | armhf   | armv6h  | armv6l
     armv7   | Errors  | Errors | Errors | armhf   | armv7h  | armv7l
     arm64   | Errors  | Errors | arm64  | arm64   | aarch64 | aarch64
-    ppc64le | Errors  | Errors | Errors | ppc64el | aarch64 | ppc64le
+    ppc64le | Errors  | Errors | Errors | ppc64el | Errors  | ppc64le
     Others  | Errors  | Errors | Errors | Returns | Errors  | Returns
     Unknown | Errors  | Errors | Errors | Errors  | Errors  | Errors
     """
 
     if mode not in ConvertType:
-        raise ValueError("Bug in builder: Recieved invalid mode arg")
+        raise ValueError("Bug in builder, received invalid mode arg")
 
     if machine.lower() == "unknown":
         raise BuildError(
@@ -311,10 +312,6 @@ def convert_machine(machine: str, mode: ConvertType):
         if mode == ConvertType.LINUX_RPM:
             return "armv5tel"
 
-        raise BuildError(
-            "Installers for old ARM CPUs are not supported on this platform"
-        )
-
     if machine in {"armv6", "armv7"}:
         if mode == ConvertType.LINUX_DEB:
             return "armhf"
@@ -325,8 +322,6 @@ def convert_machine(machine: str, mode: ConvertType):
         if mode == ConvertType.LINUX_RPM:
             return machine + "l"
 
-        raise BuildError("Installers for ARM CPU are not supported on this platform")
-
     if machine == "arm64":
         if mode in {ConvertType.MAC, ConvertType.LINUX_DEB}:
             return "arm64"
@@ -334,18 +329,12 @@ def convert_machine(machine: str, mode: ConvertType):
         if mode in {ConvertType.LINUX_ARCH, ConvertType.LINUX_RPM}:
             return "aarch64"
 
-        raise BuildError("Installers for ARM64 CPU are not supported on this platform")
-
     if machine == "ppc64le":
         if mode == ConvertType.LINUX_DEB:
             return "ppc64el"
 
         if mode == ConvertType.LINUX_RPM:
             return "ppc64le"
-
-        raise BuildError(
-            "Installers for ppc64le CPU are not supported on this platform"
-        )
 
     if mode in {ConvertType.LINUX_DEB, ConvertType.LINUX_RPM}:
         return machine

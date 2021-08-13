@@ -12,7 +12,7 @@ Defines classes to handle SDL installation and linker flags
 import io
 import tarfile
 from pathlib import Path
-from typing import Union, Optional
+from typing import Optional, Union
 
 from .constants import COMPILER
 from .downloader import ThreadedDownloader

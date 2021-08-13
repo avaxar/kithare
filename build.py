@@ -61,6 +61,11 @@ list.
 For now, there are no plans for a Mac installer, because none of the Kithare
 core-devs have a mac setup for making, testing and debugging mac installers
 
+Additionally on linux distros, one can pass a '--use-alien' flag, this will
+make the builder use the 'alien' package to generate a package for another
+distro from the package generated for the host distro. This feature is still
+considered an alpha-quality feature though.
+
 Any other arguments passed to this builder will be forwarded to the compiler.
 """
 

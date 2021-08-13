@@ -79,6 +79,8 @@ class WindowsPackager(Packager):
             "Downloading and installing INNO Setup in the background while "
             "compilation continues\n"
         )
+
+        # Download INNO Setup installer in background
         self.downloader = ThreadedDownloader()
         self.downloader.download("INNO Setup Installer", INNO_SETUP_DOWNLOAD)
 
@@ -93,10 +95,13 @@ class WindowsPackager(Packager):
         portable_zip.parent.mkdir(exist_ok=True)
         with ZipFile(portable_zip, mode="w") as myzip:
             kithare_base = Path("Kithare")
+
+            # copy executable and other DLLs
             for dfile in self.exepath.parent.rglob("*"):
                 zipped_file = kithare_base / dfile.relative_to(self.exepath.parent)
                 myzip.write(dfile, arcname=zipped_file)
 
+            # copy LICENSE and readme to zip
             for filename in {"LICENSE", "README.md"}:
                 myzip.write(self.basepath / filename, arcname=kithare_base / filename)
 
@@ -150,6 +155,13 @@ class LinuxPackager(Packager):
     Subclass of Packager that handles Linux packaging
     """
 
+    def __init__(self, basepath: Path, exepath: Path, machine: str, use_alien: bool):
+        """
+        Initialise LinuxPackager class
+        """
+        super().__init__(basepath, exepath, machine)
+        self.use_alien = use_alien
+
     def debian_package(self):
         """
         Make deb installer file for Debian
@@ -191,6 +203,26 @@ class LinuxPackager(Packager):
         run_cmd("dpkg-deb", "--build", installer_dir, dist_dir, strict=True)
         print(".deb file was made successfully\n")
 
+        if self.use_alien:
+            print("Using 'alien' package to make rpm packages from debian packages")
+            rpm_machine = convert_machine(self.machine, ConvertType.LINUX_RPM)
+            run_cmd(
+                "alien",
+                "--to-rpm",
+                "--keep-version",
+                f"--target={rpm_machine}",
+                dist_dir / f"kithare_{version}_{machine}.deb",
+                strict=True,
+            )
+
+            gen_rpm = self.basepath / f"kithare-{version}.{rpm_machine}.rpm"
+            try:
+                copy(gen_rpm, dist_dir)
+            finally:
+                gen_rpm.unlink()
+
+            print("Generated rpm packages!\n")
+
     def package(self):
         """
         Make installer for Linux
@@ -223,18 +255,24 @@ class MacPackager(Packager):
         raise BuildError("Generating MacOS installers are not supported as of now")
 
 
-def get_packager(basepath: Path, exepath: Path, machine: str):
+def get_packager(basepath: Path, exepath: Path, machine: str, use_alien: bool):
     """
     Get appropriate packager class for handling packaging
     """
     system = platform.system()
     if system == "Windows":
+        if use_alien:
+            raise BuildError("'--use-alien' is not a supported flag on this OS")
+
         return WindowsPackager(basepath, exepath, machine)
 
     if system == "Linux":
-        return LinuxPackager(basepath, exepath, machine)
+        return LinuxPackager(basepath, exepath, machine, use_alien)
 
     if system == "Darwin":
+        if use_alien:
+            raise BuildError("'--use-alien' is not a supported flag on this OS")
+
         return MacPackager(basepath, exepath, machine)
 
     raise BuildError(

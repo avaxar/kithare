@@ -41,7 +41,7 @@ jobs:
       if: ${{ matrix.arch == 'x64' }}
       run: |
         sudo apt-get update --fix-missing
-        sudo apt-get install libsdl2-dev libjpeg-dev libwebp-dev libtiff5-dev libsdl2-image-dev libmikmod-dev libfishsound1-dev libsmpeg-dev liboggz2-dev libflac-dev libfluidsynth-dev libsdl2-mixer-dev libfreetype6-dev libsdl2-ttf-dev libsdl2-net-dev -y
+        sudo apt-get install alien libsdl2-dev libjpeg-dev libwebp-dev libtiff5-dev libsdl2-image-dev libmikmod-dev libfishsound1-dev libsmpeg-dev liboggz2-dev libflac-dev libfluidsynth-dev libsdl2-mixer-dev libfreetype6-dev libsdl2-ttf-dev libsdl2-net-dev -y
 
     - name: Install x86 SDL and deps
       if: ${{ matrix.arch == 'x86' }}
@@ -49,10 +49,10 @@ jobs:
         sudo dpkg --add-architecture i386
         sudo apt-get update --fix-missing
         sudo apt-get install gcc-multilib g++-multilib
-        sudo apt-get install libsdl2-dev:i386 libjpeg-dev:i386 libwebp-dev:i386 libtiff5-dev:i386 libsdl2-image-dev:i386 libmikmod-dev:i386 libfishsound1-dev:i386 libsmpeg-dev:i386 liboggz2-dev:i386 libflac-dev:i386 libfluidsynth-dev:i386 libsdl2-mixer-dev:i386 libfreetype6-dev:i386 libsdl2-ttf-dev:i386 libsdl2-net-dev:i386 -y
+        sudo apt-get install alien libsdl2-dev:i386 libjpeg-dev:i386 libwebp-dev:i386 libtiff5-dev:i386 libsdl2-image-dev:i386 libmikmod-dev:i386 libfishsound1-dev:i386 libsmpeg-dev:i386 liboggz2-dev:i386 libflac-dev:i386 libfluidsynth-dev:i386 libsdl2-mixer-dev:i386 libfreetype6-dev:i386 libsdl2-ttf-dev:i386 libsdl2-net-dev:i386 -y
 
     - name: Build sources, tests and make installer
-      run: python3 build.py -Wall -Werror --make-installer --arch=${{ matrix.arch }}
+      run: python3 build.py -Wall -Werror --make-installer --use-alien --arch=${{ matrix.arch }}
     
     - name: Install from x64 installer
       if: ${{ matrix.arch == 'x64' }}

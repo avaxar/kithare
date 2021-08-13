@@ -25,6 +25,7 @@ from .constants import (
     EXE,
     ICO_RES,
     INCLUDE_DIRNAME,
+    KITHARE_FLAGS,
     SOURCE_GLOB,
     STD_FLAG,
     SUPPORTED_ARCHS,
@@ -79,8 +80,9 @@ class KithareBuilder:
         if args:
             self._handle_first_arg(args[0])
 
+        use_alien = "--use-alien" in args
         self.installer = (
-            get_packager(self.basepath, self.exepath, machine)
+            get_packager(self.basepath, self.exepath, machine, use_alien)
             if "--make-installer" in args
             else None
         )
@@ -139,7 +141,7 @@ class KithareBuilder:
                         "Argument '-j' must be a positive integer"
                     ) from None
 
-            elif not i.startswith("--arch=") and i != "--make-installer":
+            elif not i.startswith("--arch=") and i not in KITHARE_FLAGS:
                 self.cflags.append(i)
 
     def get_flags(self, rel_base: bool = False, with_lflag: bool = False):
@@ -209,11 +211,13 @@ class KithareBuilder:
             if build_skippable and not should_build(
                 file, ofile, self.basepath / INCLUDE_DIRNAME
             ):
+                # file is already built, skip it
                 skipped_files.append(file)
                 continue
 
             compilerpool.add(file, ofile)
 
+        # wait for all sources to compile
         compilerpool.wait()
         if skipped_files:
             if len(skipped_files) == 1:
@@ -304,6 +308,7 @@ class KithareBuilder:
             self.cflags.append(incflag)
 
         if self.installer is not None:
+            # do any pre-build setup for installer generation
             self.installer.setup()
 
         t_2 = time.perf_counter()
@@ -312,6 +317,7 @@ class KithareBuilder:
 
         t_3 = time.perf_counter()
         if self.installer is not None:
+            # make installer if flag was passed already
             self.installer.package()
 
         t_4 = time.perf_counter()

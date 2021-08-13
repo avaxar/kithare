@@ -10,12 +10,12 @@ background
 """
 
 
-from builder.utils import BuildError
 import queue
 import threading
 import urllib.request as urllib
 from typing import Optional
 
+from builder.utils import BuildError
 
 # Downloads timeout in seconds
 DOWNLOAD_TIMEOUT = 600
@@ -59,6 +59,7 @@ class ThreadedDownloader:
         """
         Download a file
         """
+        # Start thread, add it to a set of running threads
         thread = threading.Thread(
             target=self._download_thread,
             name=name,
@@ -107,9 +108,9 @@ class ThreadedDownloader:
         """
         for name, data in self.get_finished():
             if data is None:
-                raise BuildError(f"Downloads failed")
+                raise BuildError("Downloads failed")
 
             print(f"Successfully downloaded {name}!")
             return name, data
 
-        raise BuildError(f"Failed to fetch downloads as all were completed")
+        raise BuildError("Failed to fetch downloads as all were completed")
