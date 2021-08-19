@@ -47,9 +47,26 @@ class Packager:
 
     def package(self):
         """
-        Makes the package
+        Make portable zip package
         """
-        raise NotImplementedError()
+        print("Making portable binary ZIP")
+        zipname = f"kithare-{KITHARE_VERSION}-{platform.system()}-{self.machine}.zip"
+        portable_zip = self.packaging_dir / "dist" / zipname
+
+        portable_zip.parent.mkdir(exist_ok=True)
+        with ZipFile(portable_zip, mode="w") as myzip:
+            kithare_base = Path("Kithare")
+
+            # copy executable and other DLLs
+            for dfile in self.exepath.parent.rglob("*"):
+                zipped_file = kithare_base / dfile.relative_to(self.exepath.parent)
+                myzip.write(dfile, arcname=zipped_file)
+
+            # copy LICENSE and readme to zip
+            for filename in {"LICENSE", "README.md"}:
+                myzip.write(self.basepath / filename, arcname=kithare_base / filename)
+
+        print("Finished making zipfile\n")
 
 
 class WindowsPackager(Packager):
@@ -84,36 +101,13 @@ class WindowsPackager(Packager):
         self.downloader = ThreadedDownloader()
         self.downloader.download("INNO Setup Installer", INNO_SETUP_DOWNLOAD)
 
-    def make_portable_zip(self):
-        """
-        Make portable zip package
-        """
-        print("Making portable binary ZIP")
-        zipname = f"kithare-{KITHARE_VERSION}-{self.machine}.zip"
-        portable_zip = self.packaging_dir / "dist" / zipname
-
-        portable_zip.parent.mkdir(exist_ok=True)
-        with ZipFile(portable_zip, mode="w") as myzip:
-            kithare_base = Path("Kithare")
-
-            # copy executable and other DLLs
-            for dfile in self.exepath.parent.rglob("*"):
-                zipped_file = kithare_base / dfile.relative_to(self.exepath.parent)
-                myzip.write(dfile, arcname=zipped_file)
-
-            # copy LICENSE and readme to zip
-            for filename in {"LICENSE", "README.md"}:
-                myzip.write(self.basepath / filename, arcname=kithare_base / filename)
-
-        print("Finished making zipfile\n")
-
     def package(self):
         """
         Make installer for Windows
         """
-        print("Using Windows installer configuration")
+        super().package()
 
-        self.make_portable_zip()
+        print("Using Windows installer configuration")
 
         installer_build_dir = self.packaging_dir / "build"
         rmtree(installer_build_dir)  # clean old build dir
@@ -227,6 +221,8 @@ class LinuxPackager(Packager):
         """
         Make installer for Linux
         """
+        super().package()
+
         print("Using Linux installer configuration")
         print("Testing for Debian")
         try:
@@ -246,13 +242,6 @@ class MacPackager(Packager):
     """
     Subclass of Packager that handles MacOS packaging
     """
-
-    def __init__(self, basepath: Path, exepath: Path, machine: str):
-        """
-        Initialise MacPackager class
-        """
-        super().__init__(basepath, exepath, machine)
-        raise BuildError("Generating MacOS installers are not supported as of now")
 
 
 def get_packager(basepath: Path, exepath: Path, machine: str, use_alien: bool):
