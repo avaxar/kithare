@@ -55,5 +55,5 @@ jobs:
     #- name: Upload dist
       #uses: actions/upload-artifact@v2
       #with:
-        #name: dist-Mac-Clang
-        #path: dist/
+        #name: Kithare-Darwin-Installers
+        #path: builder/packaging/dist/

@@ -98,5 +98,6 @@ jobs:
     - name: Upload installer
       uses: actions/upload-artifact@v2
       with:
+        name: Kithare-Linux-MultiArch-Installers
         path: ~/artifacts
 

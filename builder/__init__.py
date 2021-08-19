@@ -302,6 +302,8 @@ class KithareBuilder:
             if ico_res.is_file():
                 ico_res.unlink()
 
+        print("Kithare has been built successfully!")
+
     def build(self):
         """
         Build Kithare
@@ -322,7 +324,7 @@ class KithareBuilder:
 
         t_2 = time.perf_counter()
         self.build_exe()
-        print("Kithare has been built successfully!\n")
+        print(f"Path to executable: {self.exepath}\n")
 
         t_3 = time.perf_counter()
         if self.installer is not None:
