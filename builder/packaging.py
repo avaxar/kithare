@@ -55,18 +55,12 @@ class Packager:
 
         portable_zip.parent.mkdir(exist_ok=True)
         with ZipFile(portable_zip, mode="w") as myzip:
-            kithare_base = Path("Kithare")
-
-            # copy executable and other DLLs
+            # copy executable and other files
             for dfile in self.exepath.parent.rglob("*"):
-                zipped_file = kithare_base / dfile.relative_to(self.exepath.parent)
+                zipped_file = Path("Kithare") / dfile.relative_to(self.exepath.parent)
                 myzip.write(dfile, arcname=zipped_file)
 
-            # copy LICENSE and readme to zip
-            for filename in {"LICENSE", "README.md"}:
-                myzip.write(self.basepath / filename, arcname=kithare_base / filename)
-
-        print("Finished making zipfile\n")
+        print(f"Finished making zipfile in '{portable_zip}'\n")
 
 
 class WindowsPackager(Packager):
@@ -211,11 +205,11 @@ class LinuxPackager(Packager):
 
             gen_rpm = self.basepath / f"kithare-{version}.{rpm_machine}.rpm"
             try:
-                copy(gen_rpm, dist_dir)
+                rpm_file = copy(gen_rpm, dist_dir)
             finally:
                 gen_rpm.unlink()
 
-            print("Generated rpm packages!\n")
+            print(f"Generated rpm package in '{rpm_file}'!\n")
 
     def package(self):
         """

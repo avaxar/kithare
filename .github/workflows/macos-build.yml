@@ -47,7 +47,7 @@ jobs:
       run: brew install gcc sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf
 
     - name: Build source and tests
-      run: python3 build.py -Wall -Werror
+      run: python3 build.py -Wall -Werror --make-installer
     
     - name: Run tests
       run: python3 build.py test

@@ -31,7 +31,15 @@ from .constants import (
 )
 from .packaging import get_packager
 from .sdl_installer import get_installer
-from .utils import BuildError, get_machine, get_rel_path, rmtree, run_cmd, should_build
+from .utils import (
+    BuildError,
+    get_machine,
+    get_rel_path,
+    rmtree,
+    copy,
+    run_cmd,
+    should_build,
+)
 
 INIT_TEXT = """Kithare Programming Language
 ----------------------------
@@ -85,6 +93,11 @@ class KithareBuilder:
             if "--make-installer" in args
             else None
         )
+
+        if self.installer is None and use_alien:
+            raise BuildError(
+                "The '--use-alien' flag cannot be passed without '--make-installer'"
+            )
 
         if self.installer is not None and debug:
             raise BuildError(
@@ -301,6 +314,19 @@ class KithareBuilder:
             # delete icon file
             if ico_res.is_file():
                 ico_res.unlink()
+
+        # copy LICENSE and readme to dist
+        for filename in {"LICENSE", "README.md"}:
+            copy(self.basepath / filename, self.exepath.parent)
+
+        for dfile in self.exepath.parent.rglob("*"):
+            # Make file permissions less strict on dist dir
+            try:
+                dfile.chmod(0o775)
+            except OSError:
+                raise BuildError(
+                    "Failed to set file permissions of files in dist dir"
+                ) from None
 
         print("Kithare has been built successfully!")
 
