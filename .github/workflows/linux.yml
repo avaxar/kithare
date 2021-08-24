@@ -10,9 +10,7 @@ on:
     - '.gitignore'
     - 'LICENSE'
     - 'README.md'
-    - '.github/workflows/windows-build.yml'
-    - '.github/workflows/macos-build.yml'
-    - '.github/workflows/linux-multiarch-build.yml'
+
   pull_request:
     branches: [ main ]
     paths-ignore:
@@ -22,9 +20,6 @@ on:
     - '.gitignore'
     - 'LICENSE'
     - 'README.md'
-    - '.github/workflows/windows-build.yml'
-    - '.github/workflows/macos-build.yml'
-    - '.github/workflows/linux-multiarch-build.yml'
 
 jobs:
   build:
@@ -52,22 +47,16 @@ jobs:
         sudo apt-get install alien libsdl2-dev:i386 libjpeg-dev:i386 libwebp-dev:i386 libtiff5-dev:i386 libsdl2-image-dev:i386 libmikmod-dev:i386 libfishsound1-dev:i386 libsmpeg-dev:i386 liboggz2-dev:i386 libflac-dev:i386 libfluidsynth-dev:i386 libsdl2-mixer-dev:i386 libfreetype6-dev:i386 libsdl2-ttf-dev:i386 libsdl2-net-dev:i386 -y
 
     - name: Build sources, tests and make installer
-      run: sudo python3 build.py -Wall -Werror --make-installer --use-alien --arch=${{ matrix.arch }}
+      run: sudo python3 build.py --make installer --use-alien --arch ${{ matrix.arch }}
     
-    - name: Install from x64 installer
-      if: ${{ matrix.arch == 'x64' }}
-      run: sudo apt-get install ./builder/packaging/dist/kithare_0.0.1rc1-1_amd64.deb
-    
-    - name: Install from x86 installer
-      if: ${{ matrix.arch == 'x86' }}
-      run: sudo apt-get install ./builder/packaging/dist/kithare_0.0.1rc1-1_i386.deb
-    
+    - name: Install from .deb installer and test
+      run: sudo apt-get install ./builder/packaging/dist/*.deb
+
     - name: Run tests
       run: kcr --test
 
     - name: Upload installer
       uses: actions/upload-artifact@v2
       with:
-        name: Kithare-Linux-Installers
+        name: kithare-linux-installers
         path: builder/packaging/dist/
-

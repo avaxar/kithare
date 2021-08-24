@@ -38,7 +38,7 @@ class DummySDLInstaller:
         """
         Initialise DummySDLInstaller class
         """
-        self.lflags: list[Union[str, Path]] = []
+        self.ldflags: list[Union[str, Path]] = []
 
     def clean(self):  # pylint: disable=no-self-use
         """
@@ -49,12 +49,12 @@ class DummySDLInstaller:
     def install_all(self):
         """
         Utility function to install all SDL deps. In this dummy installer, only
-        updates lflags to link with already installed SDL
+        updates ldflags to link with already installed SDL
         """
         for name in SDL_DEPS:
-            self.lflags.append(name)
+            self.ldflags.append(f"-l{name}")
             if name == "SDL2":
-                self.lflags.append("SDL2main")
+                self.ldflags.append("-lSDL2main")
 
 
 class SDLInstaller(DummySDLInstaller):
@@ -148,13 +148,13 @@ class SDLInstaller(DummySDLInstaller):
 
     def _copy_dll(self, path: Path, overwrite: bool = True):
         """
-        Copy DLLs from downloaded path and update lflags with libpath
+        Copy DLLs from downloaded path and update ldflags with libpath
         """
         # Copy DLLs that have not been copied already
         for dll in path.glob("bin/*.dll"):
             copy(dll, self.dist_dir, overwrite)
 
-        self.lflags.append(path / "lib")
+        self.ldflags.append(path / "lib")
 
     def _install(self, *skipped_downloads: Path, **downloads: Path):
         """

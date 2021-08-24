@@ -15,7 +15,8 @@ import time
 from pathlib import Path
 from typing import Optional, Sequence
 
-from .constants import COMPILER_NAME, CPU_COUNT, STD_FLAG
+from .cflags import CompilerFlags
+from .constants import COMPILER_NAME, CPU_COUNT
 
 
 class CompilerPool:
@@ -23,7 +24,7 @@ class CompilerPool:
     A pool of source files to be compiled in multiple subprocesses
     """
 
-    def __init__(self, maxpoolsize: Optional[int], *cflags: str):
+    def __init__(self, maxpoolsize: Optional[int], cflags: CompilerFlags):
         """
         Initialise CompilerPool instance. maxpoolsize is the limit on number of
         subprocesses that can be opened at a given point. If not specified
@@ -50,8 +51,7 @@ class CompilerPool:
                 str(ofile),
                 "-c",
                 str(cfile),
-                STD_FLAG[cfile.suffix],
-                *self.cflags,
+                *self.cflags.flags_by_ext(cfile.suffix),
             ),
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,

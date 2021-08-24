@@ -17,13 +17,13 @@ make:
 	${PYTHON} build.py
 
 test: make
-	${PYTHON} build.py test
+	${PYTHON} build.py --make test
 
 clean:
-	${PYTHON} build.py clean
+	${PYTHON} build.py --make clean
 
 debug:
-	${PYTHON} build.py debug
+	${PYTHON} build.py --make debug
 
 installer:
-	${PYTHON} build.py --make-installer
+	${PYTHON} build.py --make installer

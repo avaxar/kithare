@@ -8,20 +8,29 @@ builder/utils.py
 Defines common builder utility functions
 """
 
-
+import argparse
 import platform
 import shutil
 import stat
 import subprocess
+
+from datetime import datetime
 from enum import Enum, auto
 from functools import lru_cache
 from pathlib import Path
 from typing import Union
 
+from .constants import EPILOG, INIT_TEXT
+
 # While we recursively search for include files, we don't want to seach
 # the whole file, because that would waste a lotta time. So, we just take
 # an arbitrary line number limit, beyond which, we won't search
 INC_FILE_LINE_LIMIT = 75
+
+TIMESTAMP = (
+    datetime.utcnow().isoformat(".", "minutes").replace("-", ".").replace(":", "")
+)
+NIGHLY_BUILD_VER = f"{TIMESTAMP}-nightly"
 
 
 class ConvertType(Enum):
@@ -35,6 +44,7 @@ class ConvertType(Enum):
     LINUX_DEB = auto()
     LINUX_ARCH = auto()
     LINUX_RPM = auto()
+    APP_IMAGE = auto()
 
 
 class BuildError(Exception):
@@ -51,12 +61,13 @@ class BuildError(Exception):
         self.ecode = ecode
 
 
-def get_rel_path(dirpath: Path, basepath: Path):
+def get_rel_path(dirpath: Path, basepath: Path = Path().resolve()):
     """
     Get dirpath as relative to basepath. This handles corner cases better than
     Path.relative_to, uses ".." path notation so that the relative path is
     always obtained no matter where the two paths are located. Here, dirpath
-    and basepath must be fully resolved absolute paths to directories.
+    and basepath must be fully resolved absolute paths to directories. By
+    default, basepath is current working dir
     """
     ret_parts: list[str] = []
     back_parts = 0
@@ -262,17 +273,17 @@ def convert_machine(machine: str, mode: ConvertType):
 
     Here is a table of what this function does
 
-    name    | Windows | MinGW  | Mac    | Debian  | Arch    | RPM
-    ------------------------------------------------------------------
-    x86     | x86     | i686   | i686   | i386    | i686    | i686
-    x64     | x64     | x86_64 | x86_64 | amd64   | x86_64  | x86_64
-    arm     | Errors  | Errors | Errors | armel   | arm     | armv5tel
-    armv6   | Errors  | Errors | Errors | armhf   | armv6h  | armv6l
-    armv7   | Errors  | Errors | Errors | armhf   | armv7h  | armv7l
-    arm64   | Errors  | Errors | arm64  | arm64   | aarch64 | aarch64
-    ppc64le | Errors  | Errors | Errors | ppc64el | Errors  | ppc64le
-    Others  | Errors  | Errors | Errors | Returns | Errors  | Returns
-    Unknown | Errors  | Errors | Errors | Errors  | Errors  | Errors
+    name    | Windows | MinGW  | Mac    | Debian  | Arch    | RPM      | AppImage
+    ------------------------------------------------------------------------------
+    x86     | x86     | i686   | i686   | i386    | i686    | i686     | i686
+    x64     | x64     | x86_64 | x86_64 | amd64   | x86_64  | x86_64   | x86_64
+    arm     | Errors  | Errors | Errors | armel   | arm     | armv5tel | Errors
+    armv6   | Errors  | Errors | Errors | armhf   | armv6h  | armv6l   | Errors
+    armv7   | Errors  | Errors | Errors | armhf   | armv7h  | armv7l   | armhf
+    arm64   | Errors  | Errors | arm64  | arm64   | aarch64 | aarch64  | aarch64
+    ppc64le | Errors  | Errors | Errors | ppc64el | Errors  | ppc64le  | Errors
+    Others  | Errors  | Errors | Errors | Returns | Errors  | Returns  | Errors
+    Unknown | Errors  | Errors | Errors | Errors  | Errors  | Errors   | Errors
     """
 
     if mode not in ConvertType:
@@ -313,7 +324,9 @@ def convert_machine(machine: str, mode: ConvertType):
             return "armv5tel"
 
     if machine in {"armv6", "armv7"}:
-        if mode == ConvertType.LINUX_DEB:
+        if mode == ConvertType.LINUX_DEB or (
+            mode == ConvertType.APP_IMAGE and machine == "armv7"
+        ):
             return "armhf"
 
         if mode == ConvertType.LINUX_ARCH:
@@ -326,7 +339,11 @@ def convert_machine(machine: str, mode: ConvertType):
         if mode in {ConvertType.MAC, ConvertType.LINUX_DEB}:
             return "arm64"
 
-        if mode in {ConvertType.LINUX_ARCH, ConvertType.LINUX_RPM}:
+        if mode in {
+            ConvertType.LINUX_ARCH,
+            ConvertType.LINUX_RPM,
+            ConvertType.APP_IMAGE,
+        }:
             return "aarch64"
 
     if machine == "ppc64le":
@@ -339,4 +356,57 @@ def convert_machine(machine: str, mode: ConvertType):
     if mode in {ConvertType.LINUX_DEB, ConvertType.LINUX_RPM}:
         return machine
 
+    if mode == ConvertType.APP_IMAGE:
+        raise BuildError(
+            f"installers for {machine} CPU are not supported with AppImage"
+        )
+
     raise BuildError(f"Installers for {machine} CPU are not supported on this platform")
+
+
+def parse_args():
+    """
+    Parse commandline args using the argparse module
+    """
+    parser = argparse.ArgumentParser(
+        description=INIT_TEXT,
+        epilog=EPILOG,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    parser.add_argument(
+        "--make",
+        choices=("clean", "debug", "test", "installer"),
+        help="Specifies the action that the build script should take",
+    )
+
+    parser.add_argument(
+        "-j",
+        metavar="cores",
+        type=int,
+        help="Specifies the number of cores to use during compilation",
+    )
+
+    parser.add_argument(
+        "--arch",
+        metavar="architecture",
+        choices=("x86", "x64"),
+        default="x64",
+        help="A flag that can be x86 for 32-bit, and x64 for 64-bit",
+    )
+
+    parser.add_argument(
+        "--release",
+        metavar="version",
+        default=NIGHLY_BUILD_VER,
+        help="Used to set the version on the installer (PROVISIONAL FLAG, DO NOT USE)",
+    )
+
+    parser.add_argument(
+        "--use-alien",
+        action="store_true",
+        help="A flag that indicates whether to use 'alien' command on installers",
+    )
+
+    ret = parser.parse_args()
+    return ret.arch == "x86", ret

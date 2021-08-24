@@ -10,9 +10,7 @@ on:
     - '.gitignore'
     - 'LICENSE'
     - 'README.md'
-    - '.github/workflows/windows-build.yml'
-    - '.github/workflows/macos-build.yml'
-    - '.github/workflows/ubuntu-build.yml'
+
   pull_request:
     branches: [ main ]
     paths-ignore:
@@ -22,13 +20,10 @@ on:
     - '.gitignore'
     - 'LICENSE'
     - 'README.md'
-    - '.github/workflows/windows-build.yml'
-    - '.github/workflows/macos-build.yml'
-    - '.github/workflows/ubuntu-build.yml'
 
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     
     strategy:
       fail-fast: false  # if a particular matrix build fails, don't skip the rest
@@ -84,20 +79,20 @@ jobs:
         # Produce a binary artifact, test it and place it in the mounted volume
         run: |
           echo "\nBuilding Kithare\n"
-          python3 build.py -Wall -Werror --make-installer --use-alien
+          python3 build.py --make installer --use-alien
           echo "\nInstalling from installer\n"
           apt-get install ./builder/packaging/dist/*.deb
           echo "\nRunning tests\n"
           kcr --test
           cp ./builder/packaging/dist/* /artifacts
-    
-    - name: Clean unneeded deb files
+
+    - name: Clean unneeded armv6 files
       if: ${{ matrix.arch == 'armv6' }}
       run: rm ~/artifacts/*.deb
 
     - name: Upload installer
       uses: actions/upload-artifact@v2
       with:
-        name: Kithare-Linux-MultiArch-Installers
+        name: kithare-linux-multiarch-installers
         path: ~/artifacts
 

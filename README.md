@@ -14,6 +14,18 @@
 - [Discord server](https://discord.gg/hXvY8CzS7A)
 - [Channel on /r/ProgrammingLanguages discord](https://discord.gg/sggx9T9xsz)
 
+## Installation and Versioning
+
+- **Important note:** The language is still unfinished and there are no stable releases yet
+- Kithare follows semantic versioning system for its releases.
+- All releases will be live on the [Github releases tab](https://github.com/Kithare/Kithare/releases)
+- For people who like to live on the edge, Kithare provides nighly builds, here are some direct download links
+    1. [Windows builds (x86/x64)](https://nightly.link/Kithare/Kithare/workflows/windows/main/kithare-windows-installers.zip)
+    2. [Linux builds (x86/x64)](https://nightly.link/Kithare/Kithare/workflows/linux/main/kithare-linux-installers.zip)
+    3. [Linux multiarch builds (armv6/armv7/arm64/s390x/ppc64le)](https://nightly.link/Kithare/Kithare/workflows/linux-multiarch/main/kithare-linux-multiarch-installers.zip)
+    4. [MacOS (Darwin) builds (x64)](https://nightly.link/Kithare/Kithare/workflows/darwin/main/kithare-darwin-installers.zip)
+- For these builds, the version in the installer packages is usually given by `YYYY.MM.DD.HHmm-nightly`, so if the date during the build is 22nd August 2021 and the time is 09:10:36 UTC, then the nightly build version will look like `2021.08.22.0910-nightly`
+
 ## Building
 
 - Kithare uses a python helper script to make building easier. So in order to build Kithare, you need Python v3.6 or above installed.
