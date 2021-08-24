@@ -17,20 +17,15 @@ ICO_RES = "icon.res"
 # A set of architectures well supported by Kithare (have CI running tests on these)
 SUPPORTED_ARCHS = {"x86", "x64", "armv6", "armv7", "arm64", "ppc64le", "s390x"}
 
-
-STD_FLAG = {
-    ".cpp": "--std=c++14",
-    ".c": "--std=c99",
-}
+C_STD_FLAG = "--std=c99"
+CPP_STD_FLAG = "--std=c++14"
 
 COMPILER_NAME = {
     ".cpp": "g++",
     ".c": "gcc",
 }
 
-# Kithare version and rev, remember to keep updated
-KITHARE_VERSION = "0.0.1rc1"
-VERSION_PACKAGE_REV = "1"
+VERSION_PACKAGE_REV = "0"
 
 COMPILER = "MinGW" if platform.system() == "Windows" else "GCC"
 EXE = "kcr"
@@ -40,5 +35,20 @@ if COMPILER == "MinGW":
 _CPU_COUNT = os.cpu_count()
 CPU_COUNT = 1 if _CPU_COUNT is None else _CPU_COUNT
 
-# flags that Kithare uses
-KITHARE_FLAGS = {"--make-installer", "--use-alien"}
+INIT_TEXT = """Kithare Programming Language
+----------------------------
+An open source general purpose statically-typed cross-platform
+interpreted/transpiled C++/Python like programming language.
+
+The source code for Kithare programming language is distributed
+under the MIT license.
+Copyright (C) 2021 Kithare Organization
+
+Github: https://github.com/Kithare/Kithare
+Website: https://kithare.cf/Kithare/
+"""
+
+EPILOG = """
+For any bug reports or feature requests, check out the issue tracker on Github
+https://github.com/Kithare/Kithare/issues
+"""

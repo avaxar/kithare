@@ -18,6 +18,7 @@ __pycache__
 # Executable/compiler generated files
 /build
 /deps/SDL/
+/deps/AppImage/
 /dist
 *.o
 *.obj

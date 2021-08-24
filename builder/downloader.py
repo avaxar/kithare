@@ -11,11 +11,15 @@ background
 
 
 import queue
+import ssl
 import threading
 import urllib.request as urllib
 from typing import Optional
 
-from builder.utils import BuildError
+from .utils import BuildError
+
+# allow unverified SSL because armv7 CI errors at that for some reason
+ssl._create_default_https_context = ssl._create_unverified_context
 
 # Downloads timeout in seconds
 DOWNLOAD_TIMEOUT = 600

@@ -10,9 +10,7 @@ on:
     - '.gitignore'
     - 'LICENSE'
     - 'README.md'
-    - '.github/workflows/windows-build.yml'
-    - '.github/workflows/ubuntu-build.yml'
-    - '.github/workflows/linux-multiarch-build.yml'
+
   pull_request:
     branches: [ main ]
     paths-ignore:
@@ -22,9 +20,6 @@ on:
     - '.gitignore'
     - 'LICENSE'
     - 'README.md'
-    - '.github/workflows/windows-build.yml'
-    - '.github/workflows/ubuntu-build.yml'
-    - '.github/workflows/linux-multiarch-build.yml'
 
 jobs:
   build:
@@ -43,17 +38,17 @@ jobs:
       with:
         python-version: 3.9
 
-    - name: Install GCC(g++) and SDL deps
+    - name: Install GCC (g++) and SDL deps
       run: brew install gcc sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf
 
     - name: Build source and tests
-      run: python3 build.py -Wall -Werror --make-installer
+      run: python3 build.py --make installer
     
     - name: Run tests
-      run: python3 build.py test
+      run: python3 build.py --make test
     
     - name: Upload dist
       uses: actions/upload-artifact@v2
       with:
-        name: Kithare-Darwin-Installers
+        name: kithare-darwin-installers
         path: builder/packaging/dist/

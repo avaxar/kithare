@@ -28,8 +28,8 @@ On other OS:
     And the build is really simple, just run 'python3 build.py'
 
 If you are on a 64-bit system, and want to compile for 32-bit architecture,
-pass '--arch=x86' (or -m32) as an argument to the build script (note that this
-might not work in some cases)
+pass '--arch x86' as an argument to the build script (note that this might not
+work in some cases)
 
 By default, the builder uses all cores on the machine to build Kithare. But if
 you want the builder to consume less CPU power while compiling (at the cost of
@@ -37,20 +37,16 @@ longer compile times), you can use the '-j' flag to set the number of cores you
 want the builder to use. '-j1' means that you want to use only one core, '-j4'
 means that you want to use 4 cores, and so on.
 
-To just run tests, do 'python3 build.py test'. Note that this command is only
-going to run the tests, it does not do anything else.
+To just run tests, do 'python3 build.py --make test'. Note that this command is 
+only going to run the tests, it does not do anything else.
 
-'python3 build.py clean' deletes folders that contain generated executable(s)
-and temporary build files that are cached for performance reasons. In normal
-usage one need not run this command, but in cases like change in version of
-compiler and/or deps, one needs to run this command before installation.
+'python3 build.py --make clean' deletes folders that contain generated
+executable(s) and temporary build files that are cached for performance
+reasons. In normal usage one need not run this command, but in cases like 
+change in version of compiler and/or deps, one needs to run this command before
+installation.
 
-Additionally on Windows, one can run 'python3 build.py cleandep' to delete the
-installed SDL dependencies. Note that this command is not required at all in
-normal usage, and has been only provided for completeness sake, use only if
-you know what you are doing.
-
-To generate installers for Kithare, one can pass '--make-installer' flag to
+To generate installers for Kithare, one can pass '--make installer' flag to
 this build script. On Windows, this will use INNO Setup to make an exe
 installer (INNO will be downloaded by the builder if not found). On Debian
 linux (and derived distros), the builder makes a .deb installer using dpkg-deb.
@@ -66,13 +62,16 @@ make the builder use the 'alien' package to generate a package for another
 distro from the package generated for the host distro. This feature is still
 considered an alpha-quality feature though.
 
-Any other arguments passed to this builder will be forwarded to the compiler.
+To pass any additional compiler flags, one can use CFLAGS, CPPFLAGS, CXXFLAGS,
+LDFLAGS and LDLIBS (makefile terminology) and additionally CCFLAGS (for unified
+C and C++ compilation flags). These can be set into env variables which the
+builder script will load from
 """
 
 import sys
-from pathlib import Path
 
-from builder import KITHARE_ISSUES_LINK, BuildError, KithareBuilder, get_rel_path
+from builder.constants import EPILOG
+from builder import BuildError, KithareBuilder
 
 
 def main():
@@ -81,10 +80,7 @@ def main():
     """
     err_code = 0
     try:
-        cwdir = Path().resolve()
-        projdir = Path(__file__).parent.resolve()
-
-        kithare = KithareBuilder(get_rel_path(projdir, cwdir), *sys.argv[1:])
+        kithare = KithareBuilder()
         kithare.build()
 
     except BuildError as err:
@@ -96,7 +92,7 @@ def main():
         print(
             "Unknown exception occured! This is probably a bug in the build "
             "script itself. Report this bug to Kithare devs, along with the "
-            f"whole buildlog here ({KITHARE_ISSUES_LINK}).\n"
+            f"whole buildlog.{EPILOG}"
         )
         raise
 
@@ -104,10 +100,7 @@ def main():
         err_code = 1
         print("Compilation was terminated with Keyboard Interrupt")
 
-    print(
-        "\nFor any bug reports or feature requests, check out the issue "
-        f"tracker on github\n{KITHARE_ISSUES_LINK}"
-    )
+    print(EPILOG)
     sys.exit(err_code)
 
 

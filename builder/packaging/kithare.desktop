@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Kithare
+Type=Application
+Categories=Development;
+Icon=kithare
+Comment=Programming language
+Terminal=true
+NoDisplay=false
+TryExec=kcr
+Exec=kcr %f

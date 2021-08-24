@@ -9,54 +9,38 @@ Defines the main KithareBuilder class that builds Kithare
 """
 
 
-import json
 import platform
 import sys
 import time
-from json.decoder import JSONDecodeError
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 
+from .cflags import CompilerFlags
 from .compilerpool import CompilerPool
 from .constants import (
+    C_STD_FLAG,
     COMPILER,
     COMPILER_NAME,
+    CPP_STD_FLAG,
     CPU_COUNT,
     EXE,
     ICO_RES,
     INCLUDE_DIRNAME,
-    KITHARE_FLAGS,
-    STD_FLAG,
+    INIT_TEXT,
     SUPPORTED_ARCHS,
 )
 from .packaging import get_packager
 from .sdl_installer import get_installer
 from .utils import (
     BuildError,
+    copy,
     get_machine,
     get_rel_path,
+    parse_args,
     rmtree,
-    copy,
     run_cmd,
     should_build,
 )
-
-INIT_TEXT = """Kithare Programming Language
-----------------------------
-An open source general purpose statically-typed cross-platform
-interpreted/transpiled C++/Python like programming language.
-
-The source code for Kithare programming language is distributed
-under the MIT license.
-Copyright (C) 2021 Kithare Organization
-
-Github: https://github.com/Kithare/Kithare
-Website: https://kithare.cf/Kithare/
-
-Building Kithare...
-"""
-
-KITHARE_ISSUES_LINK = "https://github.com/Kithare/Kithare/issues"
 
 
 class KithareBuilder:
@@ -64,47 +48,44 @@ class KithareBuilder:
     Kithare builder class
     """
 
-    def __init__(self, basepath: Path, *args: str):
+    def __init__(self):
         """
         Initialise kithare builder
         """
-        self.basepath = basepath
+        self.basepath = get_rel_path(Path(__file__).parents[1].resolve())
 
-        is_32_bit = "--arch=x86" in args or "-m32" in args
+        is_32_bit, args = parse_args()
         machine = get_machine(is_32_bit)
 
-        # debug mode for the builder
-        debug = False
-        if args and args[0] == "debug":
-            debug = True
-            args = args[1:]
+        dirname = (
+            f"{COMPILER}-Debug" if args.make == "debug" else f"{COMPILER}-{machine}"
+        )
 
-        dirname = f"{COMPILER}-Debug" if debug else f"{COMPILER}-{machine}"
         self.builddir = self.basepath / "build" / dirname
         self.exepath = self.basepath / "dist" / dirname / EXE
 
-        self.sdl_installer = get_installer(basepath, self.exepath.parent, machine)
-        if args:
-            self._handle_first_arg(args[0])
+        self.sdl_installer = get_installer(self.basepath, self.exepath.parent, machine)
+        self._handle_first_arg(args.make)
 
-        use_alien = "--use-alien" in args
         self.installer = (
-            get_packager(self.basepath, self.exepath, machine, use_alien)
-            if "--make-installer" in args
+            get_packager(
+                self.basepath, self.exepath, machine, args.release, args.use_alien
+            )
+            if args.make == "installer"
             else None
         )
 
-        if self.installer is None and use_alien:
-            raise BuildError(
-                "The '--use-alien' flag cannot be passed without '--make-installer'"
-            )
+        self.j_flag: Optional[int] = args.j
+        if self.j_flag is not None and self.j_flag <= 0:
+            raise BuildError("The '-j' flag should be a positive integer")
 
-        if self.installer is not None and debug:
+        if self.installer is None and args.use_alien:
             raise BuildError(
-                "Cannot generate installer with Kithare compiled in debug mode"
+                "The '--use-alien' flag cannot be passed while an installer is not being made"
             )
 
         print(INIT_TEXT)
+        print("Building Kithare...")
         print("Platform:", platform.platform())
         print("Compiler:", COMPILER)
         print("Builder Python version:", platform.python_version())
@@ -122,65 +103,29 @@ class KithareBuilder:
         run_cmd(COMPILER_NAME[".c"], "--version", strict=True, silent_cmds=True)
 
         # compiler flags
-        self.cflags: list[Union[str, Path]] = [
-            "-g" if debug else "-O3",  # no -O3 on debug mode
-            basepath / INCLUDE_DIRNAME,
-        ]
+        self.cflags = CompilerFlags(self.basepath)
+
+        self.cflags.ccflags.extend(
+            (
+                "-Wall",
+                "-Werror",
+                "-g" if args.make == "debug" else "-O3",  # no -O3 on debug mode
+                self.basepath / INCLUDE_DIRNAME,
+            )
+        )
 
         if COMPILER == "MinGW":
-            self.cflags.append("-municode")
+            self.cflags.ccflags.append("-municode")
+            self.cflags.ldflags.append("-municode")  # the linker needs the flag too
 
-        if is_32_bit and "-m32" not in args:
-            self.cflags.append("-m32")
+        if is_32_bit:
+            self.cflags.ccflags.append("-m32")
+            self.cflags.ldflags.append("-m32")  # the linker needs the flag too
 
-        self.j_flag: Optional[int] = None
+        self.cflags.cflags.append(C_STD_FLAG)
+        self.cflags.cxxflags.append(CPP_STD_FLAG)
 
-        # update compiler flags with more args
-        for i in args:
-            if i.startswith("-j"):
-                if self.j_flag is not None:
-                    # -j specified again
-                    raise BuildError("Argument '-j' can only be specified once")
-
-                try:
-                    self.j_flag = int(i[2:])
-                    if self.j_flag <= 0:
-                        raise ValueError()
-
-                except ValueError:
-                    raise BuildError(
-                        "Argument '-j' must be a positive integer"
-                    ) from None
-
-            elif not i.startswith("--arch=") and i not in KITHARE_FLAGS:
-                self.cflags.append(i)
-
-    def get_flags(self, rel_base: bool = False, with_lflag: bool = False):
-        """
-        Get cflags/lflags, with any path objects resolved correctly. rel_base
-        arg specifies whether the paths should be relative to base dir, or
-        current working dir. If with_lflag is specified, linker flags are also
-        outputted.
-        """
-        new_flags: list[str] = []
-
-        flags = self.sdl_installer.lflags if with_lflag else self.cflags
-        for flag in flags:
-            if isinstance(flag, str):
-                new_flags.append(f"-l{flag}" if with_lflag else flag)
-                continue
-
-            if rel_base:
-                flag = flag.relative_to(self.basepath)
-
-            new_flags.append(f"-L{flag}" if with_lflag else f"-I{flag}")
-
-        if with_lflag:
-            new_flags.extend(self.get_flags(rel_base))
-            if rel_base:
-                new_flags.extend(STD_FLAG.values())
-
-        return new_flags
+        self.cflags.load_from_env()
 
     def _handle_first_arg(self, arg: str):
         """
@@ -208,7 +153,7 @@ class KithareBuilder:
         objfiles: list[Path] = []
 
         print("Building Kithare sources...")
-        compilerpool = CompilerPool(self.j_flag, *self.get_flags())
+        compilerpool = CompilerPool(self.j_flag, self.cflags)
 
         print(f"Building on {min(compilerpool.maxpoolsize, CPU_COUNT)} core(s)")
         if compilerpool.maxpoolsize > CPU_COUNT:
@@ -216,7 +161,7 @@ class KithareBuilder:
 
         print()  # newline
         for file in self.basepath.glob("src/**/*.c*"):
-            if file.suffix not in STD_FLAG:
+            if file.suffix not in COMPILER_NAME:
                 # not a C or CPP file
                 continue
 
@@ -267,18 +212,14 @@ class KithareBuilder:
         """
         # load old cflags from the previous build
         build_conf = self.builddir / "build_conf.json"
-        try:
-            old_cflags: list[str] = json.loads(build_conf.read_text())
-        except (FileNotFoundError, JSONDecodeError):
-            old_cflags = []
 
-        new_store_cflags = self.get_flags(rel_base=True, with_lflag=True)
+        old_cflags = CompilerFlags.from_json(self.basepath, build_conf)
 
         # because order of args should not matter here
-        build_skippable = sorted(new_store_cflags) == sorted(old_cflags)
+        build_skippable = self.cflags == old_cflags
         if not build_skippable:
             # update conf file with latest cflags
-            build_conf.write_text(json.dumps(new_store_cflags))
+            self.cflags.to_json(build_conf)
 
         objfiles = self.build_sources(build_skippable)
         if objfiles is None:
@@ -301,13 +242,12 @@ class KithareBuilder:
 
         print("Building executable")
         try:
-            new_cflags = self.get_flags(with_lflag=True)
             run_cmd(
                 COMPILER_NAME[".cpp"],
                 "-o",
                 self.exepath,
                 *objfiles,
-                *new_cflags,
+                *self.cflags.flags_by_ext(".o"),
                 strict=True,
             )
         finally:
@@ -342,8 +282,9 @@ class KithareBuilder:
         # Prepare dependencies and cflags with SDL flags
         incflag = self.sdl_installer.install_all()
         if incflag is not None:
-            self.cflags.append(incflag)
+            self.cflags.ccflags.append(incflag)
 
+        self.cflags.ldflags.extend(self.sdl_installer.ldflags)
         if self.installer is not None:
             # do any pre-build setup for installer generation
             self.installer.setup()
