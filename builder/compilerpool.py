@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Optional, Sequence
 
 from .cflags import CompilerFlags
-from .constants import COMPILER_NAME, CPU_COUNT
+from .constants import CPU_COUNT
 
 
 class CompilerPool:
@@ -37,7 +37,7 @@ class CompilerPool:
         self._queued_procs: list[tuple[Path, Path]] = []
         self.failed: bool = False
 
-        self.maxpoolsize = CPU_COUNT if maxpoolsize is None else maxpoolsize
+        self.maxpoolsize = CPU_COUNT + 2 if maxpoolsize is None else maxpoolsize
 
     def _start_proc(self, cfile: Path, ofile: Path):
         """
@@ -46,7 +46,7 @@ class CompilerPool:
         # pylint: disable=consider-using-with
         self._procs[cfile] = subprocess.Popen(
             (
-                COMPILER_NAME[cfile.suffix],
+                self.cflags.get_compiler(cfile.suffix),
                 "-o",
                 str(ofile),
                 "-c",

@@ -273,17 +273,17 @@ def convert_machine(machine: str, mode: ConvertType):
 
     Here is a table of what this function does
 
-    name    | Windows | MinGW  | Mac    | Debian  | Arch    | RPM      | AppImage
-    ------------------------------------------------------------------------------
-    x86     | x86     | i686   | i686   | i386    | i686    | i686     | i686
-    x64     | x64     | x86_64 | x86_64 | amd64   | x86_64  | x86_64   | x86_64
-    arm     | Errors  | Errors | Errors | armel   | arm     | armv5tel | Errors
-    armv6   | Errors  | Errors | Errors | armhf   | armv6h  | armv6l   | Errors
-    armv7   | Errors  | Errors | Errors | armhf   | armv7h  | armv7l   | armhf
-    arm64   | Errors  | Errors | arm64  | arm64   | aarch64 | aarch64  | aarch64
-    ppc64le | Errors  | Errors | Errors | ppc64el | Errors  | ppc64le  | Errors
-    Others  | Errors  | Errors | Errors | Returns | Errors  | Returns  | Errors
-    Unknown | Errors  | Errors | Errors | Errors  | Errors  | Errors   | Errors
+    name    | Windows | Mac    | Debian  | Arch    | RPM      | AppImage | MinGW
+    --------------------------------------------------------------------- --------------------
+    x86     | x86     | i686   | i386    | i686    | i686     | i686     | i686-w64-mingw32
+    x64     | x64     | x86_64 | amd64   | x86_64  | x86_64   | x86_64   | x86_64-w64-mingw32
+    arm     | Errors  | Errors | armel   | arm     | armv5tel | Errors   | Errors
+    armv6   | Errors  | Errors | armhf   | armv6h  | armv6l   | Errors   | Errors
+    armv7   | Errors  | Errors | armhf   | armv7h  | armv7l   | armhf    | Errors
+    arm64   | Errors  | arm64  | arm64   | aarch64 | aarch64  | aarch64  | Errors
+    ppc64le | Errors  | Errors | ppc64el | Errors  | ppc64le  | Errors   | Errors
+    Others  | Errors  | Errors | Returns | Errors  | Returns  | Errors   | Errors
+    Unknown | Errors  | Errors | Errors  | Errors  | Errors   | Errors   | Errors
     """
 
     if mode not in ConvertType:
@@ -302,7 +302,11 @@ def convert_machine(machine: str, mode: ConvertType):
         if mode == ConvertType.WINDOWS:
             return "x86"
 
-        return "i686"
+        ret = "i686"
+        if mode == ConvertType.WINDOWS_MINGW:
+            ret += "-w64-mingw32"
+
+        return ret
 
     if machine == "x64":
         if mode == ConvertType.LINUX_DEB:
@@ -311,7 +315,11 @@ def convert_machine(machine: str, mode: ConvertType):
         if mode == ConvertType.WINDOWS:
             return "x64"
 
-        return "x86_64"
+        ret = "x86_64"
+        if mode == ConvertType.WINDOWS_MINGW:
+            ret += "-w64-mingw32"
+
+        return ret
 
     if machine == "arm":
         if mode == ConvertType.LINUX_DEB:
@@ -390,9 +398,9 @@ def parse_args():
     parser.add_argument(
         "--arch",
         metavar="architecture",
-        choices=("x86", "x64"),
+        choices=("x64", "x86"),
         default="x64",
-        help="A flag that can be x86 for 32-bit, and x64 for 64-bit",
+        help="A flag that can be x64 for 64-bit, and x86 for 32-bit",
     )
 
     parser.add_argument(
@@ -409,4 +417,4 @@ def parse_args():
     )
 
     ret = parser.parse_args()
-    return ret.arch == "x86", ret
+    return ret.arch.endswith("86"), ret

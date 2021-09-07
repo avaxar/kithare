@@ -10,20 +10,35 @@ background
 """
 
 
+import hashlib
+import io
 import queue
 import ssl
 import threading
 import urllib.request as urllib
+import zipfile
+from pathlib import Path
 from typing import Optional
 
 from .utils import BuildError
 
-# allow unverified SSL because armv7 CI errors at that for some reason
+# allow unverified SSL because armv7 CI errors at that for some reason while
+# downloading deps
 ssl._create_default_https_context = ssl._create_unverified_context
 
 # Downloads timeout in seconds
 DOWNLOAD_TIMEOUT = 600
 TIMEOUT_PER_LOOP = 0.05
+
+LINKS_AND_HASHES = {}
+
+MINGW_DOWNLOAD_DIR = (
+    "https://github.com/brechtsanders/winlibs_mingw/releases/download/9.4.0-9.0.0-r1/"
+)
+MINGW_ZIP = (
+    "winlibs-x86_64-posix-seh-gcc-9.4.0-mingw-w64-9.0.0-r1.zip",
+    "winlibs-i686-posix-dwarf-gcc-9.4.0-mingw-w64-9.0.0-r1.zip",
+)
 
 
 class ThreadedDownloader:
@@ -53,7 +68,6 @@ class ThreadedDownloader:
 
         except OSError:
             # some networking error
-            print(f"Failed to download {name} due to some networking error")
             self.downloaded.put((name, None))
 
         else:
@@ -82,7 +96,7 @@ class ThreadedDownloader:
     def get_finished(self):
         """
         Iterate over downloaded resources (name-data pairs). Blocks while
-        waiting for threads to complete. data being None indicates error in
+        waiting for all threads to complete. data being None indicates error in
         download
         """
         loops = 0
@@ -90,20 +104,33 @@ class ThreadedDownloader:
             try:
                 # Do timeout and loop because we need be able to handle any
                 # potential KeyboardInterrupt errors
-                yield self.downloaded.get(timeout=TIMEOUT_PER_LOOP)
+                name, data = self.downloaded.get(timeout=TIMEOUT_PER_LOOP)
             except queue.Empty:
                 pass
 
+            else:
+                if data is None:
+                    raise BuildError(
+                        f"Failed to download {name} due to some networking error"
+                    )
+
+                datahash = hashlib.sha256(data).hexdigest()
+                presethash = LINKS_AND_HASHES.get(name)
+                if datahash != presethash:
+                    if presethash is not None:
+                        raise BuildError(f"Download hash for {name} mismatched")
+
+                    print(f"BuildWarning: Download {name} has not been hash verified!")
+                    print(datahash)
+
+                print(f"Successfully downloaded {name}!")
+                yield name, data
+
             loops += 1
             if loops * TIMEOUT_PER_LOOP > DOWNLOAD_TIMEOUT:
-                ret = [(t.name, None) for t in self.threads if t.is_alive()]
-                print(
-                    "Download(s) timed out!\n"
-                    f"Took longer than {DOWNLOAD_TIMEOUT} seconds.\n"
-                    "Skipping download(s), continuing with compilation..."
+                raise BuildError(
+                    f"Download(s) timed out! Took longer than {DOWNLOAD_TIMEOUT} s."
                 )
-                yield from ret
-                break
 
     def get_one(self):
         """
@@ -111,10 +138,29 @@ class ThreadedDownloader:
         waiting for resource. If download failed, raises error.
         """
         for name, data in self.get_finished():
-            if data is None:
-                raise BuildError("Downloads failed")
-
-            print(f"Successfully downloaded {name}!")
             return name, data
 
         raise BuildError("Failed to fetch downloads as all were completed")
+
+
+def install_mingw(basepath: Path, is_32_bit: bool):
+    """
+    Install MinGW into the deps folder, this is used as a fallback when MinGW
+    is not pre-installed on the machine. Returns path object to MinGW bin dir
+    """
+    mingw_name = "MinGW32" if is_32_bit else "MinGW64"
+    deps_dir = basepath / "deps"
+    ret = deps_dir / mingw_name.lower() / "bin"
+    if ret.is_dir():
+        return ret
+
+    print("MinGW is not pre-installed, installing it into deps dir.")
+    downloader = ThreadedDownloader()
+    downloader.download(mingw_name, MINGW_DOWNLOAD_DIR + MINGW_ZIP[is_32_bit])
+    print("This can take a while, depending on your internet speeds")
+
+    with zipfile.ZipFile(io.BytesIO(downloader.get_one()[1]), "r") as zipped:
+        zipped.extractall(deps_dir)
+
+    print()  # newline
+    return ret

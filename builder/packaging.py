@@ -246,13 +246,9 @@ class LinuxPackager(Packager):
                 print("Waiting for AppImageKit downloads to finish")
 
             for name, data in self.downloader.get_finished():
-                if data is None:
-                    raise BuildError(f"Failed to fetch downloads of {name}")
-
                 # save download in file
                 appimagekit[name].write_bytes(data)
                 appimagekit[name].chmod(0o775)
-                print(f"Successfully downloaded {name}!")
 
         if self.machine not in {"x86", "x64"}:
             # A workaround for AppImage bug on arm docker

@@ -27,6 +27,15 @@ class CompilerFlags:
         """
         self.basepath = basepath
 
+        # C Compiler name, gcc by default
+        self.cc: Union[str, Path] = "gcc"
+
+        # C++ Compiler name, g++ by default
+        self.cxx: Union[str, Path] = "g++"
+
+        # Windres command
+        self.windres: Union[str, Path] = "windres"
+
         # flags for the C compiler, any Path object here is interpeted as -I
         self.cflags: list[Union[str, Path]] = []
 
@@ -42,17 +51,33 @@ class CompilerFlags:
         # flags for the linker, any Path object here is interpeted as -L
         self.ldflags: list[Union[str, Path]] = []
 
+    def get_compiler(self, ext: str = "cpp"):
+        """
+        Get compiler by file extension. Returns self.cc for C files and
+        self.cxx for cpp files
+        """
+        if ext.endswith("c"):
+            return str(self.cc)
+
+        if ext.endswith("cpp"):
+            return str(self.cxx)
+
+        raise RuntimeError(f"InternalError: Function 'get_compiler' got arg {ext}")
+
     @classmethod
     def from_json(cls, basepath: Path, jsondata: Union[Path, str]):
         """
         Get CompilerFlags object from json dict representation
         """
-        try:
-            if isinstance(jsondata, Path):
+        if isinstance(jsondata, Path):
+            try:
                 jsondata = jsondata.read_text()
+            except FileNotFoundError:
+                jsondata = "null"
 
+        try:
             obj = json.loads(jsondata)
-        except (FileNotFoundError, json.JSONDecodeError):
+        except json.JSONDecodeError:
             obj = None
 
         ret = cls(basepath)
@@ -70,6 +95,14 @@ class CompilerFlags:
         """
         Fill in attributes from a dict to the CompilerFlags object
         """
+        cc = dictobj.get("CC")
+        if isinstance(cc, str):
+            self.cc = cc
+
+        cxx = dictobj.get("CXX")
+        if isinstance(cxx, str):
+            self.cxx = cxx
+
         for attr, key in (
             (self.ccflags, "CCFLAGS"),
             (self.ldflags, "LDFLAGS"),
@@ -117,14 +150,34 @@ class CompilerFlags:
         if not isinstance(other, CompilerFlags):
             return NotImplemented
 
+        cc = self.cc if isinstance(self.cc, str) else self.cc.relative_to(self.basepath)
+        cxx = (
+            self.cxx
+            if isinstance(self.cxx, str)
+            else self.cxx.relative_to(self.basepath)
+        )
+
+        occ = (
+            other.cc
+            if isinstance(other.cc, str)
+            else other.cc.relative_to(other.basepath)
+        )
+        ocxx = (
+            other.cxx
+            if isinstance(other.cxx, str)
+            else other.cxx.relative_to(other.basepath)
+        )
+
+        if str(cc) != str(occ) or str(cxx) != str(ocxx):
+            return False
+
         for attr, other_attr in (
-            (self.ccflags, other.ccflags),
             (self.cflags, other.cflags),
             (self.cxxflags, other.cxxflags),
         ):
-            if sorted(self.resolve_paths(*attr, rel_base=True)) != sorted(
-                self.resolve_paths(*other_attr, rel_base=True)
-            ):
+            if sorted(
+                self.resolve_paths(*attr, *self.ccflags, rel_base=True)
+            ) != sorted(self.resolve_paths(*other_attr, *other.ccflags, rel_base=True)):
                 return False
 
         if sorted(
@@ -139,9 +192,18 @@ class CompilerFlags:
         Write a file with a JSON dict representation of the CompilerFlags
         object
         """
+        cc = self.cc if isinstance(self.cc, str) else self.cc.relative_to(self.basepath)
+        cxx = (
+            self.cxx
+            if isinstance(self.cxx, str)
+            else self.cxx.relative_to(self.basepath)
+        )
+
         file.write_text(
             json.dumps(
                 {
+                    "CC": str(cc),
+                    "CXX": str(cxx),
                     "CPPFLAGS": self.cppflags,
                     "CCFLAGS": list(self.resolve_paths(*self.ccflags, rel_base=True)),
                     "CFLAGS": list(self.resolve_paths(*self.cflags, rel_base=True)),
@@ -149,25 +211,26 @@ class CompilerFlags:
                     "LDFLAGS": list(
                         self.resolve_paths(*self.ldflags, hflag="-L", rel_base=True)
                     ),
-                }
+                },
+                indent=4,
             )
         )
 
-    def flags_by_ext(self, ext: str, rel_base: bool = False):
+    def flags_by_ext(self, ext: str):
         """
         Get the appropriate compiler flags for compilation based on file
         extension. rel_base arg specifies whether the paths should be relative
         to base dir, or current working dir
         """
-        if ext == ".c":
+        if ext.endswith("c"):
             yield from self.cppflags
-            yield from self.resolve_paths(*self.ccflags, rel_base=rel_base)
-            yield from self.resolve_paths(*self.cflags, rel_base=rel_base)
+            yield from self.resolve_paths(*self.ccflags)
+            yield from self.resolve_paths(*self.cflags)
 
-        if ext == ".cpp":
+        if ext.endswith("cpp"):
             yield from self.cppflags
-            yield from self.resolve_paths(*self.ccflags, rel_base=rel_base)
-            yield from self.resolve_paths(*self.cxxflags, rel_base=rel_base)
+            yield from self.resolve_paths(*self.ccflags)
+            yield from self.resolve_paths(*self.cxxflags)
 
-        if ext == ".o":
-            yield from self.resolve_paths(*self.ldflags, hflag="-L", rel_base=rel_base)
+        if ext.endswith("o"):
+            yield from self.resolve_paths(*self.ldflags, hflag="-L")

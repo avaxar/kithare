@@ -10,13 +10,13 @@ Defines classes to handle SDL installation and linker flags
 
 
 import io
+import platform
 import tarfile
 from pathlib import Path
-from typing import Optional, Union
+from typing import Union
 
-from .constants import COMPILER
 from .downloader import ThreadedDownloader
-from .utils import BuildError, ConvertType, convert_machine, copy, rmtree
+from .utils import BuildError, copy, rmtree
 
 # SDL project-version pairs, remember to keep updated
 SDL_DEPS = {
@@ -28,15 +28,15 @@ SDL_DEPS = {
 }
 
 
-class DummySDLInstaller:
+class SDLInstaller:
     """
-    Dummy SDLInstaller class, with limited functionality. This class is kept
-    for compatability with non-windows OSes
+    SDLInstaller base class, with limited functionality. This class is kept
+    for compatability with non-windows and non-mac OSes
     """
 
     def __init__(self):
         """
-        Initialise DummySDLInstaller class
+        Initialise SDLInstaller class
         """
         self.ldflags: list[Union[str, Path]] = []
 
@@ -57,14 +57,14 @@ class DummySDLInstaller:
                 self.ldflags.append("-lSDL2main")
 
 
-class SDLInstaller(DummySDLInstaller):
+class WindowsSDLInstaller(SDLInstaller):
     """
     Helper class to install SDL deps on MinGW
     """
 
     def __init__(self, basepath: Path, dist_dir: Path, machine: str):
         """
-        Initialise SDLInstaller class
+        Initialise WindowsSDLInstaller class
         """
         super().__init__()
         self.sdl_dir = basepath / "deps" / "SDL"
@@ -73,8 +73,7 @@ class SDLInstaller(DummySDLInstaller):
         self.dist_dir = dist_dir
         self.downloader = ThreadedDownloader()
 
-        machine = convert_machine(machine, ConvertType.WINDOWS_MINGW)
-        self.sdl_type = f"{machine}-w64-mingw32"
+        self.machine = machine
 
     def clean(self):
         """
@@ -105,7 +104,7 @@ class SDLInstaller(DummySDLInstaller):
         Return a two element tuple, first one indicating whether download was
         skipped, second Path object to downloaded dir
         """
-        sdl_mingw_dep = self.sdl_dir / f"{name}-{ver}" / self.sdl_type
+        sdl_mingw_dep = self.sdl_dir / f"{name}-{ver}" / self.machine
         if sdl_mingw_dep.is_dir():
             print(f"Skipping {name} download because it already exists")
             return True, sdl_mingw_dep
@@ -119,14 +118,10 @@ class SDLInstaller(DummySDLInstaller):
         self.downloader.download(name, download_link)
         return False, sdl_mingw_dep
 
-    def _extract(self, name: str, downloaddata: Optional[bytes], downloaded_path: Path):
+    def _extract(self, name: str, downloaddata: bytes, downloaded_path: Path):
         """
-        Extract downloaded dep into SDL deps folder, return bool on whether
-        extraction succeeded or not
+        Extract downloaded dep into SDL deps folder
         """
-        if downloaddata is None:
-            return False
-
         try:
             with io.BytesIO(downloaddata) as fileobj:
                 with tarfile.open(mode="r:gz", fileobj=fileobj) as tarred:
@@ -134,17 +129,14 @@ class SDLInstaller(DummySDLInstaller):
 
         except (tarfile.TarError, OSError):
             # some error while extracting
-            print(f"Failed to extract tarfile of {name} while downloading")
             rmtree(downloaded_path.parent)  # clean failed download
-            return False
-
-        print(f"Finished downloading {name}")
+            raise BuildError(
+                f"Failed to extract tarfile of {name} while downloading"
+            ) from None
 
         # Copy includes
         for header in downloaded_path.glob("include/SDL2/*.h"):
             copy(header, self.sdl_include)
-
-        return True
 
     def _copy_dll(self, path: Path, overwrite: bool = True):
         """
@@ -155,25 +147,6 @@ class SDLInstaller(DummySDLInstaller):
             copy(dll, self.dist_dir, overwrite)
 
         self.ldflags.append(path / "lib")
-
-    def _install(self, *skipped_downloads: Path, **downloads: Path):
-        """
-        Install SDL dependencies. Returns whether the install was successful
-        """
-        for download in skipped_downloads:
-            self._copy_dll(download, False)
-
-        failed = False
-        for name, downloaddata in self.downloader.get_finished():
-            if not self._extract(name, downloaddata, downloads[name]):
-                # download failed, remove from downloads
-                downloads.pop(name)
-                failed = True
-
-        for path in downloads.values():
-            self._copy_dll(path)
-
-        return not failed
 
     def install_all(self):
         """
@@ -190,33 +163,45 @@ class SDLInstaller(DummySDLInstaller):
         super().install_all()
 
         downloads: dict[str, Path] = {}
-        skipped_downloads: set[Path] = set()
 
         # Download SDL deps if unavailable, use threading to download deps
         # concurrently
         for name, ver in SDL_DEPS.items():
             skipped, path = self._download_dep(name, ver)
             if skipped:
-                skipped_downloads.add(path)
+                # download was skipped, update lflags and copy any DLLs
+                self._copy_dll(path, False)
             else:
                 downloads[name] = path
 
-        if not self._install(*skipped_downloads, **downloads):
-            print(
-                "These error(s) will be ignored for now, but may cause build "
-                "errors later"
-            )
+        # extract dependencies
+        for name, downloaddata in self.downloader.get_finished():
+            self._extract(name, downloaddata, downloads[name])
+
+        # copy DLLs from extracted dependencies
+        for path in downloads.values():
+            self._copy_dll(path)
 
         print()  # newline
         return self.sdl_include.parent
 
 
+class MacSDLInstaller(SDLInstaller):
+    """
+    Helper class to install SDL deps on MacOS.
+    TODO: Fully implement this class with better SDL and dep handling on Mac
+    """
+
+
 def get_installer(basepath: Path, dist_dir: Path, machine: str):
     """
-    Gets an instance of SDLInstaller or DummySDLInstaller depending on the OS
+    Gets an instance of the platform specific installer class, fallback to base
+    class on other OSes
     """
-    return (
-        SDLInstaller(basepath, dist_dir, machine)
-        if COMPILER == "MinGW"
-        else DummySDLInstaller()
-    )
+    if platform.system() == "Windows":
+        return WindowsSDLInstaller(basepath, dist_dir, machine)
+
+    if platform.system() == "Darwin":
+        return MacSDLInstaller()
+
+    return SDLInstaller()

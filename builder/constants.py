@@ -20,11 +20,6 @@ SUPPORTED_ARCHS = {"x86", "x64", "armv6", "armv7", "arm64", "ppc64le", "s390x"}
 C_STD_FLAG = "--std=c99"
 CPP_STD_FLAG = "--std=c++14"
 
-COMPILER_NAME = {
-    ".cpp": "g++",
-    ".c": "gcc",
-}
-
 VERSION_PACKAGE_REV = "0"
 
 COMPILER = "MinGW" if platform.system() == "Windows" else "GCC"
