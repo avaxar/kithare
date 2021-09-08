@@ -28,15 +28,10 @@ jobs:
     strategy:
       fail-fast: false  # if a particular matrix build fails, don't skip the rest
       matrix:
-        arch: ["x86", "x64"]
+        arch: ['x64', 'x86']
 
     steps:
     - uses: actions/checkout@v2
-
-    - name: Set up MinGW
-      uses: egor-tensin/setup-mingw@v2
-      with:
-        platform: ${{ matrix.arch }} 
 
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
@@ -44,10 +39,10 @@ jobs:
         python-version: 3.9
 
     - name: Build sources, tests and make installer
-      run: python3 build.py --make installer --arch ${{matrix.arch}}
+      run: python3 build.py --make installer --arch ${{ matrix.arch }}
     
     - name: Run tests
-      run: python3 build.py --make test --arch ${{matrix.arch}}
+      run: python3 build.py --make test --arch ${{ matrix.arch }}
     
     # TODO: Test with installed kcr as well
     - name: Upload installer

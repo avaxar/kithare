@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false  # if a particular matrix build fails, don't skip the rest
       matrix:
-        arch: ["x86", "x64"]
+        arch: ['x64', 'x86']
 
     steps:
     - uses: actions/checkout@v2

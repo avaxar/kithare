@@ -10,17 +10,18 @@ Defines the main KithareBuilder class that builds Kithare
 
 
 import platform
+import shutil
 import sys
 import time
 from pathlib import Path
 from typing import Optional
 
+from .downloader import install_mingw
 from .cflags import CompilerFlags
 from .compilerpool import CompilerPool
 from .constants import (
     C_STD_FLAG,
     COMPILER,
-    COMPILER_NAME,
     CPP_STD_FLAG,
     CPU_COUNT,
     EXE,
@@ -33,6 +34,8 @@ from .packaging import get_packager
 from .sdl_installer import get_installer
 from .utils import (
     BuildError,
+    ConvertType,
+    convert_machine,
     copy,
     get_machine,
     get_rel_path,
@@ -56,6 +59,14 @@ class KithareBuilder:
 
         is_32_bit, args = parse_args()
         machine = get_machine(is_32_bit)
+        try:
+            mingw_machine = convert_machine(machine, ConvertType.WINDOWS_MINGW)
+        except BuildError:
+            # BuildError only on Windows
+            if COMPILER == "MinGW":
+                raise
+
+            mingw_machine = ""
 
         dirname = (
             f"{COMPILER}-Debug" if args.make == "debug" else f"{COMPILER}-{machine}"
@@ -64,7 +75,9 @@ class KithareBuilder:
         self.builddir = self.basepath / "build" / dirname
         self.exepath = self.basepath / "dist" / dirname / EXE
 
-        self.sdl_installer = get_installer(self.basepath, self.exepath.parent, machine)
+        self.sdl_installer = get_installer(
+            self.basepath, self.exepath.parent, mingw_machine
+        )
         self._handle_first_arg(args.make)
 
         self.installer = (
@@ -81,10 +94,25 @@ class KithareBuilder:
 
         if self.installer is None and args.use_alien:
             raise BuildError(
-                "The '--use-alien' flag cannot be passed while an installer is not being made"
+                "The '--use-alien' flag cannot be passed while an installer "
+                "is not being made"
             )
 
+        # compiler flags
+        self.cflags = CompilerFlags(self.basepath)
+        if COMPILER == "MinGW":
+            self.cflags.cc = f"{mingw_machine}-gcc"
+            self.cflags.cxx = f"{mingw_machine}-g++"
+
         print(INIT_TEXT)
+
+        if shutil.which(self.cflags.get_compiler()) is None:
+            # Compiler is not installed and/or not on PATH
+            retpath = install_mingw(self.basepath, is_32_bit)
+            self.cflags.cc = retpath / f"{self.cflags.cc}.exe"
+            self.cflags.cxx = retpath / f"{self.cflags.cxx}.exe"
+            self.cflags.windres = retpath / "windres.exe"
+
         print("Building Kithare...")
         print("Platform:", platform.platform())
         print("Compiler:", COMPILER)
@@ -100,10 +128,7 @@ class KithareBuilder:
             )
 
         print("Additional compiler info:")
-        run_cmd(COMPILER_NAME[".c"], "--version", strict=True, silent_cmds=True)
-
-        # compiler flags
-        self.cflags = CompilerFlags(self.basepath)
+        run_cmd(self.cflags.get_compiler(), "--version", strict=True, silent_cmds=True)
 
         self.cflags.ccflags.extend(
             (
@@ -117,6 +142,17 @@ class KithareBuilder:
         if COMPILER == "MinGW":
             self.cflags.ccflags.append("-municode")
             self.cflags.ldflags.append("-municode")  # the linker needs the flag too
+
+            # statically link C/C++ stdlib and winpthread on Windows MinGW
+            self.cflags.ldflags.extend(
+                (
+                    "-static-libgcc",
+                    "-static-libstdc++",
+                    "-Wl,-Bstatic,--whole-archive",
+                    "-lwinpthread",
+                    "-Wl,--no-whole-archive",
+                )
+            )
 
         if is_32_bit:
             self.cflags.ccflags.append("-m32")
@@ -161,7 +197,7 @@ class KithareBuilder:
 
         print()  # newline
         for file in self.basepath.glob("src/**/*.c*"):
-            if file.suffix not in COMPILER_NAME:
+            if file.suffix not in {".c", ".cpp"}:
                 # not a C or CPP file
                 continue
 
@@ -212,7 +248,6 @@ class KithareBuilder:
         """
         # load old cflags from the previous build
         build_conf = self.builddir / "build_conf.json"
-
         old_cflags = CompilerFlags.from_json(self.basepath, build_conf)
 
         # because order of args should not matter here
@@ -232,7 +267,7 @@ class KithareBuilder:
             assetfile = self.basepath / "assets" / "Kithare.rc"
 
             print("Running windres command to set icon for exe")
-            ret = run_cmd("windres", assetfile, "-O", "coff", "-o", ico_res)
+            ret = run_cmd(self.cflags.windres, assetfile, "-O", "coff", "-o", ico_res)
             if ret:
                 print("This means the final exe will not have the kithare logo")
             else:
@@ -243,7 +278,7 @@ class KithareBuilder:
         print("Building executable")
         try:
             run_cmd(
-                COMPILER_NAME[".cpp"],
+                self.cflags.get_compiler(),
                 "-o",
                 self.exepath,
                 *objfiles,
@@ -291,7 +326,7 @@ class KithareBuilder:
 
         t_2 = time.perf_counter()
         self.build_exe()
-        print(f"Path to executable: {self.exepath}\n")
+        print(f"Path to executable: '{self.exepath}'\n")
 
         t_3 = time.perf_counter()
         if self.installer is not None:

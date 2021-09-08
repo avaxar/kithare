@@ -8,11 +8,11 @@ build.py
 Builder script to build Kithare.
 
 On Windows and MinGW:
-    You must have MinGW (AKA MinGW-w64) installed, and the bin folder of MinGW
-    must be on PATH.
-
-    This builder automatically installs SDL dependencies. Just run this file
-    with: 'py build.py'.
+    If you are building on Windows, the build script will automatically
+    download and configure the deps. Kithare uses the MinGW compiler,
+    if MinGW is not pre-installed, the buildscript will install it in a local
+    directory. This means that on Windows, virtually no pre-build setup is
+    required, just run this file with 'py build.py'.
 
 On other OS:
     This assumes you have GCC installed. Also, you need to install SDL

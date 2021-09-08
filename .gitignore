@@ -19,6 +19,8 @@ __pycache__
 /build
 /deps/SDL/
 /deps/AppImage/
+/deps/mingw32/
+/deps/mingw64/
 /dist
 *.o
 *.obj
