@@ -62,7 +62,7 @@ class CompilerFlags:
         if ext.endswith("cpp"):
             return str(self.cxx)
 
-        raise RuntimeError(f"InternalError: Function 'get_compiler' got arg {ext}")
+        raise RuntimeError(f"InternalError, Function 'get_compiler' got arg {ext}")
 
     @classmethod
     def from_json(cls, basepath: Path, jsondata: Union[Path, str]):

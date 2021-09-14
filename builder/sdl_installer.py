@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Union
 
 from .downloader import ThreadedDownloader
-from .utils import BuildError, copy, rmtree
+from .utils import BuildError, ConvertType, convert_machine, copy, rmtree
 
 # SDL project-version pairs, remember to keep updated
 SDL_DEPS = {
@@ -39,12 +39,6 @@ class SDLInstaller:
         Initialise SDLInstaller class
         """
         self.ldflags: list[Union[str, Path]] = []
-
-    def clean(self):  # pylint: disable=no-self-use
-        """
-        Clean install, this is not available on non-windows
-        """
-        raise BuildError("The flag 'cleandep' is not supported on your OS")
 
     def install_all(self):
         """
@@ -73,13 +67,7 @@ class WindowsSDLInstaller(SDLInstaller):
         self.dist_dir = dist_dir
         self.downloader = ThreadedDownloader()
 
-        self.machine = machine
-
-    def clean(self):
-        """
-        Clean (remove) SDL install directory
-        """
-        rmtree(self.sdl_dir)
+        self.machine = convert_machine(machine, ConvertType.WINDOWS_MINGW)
 
     def _prepare_install(self):
         """

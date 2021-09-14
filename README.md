@@ -23,7 +23,7 @@
 
 ### MacOS (Darwin)
 
-- TODO: expand on this section lol
+- Kithare will work on any 10.9+ MacOS version, including 11.x and higher series
 - Kithare supports x86_64 (Intel) architecture and arm64 (Apple Silicon). In the future, Kithare will also support 'universal' binaries, ones that works on both architectures. These univeral builds are 'fat' builds, one that contains the binaries of both architectures in one binary. The usage of the 'universal' builds are recommended over the usage of the architecture specific builds.
 
 ### Linux
@@ -52,12 +52,14 @@
 
 #### Windows
 
-- If you are building on Windows, the build script will automatically download and configure the deps. Kithare uses the MinGW compiler, if MinGW is not pre-installed, the buildscript will install it in a local directory. This means that on Windows, virtually no pre-build setup is required!
+- If you are building on Windows, the build script will automatically download and configure the deps. Kithare uses the MinGW compiler, if MinGW is not pre-installed, the buildscript will install it in a sub-directory. This means that on Windows, virtually no pre-build setup is required!
 
 #### Others
 
 - On other platforms, you would need the GCC compiler installed (on mac, gcc is just a shim for clang).
 - Install the development libraries for these: `SDL2`, `SDL2_mixer`, `SDL2_image`, `SDL2_ttf`, `SDL2_net`. You may use your disto's package manager to do this.
+- A recommended way to do this on Mac is to use Homebrew. Just run
+`brew install sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf`.
 - On Ubuntu and other debian based systems you can do `sudo apt-get install libsdl2-dev libjpeg-dev libwebp-dev libtiff5-dev libsdl2-image-dev libmikmod-dev libfishsound1-dev libsmpeg-dev liboggz2-dev libflac-dev libfluidsynth-dev libsdl2-mixer-dev libfreetype6-dev libsdl2-ttf-dev libsdl2-net-dev -y` (these are mostly SDL deps)
 
 ### Build

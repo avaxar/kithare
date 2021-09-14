@@ -54,7 +54,7 @@ class BuildError(Exception):
 
     def __init__(self, emsg: str = "", ecode: int = 1):
         """
-        Initialise exception object
+        Initialise BuildError exception object
         """
         super().__init__(self, emsg)
         self.emsg = emsg
@@ -384,8 +384,14 @@ def parse_args():
 
     parser.add_argument(
         "--make",
-        choices=("clean", "debug", "test", "installer"),
+        choices=("debug", "test", "installer"),
         help="Specifies the action that the build script should take",
+    )
+
+    parser.add_argument(
+        "--clean",
+        choices=("all", "dep", "build", "installers"),
+        help="Specifies the clean action",
     )
 
     parser.add_argument(
