@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Optional
 from zipfile import ZipFile
 
-from .constants import VERSION_PACKAGE_REV
+from .constants import EXE, VERSION_PACKAGE_REV
 from .downloader import ThreadedDownloader
 from .utils import BuildError, ConvertType, convert_machine, copy, rmtree, run_cmd
 
@@ -26,7 +26,40 @@ INNO_COMPILER_PATH = Path("C:\\", "Program Files (x86)", "Inno Setup 6", "ISCC.e
 APPIMAGE_DOWNLOAD = "https://github.com/AppImage/AppImageKit/releases/latest/download"
 
 
-class Packager:
+class DummyPackager:
+    """
+    A packager object being an instance of this class indicates that no
+    packages are actually being generated, this only serves as a baseclass that
+    only implements a few basic methods and attributes
+    """
+
+    def __init__(self, basepath: Path):
+        """
+        Initialise DummyPackager class
+        """
+        self.packaging_dir = basepath / "builder" / "packaging"
+
+    def clean(self):
+        """
+        Clean packaging build and dist dirs
+        """
+        for dirname in {"build", "dist"}:
+            rmtree(self.packaging_dir / dirname)
+
+    def setup(self):
+        """
+        This function sets up any dependencies and such needed to make the
+        package. If there is no setup to do, this function does nothing.
+        """
+
+    def package(self):
+        """
+        This function handles packaging. If there are no packages to make, this
+        function does nothing.
+        """
+
+
+class Packager(DummyPackager):
     """
     Packager is a base class for all other platform-specific Packager classes,
     that help packaging Kithare.
@@ -36,18 +69,12 @@ class Packager:
         """
         Initialise Packager class
         """
+        super().__init__(basepath)
         self.exepath = exepath
         self.machine = machine
         self.version = version
 
-        self.packaging_dir = basepath / "builder" / "packaging"
         self.downloader: Optional[ThreadedDownloader] = None
-
-    def setup(self):
-        """
-        This function sets up any dependencies and such needed to make the
-        package. If there is no setup to do, this function does nothing.
-        """
 
     def package(self):
         """
@@ -163,7 +190,6 @@ class LinuxPackager(Packager):
         self.version += f"-{VERSION_PACKAGE_REV}"
 
         self.use_alien = use_alien
-
         self.appimagekitdir: Optional[Path] = None
 
     def setup(self):
@@ -194,14 +220,17 @@ class LinuxPackager(Packager):
         self.downloader.download(
             "AppImageTool",
             f"{APPIMAGE_DOWNLOAD}/appimagetool-{appimage_type}.AppImage",
+            appimage_type,
         )
         self.downloader.download(
             "AppImageRun",
             f"{APPIMAGE_DOWNLOAD}/AppRun-{appimage_type}",
+            appimage_type,
         )
         self.downloader.download(
             "AppImageRuntime",
             f"{APPIMAGE_DOWNLOAD}/runtime-{appimage_type}",
+            appimage_type,
         )
 
         print()  # newline
@@ -221,8 +250,9 @@ class LinuxPackager(Packager):
         bin_dir = installer_build_dir / "usr" / "bin"
         bin_dir.mkdir(parents=True)
 
-        # copy dist exe
-        copy(self.exepath, bin_dir)
+        # copy static dist exe
+        copied_file = copy(self.exepath.with_name(f"{EXE}-static"), bin_dir)
+        copied_file.rename(copied_file.with_name(EXE))
 
         # copy desktop file
         copy(self.packaging_dir / "kithare.desktop", installer_build_dir)
@@ -378,11 +408,25 @@ class MacPackager(Packager):
 
 
 def get_packager(
-    basepath: Path, exepath: Path, machine: str, version: str, use_alien: bool
+    basepath: Path,
+    exepath: Path,
+    machine: str,
+    version: str,
+    use_alien: bool,
+    make_installer: bool,
 ):
     """
     Get appropriate packager class for handling packaging
     """
+    if not make_installer:
+        if use_alien:
+            raise BuildError(
+                "The '--use-alien' flag cannot be passed when installer(s) "
+                "are not being made!"
+            )
+
+        return DummyPackager(basepath)
+
     system = platform.system()
     if system == "Windows":
         if use_alien:
@@ -400,5 +444,5 @@ def get_packager(
         return MacPackager(basepath, exepath, machine, version)
 
     raise BuildError(
-        "Cannot generate installer as your platform could not be determined!"
+        "Cannot generate installer on your platform as it could not be determined!"
     )

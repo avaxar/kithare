@@ -59,15 +59,6 @@ class KithareBuilder:
 
         is_32_bit, args = parse_args()
         machine = get_machine(is_32_bit)
-        try:
-            mingw_machine = convert_machine(machine, ConvertType.WINDOWS_MINGW)
-        except BuildError:
-            # BuildError only on Windows
-            if COMPILER == "MinGW":
-                raise
-
-            mingw_machine = ""
-
         dirname = (
             f"{COMPILER}-Debug" if args.make == "debug" else f"{COMPILER}-{machine}"
         )
@@ -75,42 +66,68 @@ class KithareBuilder:
         self.builddir = self.basepath / "build" / dirname
         self.exepath = self.basepath / "dist" / dirname / EXE
 
-        self.sdl_installer = get_installer(
-            self.basepath, self.exepath.parent, mingw_machine
-        )
-        self._handle_first_arg(args.make)
-
-        self.installer = (
-            get_packager(
-                self.basepath, self.exepath, machine, args.release, args.use_alien
-            )
-            if args.make == "installer"
-            else None
+        self.sdl_installer = get_installer(self.basepath, self.exepath.parent, machine)
+        self.installer = get_packager(
+            self.basepath,
+            self.exepath,
+            machine,
+            args.release,
+            args.use_alien,
+            args.make == "installer",
         )
 
+        self._handle_make_and_clean(args.make, args.clean)
         self.j_flag: Optional[int] = args.j
         if self.j_flag is not None and self.j_flag <= 0:
             raise BuildError("The '-j' flag should be a positive integer")
 
-        if self.installer is None and args.use_alien:
-            raise BuildError(
-                "The '--use-alien' flag cannot be passed while an installer "
-                "is not being made"
-            )
-
         # compiler flags
         self.cflags = CompilerFlags(self.basepath)
+
+        self.t_0 = time.perf_counter()
+        self.configure_compiler_and_flags(machine, is_32_bit, args.make)
+
+    def _handle_make_and_clean(self, arg: Optional[str], clean: Optional[str]):
+        """
+        Utility method to handle the first argument
+        """
+        if arg == "test":
+            sys.exit(run_cmd(self.exepath, "--test"))
+
+        if clean is not None:
+            if clean == "all":
+                clean = "dep build installers"
+
+            if "dep" in clean:
+                deps_dir = self.basepath / "deps"
+                for dirname in deps_dir.iterdir():
+                    rmtree(dirname)
+
+            if "build" in clean:
+                for dist in {self.builddir, self.exepath.parent}:
+                    rmtree(dist.parent)
+
+            if "installers" in clean:
+                self.installer.clean()
+
+            sys.exit(0)
+
+    def configure_compiler_and_flags(self, machine: str, is_32_bit: bool, make: str):
+        """
+        Configure and initialise self.cflags object, setup the MinGW compiler
+        if it is missing
+        """
         if COMPILER == "MinGW":
-            self.cflags.cc = f"{mingw_machine}-gcc"
-            self.cflags.cxx = f"{mingw_machine}-g++"
+            mingw_machine = convert_machine(machine, ConvertType.WINDOWS_MINGW)
+            self.cflags.cc = f"{mingw_machine}-gcc.exe"
+            self.cflags.cxx = f"{mingw_machine}-g++.exe"
 
         print(INIT_TEXT)
-
         if shutil.which(self.cflags.get_compiler()) is None:
             # Compiler is not installed and/or not on PATH
             retpath = install_mingw(self.basepath, is_32_bit)
-            self.cflags.cc = retpath / f"{self.cflags.cc}.exe"
-            self.cflags.cxx = retpath / f"{self.cflags.cxx}.exe"
+            self.cflags.cc = retpath / self.cflags.cc
+            self.cflags.cxx = retpath / self.cflags.cxx
             self.cflags.windres = retpath / "windres.exe"
 
         print("Building Kithare...")
@@ -134,7 +151,7 @@ class KithareBuilder:
             (
                 "-Wall",
                 "-Werror",
-                "-g" if args.make == "debug" else "-O3",  # no -O3 on debug mode
+                "-g" if make == "debug" else "-O3",  # no -O3 on debug mode
                 self.basepath / INCLUDE_DIRNAME,
             )
         )
@@ -154,6 +171,10 @@ class KithareBuilder:
                 )
             )
 
+        elif platform.system() == "Darwin":
+            self.cflags.ccflags.append("-mmacosx-version-min=10.9")
+            self.cflags.ldflags.append("-mmacosx-version-min=10.9")
+
         if is_32_bit:
             self.cflags.ccflags.append("-m32")
             self.cflags.ldflags.append("-m32")  # the linker needs the flag too
@@ -162,22 +183,6 @@ class KithareBuilder:
         self.cflags.cxxflags.append(CPP_STD_FLAG)
 
         self.cflags.load_from_env()
-
-    def _handle_first_arg(self, arg: str):
-        """
-        Utility method to handle the first argument
-        """
-        if arg == "test":
-            sys.exit(run_cmd(self.exepath, "--test"))
-
-        if arg == "clean":
-            for dist in {self.builddir, self.exepath.parent}:
-                rmtree(dist.parent)
-            sys.exit(0)
-
-        if arg == "cleandep":
-            self.sdl_installer.clean()
-            sys.exit(0)
 
     def build_sources(self, build_skippable: bool):
         """
@@ -236,8 +241,15 @@ class KithareBuilder:
                 "Failed to generate executable because no sources were found"
             )
 
-        if len(objfiles) == len(skipped_files) and self.exepath.is_file():
-            # exe is already up to date
+        if (
+            len(objfiles) == len(skipped_files)
+            and self.exepath.is_file()
+            and (
+                platform.system() != "Linux"
+                or self.exepath.with_name(f"{EXE}-static").is_file()
+            )
+        ):
+            # exe(s) is(are) already up to date
             return None
 
         return objfiles
@@ -258,7 +270,7 @@ class KithareBuilder:
 
         objfiles = self.build_sources(build_skippable)
         if objfiles is None:
-            print("Skipping final exe build, since it is already built")
+            print("Skipping final exe(s) build, since it is already built")
             return
 
         # Handle exe icon on MinGW
@@ -282,13 +294,26 @@ class KithareBuilder:
                 "-o",
                 self.exepath,
                 *objfiles,
-                *self.cflags.flags_by_ext(".o"),
+                *self.cflags.flags_by_ext("o"),
                 strict=True,
             )
         finally:
             # delete icon file
             if ico_res.is_file():
                 ico_res.unlink()
+
+        if platform.system() == "Linux":
+            # make statically linked binaries on Linux (useful for appimage)
+            self.cflags.ldflags.append("-static")
+            print()
+            run_cmd(
+                self.cflags.get_compiler(),
+                "-o",
+                self.exepath.with_name(f"{EXE}-static"),
+                *objfiles,
+                *self.cflags.flags_by_ext("o"),
+                strict=True,
+            )
 
         # copy LICENSE and readme to dist
         for filename in {"LICENSE", "README.md"}:
@@ -320,28 +345,30 @@ class KithareBuilder:
             self.cflags.ccflags.append(incflag)
 
         self.cflags.ldflags.extend(self.sdl_installer.ldflags)
-        if self.installer is not None:
-            # do any pre-build setup for installer generation
-            self.installer.setup()
+        # do any pre-build setup for installer generation
+        self.installer.setup()
 
         t_2 = time.perf_counter()
         self.build_exe()
         print(f"Path to executable: '{self.exepath}'\n")
 
         t_3 = time.perf_counter()
-        if self.installer is not None:
-            # make installer if flag was passed already
-            self.installer.package()
+        # make installer if flag was passed already
+        self.installer.package()
 
         t_4 = time.perf_counter()
 
         print("Done!\nSome timing stats for peeps who like to 'optimise':")
 
+        # print MinGW install time only if it is large enough (haha majik number)
+        if t_1 - self.t_0 > 0.69 and COMPILER == "MinGW":
+            print(f"MinGW compiler took {t_1 - self.t_0:.3f} seconds to install")
+
         # print SDL install time stats only if it is large enough (haha majik number)
-        if t_2 - t_1 > 0.42:
+        if t_2 - t_1 > 0.69:
             print(f"SDL deps took {t_2 - t_1:.3f} seconds to configure and install")
 
         print(f"Kithare took {t_3 - t_2:.3f} seconds to compile")
 
-        if self.installer is not None:
+        if t_4 - t_3 > 0.042:
             print(f"Generating the installer took {t_4 - t_3:.3f} seconds")

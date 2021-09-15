@@ -20,7 +20,7 @@ test: make
 	${PYTHON} build.py --make test
 
 clean:
-	${PYTHON} build.py --make clean
+	${PYTHON} build.py --clean build
 
 debug:
 	${PYTHON} build.py --make debug

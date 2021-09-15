@@ -23,7 +23,7 @@ On other OS:
     libraries.
 
     A recommended and easy way to do this on MacOS, is via homebrew. Just run
-    `brew install gcc sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf`.
+    `brew install sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf`.
 
     And the build is really simple, just run 'python3 build.py'
 
@@ -40,22 +40,24 @@ means that you want to use 4 cores, and so on.
 To just run tests, do 'python3 build.py --make test'. Note that this command is 
 only going to run the tests, it does not do anything else.
 
-'python3 build.py --make clean' deletes folders that contain generated
+'python3 build.py --clean dep' deletes any deps that the build script would
+have installed automatically in the 'deps' dir
+
+'python3 build.py --clean build' deletes folders that contain generated
 executable(s) and temporary build files that are cached for performance
-reasons. In normal usage one need not run this command, but in cases like 
-change in version of compiler and/or deps, one needs to run this command before
-installation.
+reasons. 
+
+'python3 build.py --clean installers' deletes any generated Kithare installers
+and any temporary build files associated with it.
+
+'python3 build.py --clean all' is a shorthand for calling all the above clean
+commands in a single command. In normal usage one need not run clean commands,
+but these are provided by the script anyways if you know what you are doing.
 
 To generate installers for Kithare, one can pass '--make installer' flag to
 this build script. On Windows, this will use INNO Setup to make an exe
 installer (INNO will be downloaded by the builder if not found). On Debian
 linux (and derived distros), the builder makes a .deb installer using dpkg-deb.
-Making packages for other package managers like rpm (Red Hat based distros like
-RHEL, Fedora, CentOS, Oracle Linux and such), pacman (Arch based distos,
-including Manjaro Linux), zypp (OpenSUSE) and Gentoo packages are in the to-do
-list.
-For now, there are no plans for a Mac installer, because none of the Kithare
-core-devs have a mac setup for making, testing and debugging mac installers
 
 Additionally on linux distros, one can pass a '--use-alien' flag, this will
 make the builder use the 'alien' package to generate a package for another
