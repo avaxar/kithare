@@ -10,4 +10,4 @@ Description: Kithare Programming Language
  under the MIT license.
  .
  Copyright (C) 2021 Kithare Organization
- Github: https://github.com/Kithare/Kithare
+ GitHub: https://github.com/Kithare/Kithare

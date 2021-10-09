@@ -34,7 +34,7 @@
 
 - **Important note:** The language is still unfinished and there are no stable releases yet
 - Kithare follows semantic versioning system for its releases.
-- All releases will be live on the [Github releases tab](https://github.com/Kithare/Kithare/releases)
+- All releases will be live on the [GitHub releases tab](https://github.com/Kithare/Kithare/releases)
 - For people who like to live on the edge, Kithare provides nighly builds, here are some direct download links
     1. [Windows builds (x86/x64)](https://nightly.link/Kithare/Kithare/workflows/windows/main/kithare-windows-installers.zip)
     2. [Linux builds (x86/x64)](https://nightly.link/Kithare/Kithare/workflows/linux/main/kithare-linux-installers.zip)
