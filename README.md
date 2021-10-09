@@ -9,7 +9,7 @@
 ## Links and Contact
 
 - [Website](https://kithare.cf)
-- [Contributing guidelines](https://kithare.cf/contributing_quide)
+- [Contributing guidelines](https://kithare.cf/contributing_guide)
 - [Code of conduct](https://kithare.cf/conducting_codes)
 - [Discord server](https://discord.gg/hXvY8CzS7A)
 - [Channel on the /r/ProgrammingLanguages Discord server](https://discord.gg/sggx9T9xsz)
