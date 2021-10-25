@@ -4,11 +4,18 @@
  * Copyright (C) 2021 Kithare Organization
  */
 
-#pragma once
+#ifndef kh_HG_MACROS_H
+#define kh_HG_MACROS_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include <kithare/ir.hpp>
+
+#define _kh_CONCAT(A, B) A##B
+#define kh_CONCAT(A, B) _kh_CONCAT(A, B)
 
 
-namespace kh {
-    class Builder {};
+#ifdef __cplusplus
 }
+#endif
+#endif

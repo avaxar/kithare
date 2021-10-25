@@ -4,17 +4,14 @@
  * Copyright (C) 2021 Kithare Organization
  */
 
-#pragma once
+#ifndef kh_HG_ERROR_H
+#define kh_HG_ERROR_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include <string>
 
-
-namespace kh {
-    class Exception {
-    public:
-        virtual ~Exception() {}
-        virtual std::string format() const {
-            return "";
-        }
-    };
+#ifdef __cplusplus
 }
+#endif
+#endif
