@@ -4,8 +4,8 @@
  * Copyright (C) 2021 Kithare Organization
  */
 
-#ifndef kh_HG_PRLISTS_H
-#define kh_HG_PRLISTS_H
+#ifndef kh_HG_LISTS_H
+#define kh_HG_LISTS_H
 #ifdef __cplusplus
 extern "C" {
 #endif

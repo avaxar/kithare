@@ -152,7 +152,7 @@ static inline khList_NAME khList_CONCAT(fromMemory)(const khList_TYPE* address, 
 
 static inline void khList_CONCAT(string)(khList_NAME* list, const khList_TYPE* string) {
     static char ZEROES[sizeof(khList_TYPE)];
-    static bool first = true;
+    static bool first = true; // TODO: handle the case of static variables in static functions
     if (first) {
         memset(ZEROES, 0, sizeof(khList_TYPE));
         first = false;
@@ -208,7 +208,7 @@ static inline void khList_CONCAT(pop)(khList_NAME* list, size_t elements) {
 #undef khList_NAME
 #undef khList_TYPE
 #else
-/* Ignore this error from your IDE while editing this header */
+// Ignore this error from your IDE while editing this header
 #error "`khList_TYPE` hasn't been defined"
 #endif
 #ifdef __cplusplus
