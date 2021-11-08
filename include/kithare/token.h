@@ -10,7 +10,9 @@
 extern "C" {
 #endif
 
-#include <kithare/prlists.h>
+#include <stdint.h>
+
+#include <kithare/lists.h>
 
 
 typedef enum {
@@ -204,13 +206,10 @@ static inline void khToken_delete(khToken* token) {
 }
 
 
-#ifndef khList_khToken_DEFINED
-#define khList_khToken_DEFINED
 #define khList_TYPE khToken
 #define khList_COPIER khToken_copy
 #define khList_DELETER khToken_delete
 #include <kithare/t_list.h>
-#endif
 
 
 static inline khToken khToken_fromIdentifier(khList_byte identifier) {
