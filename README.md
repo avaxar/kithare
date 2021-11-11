@@ -9,8 +9,8 @@
 ## Links and Contact
 
 - [Website](https://kithare.de)
-- [Contributing guidelines](https://kithare.de/rules/contributing)
-- [Code of conduct](https://kithare.de/rules/conducting)
+- [Contributing guidelines](https://kithare.de/rules/contribution)
+- [Code of conduct](https://kithare.de/rules/conduct)
 - [Discord server](https://discord.gg/hXvY8CzS7A)
 - [Channel on the /r/ProgrammingLanguages Discord server](https://discord.gg/sggx9T9xsz)
 
