@@ -7,7 +7,7 @@
 
 #define MyAppName "Kithare"
 #define MyAppPublisher "Kithare Organization"
-#define MyAppURL "https://kithare.cf/"
+#define MyAppURL "https://kithare.de/"
 #define MyAppExeName "kcr.exe"
 #define MyAppAssocName MyAppName + " File"
 #define MyAppAssocExt ".kh"

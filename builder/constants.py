@@ -40,7 +40,7 @@ under the MIT license.
 Copyright (C) 2021 Kithare Organization
 
 GitHub: https://github.com/Kithare/Kithare
-Website: https://kithare.cf/Kithare/
+Website: https://kithare.de/Kithare/
 """
 
 EPILOG = """
