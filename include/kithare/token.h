@@ -44,19 +44,19 @@ typedef enum {
 
 
 typedef enum {
-    khSymbolToken_DOT,
-    khSymbolToken_COMMA,
-    khSymbolToken_SEMICOLON,
-    khSymbolToken_COLON,
-    khSymbolToken_EXCLAMATION,
+    khDelimiterToken_DOT,
+    khDelimiterToken_COMMA,
+    khDelimiterToken_SEMICOLON,
+    khDelimiterToken_COLON,
+    khDelimiterToken_EXCLAMATION,
 
-    khSymbolToken_PARENTHESES_OPEN,
-    khSymbolToken_PARENTHESES_CLOSE,
-    khSymbolToken_CURLY_OPEN,
-    khSymbolToken_CURLY_CLOSE,
-    khSymbolToken_BRACKET_OPEN,
-    khSymbolToken_BRACKET_CLOSE
-} khSymbolToken;
+    khDelimiterToken_PARENTHESES_OPEN,
+    khDelimiterToken_PARENTHESES_CLOSE,
+    khDelimiterToken_CURLY_OPEN,
+    khDelimiterToken_CURLY_CLOSE,
+    khDelimiterToken_BRACKET_OPEN,
+    khDelimiterToken_BRACKET_CLOSE
+} khDelimiterToken;
 
 
 typedef enum {
@@ -95,7 +95,7 @@ typedef enum {
     khOperatorToken_BIT_NOT,
     khOperatorToken_BIT_AND,
     khOperatorToken_BIT_OR,
-    khOperatorToken_BIT_XOR = khOperatorToken_BIT_NOT,
+    khOperatorToken_BIT_XOR = khOperatorToken_BIT_NOT, // Both uses `~`.
     khOperatorToken_BIT_LSHIFT,
     khOperatorToken_BIT_RSHIFT
 } khOperatorToken;
@@ -105,7 +105,7 @@ typedef enum {
     khTokenType_IDENTIFIER,
     khTokenType_KEYWORD,
     khTokenType_OPERATOR,
-    khTokenType_SYMBOL,
+    khTokenType_DELIMITER,
 
     khTokenType_CHAR,
     khTokenType_STRING,
@@ -131,7 +131,7 @@ typedef union {
     khList_byte identifier;
     khKeywordToken keyword;
     khOperatorToken operator_v;
-    khSymbolToken symbol;
+    khDelimiterToken delimiter;
 
     uint32_t char_v;
     khList_char string;
@@ -224,8 +224,8 @@ static inline khToken khToken_fromOperator(khOperatorToken operator_v) {
     return (khToken){.type = khTokenType_OPERATOR, .value = (khTokenValue){.operator_v = operator_v}};
 }
 
-static inline khToken khToken_fromSymbol(khSymbolToken symbol) {
-    return (khToken){.type = khTokenType_SYMBOL, .value = (khTokenValue){.symbol = symbol}};
+static inline khToken khToken_fromDelimiter(khDelimiterToken delimiter) {
+    return (khToken){.type = khTokenType_DELIMITER, .value = (khTokenValue){.delimiter = delimiter}};
 }
 
 static inline khToken khToken_fromChar(int32_t char_v) {

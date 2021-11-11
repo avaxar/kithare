@@ -16,8 +16,16 @@ extern "C" {
 #include <kithare/token.h>
 
 
-int32_t kh_lexUtf8(char** cursor);
-char* kh_lexIdentifier(char** cursor);
+khToken kh_lex(char** cursor);
+khToken kh_lexWord(char** cursor);
+khToken kh_lexSymbol(char** cursor);
+khToken kh_lexNumber(char** cursor);
+
+uint32_t kh_lexChar(char** cursor, bool with_quotes);
+khList_char kh_lexString(char** cursor, bool with_quotes);
+khList_byte kh_lexBuffer(char** cursor, bool with_quotes);
+
+uint32_t kh_lexUtf8(char** cursor);
 uint64_t kh_lexInt(char** cursor, uint8_t base, bool* had_overflowed);
 double kh_lexFloat(char** cursor, uint8_t base);
 

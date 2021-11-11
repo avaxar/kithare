@@ -5,18 +5,17 @@
  */
 
 #include <math.h>
-#include <stdio.h>
 
 #include <kithare/lexer.h>
 #include <kithare/lists.h>
 
 
-int32_t kh_lexUtf8(char** cursor) {
+uint32_t kh_lexUtf8(char** cursor) {
     if ((uint8_t)(**cursor) < 128) {
         return *(*cursor)++;
     }
 
-    int32_t chr = 0;
+    uint32_t chr = 0;
     uint8_t continuation = 0;
 
     if ((**cursor & 0b11100000) == 0b11000000) {
@@ -41,19 +40,6 @@ int32_t kh_lexUtf8(char** cursor) {
     }
 
     return chr;
-}
-
-char* kh_lexIdentifier(char** cursor) {
-    khList_byte result = khList_byte_new();
-
-    // TODO: Handle unicode
-    while (**cursor >= 'a' && **cursor <= 'z') {
-        khList_byte_push(&result, **cursor);
-        (*cursor)++;
-    }
-
-    khList_byte_push(&result, '\0');
-    return (char*)result.array;
 }
 
 uint64_t kh_lexInt(char** cursor, uint8_t base, bool* had_overflowed) {
@@ -88,7 +74,7 @@ double kh_lexFloat(char** cursor, uint8_t base) {
 
     if (**cursor == '.') {
         (*cursor)++;
-        long double exponent = 1.l / base;
+        double exponent = 1.l / base;
 
         while (kh_digitOf(**cursor) < base) {
             result += kh_digitOf(**cursor) * exponent;
