@@ -1,1 +1,1 @@
-This is a place to store some dependencies
+This directory is where dependencies are stored.

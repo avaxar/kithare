@@ -4,7 +4,9 @@
 ![State](https://img.shields.io/badge/state-unfinished-ff2222.svg)
 ![Version](https://img.shields.io/badge/version-0.0.0-00ffaa.svg)
 
- An open source general purpose statically-typed cross-platform interpreted/transpiled C++/Python like programming language.
+ An open source general purpo
+ se statically-typed cross-platform interpreted/transpiled C++/Python like programming language.
+
 
 ## Links and Contact
 
@@ -13,6 +15,7 @@
 - [Code of conduct](https://kithare.de/rules/conduct)
 - [Discord server](https://discord.gg/hXvY8CzS7A)
 - [Channel on the /r/ProgrammingLanguages Discord server](https://discord.gg/sggx9T9xsz)
+
 
 ## Supported OSes/distros
 
@@ -30,6 +33,7 @@
 
 - Kithare should work well with any sufficiently modern Linux distro. Kithare supports a range of architectures (x86, x64, armv6, armv7, arm64, s390x and ppc64le)
 
+
 ## Installation and Versioning
 
 - **Important note:** The language is still unfinished and there are no stable releases yet
@@ -41,6 +45,7 @@
     3. [Linux multiarch builds (armv6/armv7/arm64/s390x/ppc64le)](https://nightly.link/Kithare/Kithare/workflows/linux-multiarch/main/kithare-linux-multiarch-installers.zip)
     4. [MacOS (Darwin) builds (x64/arm64/universal)](https://nightly.link/Kithare/Kithare/workflows/darwin/main/kithare-darwin-installers.zip)
 - For these builds, the version in the installer packages is usually given by `YYYY.MM.DD.HHmm-nightly`, so if the date during the build is 22nd August 2021 and the time is 09:10:36 UTC, then the nightly build version will look like `2021.08.22.0910-nightly`
+
 
 ## Building
 
