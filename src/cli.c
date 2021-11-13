@@ -15,7 +15,14 @@
 #include <kithare/lexer.h>
 
 
-void cli() {}
+void cli() {
+    char str[] = "0.i";
+    char* str_ptr = &str[0];
+
+    khToken token = kh_lex(&str_ptr);
+    printf("BREAKPOINT\n");
+    khToken_delete(&token);
+}
 
 
 // Entry point of the Kithare CLI program
