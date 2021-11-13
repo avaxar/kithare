@@ -8,12 +8,10 @@ test.sh
 *.swp
 .vs/
 
-# Ingnore only a few VS Code specific files, we want the user to still use
-# launch.json and tasks.json
+# Ignore only a few VS Code specific files. We want the user to still use
+# launch.json and tasks.json to use the C/C++ debugging tool
 .vscode/c_cpp_properties.json
 .vscode/settings.json
-
-__pycache__
 
 # Executable/compiler generated files
 /build
@@ -31,7 +29,9 @@ __pycache__
 *.lib
 icon.res
 
-# some packaging related output folders
-builder/packaging/build
-builder/packaging/dist
+# Some packaging related output folders
+/builder/packaging/build
+/builder/packaging/dist
 
+# Python bytecode .pyc cache files
+__pycache__
