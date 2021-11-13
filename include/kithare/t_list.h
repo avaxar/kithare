@@ -39,14 +39,14 @@ static inline khList_NAME khList_CONCAT(copy)(const khList_NAME* list) {
         return khList_CONCAT(new)();
     }
 
-    khList_TYPE* array = (khList_TYPE*)malloc(list->size);
+    khList_TYPE* array = (khList_TYPE*)malloc(list->size * sizeof(khList_TYPE));
 
 #ifdef khList_COPIER
     for (size_t i = 0; i < list->size; i++) {
         array[i] = khList_COPIER(&list->array[i]);
     }
 #else
-    memcpy(array, list->array, list->size);
+    memcpy(array, list->array, list->size * sizeof(khList_TYPE));
 #endif
 
     return (khList_NAME){.array = array, .size = list->size, .reserved = list->size};
@@ -74,13 +74,13 @@ static inline void khList_CONCAT(reserve)(khList_NAME* list, size_t size) {
     }
 
     if (list->array) {
-        khList_TYPE* array = (khList_TYPE*)malloc(size);
-        memcpy(array, list->array, list->size);
+        khList_TYPE* array = (khList_TYPE*)malloc(size * sizeof(khList_TYPE));
+        memcpy(array, list->array, list->size * sizeof(khList_TYPE));
         free(list->array);
         list->array = array;
     }
     else {
-        list->array = (khList_TYPE*)malloc(size);
+        list->array = (khList_TYPE*)malloc(size * sizeof(khList_TYPE));
     }
 
     list->reserved = size;
@@ -96,8 +96,8 @@ static inline void khList_CONCAT(fit)(khList_NAME* list) {
             return;
         }
 
-        khList_TYPE* array = (khList_TYPE*)malloc(list->size);
-        memcpy(array, list->array, list->size);
+        khList_TYPE* array = (khList_TYPE*)malloc(list->size * sizeof(khList_TYPE));
+        memcpy(array, list->array, list->size * sizeof(khList_TYPE));
         free(list->array);
         list->array = array;
         list->reserved = list->size;

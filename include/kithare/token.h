@@ -26,11 +26,11 @@ typedef enum {
     khKeywordToken_ENUM,
     khKeywordToken_ALIAS,
 
+    khKeywordToken_REF,
     khKeywordToken_PUBLIC,
     khKeywordToken_PRIVATE,
     khKeywordToken_STATIC,
 
-    khKeywordToken_REF,
     khKeywordToken_IF,
     khKeywordToken_ELIF,
     khKeywordToken_ELSE,
@@ -46,16 +46,16 @@ typedef enum {
 typedef enum {
     khDelimiterToken_DOT,
     khDelimiterToken_COMMA,
-    khDelimiterToken_SEMICOLON,
     khDelimiterToken_COLON,
+    khDelimiterToken_SEMICOLON,
     khDelimiterToken_EXCLAMATION,
 
     khDelimiterToken_PARENTHESES_OPEN,
     khDelimiterToken_PARENTHESES_CLOSE,
-    khDelimiterToken_CURLY_OPEN,
-    khDelimiterToken_CURLY_CLOSE,
-    khDelimiterToken_BRACKET_OPEN,
-    khDelimiterToken_BRACKET_CLOSE
+    khDelimiterToken_CURLY_BRACKET_OPEN,
+    khDelimiterToken_CURLY_BRACKET_CLOSE,
+    khDelimiterToken_SQUARE_BRACKET_OPEN,
+    khDelimiterToken_SQUARE_BRACKET_CLOSE
 } khDelimiterToken;
 
 
@@ -97,15 +97,23 @@ typedef enum {
     khOperatorToken_BIT_OR,
     khOperatorToken_BIT_XOR = khOperatorToken_BIT_NOT, // Both uses `~`.
     khOperatorToken_BIT_LSHIFT,
-    khOperatorToken_BIT_RSHIFT
+    khOperatorToken_BIT_RSHIFT,
+
+    khOperatorToken_IBIT_AND,
+    khOperatorToken_IBIT_OR,
+    khOperatorToken_IBIT_XOR,
+    khOperatorToken_IBIT_LSHIFT,
+    khOperatorToken_IBIT_RSHIFT
 } khOperatorToken;
 
 
 typedef enum {
+    khTokenType_NONE,
+
     khTokenType_IDENTIFIER,
     khTokenType_KEYWORD,
-    khTokenType_OPERATOR,
     khTokenType_DELIMITER,
+    khTokenType_OPERATOR,
 
     khTokenType_CHAR,
     khTokenType_STRING,
@@ -130,8 +138,8 @@ typedef enum {
 typedef union {
     khList_byte identifier;
     khKeywordToken keyword;
-    khOperatorToken operator_v;
     khDelimiterToken delimiter;
+    khOperatorToken operator_v;
 
     uint32_t char_v;
     khList_char string;
@@ -212,6 +220,10 @@ static inline void khToken_delete(khToken* token) {
 #include <kithare/t_list.h>
 
 
+static inline khToken khToken_fromNone() {
+    return (khToken){.type = khTokenType_NONE, .value = (khTokenValue){}};
+}
+
 static inline khToken khToken_fromIdentifier(khList_byte identifier) {
     return (khToken){.type = khTokenType_IDENTIFIER, .value = (khTokenValue){.identifier = identifier}};
 }
@@ -220,12 +232,12 @@ static inline khToken khToken_fromKeyword(khKeywordToken keyword) {
     return (khToken){.type = khTokenType_KEYWORD, .value = (khTokenValue){.keyword = keyword}};
 }
 
-static inline khToken khToken_fromOperator(khOperatorToken operator_v) {
-    return (khToken){.type = khTokenType_OPERATOR, .value = (khTokenValue){.operator_v = operator_v}};
-}
-
 static inline khToken khToken_fromDelimiter(khDelimiterToken delimiter) {
     return (khToken){.type = khTokenType_DELIMITER, .value = (khTokenValue){.delimiter = delimiter}};
+}
+
+static inline khToken khToken_fromOperator(khOperatorToken operator_v) {
+    return (khToken){.type = khTokenType_OPERATOR, .value = (khTokenValue){.operator_v = operator_v}};
 }
 
 static inline khToken khToken_fromChar(int32_t char_v) {
