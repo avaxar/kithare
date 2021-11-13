@@ -15,15 +15,15 @@ extern "C" {
 
 #ifndef khList_byte_DEFINED
 #define khList_byte_DEFINED
-#define khList_TYPE int8_t
+#define khList_TYPE uint8_t
 #define khList_NAME khList_byte
 #include <kithare/t_list.h>
 #endif
 
 #ifndef khList_ubyte_DEFINED
 #define khList_ubyte_DEFINED
-#define khList_TYPE uint8_t
-#define khList_NAME khList_ubyte
+#define khList_TYPE int8_t
+#define khList_NAME khList_sbyte
 #include <kithare/t_list.h>
 #endif
 

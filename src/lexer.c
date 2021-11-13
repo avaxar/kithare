@@ -6,6 +6,7 @@
 
 #include <math.h>
 #include <string.h>
+#include <wctype.h>
 
 #include <kithare/lexer.h>
 #include <kithare/lists.h>
@@ -29,30 +30,22 @@ static inline uint8_t digitOf(char chr) {
     }
 }
 
-// TODO: make a public kh_isAlpha function to handle unicode
-static inline bool isChar(uint32_t chr) {
-    return (chr >= 'a' && chr <= 'z') || (chr >= 'A' && chr <= 'Z') || (chr >= '0' && chr <= '9');
-}
-
-static inline bool isWhitespace(uint32_t chr) {
-    return chr == ' ' || chr == '\n' || chr == '\r' || chr == '\t' || chr == '\v';
-}
-
 khToken kh_lex(char** cursor) {
     // Skips any whitespace
-    while (isWhitespace(**cursor)) {
-        (*cursor)++;
+    while (iswspace(kh_lexUtf8(cursor, false))) {
+        kh_lexUtf8(cursor, true);
     }
 
-    // TODO: handle unicode
-    if ((**cursor >= 'a' && **cursor <= 'z') || (**cursor >= 'A' && **cursor <= 'Z')) {
+    if (iswalpha(kh_lexUtf8(cursor, false))) {
         if (**cursor == 'b' || **cursor == 'B') {
             (*cursor)++;
 
             switch (**cursor) {
+                // Byte characters: b'X'
                 case '\'':
-                    return khToken_fromInt8(kh_lexChar(cursor, true));
+                    return khToken_fromUint8(kh_lexChar(cursor, true));
 
+                // Buffers: b"1234"
                 case '"': {
                     khList_char string = kh_lexString(cursor);
                     khList_byte buffer = khList_byte_new();
@@ -93,12 +86,13 @@ khToken kh_lex(char** cursor) {
 khToken kh_lexWord(char** cursor) {
     char* origin = *cursor;
 
-    while (isChar(kh_lexUtf8(cursor, false))) {
-        kh_lexUtf8(cursor, true); // Skips
+    // Passes through alphanumeric characters in a row
+    while (iswalnum(kh_lexUtf8(cursor, false))) {
+        kh_lexUtf8(cursor, true);
     }
 
-    khList_byte identifier = khList_byte_fromMemory((int8_t*)origin, (size_t)cursor - (size_t)origin);
-    khList_byte_push(&identifier, '\0');
+    khList_byte identifier = khList_byte_fromMemory((uint8_t*)origin, *cursor - origin);
+    khList_byte_push(&identifier, '\0'); // Push a null-terminator for strcmp
 
 #define CASE_OPERATOR(STRING, OPERATOR)                 \
     if (strcmp((char*)identifier.array, STRING) == 0) { \
@@ -145,6 +139,7 @@ khToken kh_lexWord(char** cursor) {
 #undef CASE_OPERATOR
 #undef CASE_KEYWORD
 
+    khList_byte_pop(&identifier, 1); // Get rid of the extra null-terminator
     return khToken_fromIdentifier(identifier);
 }
 
@@ -177,14 +172,8 @@ khToken kh_lexNumber(char** cursor) {
                 base = 16;
                 break;
 
-            // Unexpected null-terminator
-            case '\0':
-                (*cursor)--;
-                // TODO: handle error
-                break;
-
             default:
-                (*cursor)--;
+                (*cursor) -= 2;
                 break;
         }
     }
@@ -193,8 +182,13 @@ khToken kh_lexNumber(char** cursor) {
     bool had_overflowed;
     uint64_t integer = kh_lexInt(cursor, base, -1, &had_overflowed);
 
+    // When it didn't lex any characters (presumably because it's out of base)
+    if (*cursor == origin) {
+        // TODO: handle error
+        return khToken_fromNone();
+    }
     // If it was a floating point
-    if (**cursor == '.' || had_overflowed) {
+    else if (**cursor == '.' || had_overflowed) {
         *cursor = origin;
         double floating = kh_lexFloat(cursor, base);
 
@@ -275,23 +269,6 @@ khToken kh_lexNumber(char** cursor) {
                     default:
                         (*cursor)--;
                         return khToken_fromUint32(integer);
-                }
-
-            // Imaginary floating points in from an integer literal
-            case 'i':
-            case 'I':
-                switch (*(*cursor)++) {
-                    case 'f':
-                    case 'F':
-                        return khToken_fromIfloat(integer);
-
-                    case 'd':
-                    case 'D':
-                        return khToken_fromIdouble(integer);
-
-                    default:
-                        (*cursor)--;
-                        return khToken_fromIdouble(integer);
                 }
 
             // Defaults to an int32, without any suffixes
@@ -471,7 +448,14 @@ khToken kh_lexSymbol(char** cursor) {
                 return khToken_fromOperator(khOperatorToken_BIT_OR);
             }
 
+        // Unexpected null-terminator
+        case '\0':
+            (*cursor)--;
+            // TODO: handle error
+            return khToken_fromNone();
+
         default:
+            (*cursor)--;
             // TODO: handle error
             return khToken_fromNone();
     }
@@ -495,7 +479,7 @@ uint32_t kh_lexChar(char** cursor, bool with_quotes) {
         (*cursor)++;
 
         switch (*(*cursor)++) {
-            // Handle single character escapes
+            // Handle many single character escapes
             case '0':
                 chr = '\0';
                 break;
@@ -580,7 +564,7 @@ uint32_t kh_lexChar(char** cursor, bool with_quotes) {
         }
     }
     else {
-        chr = kh_lexUtf8(cursor, true);
+        chr = kh_lexUtf8(cursor, false);
 
         switch (chr) {
             // Encourage users to use '\'' instead
@@ -600,6 +584,8 @@ uint32_t kh_lexChar(char** cursor, bool with_quotes) {
                 // TODO: handle error
                 break;
         }
+
+        kh_lexUtf8(cursor, true); // Goes to the next character
     }
 
     if (with_quotes) {
@@ -749,7 +735,7 @@ double kh_lexFloat(char** cursor, uint8_t base) {
     double result = 0;
 
     // The same implementation of kh_lexInt is used here. The reason of not using kh_lexInt directly
-    // is to avoid any integer overflows.
+    // is to avoid any integer overflows
     while (digitOf(**cursor) < base) {
         result *= base;
         result += digitOf(**cursor);

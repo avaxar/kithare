@@ -138,7 +138,7 @@ static inline void khList_CONCAT(memory)(khList_NAME* list, const khList_TYPE* a
         list->array[list->size + i] = khList_COPIER(&address[i]);
     }
 #else
-    memcpy(&list->array[list->size], address, size);
+    memcpy(&list->array[list->size], address, size * sizeof(khList_TYPE));
 #endif
 
     list->size += size;
