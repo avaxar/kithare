@@ -4,8 +4,7 @@
 ![State](https://img.shields.io/badge/state-unfinished-ff2222.svg)
 ![Version](https://img.shields.io/badge/version-0.0.0-00ffaa.svg)
 
- An open source general purpo
- se statically-typed cross-platform interpreted/transpiled C++/Python like programming language.
+ A statically-typed cross-platform C++/Python like programming language.
 
 
 ## Links and Contact
