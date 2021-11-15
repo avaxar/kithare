@@ -15,7 +15,7 @@
 #include <kithare/lexer.h>
 
 
-void cli() {
+void cli(void) {
     char str[] = "0.i";
     char* str_ptr = &str[0];
 

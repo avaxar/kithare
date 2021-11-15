@@ -8,8 +8,8 @@
 #include <string.h>
 #include <wctype.h>
 
+#include <kithare/arrays.h>
 #include <kithare/lexer.h>
-#include <kithare/lists.h>
 
 
 static inline uint8_t digitOf(char chr) {
@@ -47,16 +47,16 @@ khToken kh_lex(char** cursor) {
 
                 // Buffers: b"1234"
                 case '"': {
-                    khList_char string = kh_lexString(cursor);
-                    khList_byte buffer = khList_byte_new();
-                    khList_byte_reserve(&buffer, string.size);
+                    khArray_char string = kh_lexString(cursor);
+                    khArray_byte buffer = khArray_byte_new();
+                    khArray_byte_reserve(&buffer, string.size);
 
                     for (uint32_t* chr = string.array; chr < string.array + string.size; chr++) {
                         // TODO: handle >255 characters
-                        khList_byte_push(&buffer, *chr);
+                        khArray_byte_push(&buffer, *chr);
                     }
 
-                    khList_char_delete(&string);
+                    khArray_char_delete(&string);
                     return khToken_fromBuffer(buffer);
                 }
 
@@ -91,12 +91,12 @@ khToken kh_lexWord(char** cursor) {
         kh_lexUtf8(cursor, true);
     }
 
-    khList_byte identifier = khList_byte_fromMemory((uint8_t*)origin, *cursor - origin);
-    khList_byte_push(&identifier, '\0'); // Push a null-terminator for strcmp
+    khArray_byte identifier = khArray_byte_fromMemory((uint8_t*)origin, *cursor - origin);
+    khArray_byte_push(&identifier, '\0'); // Push a null-terminator for strcmp
 
 #define CASE_OPERATOR(STRING, OPERATOR)                 \
     if (strcmp((char*)identifier.array, STRING) == 0) { \
-        khList_byte_delete(&identifier);                \
+        khArray_byte_delete(&identifier);               \
         return khToken_fromOperator(OPERATOR);          \
     }
 
@@ -107,7 +107,7 @@ khToken kh_lexWord(char** cursor) {
 
 #define CASE_KEYWORD(STRING, KEYWORD)                   \
     if (strcmp((char*)identifier.array, STRING) == 0) { \
-        khList_byte_delete(&identifier);                \
+        khArray_byte_delete(&identifier);               \
         return khToken_fromKeyword(KEYWORD);            \
     }
 
@@ -139,7 +139,7 @@ khToken kh_lexWord(char** cursor) {
 #undef CASE_OPERATOR
 #undef CASE_KEYWORD
 
-    khList_byte_pop(&identifier, 1); // Get rid of the extra null-terminator
+    khArray_byte_pop(&identifier, 1); // Get rid of the extra null-terminator
     return khToken_fromIdentifier(identifier);
 }
 
@@ -600,8 +600,8 @@ uint32_t kh_lexChar(char** cursor, bool with_quotes) {
     return chr;
 }
 
-khList_char kh_lexString(char** cursor) {
-    khList_char string = khList_char_new();
+khArray_char kh_lexString(char** cursor) {
+    khArray_char string = khArray_char_new();
     bool multiline = false;
 
     if (**cursor == '"') {
@@ -628,7 +628,7 @@ khList_char kh_lexString(char** cursor) {
                     }
                     else {
                         (*cursor)++;
-                        khList_char_push(&string, '"');
+                        khArray_char_push(&string, '"');
                     }
                 }
                 else {
@@ -641,7 +641,7 @@ khList_char kh_lexString(char** cursor) {
             case '\n':
                 if (multiline) {
                     (*cursor)++;
-                    khList_char_push(&string, '\n');
+                    khArray_char_push(&string, '\n');
                 }
                 else {
                     // TODO: handle error
@@ -655,7 +655,7 @@ khList_char kh_lexString(char** cursor) {
 
             // Use kh_lexChar for other character encounters
             default:
-                khList_char_push(&string, kh_lexChar(cursor, false));
+                khArray_char_push(&string, kh_lexChar(cursor, false));
                 break;
         }
     }
