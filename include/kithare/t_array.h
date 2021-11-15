@@ -9,7 +9,6 @@ extern "C" {
 #endif
 #ifdef khArray_TYPE
 
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,15 +30,11 @@ typedef struct {
 
 
 static inline khArray_NAME khArray_CONCAT(new)() {
-    return (khArray_NAME){.array = NULL, .size = 0, .reserved = 0};
+    return (khArray_NAME){.array = calloc(sizeof(khArray_TYPE), 1), .size = 0, .reserved = 0};
 }
 
 static inline khArray_NAME khArray_CONCAT(copy)(const khArray_NAME* array) {
-    if (!array->array || !array->size) {
-        return khArray_CONCAT(new)();
-    }
-
-    khArray_TYPE* ptr = (khArray_TYPE*)malloc(array->size * sizeof(khArray_TYPE));
+    khArray_TYPE* ptr = (khArray_TYPE*)calloc(sizeof(khArray_TYPE), array->size + 1);
 
 #ifdef khArray_COPIER
     for (size_t i = 0; i < array->size; i++) {
@@ -53,19 +48,13 @@ static inline khArray_NAME khArray_CONCAT(copy)(const khArray_NAME* array) {
 }
 
 static inline void khArray_CONCAT(delete)(khArray_NAME* array) {
-    if (array->array) {
 #ifdef khArray_DELETER
-        for (size_t i = 0; i < array->size; i++) {
-            khArray_DELETER(&array->array[i]);
-        }
+    for (size_t i = 0; i < array->size; i++) {
+        khArray_DELETER(&array->array[i]);
+    }
 #endif
 
-        free(array->array);
-        array->array = NULL;
-    }
-
-    array->size = 0;
-    array->reserved = 0;
+    free(array->array);
 }
 
 static inline void khArray_CONCAT(reserve)(khArray_NAME* array, size_t size) {
@@ -73,38 +62,23 @@ static inline void khArray_CONCAT(reserve)(khArray_NAME* array, size_t size) {
         return;
     }
 
-    if (array->array) {
-        khArray_TYPE* ptr = (khArray_TYPE*)malloc(size * sizeof(khArray_TYPE));
-        memcpy(ptr, array->array, array->size * sizeof(khArray_TYPE));
-        free(array->array);
-        array->array = ptr;
-    }
-    else {
-        array->array = (khArray_TYPE*)malloc(size * sizeof(khArray_TYPE));
-    }
-
+    khArray_TYPE* ptr = (khArray_TYPE*)calloc(sizeof(khArray_TYPE), size + 1);
+    memcpy(ptr, array->array, array->size * sizeof(khArray_TYPE));
+    free(array->array);
+    array->array = ptr;
     array->reserved = size;
 }
 
 static inline void khArray_CONCAT(fit)(khArray_NAME* array) {
-    if (!array->array) {
+    if (array->size == array->reserved) {
         return;
     }
 
-    if (array->size) {
-        if (array->size == array->reserved) {
-            return;
-        }
-
-        khArray_TYPE* ptr = (khArray_TYPE*)malloc(array->size * sizeof(khArray_TYPE));
-        memcpy(ptr, array->array, array->size * sizeof(khArray_TYPE));
-        free(array->array);
-        array->array = ptr;
-        array->reserved = array->size;
-    }
-    else {
-        khArray_CONCAT(delete)(array);
-    }
+    khArray_TYPE* ptr = (khArray_TYPE*)calloc(sizeof(khArray_TYPE), array->size + 1);
+    memcpy(ptr, array->array, array->size * sizeof(khArray_TYPE));
+    free(array->array);
+    array->array = ptr;
+    array->reserved = array->size;
 }
 
 static inline void khArray_CONCAT(push)(khArray_NAME* array, khArray_TYPE item) {
@@ -151,21 +125,23 @@ static inline khArray_NAME khArray_CONCAT(fromMemory)(const khArray_TYPE* addres
     return array;
 }
 
+#ifndef kh_HG_T_ARRAY_H
+#define kh_HG_T_ARRAY_H
+// Oi, you there. Move along, ignore this
+static int64_t kh_ZEROES[] = {
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+#endif
+
 static inline void khArray_CONCAT(string)(khArray_NAME* array, const khArray_TYPE* string) {
-    static char ZEROES[sizeof(khArray_TYPE)];
-    static bool first = true; // TODO: handle the case of static variables in static functions
-    if (first) {
-        memset(ZEROES, 0, sizeof(khArray_TYPE));
-        first = false;
-    }
-
     size_t size = 0;
-    for (;; size++) {
-        if (!memcmp(&string[size], ZEROES, sizeof(khArray_TYPE))) {
-            break;
-        }
-    }
-
+    for (; memcmp(&string[size], kh_ZEROES, sizeof(khArray_TYPE)); size++) {}
     khArray_CONCAT(memory)(array, string, size);
 }
 
@@ -188,11 +164,12 @@ static inline void khArray_CONCAT(pop)(khArray_NAME* array, size_t elements) {
         elements = array->size;
     }
 
-#ifdef khArray_DELETER
     for (size_t i = elements; i > 0; i--) {
+#ifdef khArray_DELETER
         khArray_DELETER(&array->array[array->size - i]);
-    }
 #endif
+        memset(&array->array[array->size - i], 0, sizeof(khArray_TYPE));
+    }
 
     array->size -= elements;
 }

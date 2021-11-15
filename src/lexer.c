@@ -92,7 +92,6 @@ khToken kh_lexWord(char** cursor) {
     }
 
     khArray_byte identifier = khArray_byte_fromMemory((uint8_t*)origin, *cursor - origin);
-    khArray_byte_push(&identifier, '\0'); // Push a null-terminator for strcmp
 
 #define CASE_OPERATOR(STRING, OPERATOR)                 \
     if (strcmp((char*)identifier.array, STRING) == 0) { \
@@ -139,7 +138,6 @@ khToken kh_lexWord(char** cursor) {
 #undef CASE_OPERATOR
 #undef CASE_KEYWORD
 
-    khArray_byte_pop(&identifier, 1); // Get rid of the extra null-terminator
     return khToken_fromIdentifier(identifier);
 }
 
@@ -188,7 +186,8 @@ khToken kh_lexNumber(char** cursor) {
         return khToken_fromNone();
     }
     // If it was a floating point
-    else if (**cursor == '.' || had_overflowed) {
+    else if (**cursor == 'e' || **cursor == 'E' || **cursor == 'p' || **cursor == 'P' ||
+             **cursor == '.' || had_overflowed) {
         *cursor = origin;
         double floating = kh_lexFloat(cursor, base);
 
@@ -234,12 +233,32 @@ khToken kh_lexNumber(char** cursor) {
             // 1b -> byte(1)
             case 'b':
             case 'B':
-                return khToken_fromInt8(integer);
+                return khToken_fromUint8(integer);
 
             // 1s -> short(1)
             case 's':
             case 'S':
-                return khToken_fromInt16(integer);
+                switch (*(*cursor)++) {
+                    // 2sb -> sbyte(2)
+                    case 'b':
+                    case 'B':
+                        return khToken_fromInt8(integer);
+
+                    // 2ss -> short(2)
+                    case 's':
+                    case 'S':
+                        return khToken_fromInt16(integer);
+
+                    // 2sl -> long(2)
+                    case 'l':
+                    case 'L':
+                        return khToken_fromInt64(integer);
+
+                    // Defaults to an int16 (signed short), without any extra suffixes
+                    default:
+                        (*cursor)--;
+                        return khToken_fromInt16(integer);
+                }
 
             // 1l -> long(1)
             case 'l':
@@ -250,7 +269,7 @@ khToken kh_lexNumber(char** cursor) {
             case 'u':
             case 'U':
                 switch (*(*cursor)++) {
-                    // 2ub -> ubyte(2)
+                    // 2ub -> byte(2)
                     case 'b':
                     case 'B':
                         return khToken_fromUint8(integer);
@@ -265,13 +284,43 @@ khToken kh_lexNumber(char** cursor) {
                     case 'L':
                         return khToken_fromUint64(integer);
 
-                    // Defaults to an uint32, without any extra suffixes
+                    // Defaults to an uint32 (unsigned int), without any extra suffixes
                     default:
                         (*cursor)--;
                         return khToken_fromUint32(integer);
                 }
 
-            // Defaults to an int32, without any suffixes
+            // 4f -> float(4.0)
+            case 'f':
+            case 'F':
+                return khToken_fromFloat(integer);
+
+            // 4d -> double(4.0)
+            case 'd':
+            case 'D':
+                return khToken_fromDouble(integer);
+
+            // Imaginary floating points
+            case 'i':
+            case 'I':
+                switch (*(*cursor)++) {
+                    // 5if -> cfloat(0.0, 5.0)
+                    case 'f':
+                    case 'F':
+                        return khToken_fromIfloat(integer);
+
+                    // 5id -> cdouble(0.0, 5.0)
+                    case 'd':
+                    case 'D':
+                        return khToken_fromIdouble(integer);
+
+                    // Defaults to an imaginary double, without any extra suffixes
+                    default:
+                        (*cursor)--;
+                        return khToken_fromIdouble(integer);
+                }
+
+            // Defaults to an int32 (unsigned int), without any suffixes
             default:
                 (*cursor)--;
                 return khToken_fromInt32(integer);

@@ -4,6 +4,8 @@
  * Copyright (C) 2021 Kithare Organization
  */
 
+#ifndef __STDC_NO_THREADS__
 #include <threads.h>
+#endif
 
 #include <kithare/error.h>
