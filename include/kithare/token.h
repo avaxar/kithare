@@ -12,7 +12,7 @@ extern "C" {
 
 #include <stdint.h>
 
-#include <kithare/lists.h>
+#include <kithare/arrays.h>
 
 
 typedef enum {
@@ -136,14 +136,14 @@ typedef enum {
 
 
 typedef union {
-    khList_byte identifier;
+    khArray_byte identifier;
     khKeywordToken keyword;
     khDelimiterToken delimiter;
     khOperatorToken operator_v;
 
     uint32_t char_v;
-    khList_char string;
-    khList_byte buffer;
+    khArray_char string;
+    khArray_byte buffer;
 
     int8_t int8_v;
     uint8_t uint8_v;
@@ -171,60 +171,21 @@ static inline khToken khToken_new(khTokenType type, khTokenValue value) {
     return (khToken){.type = type, .value = value};
 }
 
-static inline khToken khToken_copy(const khToken* token) {
-    khTokenValue token_value = token->value;
-
-    switch (token->type) {
-        case khTokenType_IDENTIFIER:
-            token_value.identifier = khList_byte_copy(&token->value.identifier);
-            break;
-
-        case khTokenType_STRING:
-            token_value.string = khList_char_copy(&token->value.string);
-            break;
-
-        case khTokenType_BUFFER:
-            token_value.buffer = khList_byte_copy(&token->value.buffer);
-            break;
-
-        default:
-            break;
-    }
-
-    return (khToken){.type = token->type, .value = token_value};
-}
-
-static inline void khToken_delete(khToken* token) {
-    switch (token->type) {
-        case khTokenType_IDENTIFIER:
-            khList_byte_delete(&token->value.identifier);
-            break;
-
-        case khTokenType_STRING:
-            khList_char_delete(&token->value.string);
-            break;
-
-        case khTokenType_BUFFER:
-            khList_byte_delete(&token->value.buffer);
-            break;
-
-        default:
-            break;
-    }
-}
+khToken khToken_copy(const khToken* token);
+void khToken_delete(khToken* token);
 
 
-#define khList_TYPE khToken
-#define khList_COPIER khToken_copy
-#define khList_DELETER khToken_delete
-#include <kithare/t_list.h>
+#define khArray_TYPE khToken
+#define khArray_COPIER khToken_copy
+#define khArray_DELETER khToken_delete
+#include <kithare/t_array.h>
 
 
 static inline khToken khToken_fromNone() {
     return (khToken){.type = khTokenType_NONE, .value = (khTokenValue){}};
 }
 
-static inline khToken khToken_fromIdentifier(khList_byte identifier) {
+static inline khToken khToken_fromIdentifier(khArray_byte identifier) {
     return (khToken){.type = khTokenType_IDENTIFIER, .value = (khTokenValue){.identifier = identifier}};
 }
 
@@ -244,11 +205,11 @@ static inline khToken khToken_fromChar(int32_t char_v) {
     return (khToken){.type = khTokenType_CHAR, .value = (khTokenValue){.char_v = char_v}};
 }
 
-static inline khToken khToken_fromString(khList_char string) {
+static inline khToken khToken_fromString(khArray_char string) {
     return (khToken){.type = khTokenType_STRING, .value = (khTokenValue){.string = string}};
 }
 
-static inline khToken khToken_fromBuffer(khList_byte buffer) {
+static inline khToken khToken_fromBuffer(khArray_byte buffer) {
     return (khToken){.type = khTokenType_BUFFER, .value = (khTokenValue){.buffer = buffer}};
 }
 
