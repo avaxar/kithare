@@ -16,7 +16,7 @@
 
 
 void cli(void) {
-    char str[] = "0.i";
+    char str[] = "import";
     char* str_ptr = &str[0];
 
     khToken token = kh_lex(&str_ptr);

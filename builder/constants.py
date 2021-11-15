@@ -17,8 +17,8 @@ ICO_RES = "icon.res"
 # A set of architectures well supported by Kithare (have CI running tests on these)
 SUPPORTED_ARCHS = {"x86", "x64", "armv6", "armv7", "arm64", "ppc64le", "s390x"}
 
-C_STD_FLAG = "--std=c11"
-CPP_STD_FLAG = "--std=c++14"
+C_STD_FLAG = "-std=c11"
+CPP_STD_FLAG = "-std=c++14"
 
 VERSION_PACKAGE_REV = "0"
 
