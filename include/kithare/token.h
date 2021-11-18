@@ -96,7 +96,7 @@ typedef enum {
     khOperatorToken_BIT_AND,
     khOperatorToken_BIT_OR,
     khOperatorToken_BIT_XOR = khOperatorToken_BIT_NOT, // Both uses `~`.
-    khOperatorToken_BIT_LSHIFT,
+    khOperatorToken_BIT_LSHIFT = khOperatorToken_BIT_OR + 1,
     khOperatorToken_BIT_RSHIFT,
 
     khOperatorToken_IBIT_AND,
@@ -109,6 +109,7 @@ typedef enum {
 
 typedef enum {
     khTokenType_NONE,
+    khTokenType_COMMENT,
 
     khTokenType_IDENTIFIER,
     khTokenType_KEYWORD,
@@ -119,14 +120,14 @@ typedef enum {
     khTokenType_STRING,
     khTokenType_BUFFER,
 
-    khTokenType_INT8,
-    khTokenType_UINT8,
-    khTokenType_INT16,
-    khTokenType_UINT16,
-    khTokenType_INT32,
-    khTokenType_UINT32,
-    khTokenType_INT64,
-    khTokenType_UINT64,
+    khTokenType_SBYTE,
+    khTokenType_BYTE,
+    khTokenType_SHORT,
+    khTokenType_USHORT,
+    khTokenType_INT,
+    khTokenType_UINT,
+    khTokenType_LONG,
+    khTokenType_ULONG,
 
     khTokenType_FLOAT,
     khTokenType_IFLOAT,
@@ -136,7 +137,7 @@ typedef enum {
 
 
 typedef union {
-    khArray_byte identifier;
+    khArray_char identifier;
     khKeywordToken keyword;
     khDelimiterToken delimiter;
     khOperatorToken operator_v;
@@ -145,14 +146,14 @@ typedef union {
     khArray_char string;
     khArray_byte buffer;
 
-    int8_t int8_v;
-    uint8_t uint8_v;
-    int16_t int16_v;
-    uint16_t uint16_v;
-    int32_t int32_v;
-    uint32_t uint32_v;
-    int64_t int64_v;
-    uint64_t uint64_v;
+    int8_t sbyte_v;
+    uint8_t byte_v;
+    int16_t short_v;
+    uint16_t ushort_v;
+    int32_t int_v;
+    uint32_t uint_v;
+    int64_t long_v;
+    uint64_t ulong_v;
 
     float float_v;
     float ifloat_v;
@@ -167,12 +168,14 @@ typedef struct {
 } khToken;
 
 
-static inline khToken khToken_new(khTokenType type, khTokenValue value) {
-    return (khToken){.type = type, .value = value};
-}
-
-khToken khToken_copy(const khToken* token);
+khToken khToken_copy(khToken* token);
 void khToken_delete(khToken* token);
+
+khArray_char khKeywordToken_string(khKeywordToken keyword);
+khArray_char khDelimiterToken_string(khDelimiterToken delimiter);
+khArray_char khOperatorToken_string(khOperatorToken operator_v);
+khArray_char khTokenType_string(khTokenType type);
+khArray_char khToken_string(khToken* token);
 
 
 #define khArray_TYPE khToken
@@ -185,7 +188,11 @@ static inline khToken khToken_fromNone() {
     return (khToken){.type = khTokenType_NONE, .value = (khTokenValue){}};
 }
 
-static inline khToken khToken_fromIdentifier(khArray_byte identifier) {
+static inline khToken khToken_fromComment() {
+    return (khToken){.type = khTokenType_COMMENT, .value = (khTokenValue){}};
+}
+
+static inline khToken khToken_fromIdentifier(khArray_char identifier) {
     return (khToken){.type = khTokenType_IDENTIFIER, .value = (khTokenValue){.identifier = identifier}};
 }
 
@@ -201,7 +208,7 @@ static inline khToken khToken_fromOperator(khOperatorToken operator_v) {
     return (khToken){.type = khTokenType_OPERATOR, .value = (khTokenValue){.operator_v = operator_v}};
 }
 
-static inline khToken khToken_fromChar(int32_t char_v) {
+static inline khToken khToken_fromChar(uint32_t char_v) {
     return (khToken){.type = khTokenType_CHAR, .value = (khTokenValue){.char_v = char_v}};
 }
 
@@ -213,36 +220,36 @@ static inline khToken khToken_fromBuffer(khArray_byte buffer) {
     return (khToken){.type = khTokenType_BUFFER, .value = (khTokenValue){.buffer = buffer}};
 }
 
-static inline khToken khToken_fromInt8(int8_t int8_v) {
-    return (khToken){.type = khTokenType_INT8, .value = (khTokenValue){.int8_v = int8_v}};
+static inline khToken khToken_fromSbyte(int8_t sbyte_v) {
+    return (khToken){.type = khTokenType_SBYTE, .value = (khTokenValue){.sbyte_v = sbyte_v}};
 }
 
-static inline khToken khToken_fromUint8(uint8_t uint8_v) {
-    return (khToken){.type = khTokenType_UINT8, .value = (khTokenValue){.uint8_v = uint8_v}};
+static inline khToken khToken_fromByte(uint8_t byte_v) {
+    return (khToken){.type = khTokenType_BYTE, .value = (khTokenValue){.byte_v = byte_v}};
 }
 
-static inline khToken khToken_fromInt16(int16_t int16_v) {
-    return (khToken){.type = khTokenType_INT16, .value = (khTokenValue){.int16_v = int16_v}};
+static inline khToken khToken_fromShort(int16_t short_v) {
+    return (khToken){.type = khTokenType_SHORT, .value = (khTokenValue){.short_v = short_v}};
 }
 
-static inline khToken khToken_fromUint16(uint16_t uint16_v) {
-    return (khToken){.type = khTokenType_UINT16, .value = (khTokenValue){.uint16_v = uint16_v}};
+static inline khToken khToken_fromUshort(uint16_t ushort_v) {
+    return (khToken){.type = khTokenType_USHORT, .value = (khTokenValue){.ushort_v = ushort_v}};
 }
 
-static inline khToken khToken_fromInt32(int32_t int32_v) {
-    return (khToken){.type = khTokenType_INT32, .value = (khTokenValue){.int32_v = int32_v}};
+static inline khToken khToken_fromInt(int32_t int_v) {
+    return (khToken){.type = khTokenType_INT, .value = (khTokenValue){.int_v = int_v}};
 }
 
-static inline khToken khToken_fromUint32(uint32_t uint32_v) {
-    return (khToken){.type = khTokenType_UINT32, .value = (khTokenValue){.uint32_v = uint32_v}};
+static inline khToken khToken_fromUint(uint32_t uint_v) {
+    return (khToken){.type = khTokenType_UINT, .value = (khTokenValue){.uint_v = uint_v}};
 }
 
-static inline khToken khToken_fromInt64(int64_t int64_v) {
-    return (khToken){.type = khTokenType_INT64, .value = (khTokenValue){.int64_v = int64_v}};
+static inline khToken khToken_fromLong(int64_t long_v) {
+    return (khToken){.type = khTokenType_LONG, .value = (khTokenValue){.long_v = long_v}};
 }
 
-static inline khToken khToken_fromUint64(uint64_t uint64_v) {
-    return (khToken){.type = khTokenType_UINT64, .value = (khTokenValue){.uint64_v = uint64_v}};
+static inline khToken khToken_fromUlong(uint64_t ulong_v) {
+    return (khToken){.type = khTokenType_ULONG, .value = (khTokenValue){.ulong_v = ulong_v}};
 }
 
 static inline khToken khToken_fromFloat(float float_v) {

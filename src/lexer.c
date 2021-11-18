@@ -8,11 +8,24 @@
 #include <string.h>
 #include <wctype.h>
 
-#include <kithare/arrays.h>
 #include <kithare/lexer.h>
+#include <kithare/string.h>
 
 
-static inline uint8_t digitOf(char chr) {
+#define ERROR(MSG)                                                                   \
+    if (errors) {                                                                    \
+        khArray_khLexError_push(errors, (khLexError){.ptr = *cursor, .error = MSG}); \
+    }
+
+#define ERROR_STR(MSG)                                                \
+    {                                                                 \
+        khArray_byte buffer = khArray_byte_fromString((uint8_t*)MSG); \
+        ERROR(kh_decodeUtf8(&buffer));                                \
+        khArray_byte_delete(&buffer);                                 \
+    }
+
+
+static inline uint8_t digitOf(uint32_t chr) {
     // Regular decimal characters
     if (chr >= '0' && chr <= '9') {
         return chr - '0';
@@ -30,29 +43,28 @@ static inline uint8_t digitOf(char chr) {
     }
 }
 
-khToken kh_lex(char** cursor) {
+khToken kh_lex(uint32_t** cursor, khArray_khLexError* errors) {
     // Skips any whitespace
-    while (iswspace(kh_lexUtf8(cursor, false))) {
-        kh_lexUtf8(cursor, true);
+    while (iswspace(**cursor)) {
+        (*cursor)++;
     }
 
-    if (iswalpha(kh_lexUtf8(cursor, false))) {
+    if (iswalpha(**cursor)) {
         if (**cursor == 'b' || **cursor == 'B') {
             (*cursor)++;
 
             switch (**cursor) {
                 // Byte characters: b'X'
                 case '\'':
-                    return khToken_fromUint8(kh_lexChar(cursor, true));
+                    return khToken_fromByte(kh_lexChar(cursor, true, true, errors));
 
                 // Buffers: b"1234"
                 case '"': {
-                    khArray_char string = kh_lexString(cursor);
+                    khArray_char string = kh_lexString(cursor, true, errors);
                     khArray_byte buffer = khArray_byte_new();
                     khArray_byte_reserve(&buffer, string.size);
 
                     for (uint32_t* chr = string.array; chr < string.array + string.size; chr++) {
-                        // TODO: handle >255 characters
                         khArray_byte_push(&buffer, *chr);
                     }
 
@@ -62,41 +74,51 @@ khToken kh_lex(char** cursor) {
 
                 default:
                     (*cursor)--;
-                    return kh_lexWord(cursor);
+                    return kh_lexWord(cursor, errors);
             }
         }
         else {
-            return kh_lexWord(cursor);
+            return kh_lexWord(cursor, errors);
         }
     }
     else if (digitOf(**cursor) < 10) {
-        return kh_lexNumber(cursor);
+        return kh_lexNumber(cursor, errors);
     }
     else if (**cursor == '\'') {
-        return khToken_fromChar(kh_lexChar(cursor, true));
+        return khToken_fromChar(kh_lexChar(cursor, true, false, errors));
     }
     else if (**cursor == '"') {
-        return khToken_fromString(kh_lexString(cursor));
+        return khToken_fromString(kh_lexString(cursor, false, errors));
+    }
+    else if (**cursor == '#') {
+        (*cursor)++;
+
+        for (; !(**cursor == '\n' || **cursor == '\0'); (*cursor)++) {}
+        if (**cursor == '\n') {
+            (*cursor)++;
+        }
+
+        return khToken_fromComment();
     }
     else {
-        return kh_lexSymbol(cursor);
+        return kh_lexSymbol(cursor, errors);
     }
 }
 
-khToken kh_lexWord(char** cursor) {
-    char* origin = *cursor;
+khToken kh_lexWord(uint32_t** cursor, khArray_khLexError* errors) {
+    uint32_t* origin = *cursor;
 
     // Passes through alphanumeric characters in a row
-    while (iswalnum(kh_lexUtf8(cursor, false))) {
-        kh_lexUtf8(cursor, true);
+    while (iswalnum(**cursor)) {
+        (*cursor)++;
     }
 
-    khArray_byte identifier = khArray_byte_fromMemory((uint8_t*)origin, *cursor - origin);
+    khArray_char identifier = khArray_char_fromMemory(origin, *cursor - origin);
 
-#define CASE_OPERATOR(STRING, OPERATOR)                 \
-    if (strcmp((char*)identifier.array, STRING) == 0) { \
-        khArray_byte_delete(&identifier);               \
-        return khToken_fromOperator(OPERATOR);          \
+#define CASE_OPERATOR(STRING, OPERATOR)           \
+    if (kh_compareCstring(&identifier, STRING)) { \
+        khArray_char_delete(&identifier);         \
+        return khToken_fromOperator(OPERATOR);    \
     }
 
     CASE_OPERATOR("not", khOperatorToken_NOT);
@@ -104,10 +126,10 @@ khToken kh_lexWord(char** cursor) {
     CASE_OPERATOR("or", khOperatorToken_OR);
     CASE_OPERATOR("xor", khOperatorToken_XOR);
 
-#define CASE_KEYWORD(STRING, KEYWORD)                   \
-    if (strcmp((char*)identifier.array, STRING) == 0) { \
-        khArray_byte_delete(&identifier);               \
-        return khToken_fromKeyword(KEYWORD);            \
+#define CASE_KEYWORD(STRING, KEYWORD)             \
+    if (kh_compareCstring(&identifier, STRING)) { \
+        khArray_char_delete(&identifier);         \
+        return khToken_fromKeyword(KEYWORD);      \
     }
 
     CASE_KEYWORD("import", khKeywordToken_IMPORT);
@@ -141,9 +163,9 @@ khToken kh_lexWord(char** cursor) {
     return khToken_fromIdentifier(identifier);
 }
 
-khToken kh_lexNumber(char** cursor) {
+khToken kh_lexNumber(uint32_t** cursor, khArray_khLexError* errors) {
     if (digitOf(**cursor) > 9) {
-        // TODO: handle error
+        ERROR_STR("expecting a decimal number, from 0 to 9");
         return khToken_fromNone();
     }
 
@@ -176,13 +198,30 @@ khToken kh_lexNumber(char** cursor) {
         }
     }
 
-    char* origin = *cursor;
+    uint32_t* origin = *cursor;
     bool had_overflowed;
     uint64_t integer = kh_lexInt(cursor, base, -1, &had_overflowed);
 
     // When it didn't lex any characters (presumably because it's out of base)
     if (*cursor == origin) {
-        // TODO: handle error
+        switch (base) {
+            case 2:
+                ERROR_STR("expecting a binary number, either 0 or 1");
+                break;
+
+            case 8:
+                ERROR_STR("expecting an octal number, from 0 to 7");
+                break;
+
+            case 10:
+                ERROR_STR("expecting a decimal number, from 0 to 9");
+                break;
+
+            case 16:
+                ERROR_STR("expecting a hexadecimal number, from 0 to 9 or A to F");
+                break;
+        }
+
         return khToken_fromNone();
     }
     // If it was a floating point
@@ -233,7 +272,7 @@ khToken kh_lexNumber(char** cursor) {
             // 1b -> byte(1)
             case 'b':
             case 'B':
-                return khToken_fromUint8(integer);
+                return khToken_fromByte(integer);
 
             // 1s -> short(1)
             case 's':
@@ -242,28 +281,28 @@ khToken kh_lexNumber(char** cursor) {
                     // 2sb -> sbyte(2)
                     case 'b':
                     case 'B':
-                        return khToken_fromInt8(integer);
+                        return khToken_fromSbyte(integer);
 
                     // 2ss -> short(2)
                     case 's':
                     case 'S':
-                        return khToken_fromInt16(integer);
+                        return khToken_fromShort(integer);
 
                     // 2sl -> long(2)
                     case 'l':
                     case 'L':
-                        return khToken_fromInt64(integer);
+                        return khToken_fromLong(integer);
 
                     // Defaults to an int16 (signed short), without any extra suffixes
                     default:
                         (*cursor)--;
-                        return khToken_fromInt16(integer);
+                        return khToken_fromShort(integer);
                 }
 
             // 1l -> long(1)
             case 'l':
             case 'L':
-                return khToken_fromInt64(integer);
+                return khToken_fromLong(integer);
 
             // Unsigned integers
             case 'u':
@@ -272,22 +311,22 @@ khToken kh_lexNumber(char** cursor) {
                     // 2ub -> byte(2)
                     case 'b':
                     case 'B':
-                        return khToken_fromUint8(integer);
+                        return khToken_fromByte(integer);
 
                     // 2us -> ushort(2)
                     case 's':
                     case 'S':
-                        return khToken_fromUint16(integer);
+                        return khToken_fromUshort(integer);
 
                     // 2ul -> ulong(2)
                     case 'l':
                     case 'L':
-                        return khToken_fromUint64(integer);
+                        return khToken_fromUlong(integer);
 
                     // Defaults to an uint32 (unsigned int), without any extra suffixes
                     default:
                         (*cursor)--;
-                        return khToken_fromUint32(integer);
+                        return khToken_fromUint(integer);
                 }
 
             // 4f -> float(4.0)
@@ -323,12 +362,12 @@ khToken kh_lexNumber(char** cursor) {
             // Defaults to an int32 (unsigned int), without any suffixes
             default:
                 (*cursor)--;
-                return khToken_fromInt32(integer);
+                return khToken_fromInt(integer);
         }
     }
 }
 
-khToken kh_lexSymbol(char** cursor) {
+khToken kh_lexSymbol(uint32_t** cursor, khArray_khLexError* errors) {
 #define CASE_DELIMITER(CHR, DELIMITER) \
     case CHR:                          \
         return khToken_fromDelimiter(DELIMITER)
@@ -500,18 +539,18 @@ khToken kh_lexSymbol(char** cursor) {
         // Unexpected null-terminator
         case '\0':
             (*cursor)--;
-            // TODO: handle error
+            ERROR_STR("expecting a token, met with a dead end");
             return khToken_fromNone();
 
         default:
             (*cursor)--;
-            // TODO: handle error
+            ERROR_STR("unknown character");
             return khToken_fromNone();
     }
 #undef CASE_DELIMITER
 }
 
-uint32_t kh_lexChar(char** cursor, bool with_quotes) {
+uint32_t kh_lexChar(uint32_t** cursor, bool with_quotes, bool is_byte, khArray_khLexError* errors) {
     uint32_t chr = 0;
 
     if (with_quotes) {
@@ -519,7 +558,7 @@ uint32_t kh_lexChar(char** cursor, bool with_quotes) {
             (*cursor)++;
         }
         else {
-            // TODO: handle error
+            ERROR_STR("expecting a single quote opening for a character");
         }
     }
 
@@ -565,11 +604,12 @@ uint32_t kh_lexChar(char** cursor, bool with_quotes) {
 
             // \xAA
             case 'x': {
-                char* origin = *cursor;
+                uint32_t* origin = *cursor;
 
                 chr = kh_lexInt(cursor, 16, 2, NULL);
                 if (*cursor != origin + 2) {
-                    // TODO: handle error
+                    ERROR_STR("expecting 2 hexadecimal digits for 1 byte character, from 0 to 9 or "
+                              "A to F");
                 }
 
                 break;
@@ -577,11 +617,20 @@ uint32_t kh_lexChar(char** cursor, bool with_quotes) {
 
             // \uAABB
             case 'u': {
-                char* origin = *cursor;
+                if (is_byte) {
+                    (*cursor)--;
+                    ERROR_STR(
+                        "only allowing one byte characters, 2 byte unicode escapes are not allowed");
+                    break;
+                }
+
+                uint32_t* origin = *cursor;
 
                 chr = kh_lexInt(cursor, 16, 4, NULL);
                 if (*cursor != origin + 4) {
-                    // TODO: handle error
+                    ERROR_STR(
+                        "expecting 4 hexadecimal digits for 2 byte unicode character, from 0 to 9 or "
+                        "A to F");
                 }
 
                 break;
@@ -589,11 +638,20 @@ uint32_t kh_lexChar(char** cursor, bool with_quotes) {
 
             // \UAABBCCDD
             case 'U': {
-                char* origin = *cursor;
+                if (is_byte) {
+                    (*cursor)--;
+                    ERROR_STR(
+                        "only allowing one byte characters, 4 byte unicode escapes are not allowed");
+                    break;
+                }
+
+                uint32_t* origin = *cursor;
 
                 chr = kh_lexInt(cursor, 16, 8, NULL);
                 if (*cursor != origin + 8) {
-                    // TODO: handle error
+                    ERROR_STR(
+                        "expecting 8 hexadecimal digits for 4 byte unicode character, from 0 to 9 or "
+                        "A to F");
                 }
 
                 break;
@@ -602,39 +660,46 @@ uint32_t kh_lexChar(char** cursor, bool with_quotes) {
             // Unexpected null-terminator
             case '\0':
                 (*cursor)--;
-                // TODO: handle error
-                break;
+                ERROR_STR("expecting a backslash escape character, met with a dead end");
+                return chr;
 
             // Unrecognized escape character
             default:
                 (*cursor)--;
-                // TODO: handle error
+                ERROR_STR("unknown backslash escape character");
                 break;
         }
     }
     else {
-        chr = kh_lexUtf8(cursor, false);
-
-        switch (chr) {
+        switch (**cursor) {
             // Encourage users to use '\'' instead
             case '\'':
                 if (with_quotes) {
-                    // TODO: handle error
+                    ERROR_STR("a character cannot be closed empty, did you mean '\\''");
                 }
                 break;
 
             // Encourage users to use '\n' instead
             case '\n':
-                // TODO: handle error
+                ERROR_STR("a newline instead of an inline character, did you mean '\\n'");
                 break;
 
             // Unexpected null-terminator
             case '\0':
-                // TODO: handle error
+                ERROR_STR("expecting a character, met with a dead end");
+                return chr;
+
+            default:
+                chr = **cursor;
+                if (is_byte && chr > 255) {
+                    ERROR_STR("only allowing one byte characters, unicode character is forbidden");
+                }
+                else {
+                    (*cursor)++;
+                }
+
                 break;
         }
-
-        kh_lexUtf8(cursor, true); // Goes to the next character
     }
 
     if (with_quotes) {
@@ -642,14 +707,14 @@ uint32_t kh_lexChar(char** cursor, bool with_quotes) {
             (*cursor)++;
         }
         else {
-            // TODO: handle error
+            ERROR_STR("expecting a single quote closing of the character");
         }
     }
 
     return chr;
 }
 
-khArray_char kh_lexString(char** cursor) {
+khArray_char kh_lexString(uint32_t** cursor, bool is_buffer, khArray_khLexError* errors) {
     khArray_char string = khArray_char_new();
     bool multiline = false;
 
@@ -663,7 +728,7 @@ khArray_char kh_lexString(char** cursor) {
         }
     }
     else {
-        // TODO: handle error
+        ERROR_STR("expecting a double quote for a string");
     }
 
     while (true) {
@@ -693,18 +758,19 @@ khArray_char kh_lexString(char** cursor) {
                     khArray_char_push(&string, '\n');
                 }
                 else {
-                    // TODO: handle error
+                    ERROR_STR("a newline instead of an inline character, use '\\n' or a multiline "
+                              "string instead");
                 }
                 break;
 
             // Unexpected null-terminator
             case '\0':
-                // TODO: handle error
-                break;
+                ERROR_STR("expecting a character, met with a dead end");
+                return string;
 
             // Use kh_lexChar for other character encounters
             default:
-                khArray_char_push(&string, kh_lexChar(cursor, false));
+                khArray_char_push(&string, kh_lexChar(cursor, false, is_buffer, errors));
                 break;
         }
     }
@@ -712,51 +778,7 @@ khArray_char kh_lexString(char** cursor) {
     return string;
 }
 
-uint32_t kh_lexUtf8(char** cursor, bool skip) {
-    // Pass ASCII characters
-    if ((uint8_t)(**cursor) < 128) {
-        if (skip) {
-            return *(*cursor)++;
-        }
-        else {
-            return **cursor;
-        }
-    }
-
-    uint32_t chr = 0;
-    uint8_t continuation = 0;
-
-    if ((**cursor & 0b11100000) == 0b11000000) {
-        chr = **cursor & 0b00011111;
-        continuation = 1;
-    }
-    else if ((**cursor & 0b11110000) == 0b11100000) {
-        chr = **cursor & 0b00001111;
-        continuation = 2;
-    }
-    else if ((**cursor & 0b11111000) == 0b11110000) {
-        chr = **cursor & 0b00000111;
-        continuation = 3;
-    }
-
-    char* origin = *cursor;
-
-    for ((*cursor)++; continuation > 0; continuation--, (*cursor)++) {
-        if ((**cursor & 0b11000000) != 0b10000000) {
-            return -1;
-        }
-
-        chr = (chr << 6) | (**cursor & 0b00111111);
-    }
-
-    if (!skip) {
-        *cursor = origin;
-    }
-
-    return chr;
-}
-
-uint64_t kh_lexInt(char** cursor, uint8_t base, size_t max_length, bool* had_overflowed) {
+uint64_t kh_lexInt(uint32_t** cursor, uint8_t base, size_t max_length, bool* had_overflowed) {
     uint64_t result = 0;
 
     if (had_overflowed != NULL) {
@@ -780,7 +802,7 @@ uint64_t kh_lexInt(char** cursor, uint8_t base, size_t max_length, bool* had_ove
     return result;
 }
 
-double kh_lexFloat(char** cursor, uint8_t base) {
+double kh_lexFloat(uint32_t** cursor, uint8_t base) {
     double result = 0;
 
     // The same implementation of kh_lexInt is used here. The reason of not using kh_lexInt directly

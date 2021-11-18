@@ -12,16 +12,27 @@
 #include <Windows.h>
 #endif
 
+#include <kithare/io.h>
 #include <kithare/lexer.h>
+#include <kithare/string.h>
 
 
 void cli(void) {
-    char str[] = "import";
-    char* str_ptr = &str[0];
+    khArray_char str = kh_string("\"Super Idol的笑容\"");
+    uint32_t* str_ptr = str.array;
 
-    khToken token = kh_lex(&str_ptr);
+    khArray_khLexError errors = khArray_khLexError_new();
+    khToken token = kh_lex(&str_ptr, &errors);
+
+    khArray_char string = khToken_string(&token);
+    khPrintln(&string);
+    khArray_char_delete(&string);
+
     printf("BREAKPOINT\n");
+
     khToken_delete(&token);
+    khArray_khLexError_delete(&errors);
+    khArray_char_delete(&str);
 }
 
 

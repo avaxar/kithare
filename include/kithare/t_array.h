@@ -33,12 +33,12 @@ static inline khArray_NAME khArray_CONCAT(new)() {
     return (khArray_NAME){.array = calloc(sizeof(khArray_TYPE), 1), .size = 0, .reserved = 0};
 }
 
-static inline khArray_NAME khArray_CONCAT(copy)(const khArray_NAME* array) {
+static inline khArray_NAME khArray_CONCAT(copy)(khArray_NAME* array) {
     khArray_TYPE* ptr = (khArray_TYPE*)calloc(sizeof(khArray_TYPE), array->size + 1);
 
 #ifdef khArray_COPIER
     for (size_t i = 0; i < array->size; i++) {
-        ptr[i] = khArray_COPIER(&array->array[i]);
+        ptr[i] = (khArray_TYPE)khArray_COPIER((khArray_TYPE*)&array->array[i]);
     }
 #else
     memcpy(ptr, array->array, array->size * sizeof(khArray_TYPE));
@@ -50,7 +50,7 @@ static inline khArray_NAME khArray_CONCAT(copy)(const khArray_NAME* array) {
 static inline void khArray_CONCAT(delete)(khArray_NAME* array) {
 #ifdef khArray_DELETER
     for (size_t i = 0; i < array->size; i++) {
-        khArray_DELETER(&array->array[i]);
+        khArray_DELETER((khArray_TYPE*)&array->array[i]);
     }
 #endif
 
@@ -90,13 +90,13 @@ static inline void khArray_CONCAT(push)(khArray_NAME* array, khArray_TYPE item) 
     array->size++;
 }
 
-static inline void khArray_CONCAT(pushPtr)(khArray_NAME* array, const khArray_TYPE* item) {
+static inline void khArray_CONCAT(pushPtr)(khArray_NAME* array, khArray_TYPE* item) {
     if (array->size == array->reserved) {
         khArray_CONCAT(reserve)(array, array->size ? array->size * 2 : 2);
     }
 
 #ifdef khArray_COPIER
-    array->array[array->size] = khArray_COPIER(item);
+    array->array[array->size] = (khArray_TYPE)khArray_COPIER((khArray_TYPE*)item);
 #else
     array->array[array->size] = *item;
 #endif
@@ -104,13 +104,12 @@ static inline void khArray_CONCAT(pushPtr)(khArray_NAME* array, const khArray_TY
     array->size++;
 }
 
-static inline void khArray_CONCAT(memory)(khArray_NAME* array, const khArray_TYPE* address,
-                                          size_t size) {
+static inline void khArray_CONCAT(memory)(khArray_NAME* array, khArray_TYPE* address, size_t size) {
     khArray_CONCAT(reserve)(array, array->size + size);
 
 #ifdef khArray_COPIER
     for (size_t i = 0; i < size; i++) {
-        array->array[array->size + i] = khArray_COPIER(&address[i]);
+        array->array[array->size + i] = (khArray_TYPE)khArray_COPIER((khArray_TYPE*)&address[i]);
     }
 #else
     memcpy(&array->array[array->size], address, size * sizeof(khArray_TYPE));
@@ -119,7 +118,7 @@ static inline void khArray_CONCAT(memory)(khArray_NAME* array, const khArray_TYP
     array->size += size;
 }
 
-static inline khArray_NAME khArray_CONCAT(fromMemory)(const khArray_TYPE* address, size_t size) {
+static inline khArray_NAME khArray_CONCAT(fromMemory)(khArray_TYPE* address, size_t size) {
     khArray_NAME array = khArray_CONCAT(new)();
     khArray_CONCAT(memory)(&array, address, size);
     return array;
@@ -142,7 +141,7 @@ static int64_t kh_ZEROES[] = {
 static inline void khArray_CONCAT(string)(khArray_NAME* array, const khArray_TYPE* string) {
     size_t size = 0;
     for (; memcmp(&string[size], kh_ZEROES, sizeof(khArray_TYPE)); size++) {}
-    khArray_CONCAT(memory)(array, string, size);
+    khArray_CONCAT(memory)(array, (khArray_TYPE*)string, size);
 }
 
 static inline khArray_NAME khArray_CONCAT(fromString)(const khArray_TYPE* string) {
@@ -151,7 +150,7 @@ static inline khArray_NAME khArray_CONCAT(fromString)(const khArray_TYPE* string
     return array;
 }
 
-static inline void khArray_CONCAT(concatenate)(khArray_NAME* array, const khArray_NAME* other) {
+static inline void khArray_CONCAT(concatenate)(khArray_NAME* array, khArray_NAME* other) {
     if (!other->array) {
         return;
     }
@@ -166,12 +165,20 @@ static inline void khArray_CONCAT(pop)(khArray_NAME* array, size_t elements) {
 
     for (size_t i = elements; i > 0; i--) {
 #ifdef khArray_DELETER
-        khArray_DELETER(&array->array[array->size - i]);
+        khArray_DELETER((khArray_TYPE*)&array->array[array->size - i]);
 #endif
         memset(&array->array[array->size - i], 0, sizeof(khArray_TYPE));
     }
 
     array->size -= elements;
+}
+
+static inline void khArray_CONCAT(reverse)(khArray_NAME* array) {
+    for (size_t i = 0; i < array->size / 2; i++) {
+        khArray_TYPE tmp = array->array[i];
+        array->array[i] = array->array[array->size - i - 1];
+        array->array[array->size - i - 1] = tmp;
+    }
 }
 
 
