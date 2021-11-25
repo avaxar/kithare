@@ -55,7 +55,10 @@ typedef enum {
     khDelimiterToken_CURLY_BRACKET_OPEN,
     khDelimiterToken_CURLY_BRACKET_CLOSE,
     khDelimiterToken_SQUARE_BRACKET_OPEN,
-    khDelimiterToken_SQUARE_BRACKET_CLOSE
+    khDelimiterToken_SQUARE_BRACKET_CLOSE,
+
+    khDelimiterToken_ARROW,
+    khDelimiterToken_ELLIPSIS
 } khDelimiterToken;
 
 

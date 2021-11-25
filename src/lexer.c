@@ -374,7 +374,6 @@ khToken kh_lexSymbol(uint32_t** cursor, khArray_khLexError* errors) {
 
     switch (*(*cursor)++) {
         // Pretty repetitive stuff here. Macros are utilized
-        CASE_DELIMITER('.', khDelimiterToken_DOT);
         CASE_DELIMITER(',', khDelimiterToken_COMMA);
         CASE_DELIMITER(':', khDelimiterToken_COLON);
         CASE_DELIMITER(';', khDelimiterToken_SEMICOLON);
@@ -385,6 +384,15 @@ khToken kh_lexSymbol(uint32_t** cursor, khArray_khLexError* errors) {
         CASE_DELIMITER('}', khDelimiterToken_CURLY_BRACKET_CLOSE);
         CASE_DELIMITER('[', khDelimiterToken_SQUARE_BRACKET_OPEN);
         CASE_DELIMITER(']', khDelimiterToken_CURLY_BRACKET_CLOSE);
+
+        case '.':
+            if ((*cursor)[0] == '.' && (*cursor)[1] == '.') {
+                *cursor += 2;
+                return khToken_fromDelimiter(khDelimiterToken_ELLIPSIS);
+            }
+            else {
+                return khToken_fromDelimiter(khDelimiterToken_DOT);
+            }
 
         // Down here are where many multiple-character-operators are handled
         case '+':
@@ -407,6 +415,9 @@ khToken kh_lexSymbol(uint32_t** cursor, khArray_khLexError* errors) {
 
                 case '=':
                     return khToken_fromOperator(khOperatorToken_ISUB);
+
+                case '>':
+                    return khToken_fromDelimiter(khDelimiterToken_ARROW);
 
                 default:
                     (*cursor)--;
