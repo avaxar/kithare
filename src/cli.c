@@ -25,8 +25,8 @@
 
 
 void cli(khArray_khArray_char* args) {
-    khArray_char str = kh_string("->");
-    uint32_t* str_ptr = str.array;
+    khArray_char str = kh_string(U"import");
+    char32_t* str_ptr = str.array;
 
     khArray_khLexError errors = khArray_khLexError_new();
     khToken token = kh_lex(&str_ptr, &errors);

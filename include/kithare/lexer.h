@@ -18,7 +18,7 @@ extern "C" {
 
 
 typedef struct {
-    uint32_t* ptr;
+    char32_t* ptr;
     khArray_char error;
 } khLexError;
 
@@ -38,16 +38,16 @@ static inline void khLexError_delete(khLexError* error) {
 #include <kithare/t_array.h>
 
 
-khToken kh_lex(uint32_t** cursor, khArray_khLexError* errors);
-khToken kh_lexWord(uint32_t** cursor, khArray_khLexError* errors);
-khToken kh_lexNumber(uint32_t** cursor, khArray_khLexError* errors);
-khToken kh_lexSymbol(uint32_t** cursor, khArray_khLexError* errors);
+khToken kh_lex(char32_t** cursor, khArray_khLexError* errors);
+khToken kh_lexWord(char32_t** cursor, khArray_khLexError* errors);
+khToken kh_lexNumber(char32_t** cursor, khArray_khLexError* errors);
+khToken kh_lexSymbol(char32_t** cursor, khArray_khLexError* errors);
 
-uint32_t kh_lexChar(uint32_t** cursor, bool with_quotes, bool is_byte, khArray_khLexError* errors);
-khArray_char kh_lexString(uint32_t** cursor, bool is_buffer, khArray_khLexError* errors);
+char32_t kh_lexChar(char32_t** cursor, bool with_quotes, bool is_byte, khArray_khLexError* errors);
+khArray_char kh_lexString(char32_t** cursor, bool is_buffer, khArray_khLexError* errors);
 
-uint64_t kh_lexInt(uint32_t** cursor, uint8_t base, size_t max_length, bool* had_overflowed);
-double kh_lexFloat(uint32_t** cursor, uint8_t base);
+uint64_t kh_lexInt(char32_t** cursor, uint8_t base, size_t max_length, bool* had_overflowed);
+double kh_lexFloat(char32_t** cursor, uint8_t base);
 
 
 #ifdef __cplusplus
