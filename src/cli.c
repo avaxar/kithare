@@ -6,7 +6,8 @@
 
 #include <locale.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <string.h>
+#include <wchar.h>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -17,8 +18,14 @@
 #include <kithare/string.h>
 
 
-void cli(void) {
-    khArray_char str = kh_string("\"Super Idol的笑容\"");
+#define khArray_TYPE khArray_char
+#define khArray_COPIER khArray_char_copy
+#define khArray_DELETER khArray_char_delete
+#include <kithare/t_array.h>
+
+
+void cli(khArray_khArray_char* args) {
+    khArray_char str = kh_string("->");
     uint32_t* str_ptr = str.array;
 
     khArray_khLexError errors = khArray_khLexError_new();
@@ -53,6 +60,28 @@ int main(int argc, char* argv[])
     system(" ");
 #endif
 
-    cli();
+    khArray_khArray_char args = khArray_khArray_char_new();
+    khArray_khArray_char_reserve(&args, argc);
+
+    for (int i = 0; i < argc; i++) {
+#ifdef _WIN32
+        khArray_khArray_char_push(&args, khArray_char_new());
+
+        size_t length = wcslen(argv[i]);
+        khArray_char_reserve(&args.array[i], length);
+        for (wchar_t* wchr = argv[i]; wchr < argv[i] + length; wchr++) {
+            khArray_char_push(&args.array[i], *wchr);
+        }
+#else
+        // No need to delete
+        khArray_byte arg = (khArray_byte){
+            .array = (uint8_t*)argv[i], .size = strlen(argv[i]), .reserved = strlen(argv[i])};
+        khArray_khArray_char_push(&args, kh_decodeUtf8(&arg));
+#endif
+    }
+
+    cli(&args);
+
+    khArray_khArray_char_delete(&args);
     return 0;
 }

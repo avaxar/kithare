@@ -130,6 +130,11 @@ khArray_char khDelimiterToken_string(khDelimiterToken delimiter) {
         case khDelimiterToken_SQUARE_BRACKET_CLOSE:
             return kh_string("]");
 
+        case khDelimiterToken_ARROW:
+            return kh_string("->");
+        case khDelimiterToken_ELLIPSIS:
+            return kh_string("...");
+
         default:
             return kh_string("[unknown]");
     }
