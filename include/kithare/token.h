@@ -145,7 +145,7 @@ typedef union {
     khDelimiterToken delimiter;
     khOperatorToken operator_v;
 
-    uint32_t char_v;
+    char32_t char_v;
     khArray_char string;
     khArray_byte buffer;
 
@@ -211,7 +211,7 @@ static inline khToken khToken_fromOperator(khOperatorToken operator_v) {
     return (khToken){.type = khTokenType_OPERATOR, .value = (khTokenValue){.operator_v = operator_v}};
 }
 
-static inline khToken khToken_fromChar(uint32_t char_v) {
+static inline khToken khToken_fromChar(char32_t char_v) {
     return (khToken){.type = khTokenType_CHAR, .value = (khTokenValue){.char_v = char_v}};
 }
 

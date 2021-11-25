@@ -53,240 +53,237 @@ void khToken_delete(khToken* token) {
 khArray_char khKeywordToken_string(khKeywordToken keyword) {
     switch (keyword) {
         case khKeywordToken_IMPORT:
-            return kh_string("import");
+            return kh_string(U"import");
         case khKeywordToken_INCLUDE:
-            return kh_string("include");
+            return kh_string(U"include");
         case khKeywordToken_AS:
-            return kh_string("as");
+            return kh_string(U"as");
         case khKeywordToken_TRY:
-            return kh_string("try");
+            return kh_string(U"try");
         case khKeywordToken_DEF:
-            return kh_string("def");
+            return kh_string(U"def");
         case khKeywordToken_CLASS:
-            return kh_string("class");
+            return kh_string(U"class");
         case khKeywordToken_STRUCT:
-            return kh_string("struct");
+            return kh_string(U"struct");
         case khKeywordToken_ENUM:
-            return kh_string("enum");
+            return kh_string(U"enum");
         case khKeywordToken_ALIAS:
-            return kh_string("alias");
+            return kh_string(U"alias");
 
         case khKeywordToken_REF:
-            return kh_string("ref");
+            return kh_string(U"ref");
         case khKeywordToken_PUBLIC:
-            return kh_string("public");
+            return kh_string(U"public");
         case khKeywordToken_PRIVATE:
-            return kh_string("private");
+            return kh_string(U"private");
         case khKeywordToken_STATIC:
-            return kh_string("static");
+            return kh_string(U"static");
 
         case khKeywordToken_IF:
-            return kh_string("if");
+            return kh_string(U"if");
         case khKeywordToken_ELIF:
-            return kh_string("elif");
+            return kh_string(U"elif");
         case khKeywordToken_ELSE:
-            return kh_string("else");
+            return kh_string(U"else");
         case khKeywordToken_FOR:
-            return kh_string("for");
+            return kh_string(U"for");
         case khKeywordToken_WHILE:
-            return kh_string("while");
+            return kh_string(U"while");
         case khKeywordToken_DO:
-            return kh_string("do");
+            return kh_string(U"do");
         case khKeywordToken_BREAK:
-            return kh_string("break");
+            return kh_string(U"break");
         case khKeywordToken_CONTINUE:
-            return kh_string("continue");
+            return kh_string(U"continue");
         case khKeywordToken_RETURN:
-            return kh_string("return");
+            return kh_string(U"return");
 
         default:
-            return kh_string("[unknown]");
+            return kh_string(U"[unknown]");
     }
 }
 
 khArray_char khDelimiterToken_string(khDelimiterToken delimiter) {
     switch (delimiter) {
         case khDelimiterToken_DOT:
-            return kh_string(".");
+            return kh_string(U".");
         case khDelimiterToken_COMMA:
-            return kh_string(",");
+            return kh_string(U",");
         case khDelimiterToken_COLON:
-            return kh_string(":");
+            return kh_string(U":");
         case khDelimiterToken_SEMICOLON:
-            return kh_string(";");
+            return kh_string(U";");
         case khDelimiterToken_EXCLAMATION:
-            return kh_string("!");
+            return kh_string(U"!");
 
         case khDelimiterToken_PARENTHESES_OPEN:
-            return kh_string("(");
+            return kh_string(U"(");
         case khDelimiterToken_PARENTHESES_CLOSE:
-            return kh_string(")");
+            return kh_string(U")");
         case khDelimiterToken_CURLY_BRACKET_OPEN:
-            return kh_string("{");
+            return kh_string(U"{");
         case khDelimiterToken_CURLY_BRACKET_CLOSE:
-            return kh_string("}");
+            return kh_string(U"}");
         case khDelimiterToken_SQUARE_BRACKET_OPEN:
-            return kh_string("[");
+            return kh_string(U"[");
         case khDelimiterToken_SQUARE_BRACKET_CLOSE:
-            return kh_string("]");
+            return kh_string(U"]");
 
         case khDelimiterToken_ARROW:
-            return kh_string("->");
+            return kh_string(U"->");
         case khDelimiterToken_ELLIPSIS:
-            return kh_string("...");
+            return kh_string(U"...");
 
         default:
-            return kh_string("[unknown]");
+            return kh_string(U"[unknown]");
     }
 }
 
 khArray_char khOperatorToken_string(khOperatorToken operator_v) {
     switch (operator_v) {
         case khOperatorToken_ADD:
-            return kh_string("+");
+            return kh_string(U"+");
         case khOperatorToken_SUB:
-            return kh_string("-");
+            return kh_string(U"-");
         case khOperatorToken_MUL:
-            return kh_string("*");
+            return kh_string(U"*");
         case khOperatorToken_DIV:
-            return kh_string("/");
+            return kh_string(U"/");
         case khOperatorToken_MODULO:
-            return kh_string("%");
+            return kh_string(U"%");
         case khOperatorToken_POWER:
-            return kh_string("^");
+            return kh_string(U"^");
 
         case khOperatorToken_IADD:
-            return kh_string("+=");
+            return kh_string(U"+=");
         case khOperatorToken_ISUB:
-            return kh_string("-=");
+            return kh_string(U"-=");
         case khOperatorToken_IMUL:
-            return kh_string("*=");
+            return kh_string(U"*=");
         case khOperatorToken_IDIV:
-            return kh_string("/=");
+            return kh_string(U"/=");
         case khOperatorToken_IMODULO:
-            return kh_string("%=");
+            return kh_string(U"%=");
         case khOperatorToken_IPOWER:
-            return kh_string("^=");
+            return kh_string(U"^=");
 
         case khOperatorToken_ASSIGN:
-            return kh_string("=");
+            return kh_string(U"=");
         case khOperatorToken_ID:
-            return kh_string("@");
+            return kh_string(U"@");
 
         case khOperatorToken_INCREMENT:
-            return kh_string("++");
+            return kh_string(U"++");
         case khOperatorToken_DECREMENT:
-            return kh_string("--");
+            return kh_string(U"--");
 
         case khOperatorToken_EQUALS:
-            return kh_string("==");
+            return kh_string(U"==");
         case khOperatorToken_NOT_EQUAL:
-            return kh_string("!=");
+            return kh_string(U"!=");
         case khOperatorToken_LESS:
-            return kh_string("<");
+            return kh_string(U"<");
         case khOperatorToken_MORE:
-            return kh_string(">");
+            return kh_string(U">");
         case khOperatorToken_ELESS:
-            return kh_string("<=");
+            return kh_string(U"<=");
         case khOperatorToken_EMORE:
-            return kh_string(">=");
+            return kh_string(U">=");
 
         case khOperatorToken_NOT:
-            return kh_string("not");
+            return kh_string(U"not");
         case khOperatorToken_AND:
-            return kh_string("and");
+            return kh_string(U"and");
         case khOperatorToken_OR:
-            return kh_string("or");
+            return kh_string(U"or");
         case khOperatorToken_XOR:
-            return kh_string("xor");
+            return kh_string(U"xor");
 
         case khOperatorToken_BIT_NOT:
-            return kh_string("~");
+            return kh_string(U"~");
         case khOperatorToken_BIT_AND:
-            return kh_string("&");
+            return kh_string(U"&");
         case khOperatorToken_BIT_OR:
-            return kh_string("|");
+            return kh_string(U"|");
         case khOperatorToken_BIT_LSHIFT:
-            return kh_string("<<");
+            return kh_string(U"<<");
         case khOperatorToken_BIT_RSHIFT:
-            return kh_string(">>");
+            return kh_string(U">>");
 
         case khOperatorToken_IBIT_AND:
-            return kh_string("&=");
+            return kh_string(U"&=");
         case khOperatorToken_IBIT_OR:
-            return kh_string("|=");
+            return kh_string(U"|=");
         case khOperatorToken_IBIT_XOR:
-            return kh_string("~=");
+            return kh_string(U"~=");
         case khOperatorToken_IBIT_LSHIFT:
-            return kh_string("<<=");
+            return kh_string(U"<<=");
         case khOperatorToken_IBIT_RSHIFT:
-            return kh_string(">>=");
+            return kh_string(U">>=");
 
         default:
-            return kh_string("[unknown]");
+            return kh_string(U"[unknown]");
     }
 }
 
 khArray_char khTokenType_string(khTokenType type) {
     switch (type) {
         case khTokenType_NONE:
-            return kh_string("none");
+            return kh_string(U"none");
         case khTokenType_COMMENT:
-            return kh_string("comment");
+            return kh_string(U"comment");
 
         case khTokenType_IDENTIFIER:
-            return kh_string("identifier");
+            return kh_string(U"identifier");
         case khTokenType_KEYWORD:
-            return kh_string("keyword");
+            return kh_string(U"keyword");
         case khTokenType_DELIMITER:
-            return kh_string("delimiter");
+            return kh_string(U"delimiter");
         case khTokenType_OPERATOR:
-            return kh_string("operator");
+            return kh_string(U"operator");
 
         case khTokenType_CHAR:
-            return kh_string("char");
+            return kh_string(U"char");
         case khTokenType_STRING:
-            return kh_string("string");
+            return kh_string(U"string");
         case khTokenType_BUFFER:
-            return kh_string("buffer");
+            return kh_string(U"buffer");
 
         case khTokenType_SBYTE:
-            return kh_string("sbyte");
+            return kh_string(U"sbyte");
         case khTokenType_BYTE:
-            return kh_string("byte");
+            return kh_string(U"byte");
         case khTokenType_SHORT:
-            return kh_string("short");
+            return kh_string(U"short");
         case khTokenType_USHORT:
-            return kh_string("ushort");
+            return kh_string(U"ushort");
         case khTokenType_INT:
-            return kh_string("int");
+            return kh_string(U"int");
         case khTokenType_UINT:
-            return kh_string("uint");
+            return kh_string(U"uint");
         case khTokenType_LONG:
-            return kh_string("long");
+            return kh_string(U"long");
         case khTokenType_ULONG:
-            return kh_string("ulong");
+            return kh_string(U"ulong");
 
         case khTokenType_FLOAT:
-            return kh_string("float");
+            return kh_string(U"float");
         case khTokenType_IFLOAT:
-            return kh_string("ifloat");
+            return kh_string(U"ifloat");
         case khTokenType_DOUBLE:
-            return kh_string("double");
+            return kh_string(U"double");
         case khTokenType_IDOUBLE:
-            return kh_string("idouble");
+            return kh_string(U"idouble");
 
         default:
-            return kh_string("[unknown]");
+            return kh_string(U"[unknown]");
     }
 }
 
 khArray_char khToken_string(khToken* token) {
     khArray_char string = khTokenType_string(token->type);
-    // C, please add U"" strings, ffs
-    khArray_char_push(&string, ' ');
-    khArray_char_push(&string, ':');
-    khArray_char_push(&string, ' ');
+    khArray_char_string(&string, U" : ");
 
     khArray_char value;
 
@@ -305,9 +302,9 @@ khArray_char khToken_string(khToken* token) {
             break;
 
         case khTokenType_CHAR:
-            khArray_char_push(&string, '\'');
+            khArray_char_push(&string, U'\'');
             value = kh_escapeChar(token->value.char_v);
-            khArray_char_push(&value, '\'');
+            khArray_char_push(&value, U'\'');
             break;
         case khTokenType_STRING:
             value = kh_quoteString(&token->value.string);
@@ -346,14 +343,14 @@ khArray_char khToken_string(khToken* token) {
             break;
         case khTokenType_IFLOAT:
             value = kh_floatToString(token->value.ifloat_v, 4, 10);
-            khArray_char_push(&value, 'i');
+            khArray_char_push(&value, U'i');
             break;
         case khTokenType_DOUBLE:
             value = kh_floatToString(token->value.double_v, 4, 10);
             break;
         case khTokenType_IDOUBLE:
             value = kh_floatToString(token->value.idouble_v, 4, 10);
-            khArray_char_push(&value, 'i');
+            khArray_char_push(&value, U'i');
             break;
 
         default:

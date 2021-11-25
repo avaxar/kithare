@@ -12,6 +12,14 @@ extern "C" {
 
 #include <stdint.h>
 
+// Avaxar: Apple sucks
+#ifdef __APPLE__
+typedef __CHAR16_TYPE__ char16_t;
+typedef __CHAR32_TYPE__ char32_t;
+#else
+#include <uchar.h>
+#endif
+
 
 #ifndef khArray_byte_DEFINED
 #define khArray_byte_DEFINED
@@ -83,7 +91,7 @@ extern "C" {
 
 #ifndef khArray_char_DEFINED
 #define khArray_char_DEFINED
-#define khArray_TYPE uint32_t
+#define khArray_TYPE char32_t
 #define khArray_NAME khArray_char
 #include <kithare/t_array.h>
 #endif
