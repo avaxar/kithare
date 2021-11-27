@@ -4,8 +4,7 @@
  * Copyright (C) 2021 Kithare Organization
  */
 
-#ifndef kh_HG_TOKEN_H
-#define kh_HG_TOKEN_H
+#pragma once
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -274,5 +273,4 @@ static inline khToken khToken_fromIdouble(double idouble_v) {
 
 #ifdef __cplusplus
 }
-#endif
 #endif

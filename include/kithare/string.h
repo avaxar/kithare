@@ -4,8 +4,7 @@
  * Copyright (C) 2021 Kithare Organization
  */
 
-#ifndef kh_HG_STRING_H
-#define kh_HG_STRING_H
+#pragma once
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -43,5 +42,4 @@ khArray_char kh_floatToString(double floating, uint8_t precision, uint8_t base);
 
 #ifdef __cplusplus
 }
-#endif
 #endif

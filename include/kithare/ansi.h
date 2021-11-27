@@ -4,8 +4,7 @@
  * Copyright (C) 2021 Kithare Organization
  */
 
-#ifndef kh_HG_ANSI_H
-#define kh_HG_ANSI_H
+#pragma once
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -58,5 +57,4 @@ extern "C" {
 
 #ifdef __cplusplus
 }
-#endif
 #endif

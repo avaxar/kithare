@@ -4,8 +4,7 @@
  * Copyright (C) 2021 Kithare Organization
  */
 
-#ifndef kh_HG_LEXER_H
-#define kh_HG_LEXER_H
+#pragma once
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -52,5 +51,4 @@ double kh_lexFloat(char32_t** cursor, uint8_t base);
 
 #ifdef __cplusplus
 }
-#endif
 #endif

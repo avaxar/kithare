@@ -4,8 +4,7 @@
  * Copyright (C) 2021 Kithare Organization
  */
 
-#ifndef kh_HG_ARRAYS_H
-#define kh_HG_ARRAYS_H
+#pragma once
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -99,5 +98,4 @@ typedef __CHAR32_TYPE__ char32_t;
 
 #ifdef __cplusplus
 }
-#endif
 #endif
