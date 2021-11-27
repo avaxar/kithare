@@ -1,7 +1,8 @@
 /*
  * This file is a part of the Kithare programming language source code.
- * The source code for Kithare programming language is distributed under the MIT license.
- * Copyright (C) 2021 Kithare Organization
+ * The source code for Kithare programming language is distributed under the MIT license,
+ *     and it is available as a repository at https://github.com/Kithare/Kithare
+ * Copyright (C) 2021 Kithare Organization at https://www.kithare.de
  */
 
 #pragma once
@@ -12,6 +13,35 @@ extern "C" {
 #include <stdint.h>
 
 #include <kithare/arrays.h>
+
+
+typedef enum {
+    khTokenType_NONE,
+    khTokenType_COMMENT,
+
+    khTokenType_IDENTIFIER,
+    khTokenType_KEYWORD,
+    khTokenType_DELIMITER,
+    khTokenType_OPERATOR,
+
+    khTokenType_CHAR,
+    khTokenType_STRING,
+    khTokenType_BUFFER,
+
+    khTokenType_SBYTE,
+    khTokenType_BYTE,
+    khTokenType_SHORT,
+    khTokenType_USHORT,
+    khTokenType_INT,
+    khTokenType_UINT,
+    khTokenType_LONG,
+    khTokenType_ULONG,
+
+    khTokenType_FLOAT,
+    khTokenType_IFLOAT,
+    khTokenType_DOUBLE,
+    khTokenType_IDOUBLE
+} khTokenType;
 
 
 typedef enum {
@@ -107,35 +137,6 @@ typedef enum {
     khOperatorToken_IBIT_LSHIFT,
     khOperatorToken_IBIT_RSHIFT
 } khOperatorToken;
-
-
-typedef enum {
-    khTokenType_NONE,
-    khTokenType_COMMENT,
-
-    khTokenType_IDENTIFIER,
-    khTokenType_KEYWORD,
-    khTokenType_DELIMITER,
-    khTokenType_OPERATOR,
-
-    khTokenType_CHAR,
-    khTokenType_STRING,
-    khTokenType_BUFFER,
-
-    khTokenType_SBYTE,
-    khTokenType_BYTE,
-    khTokenType_SHORT,
-    khTokenType_USHORT,
-    khTokenType_INT,
-    khTokenType_UINT,
-    khTokenType_LONG,
-    khTokenType_ULONG,
-
-    khTokenType_FLOAT,
-    khTokenType_IFLOAT,
-    khTokenType_DOUBLE,
-    khTokenType_IDOUBLE
-} khTokenType;
 
 
 typedef union {

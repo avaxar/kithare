@@ -1,7 +1,8 @@
 /*
  * This file is a part of the Kithare programming language source code.
- * The source code for Kithare programming language is distributed under the MIT license.
- * Copyright (C) 2021 Kithare Organization
+ * The source code for Kithare programming language is distributed under the MIT license,
+ *     and it is available as a repository at https://github.com/Kithare/Kithare
+ * Copyright (C) 2021 Kithare Organization at https://www.kithare.de
  */
 
 #pragma once
@@ -48,7 +49,7 @@ extern "C" {
 
 #elif defined(__GNUC__) && __aarch64__
 #define kh_COMPILER khCOMPILER_GCC_ARM64
-#define kh_COMPILER _STR "GCC-ARM64"
+#define kh_COMPILER_STR "GCC-ARM64"
 
 #elif defined(__GNUC__) && __arm__
 #define kh_COMPILER khCOMPILER_GCC_ARM
@@ -139,7 +140,7 @@ extern "C" {
 
 #else
 #define kh_PLATFORM khPLATFORM_UNKNOWN
-#define kh_PLATFORM "unknown"
+#define kh_PLATFORM_STR "unknown"
 #endif
 
 
