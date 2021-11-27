@@ -4,8 +4,7 @@
  * Copyright (C) 2021 Kithare Organization
  */
 
-#ifndef kh_HG_IO_H
-#define kh_HG_IO_H
+#pragma once
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,5 +18,4 @@ void khPrintln(khArray_char* string);
 
 #ifdef __cplusplus
 }
-#endif
 #endif
