@@ -10,8 +10,6 @@
 extern "C" {
 #endif
 
-#include <kithare/macros.h>
-
 
 #define kh_VERSION_MAJOR 0    // Can be from 0-9.
 #define kh_VERSION_MINOR 0    // Can be from 0-99.
