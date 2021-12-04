@@ -14,8 +14,9 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
-#include <kithare/macros.h>
 
+#define _kh_CONCAT(A, B) A##B
+#define kh_CONCAT(A, B) _kh_CONCAT(A, B)
 
 #ifndef khArray_NAME
 #define khArray_NAME kh_CONCAT(khArray_, khArray_TYPE)
@@ -127,16 +128,8 @@ static inline khArray_NAME khArray_CONCAT(fromMemory)(khArray_TYPE* address, siz
 
 #ifndef kh_HG_T_ARRAY_H
 #define kh_HG_T_ARRAY_H
-// Oi, you there. Move along, ignore this
-static int64_t kh_ZEROES[] = {
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+// This is the sane way of declaring and zero-initialising an array in C
+static int64_t kh_ZEROES[240] = {0};
 #endif
 
 static inline void khArray_CONCAT(string)(khArray_NAME* array, const khArray_TYPE* string) {
