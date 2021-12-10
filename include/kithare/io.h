@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-#include <kithare/arrays.h>
+#include "arrays.h"
 
 
 void khPrint(khArray_char* string);

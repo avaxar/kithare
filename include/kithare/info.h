@@ -16,9 +16,8 @@ extern "C" {
 #define kh_VERSION_PATCH 1    // Can be from 0-99.
 #define kh_VERSION_TAGS "rc1" // Can be a[1-6], b[1-6], rc[1-2].
 
-#define kh_VERSION_STR                                                                              \
-    "v" kh_STRING(kh_VERSION_MAJOR) "." kh_STRING(kh_VERSION_MINOR) "." kh_STRING(kh_VERSION_PATCH) \
-        KH_VERSION_TAGS
+// Manually keep this macro updated, and don't use nested macros here
+#define kh_VERSION_STR "v0.0.1rc1"
 
 
 // These are done as macros so that it could be used in preprocessor if statements.

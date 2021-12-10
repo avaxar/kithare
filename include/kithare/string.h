@@ -13,7 +13,7 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <kithare/arrays.h>
+#include "arrays.h"
 
 
 static inline khArray_char kh_string(const char32_t* cstring) {
