@@ -79,7 +79,7 @@ jobs:
         # Produce a binary artifact, test it and place it in the mounted volume
         run: |
           echo "\nBuilding Kithare\n"
-          python3 build.py --make installer --use-alien
+          python3 builder --make installer --use-alien
           echo "\nInstalling from installer\n"
           apt-get install ./builder/packaging/dist/*.deb
           echo "\nRunning tests\n"

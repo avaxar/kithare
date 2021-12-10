@@ -20,7 +20,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Union
 
-from .constants import EPILOG, INIT_TEXT
+from constants import EPILOG, INIT_TEXT
 
 # While we recursively search for include files, we don't want to seach
 # the whole file, because that would waste a lotta time. So, we just take

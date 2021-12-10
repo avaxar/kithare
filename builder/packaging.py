@@ -13,9 +13,9 @@ from pathlib import Path
 from typing import Optional
 from zipfile import ZipFile
 
-from .constants import EXE, VERSION_PACKAGE_REV
-from .downloader import ThreadedDownloader
-from .utils import BuildError, ConvertType, convert_machine, copy, rmtree, run_cmd
+from constants import EXE, VERSION_PACKAGE_REV
+from downloader import ThreadedDownloader
+from utils import BuildError, ConvertType, convert_machine, copy, rmtree, run_cmd
 
 # Windows INNO installer related constants, remember to keep updated
 INNO_SETUP_DOWNLOAD = "https://files.jrsoftware.org/is/6/innosetup-6.2.0.exe"

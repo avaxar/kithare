@@ -4,7 +4,7 @@ The source code for Kithare programming language is distributed under the MIT
 license.
 Copyright (C) 2021 Kithare Organization
 
-builder/__init__.py
+builder/builder.py
 Defines the main KithareBuilder class that builds Kithare
 """
 
@@ -16,23 +16,24 @@ import time
 from pathlib import Path
 from typing import Optional
 
-from .downloader import install_mingw
-from .cflags import CompilerFlags
-from .compilerpool import CompilerPool
-from .constants import (
+from downloader import install_mingw
+from cflags import CompilerFlags
+from compilerpool import CompilerPool
+from constants import (
     C_STD_FLAG,
     COMPILER,
     CPP_STD_FLAG,
     CPU_COUNT,
+    EPILOG,
     EXE,
     ICO_RES,
     INCLUDE_DIRNAME,
     INIT_TEXT,
     SUPPORTED_ARCHS,
 )
-from .packaging import get_packager
-from .sdl_installer import get_installer
-from .utils import (
+from packaging import get_packager
+from sdl_installer import get_installer
+from utils import (
     BuildError,
     ConvertType,
     convert_machine,
