@@ -4,7 +4,7 @@ The source code for Kithare programming language is distributed under the MIT
 license.
 Copyright (C) 2021 Kithare Organization
 
-build.py
+builder
 Builder script to build Kithare.
 
 On Windows and MinGW:
@@ -12,7 +12,7 @@ On Windows and MinGW:
     download and configure the deps. Kithare uses the MinGW compiler,
     if MinGW is not pre-installed, the buildscript will install it in a local
     directory. This means that on Windows, virtually no pre-build setup is
-    required, just run this file with 'py build.py'.
+    required, just run this file with 'py builder'.
 
 On other OS:
     This assumes you have GCC installed. Also, you need to install SDL
@@ -25,7 +25,7 @@ On other OS:
     A recommended and easy way to do this on MacOS, is via homebrew. Just run
     `brew install sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf`.
 
-    And the build is really simple, just run 'python3 build.py'
+    And the build is really simple, just run 'python3 builder'
 
 If you are on a 64-bit system, and want to compile for 32-bit architecture,
 pass '--arch x86' as an argument to the build script (note that this might not
@@ -37,20 +37,20 @@ longer compile times), you can use the '-j' flag to set the number of cores you
 want the builder to use. '-j1' means that you want to use only one core, '-j4'
 means that you want to use 4 cores, and so on.
 
-To just run tests, do 'python3 build.py --make test'. Note that this command is 
+To just run tests, do 'python3 builder --make test'. Note that this command is 
 only going to run the tests, it does not do anything else.
 
-'python3 build.py --clean dep' deletes any deps that the build script would
+'python3 builder --clean dep' deletes any deps that the build script would
 have installed automatically in the 'deps' dir
 
-'python3 build.py --clean build' deletes folders that contain generated
+'python3 builder --clean build' deletes folders that contain generated
 executable(s) and temporary build files that are cached for performance
 reasons. 
 
-'python3 build.py --clean installers' deletes any generated Kithare installers
+'python3 builder --clean installers' deletes any generated Kithare installers
 and any temporary build files associated with it.
 
-'python3 build.py --clean all' is a shorthand for calling all the above clean
+'python3 builder --clean all' is a shorthand for calling all the above clean
 commands in a single command. In normal usage one need not run clean commands,
 but these are provided by the script anyways if you know what you are doing.
 
@@ -70,10 +70,11 @@ C and C++ compilation flags). These can be set into env variables which the
 builder script will load from
 """
 
+
 import sys
 
-from builder.constants import EPILOG
 from builder import BuildError, KithareBuilder
+from constants import EPILOG
 
 
 def main():

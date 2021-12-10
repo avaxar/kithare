@@ -13,9 +13,9 @@ from pathlib import Path
 from typing import Optional
 from zipfile import ZipFile
 
-from .constants import EXE, VERSION_PACKAGE_REV
-from .downloader import ThreadedDownloader
-from .utils import BuildError, ConvertType, convert_machine, copy, rmtree, run_cmd
+from constants import EXE, VERSION_PACKAGE_REV
+from downloader import ThreadedDownloader
+from utils import BuildError, ConvertType, convert_machine, copy, rmtree, run_cmd
 
 # Windows INNO installer related constants, remember to keep updated
 INNO_SETUP_DOWNLOAD = "https://files.jrsoftware.org/is/6/innosetup-6.2.0.exe"
@@ -258,10 +258,11 @@ class LinuxPackager(Packager):
         copy(self.packaging_dir / "kithare.desktop", installer_build_dir)
 
         # copy icon file
-        copy(
-            self.packaging_dir.parents[1] / "assets" / "kithare.png",
+        copied_icon = copy(
+            self.packaging_dir.parents[1] / "misc" / "small.png",
             installer_build_dir,
         )
+        copied_icon.rename(copied_icon.with_name("kithare.png"))
 
         self.appimagekitdir.mkdir(parents=True, exist_ok=True)
 

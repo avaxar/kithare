@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     paths-ignore:
     - 'docs/**'
-    - 'assets/**'
+    - 'misc/**'
     - '.gitattributes'
     - '.gitignore'
     - 'LICENSE'
@@ -15,7 +15,7 @@ on:
     branches: [ main ]
     paths-ignore:
     - 'docs/**'
-    - 'assets/**'
+    - 'misc/**'
     - '.gitattributes'
     - '.gitignore'
     - 'LICENSE'
@@ -42,10 +42,10 @@ jobs:
       run: brew install sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf
 
     - name: Build source and tests
-      run: python3 build.py --make installer
+      run: python3 builder --make installer
     
     - name: Run tests
-      run: python3 build.py --make test
+      run: python3 builder --make test
     
     - name: Upload dist
       uses: actions/upload-artifact@v2

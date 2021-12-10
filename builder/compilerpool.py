@@ -15,8 +15,8 @@ import time
 from pathlib import Path
 from typing import Optional, Sequence
 
-from .cflags import CompilerFlags
-from .constants import CPU_COUNT
+from cflags import CompilerFlags
+from constants import CPU_COUNT
 
 
 class CompilerPool:

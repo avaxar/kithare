@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     paths-ignore:
     - 'docs/**'
-    - 'assets/**'
+    - 'misc/**'
     - '.gitattributes'
     - '.gitignore'
     - 'LICENSE'
@@ -15,7 +15,7 @@ on:
     branches: [ main ]
     paths-ignore:
     - 'docs/**'
-    - 'assets/**'
+    - 'misc/**'
     - '.gitattributes'
     - '.gitignore'
     - 'LICENSE'
@@ -47,7 +47,7 @@ jobs:
         sudo apt-get install alien libsdl2-dev:i386 libjpeg-dev:i386 libwebp-dev:i386 libtiff5-dev:i386 libsdl2-image-dev:i386 libmikmod-dev:i386 libfishsound1-dev:i386 libsmpeg-dev:i386 liboggz2-dev:i386 libflac-dev:i386 libfluidsynth-dev:i386 libsdl2-mixer-dev:i386 libfreetype6-dev:i386 libsdl2-ttf-dev:i386 libsdl2-net-dev:i386 -y
 
     - name: Build sources, tests and make installer
-      run: sudo python3 build.py --make installer --use-alien --arch ${{ matrix.arch }}
+      run: sudo python3 builder --make installer --use-alien --arch ${{ matrix.arch }}
     
     - name: Install from .deb installer and test
       run: sudo apt-get install ./builder/packaging/dist/*.deb
