@@ -151,14 +151,14 @@ class KithareBuilder:
             (
                 "-Wall",
                 "-Werror",
+                "-pthread",
                 "-g" if make == "debug" else "-O3",  # no -O3 on debug mode
                 self.basepath / INCLUDE_DIRNAME,
             )
         )
 
         if COMPILER == "MinGW":
-            self.cflags.ccflags.append("-municode")
-            self.cflags.ldflags.append("-municode")  # the linker needs the flag too
+            self.cflags.add_m_flags("-municode", "-mthreads")
 
             # statically link C/C++ stdlib and winpthread on Windows MinGW
             self.cflags.ldflags.extend(
@@ -172,12 +172,10 @@ class KithareBuilder:
             )
 
         elif platform.system() == "Darwin":
-            self.cflags.ccflags.append("-mmacosx-version-min=10.9")
-            self.cflags.ldflags.append("-mmacosx-version-min=10.9")
+            self.cflags.add_m_flags("-mmacosx-version-min=10.9")
 
         if is_32_bit:
-            self.cflags.ccflags.append("-m32")
-            self.cflags.ldflags.append("-m32")  # the linker needs the flag too
+            self.cflags.add_m_flags("-m32")
 
         self.cflags.cflags.append(C_STD_FLAG)
         self.cflags.cxxflags.append(CPP_STD_FLAG)
