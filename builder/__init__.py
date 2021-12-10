@@ -274,7 +274,7 @@ class KithareBuilder:
         # Handle exe icon on MinGW
         ico_res = self.basepath / ICO_RES
         if COMPILER == "MinGW":
-            assetfile = self.basepath / "assets" / "Kithare.rc"
+            assetfile = self.basepath / "src" / "mingw.rc"
 
             print("Running windres command to set icon for exe")
             ret = run_cmd(self.cflags.windres, assetfile, "-O", "coff", "-o", ico_res)

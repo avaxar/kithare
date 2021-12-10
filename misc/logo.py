@@ -3,11 +3,12 @@ This file is a part of the Kithare programming language source code.
 The source code for Kithare programming language is distributed under the MIT license.
 Copyright (C) 2021 Kithare Organization
 
-assets/logo.py
+misc/logo.py
 Python w/ pygame script to render the Kithare logo.
 """
 
 import pygame
+
 pygame.init()
 
 WIDTH, HEIGHT = 946, 946
@@ -34,82 +35,48 @@ def poly(points, color):
 
 
 # A1 piece
-poly([
-    (2, 7),
-    (5, 7),
-    (5, 5),
-    (2, 6)
-], BLUE2)
+poly([(2, 7), (5, 7), (5, 5), (2, 6)], BLUE2)
 
 # A2 piece
-poly([
-    (2, 8),
-    (5, 8),
-    (5, 10),
-    (2, 9)
-], BLUE2)
+poly([(2, 8), (5, 8), (5, 10), (2, 9)], BLUE2)
 
 # B1 piece
-poly([
-    (2, 5),
-    (5, 4),
-    (5, 1),
-    (2, 1)
-], ORANGE1)
+poly([(2, 5), (5, 4), (5, 1), (2, 1)], ORANGE1)
 
 # B2 piece
-poly([
-    (2, 10),
-    (5, 11),
-    (5, 14),
-    (2, 14)
-], ORANGE1)
+poly([(2, 10), (5, 11), (5, 14), (2, 14)], ORANGE1)
 
 # C1 piece
-poly([
-    (6, 7),
-    (9, 7),
-    (13, 3),
-    (9, 4)
-], BLUE3)
+poly([(6, 7), (9, 7), (13, 3), (9, 4)], BLUE3)
 
 # C2 piece
-poly([
-    (6, 8),
-    (9, 8),
-    (13, 12),
-    (9, 11)
-], BLUE3)
+poly([(6, 8), (9, 8), (13, 12), (9, 11)], BLUE3)
 
 # D1 piece
-poly([
-    (10, 3),
-    (14, 2),
-    (15, 1),
-    (12, 1)
-], ORANGE2)
+poly([(10, 3), (14, 2), (15, 1), (12, 1)], ORANGE2)
 
 # D2 piece
-poly([
-    (10, 12),
-    (14, 13),
-    (15, 14),
-    (12, 14)
-], ORANGE2)
+poly([(10, 12), (14, 13), (15, 14), (12, 14)], ORANGE2)
 
 # T1 piece
-poly([
-    (0, 7.5),
-    (1, 6),
-    (1, 9),
-], BLUE1)
+poly(
+    [
+        (0, 7.5),
+        (1, 6),
+        (1, 9),
+    ],
+    BLUE1,
+)
 
 # T2 piece
-poly([
-    (10, 7.5),
-    (15, 3),
-    (15, 12),
-], BLUE4)
+poly(
+    [
+        (10, 7.5),
+        (15, 3),
+        (15, 12),
+    ],
+    BLUE4,
+)
 
 pygame.image.save(logo, "logo.png")
 pygame.image.save(banner, "banner.png")
