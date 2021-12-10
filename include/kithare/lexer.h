@@ -13,8 +13,8 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <kithare/arrays.h>
-#include <kithare/token.h>
+#include "arrays.h"
+#include "token.h"
 
 
 typedef struct {
@@ -35,7 +35,7 @@ static inline void khLexError_delete(khLexError* error) {
 #define khArray_TYPE khLexError
 #define khArray_COPIER khLexError_copy
 #define khArray_DELETER khLexError_delete
-#include <kithare/t_array.h>
+#include "t_array.h"
 
 
 khToken kh_lex(char32_t** cursor, khArray_khLexError* errors);

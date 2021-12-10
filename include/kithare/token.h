@@ -12,7 +12,7 @@ extern "C" {
 
 #include <stdint.h>
 
-#include <kithare/arrays.h>
+#include "arrays.h"
 
 
 typedef enum {
@@ -184,7 +184,7 @@ khArray_char khToken_string(khToken* token);
 #define khArray_TYPE khToken
 #define khArray_COPIER khToken_copy
 #define khArray_DELETER khToken_delete
-#include <kithare/t_array.h>
+#include "t_array.h"
 
 
 static inline khToken khToken_fromNone() {

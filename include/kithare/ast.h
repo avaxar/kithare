@@ -10,6 +10,14 @@
 extern "C" {
 #endif
 
+#include <stdint.h>
+
+#include "arrays.h"
+
+
+typedef struct {
+} khAstTop;
+
 
 #ifdef __cplusplus
 }
