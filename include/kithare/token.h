@@ -18,6 +18,7 @@ extern "C" {
 typedef enum {
     khTokenType_NONE,
     khTokenType_COMMENT,
+    khTokenType_NEWLINE,
 
     khTokenType_IDENTIFIER,
     khTokenType_KEYWORD,
@@ -48,7 +49,7 @@ typedef enum {
     khKeywordToken_IMPORT,
     khKeywordToken_INCLUDE,
     khKeywordToken_AS,
-    khKeywordToken_TRY,
+    khKeywordToken_INCASE,
     khKeywordToken_DEF,
     khKeywordToken_CLASS,
     khKeywordToken_STRUCT,
@@ -56,8 +57,6 @@ typedef enum {
     khKeywordToken_ALIAS,
 
     khKeywordToken_REF,
-    khKeywordToken_PUBLIC,
-    khKeywordToken_PRIVATE,
     khKeywordToken_STATIC,
 
     khKeywordToken_IF,
@@ -194,6 +193,10 @@ static inline khToken khToken_fromNone() {
 
 static inline khToken khToken_fromComment() {
     return (khToken){.type = khTokenType_COMMENT, .value = (khTokenValue){}};
+}
+
+static inline khToken khToken_fromNewline() {
+    return (khToken){.type = khTokenType_NEWLINE, .value = (khTokenValue){}};
 }
 
 static inline khToken khToken_fromIdentifier(khArray_char identifier) {
