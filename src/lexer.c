@@ -456,6 +456,15 @@ khToken kh_lexSymbol(char32_t** cursor, khArray_khLexError* errors) {
                 return khToken_fromOperator(khOperatorToken_POWER);
             }
 
+        case U'@':
+            if (**cursor == U'@') {
+                (*cursor)++;
+                return khToken_fromOperator(khOperatorToken_IDOT);
+            }
+            else {
+                return khToken_fromOperator(khOperatorToken_DOT);
+            }
+
         case U'=':
             if (**cursor == U'=') {
                 (*cursor)++;
@@ -464,9 +473,6 @@ khToken kh_lexSymbol(char32_t** cursor, khArray_khLexError* errors) {
             else {
                 return khToken_fromOperator(khOperatorToken_ASSIGN);
             }
-
-        case U'@':
-            return khToken_fromOperator(khOperatorToken_ID);
 
         case U'!':
             if (**cursor == U'=') {

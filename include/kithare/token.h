@@ -98,6 +98,7 @@ typedef enum {
     khOperatorToken_DIV,
     khOperatorToken_MODULO,
     khOperatorToken_POWER,
+    khOperatorToken_DOT,
 
     khOperatorToken_IADD,
     khOperatorToken_ISUB,
@@ -105,9 +106,9 @@ typedef enum {
     khOperatorToken_IDIV,
     khOperatorToken_IMODULO,
     khOperatorToken_IPOWER,
+    khOperatorToken_IDOT,
 
     khOperatorToken_ASSIGN,
-    khOperatorToken_ID,
 
     khOperatorToken_INCREMENT,
     khOperatorToken_DECREMENT,
