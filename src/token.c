@@ -155,6 +155,8 @@ khArray_char khOperatorToken_string(khOperatorToken operator_v) {
             return kh_string(U"%");
         case khOperatorToken_POWER:
             return kh_string(U"^");
+        case khOperatorToken_DOT:
+            return kh_string(U"@");
 
         case khOperatorToken_IADD:
             return kh_string(U"+=");
@@ -168,11 +170,11 @@ khArray_char khOperatorToken_string(khOperatorToken operator_v) {
             return kh_string(U"%=");
         case khOperatorToken_IPOWER:
             return kh_string(U"^=");
+        case khOperatorToken_IDOT:
+            return kh_string(U"@=");
 
         case khOperatorToken_ASSIGN:
             return kh_string(U"=");
-        case khOperatorToken_ID:
-            return kh_string(U"@");
 
         case khOperatorToken_INCREMENT:
             return kh_string(U"++");
