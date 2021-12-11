@@ -42,7 +42,14 @@ static inline uint8_t digitOf(char32_t chr) {
 khToken kh_lex(char32_t** cursor, khArray_khLexError* errors) {
     // Skips any whitespace
     while (iswspace(**cursor)) {
-        (*cursor)++;
+        // Special case for newline
+        if (**cursor == U'\n') {
+            (*cursor)++;
+            return khToken_fromNewline();
+        }
+        else {
+            (*cursor)++;
+        }
     }
 
     if (iswalpha(**cursor)) {
@@ -80,24 +87,24 @@ khToken kh_lex(char32_t** cursor, khArray_khLexError* errors) {
     else if (digitOf(**cursor) < 10) {
         return kh_lexNumber(cursor, errors);
     }
-    else if (**cursor == U'\'') {
-        return khToken_fromChar(kh_lexChar(cursor, true, false, errors));
-    }
-    else if (**cursor == U'"') {
-        return khToken_fromString(kh_lexString(cursor, false, errors));
-    }
-    else if (**cursor == U'#') {
-        (*cursor)++;
-
-        for (; !(**cursor == U'\n' || **cursor == U'\0'); (*cursor)++) {}
-        if (**cursor == U'\n') {
-            (*cursor)++;
-        }
-
-        return khToken_fromComment();
-    }
     else {
-        return kh_lexSymbol(cursor, errors);
+        switch (**cursor) {
+            case U'\'':
+                return khToken_fromChar(kh_lexChar(cursor, true, false, errors));
+            case U'"':
+                return khToken_fromString(kh_lexString(cursor, false, errors));
+
+            case U'#':
+                (*cursor)++;
+                for (; !(**cursor == U'\n' || **cursor == U'\0'); (*cursor)++) {}
+                if (**cursor == U'\n') {
+                    (*cursor)++;
+                }
+                return khToken_fromComment();
+
+            default:
+                return kh_lexSymbol(cursor, errors);
+        }
     }
 }
 
@@ -131,7 +138,7 @@ khToken kh_lexWord(char32_t** cursor, khArray_khLexError* errors) {
     CASE_KEYWORD(U"import", khKeywordToken_IMPORT);
     CASE_KEYWORD(U"include", khKeywordToken_INCLUDE);
     CASE_KEYWORD(U"as", khKeywordToken_AS);
-    CASE_KEYWORD(U"try", khKeywordToken_TRY);
+    CASE_KEYWORD(U"incase", khKeywordToken_INCASE);
     CASE_KEYWORD(U"def", khKeywordToken_DEF);
     CASE_KEYWORD(U"class", khKeywordToken_CLASS);
     CASE_KEYWORD(U"struct", khKeywordToken_STRUCT);
@@ -139,8 +146,6 @@ khToken kh_lexWord(char32_t** cursor, khArray_khLexError* errors) {
     CASE_KEYWORD(U"alias", khKeywordToken_ALIAS);
 
     CASE_KEYWORD(U"ref", khKeywordToken_REF);
-    CASE_KEYWORD(U"public", khKeywordToken_PUBLIC);
-    CASE_KEYWORD(U"private", khKeywordToken_PRIVATE);
     CASE_KEYWORD(U"static", khKeywordToken_STATIC);
 
     CASE_KEYWORD(U"if", khKeywordToken_IF);

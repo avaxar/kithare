@@ -59,8 +59,8 @@ khArray_char khKeywordToken_string(khKeywordToken keyword) {
             return kh_string(U"include");
         case khKeywordToken_AS:
             return kh_string(U"as");
-        case khKeywordToken_TRY:
-            return kh_string(U"try");
+        case khKeywordToken_INCASE:
+            return kh_string(U"incase");
         case khKeywordToken_DEF:
             return kh_string(U"def");
         case khKeywordToken_CLASS:
@@ -74,10 +74,6 @@ khArray_char khKeywordToken_string(khKeywordToken keyword) {
 
         case khKeywordToken_REF:
             return kh_string(U"ref");
-        case khKeywordToken_PUBLIC:
-            return kh_string(U"public");
-        case khKeywordToken_PRIVATE:
-            return kh_string(U"private");
         case khKeywordToken_STATIC:
             return kh_string(U"static");
 
@@ -236,6 +232,8 @@ khArray_char khTokenType_string(khTokenType type) {
             return kh_string(U"none");
         case khTokenType_COMMENT:
             return kh_string(U"comment");
+        case khTokenType_NEWLINE:
+            return kh_string(U"newline");
 
         case khTokenType_IDENTIFIER:
             return kh_string(U"identifier");
