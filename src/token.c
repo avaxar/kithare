@@ -14,15 +14,15 @@ khToken khToken_copy(khToken* token) {
 
     switch (token->type) {
         case khTokenType_IDENTIFIER:
-            token_value.identifier = khArray_char_copy(&token->value.identifier);
+            token_value.identifier = khArray_copy(&token->value.identifier, NULL);
             break;
 
         case khTokenType_STRING:
-            token_value.string = khArray_char_copy(&token->value.string);
+            token_value.string = khArray_copy(&token->value.string, NULL);
             break;
 
         case khTokenType_BUFFER:
-            token_value.buffer = khArray_byte_copy(&token->value.buffer);
+            token_value.buffer = khArray_copy(&token->value.buffer, NULL);
             break;
 
         default:
@@ -35,15 +35,15 @@ khToken khToken_copy(khToken* token) {
 void khToken_delete(khToken* token) {
     switch (token->type) {
         case khTokenType_IDENTIFIER:
-            khArray_char_delete(&token->value.identifier);
+            khArray_delete(&token->value.identifier);
             break;
 
         case khTokenType_STRING:
-            khArray_char_delete(&token->value.string);
+            khArray_delete(&token->value.string);
             break;
 
         case khTokenType_BUFFER:
-            khArray_byte_delete(&token->value.buffer);
+            khArray_delete(&token->value.buffer);
             break;
 
         default:
@@ -51,7 +51,7 @@ void khToken_delete(khToken* token) {
     }
 }
 
-khArray_char khKeywordToken_string(khKeywordToken keyword) {
+khArray(char32_t) khKeywordToken_string(khKeywordToken keyword) {
     switch (keyword) {
         case khKeywordToken_IMPORT:
             return kh_string(U"import");
@@ -101,7 +101,7 @@ khArray_char khKeywordToken_string(khKeywordToken keyword) {
     }
 }
 
-khArray_char khDelimiterToken_string(khDelimiterToken delimiter) {
+khArray(char32_t) khDelimiterToken_string(khDelimiterToken delimiter) {
     switch (delimiter) {
         case khDelimiterToken_DOT:
             return kh_string(U".");
@@ -137,7 +137,7 @@ khArray_char khDelimiterToken_string(khDelimiterToken delimiter) {
     }
 }
 
-khArray_char khOperatorToken_string(khOperatorToken operator_v) {
+khArray(char32_t) khOperatorToken_string(khOperatorToken operator_v) {
     switch (operator_v) {
         case khOperatorToken_ADD:
             return kh_string(U"+");
@@ -226,7 +226,7 @@ khArray_char khOperatorToken_string(khOperatorToken operator_v) {
     }
 }
 
-khArray_char khTokenType_string(khTokenType type) {
+khArray(char32_t) khTokenType_string(khTokenType type) {
     switch (type) {
         case khTokenType_NONE:
             return kh_string(U"none");
@@ -282,15 +282,15 @@ khArray_char khTokenType_string(khTokenType type) {
     }
 }
 
-khArray_char khToken_string(khToken* token) {
-    khArray_char string = khTokenType_string(token->type);
-    khArray_char_string(&string, U" : ");
+khArray(char32_t) khToken_string(khToken* token) {
+    khArray(char32_t) string = khTokenType_string(token->type);
+    kh_appendCstring(&string, U" : ");
 
-    khArray_char value;
+    khArray(char32_t) value;
 
     switch (token->type) {
         case khTokenType_IDENTIFIER:
-            value = khArray_char_copy(&token->value.identifier);
+            value = khArray_copy(&token->value.identifier, NULL);
             break;
         case khTokenType_KEYWORD:
             value = khKeywordToken_string(token->value.keyword);
@@ -303,9 +303,9 @@ khArray_char khToken_string(khToken* token) {
             break;
 
         case khTokenType_CHAR:
-            khArray_char_push(&string, U'\'');
+            khArray_append(&string, U'\'');
             value = kh_escapeChar(token->value.char_v);
-            khArray_char_push(&value, U'\'');
+            khArray_append(&value, U'\'');
             break;
         case khTokenType_STRING:
             value = kh_quoteString(&token->value.string);
@@ -344,23 +344,23 @@ khArray_char khToken_string(khToken* token) {
             break;
         case khTokenType_IFLOAT:
             value = kh_floatToString(token->value.ifloat_v, 4, 10);
-            khArray_char_push(&value, U'i');
+            khArray_append(&value, U'i');
             break;
         case khTokenType_DOUBLE:
             value = kh_floatToString(token->value.double_v, 4, 10);
             break;
         case khTokenType_IDOUBLE:
             value = kh_floatToString(token->value.idouble_v, 4, 10);
-            khArray_char_push(&value, U'i');
+            khArray_append(&value, U'i');
             break;
 
         default:
-            khArray_char_pop(&string, 3);
-            value = khArray_char_new();
+            khArray_pop(&string, 3);
+            value = khArray_new(char32_t, NULL);
             break;
     }
 
-    khArray_char_concatenate(&string, &value);
-    khArray_char_delete(&value);
+    khArray_concatenate(&string, &value, NULL);
+    khArray_delete(&value);
     return string;
 }

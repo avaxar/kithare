@@ -12,8 +12,6 @@ extern "C" {
 
 #include <stdint.h>
 
-#include "arrays.h"
-
 
 typedef struct {
 } khAstTop;

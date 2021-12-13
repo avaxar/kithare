@@ -13,32 +13,40 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "arrays.h"
+// Avaxar: Apple sucks
+#ifdef __APPLE__
+typedef __CHAR16_TYPE__ char16_t;
+typedef __CHAR32_TYPE__ char32_t;
+#else
+#include <uchar.h>
+#endif
+
+#include "array.h"
 
 
-static inline khArray_char kh_string(const char32_t* cstring) {
-    return khArray_char_fromString(cstring);
-}
+khArray(char32_t) kh_string(const char32_t* cstring);
+khArray(uint8_t) kh_buffer(const char* cstring);
+void kh_appendCstring(khArray(char32_t) * string, const char32_t* cstring);
 
-bool kh_compareString(khArray_char* a, khArray_char* b);
-bool kh_compareBuffer(khArray_byte* a, khArray_byte* b);
-bool kh_compareCstring(khArray_char* a, const char32_t* b);
+bool kh_compareString(khArray(char32_t) * a, khArray(char32_t) * b);
+bool kh_compareBuffer(khArray(uint8_t) * a, khArray(uint8_t) * b);
+bool kh_compareCstring(khArray(char32_t) * a, const char32_t* b);
 
-khArray_byte kh_encodeUtf8(khArray_char* string);
-khArray_char kh_decodeUtf8(khArray_byte* buffer);
+khArray(uint8_t) kh_encodeUtf8(khArray(char32_t) * string);
+khArray(char32_t) kh_decodeUtf8(khArray(uint8_t) * buffer);
 char32_t kh_utf8(uint8_t** cursor);
 
-khArray_char kh_escapeChar(char32_t chr);
-khArray_char kh_quoteString(khArray_char* string);
-khArray_char kh_quoteBuffer(khArray_byte* buffer);
+khArray(char32_t) kh_escapeChar(char32_t chr);
+khArray(char32_t) kh_quoteString(khArray(char32_t) * string);
+khArray(char32_t) kh_quoteBuffer(khArray(uint8_t) * buffer);
 
-int64_t kh_stringToInt(khArray_char* string, uint8_t base);
-uint64_t kh_stringToUint(khArray_char* string, uint8_t base);
-double kh_stringToFloat(khArray_char* string, uint8_t base);
+int64_t kh_stringToInt(khArray(char32_t) * string, uint8_t base);
+uint64_t kh_stringToUint(khArray(char32_t) * string, uint8_t base);
+double kh_stringToFloat(khArray(char32_t) * string, uint8_t base);
 
-khArray_char kh_intToString(int64_t int_v, uint8_t base);
-khArray_char kh_uintToString(uint64_t uint_v, uint8_t base);
-khArray_char kh_floatToString(double floating, uint8_t precision, uint8_t base);
+khArray(char32_t) kh_intToString(int64_t int_v, uint8_t base);
+khArray(char32_t) kh_uintToString(uint64_t uint_v, uint8_t base);
+khArray(char32_t) kh_floatToString(double floating, uint8_t precision, uint8_t base);
 
 
 #ifdef __cplusplus

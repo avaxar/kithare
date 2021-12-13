@@ -12,14 +12,14 @@
 #include <kithare/string.h>
 
 
-void khPrint(khArray_char* string) {
-    khArray_byte buffer = kh_encodeUtf8(string);
-    printf("%s", (char*)buffer.array);
-    khArray_byte_delete(&buffer);
+void khPrint(khArray(char32_t) * string) {
+    khArray(uint8_t) buffer = kh_encodeUtf8(string);
+    printf("%s", (char*)buffer);
+    khArray_delete(&buffer);
 }
 
-void khPrintln(khArray_char* string) {
-    khArray_byte buffer = kh_encodeUtf8(string);
-    printf("%s\n", (char*)buffer.array);
-    khArray_byte_delete(&buffer);
+void khPrintln(khArray(char32_t) * string) {
+    khArray(uint8_t) buffer = kh_encodeUtf8(string);
+    printf("%s\n", (char*)buffer);
+    khArray_delete(&buffer);
 }
