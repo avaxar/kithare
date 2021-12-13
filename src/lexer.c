@@ -13,9 +13,9 @@
 #include <kithare/string.h>
 
 
-#define ERROR(MSG)                                                                   \
-    if (errors) {                                                                    \
-        khArray_khLexError_push(errors, (khLexError){.ptr = *cursor, .error = MSG}); \
+#define ERROR(MSG)                                                            \
+    if (errors) {                                                             \
+        khArray_append(errors, ((khLexError){.ptr = *cursor, .error = MSG})); \
     }
 
 #define ERROR_STR(MSG) ERROR(kh_string(MSG))
@@ -39,7 +39,7 @@ static inline uint8_t digitOf(char32_t chr) {
     }
 }
 
-khToken kh_lex(char32_t** cursor, khArray_khLexError* errors) {
+khToken kh_lex(char32_t** cursor, khArray(khLexError) * errors) {
     // Skips any whitespace
     while (iswspace(**cursor)) {
         // Special case for newline
@@ -63,15 +63,15 @@ khToken kh_lex(char32_t** cursor, khArray_khLexError* errors) {
 
                 // Buffers: b"1234"
                 case U'"': {
-                    khArray_char string = kh_lexString(cursor, true, errors);
-                    khArray_byte buffer = khArray_byte_new();
-                    khArray_byte_reserve(&buffer, string.size);
+                    khArray(char32_t) string = kh_lexString(cursor, true, errors);
+                    khArray(uint8_t) buffer = khArray_new(uint8_t, NULL);
+                    khArray_reserve(&buffer, khArray_size(&string));
 
-                    for (char32_t* chr = string.array; chr < string.array + string.size; chr++) {
-                        khArray_byte_push(&buffer, *chr);
+                    for (char32_t* chr = string; chr < string + khArray_size(&string); chr++) {
+                        khArray_append(&buffer, *chr);
                     }
 
-                    khArray_char_delete(&string);
+                    khArray_delete(&string);
                     return khToken_fromBuffer(buffer);
                 }
 
@@ -108,7 +108,7 @@ khToken kh_lex(char32_t** cursor, khArray_khLexError* errors) {
     }
 }
 
-khToken kh_lexWord(char32_t** cursor, khArray_khLexError* errors) {
+khToken kh_lexWord(char32_t** cursor, khArray(khLexError) * errors) {
     char32_t* origin = *cursor;
 
     // Passes through alphanumeric characters in a row
@@ -116,11 +116,12 @@ khToken kh_lexWord(char32_t** cursor, khArray_khLexError* errors) {
         (*cursor)++;
     }
 
-    khArray_char identifier = khArray_char_fromMemory(origin, *cursor - origin);
+    khArray(char32_t) identifier = khArray_new(char32_t, NULL);
+    khArray_memory(&identifier, origin, *cursor - origin, NULL);
 
 #define CASE_OPERATOR(STRING, OPERATOR)           \
     if (kh_compareCstring(&identifier, STRING)) { \
-        khArray_char_delete(&identifier);         \
+        khArray_delete(&identifier);              \
         return khToken_fromOperator(OPERATOR);    \
     }
 
@@ -131,7 +132,7 @@ khToken kh_lexWord(char32_t** cursor, khArray_khLexError* errors) {
 
 #define CASE_KEYWORD(STRING, KEYWORD)             \
     if (kh_compareCstring(&identifier, STRING)) { \
-        khArray_char_delete(&identifier);         \
+        khArray_delete(&identifier);              \
         return khToken_fromKeyword(KEYWORD);      \
     }
 
@@ -164,7 +165,7 @@ khToken kh_lexWord(char32_t** cursor, khArray_khLexError* errors) {
     return khToken_fromIdentifier(identifier);
 }
 
-khToken kh_lexNumber(char32_t** cursor, khArray_khLexError* errors) {
+khToken kh_lexNumber(char32_t** cursor, khArray(khLexError) * errors) {
     if (digitOf(**cursor) > 9) {
         ERROR_STR(U"expecting a decimal number, from 0 to 9");
         return khToken_fromNone();
@@ -368,7 +369,7 @@ khToken kh_lexNumber(char32_t** cursor, khArray_khLexError* errors) {
     }
 }
 
-khToken kh_lexSymbol(char32_t** cursor, khArray_khLexError* errors) {
+khToken kh_lexSymbol(char32_t** cursor, khArray(khLexError) * errors) {
 #define CASE_DELIMITER(CHR, DELIMITER) \
     case CHR:                          \
         return khToken_fromDelimiter(DELIMITER)
@@ -568,7 +569,7 @@ khToken kh_lexSymbol(char32_t** cursor, khArray_khLexError* errors) {
 #undef CASE_DELIMITER
 }
 
-char32_t kh_lexChar(char32_t** cursor, bool with_quotes, bool is_byte, khArray_khLexError* errors) {
+char32_t kh_lexChar(char32_t** cursor, bool with_quotes, bool is_byte, khArray(khLexError) * errors) {
     char32_t chr = 0;
 
     if (with_quotes) {
@@ -732,8 +733,8 @@ char32_t kh_lexChar(char32_t** cursor, bool with_quotes, bool is_byte, khArray_k
     return chr;
 }
 
-khArray_char kh_lexString(char32_t** cursor, bool is_buffer, khArray_khLexError* errors) {
-    khArray_char string = khArray_char_new();
+khArray(char32_t) kh_lexString(char32_t** cursor, bool is_buffer, khArray(khLexError) * errors) {
+    khArray(char32_t) string = khArray_new(char32_t, NULL);
     bool multiline = false;
 
     if (**cursor == U'"') {
@@ -760,7 +761,7 @@ khArray_char kh_lexString(char32_t** cursor, bool is_buffer, khArray_khLexError*
                     }
                     else {
                         (*cursor)++;
-                        khArray_char_push(&string, U'"');
+                        khArray_append(&string, U'"');
                     }
                 }
                 else {
@@ -773,7 +774,7 @@ khArray_char kh_lexString(char32_t** cursor, bool is_buffer, khArray_khLexError*
             case U'\n':
                 if (multiline) {
                     (*cursor)++;
-                    khArray_char_push(&string, U'\n');
+                    khArray_append(&string, U'\n');
                 }
                 else {
                     ERROR_STR(U"a newline instead of an inline character, use U'\\n' or a multiline "
@@ -788,7 +789,7 @@ khArray_char kh_lexString(char32_t** cursor, bool is_buffer, khArray_khLexError*
 
             // Use kh_lexChar for other character encounters
             default:
-                khArray_char_push(&string, kh_lexChar(cursor, false, is_buffer, errors));
+                khArray_append(&string, kh_lexChar(cursor, false, is_buffer, errors));
                 break;
         }
     }

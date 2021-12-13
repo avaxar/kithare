@@ -10,11 +10,11 @@
 extern "C" {
 #endif
 
-#include "arrays.h"
+#include "string.h"
 
 
-void khPrint(khArray_char* string);
-void khPrintln(khArray_char* string);
+void khPrint(khArray(char32_t) * string);
+void khPrintln(khArray(char32_t) * string);
 
 
 #ifdef __cplusplus

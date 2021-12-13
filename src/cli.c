@@ -14,33 +14,28 @@
 #include <windows.h>
 #endif
 
+#include <kithare/array.h>
 #include <kithare/io.h>
 #include <kithare/lexer.h>
 #include <kithare/string.h>
 
 
-#define khArray_TYPE khArray_char
-#define khArray_COPIER khArray_char_copy
-#define khArray_DELETER khArray_char_delete
-#include <kithare/t_array.h>
+static void cli(khArray(khArray(char32_t)) args) {
+    khArray(char32_t) str = kh_string(U"\"\\x69\\x99\\u1020\\U99999999dkasdkas hello\\0\"");
+    char32_t* str_ptr = str;
 
-
-void cli(khArray_khArray_char* args) {
-    khArray_char str = kh_string(U"import");
-    char32_t* str_ptr = str.array;
-
-    khArray_khLexError errors = khArray_khLexError_new();
+    khArray(khLexError) errors = khArray_new(khLexError, khLexError_delete);
     khToken token = kh_lex(&str_ptr, &errors);
 
-    khArray_char string = khToken_string(&token);
+    khArray(char32_t) string = khToken_string(&token);
     khPrintln(&string);
-    khArray_char_delete(&string);
+    khArray_delete(&string);
 
     printf("BREAKPOINT\n");
 
     khToken_delete(&token);
-    khArray_khLexError_delete(&errors);
-    khArray_char_delete(&str);
+    khArray_delete(&errors);
+    khArray_delete(&str);
 }
 
 
@@ -61,28 +56,32 @@ int main(int argc, char* argv[])
     system(" ");
 #endif
 
-    khArray_khArray_char args = khArray_khArray_char_new();
-    khArray_khArray_char_reserve(&args, argc);
+    khArray(khArray(char32_t)) args = khArray_new(khArray(char32_t), NULL);
+    khArray_reserve(&args, argc);
 
     for (int i = 0; i < argc; i++) {
 #ifdef _WIN32
-        khArray_khArray_char_push(&args, khArray_char_new());
+        khArray_append(&args, khArray_new(char32_t, NULL));
 
         size_t length = wcslen(argv[i]);
-        khArray_char_reserve(&args.array[i], length);
+        khArray_reserve(&args[i], length);
         for (wchar_t* wchr = argv[i]; wchr < argv[i] + length; wchr++) {
-            khArray_char_push(&args.array[i], *wchr);
+            khArray_append(&args[i], *wchr);
         }
 #else
-        // No need to delete
-        khArray_byte arg = (khArray_byte){
-            .array = (uint8_t*)argv[i], .size = strlen(argv[i]), .reserved = strlen(argv[i])};
-        khArray_khArray_char_push(&args, kh_decodeUtf8(&arg));
+        khArray(uint8_t) arg = khArray_new(uint8_t, NULL);
+        khArray_append(&args, kh_decodeUtf8(&arg));
+        khArray_delete(&arg);
 #endif
     }
 
-    cli(&args);
+    cli(args);
 
-    khArray_khArray_char_delete(&args);
+    // Have to manually destruct the items
+    for (int i = 0; i < argc; i++) {
+        khArray_delete(&args[i]);
+    }
+    khArray_delete(&args);
+
     return 0;
 }

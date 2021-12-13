@@ -13,38 +13,33 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "arrays.h"
+#include "array.h"
+#include "string.h"
 #include "token.h"
 
 
 typedef struct {
     char32_t* ptr;
-    khArray_char error;
+    khArray(char32_t) error;
 } khLexError;
 
 
 static inline khLexError khLexError_copy(khLexError* error) {
-    return (khLexError){.ptr = error->ptr, .error = khArray_char_copy(&error->error)};
+    return (khLexError){.ptr = error->ptr, .error = khArray_copy(&error->error, NULL)};
 }
 
 static inline void khLexError_delete(khLexError* error) {
-    khArray_char_delete(&error->error);
+    khArray_delete(&error->error);
 }
 
 
-#define khArray_TYPE khLexError
-#define khArray_COPIER khLexError_copy
-#define khArray_DELETER khLexError_delete
-#include "t_array.h"
+khToken kh_lex(char32_t** cursor, khArray(khLexError) * errors);
+khToken kh_lexWord(char32_t** cursor, khArray(khLexError) * errors);
+khToken kh_lexNumber(char32_t** cursor, khArray(khLexError) * errors);
+khToken kh_lexSymbol(char32_t** cursor, khArray(khLexError) * errors);
 
-
-khToken kh_lex(char32_t** cursor, khArray_khLexError* errors);
-khToken kh_lexWord(char32_t** cursor, khArray_khLexError* errors);
-khToken kh_lexNumber(char32_t** cursor, khArray_khLexError* errors);
-khToken kh_lexSymbol(char32_t** cursor, khArray_khLexError* errors);
-
-char32_t kh_lexChar(char32_t** cursor, bool with_quotes, bool is_byte, khArray_khLexError* errors);
-khArray_char kh_lexString(char32_t** cursor, bool is_buffer, khArray_khLexError* errors);
+char32_t kh_lexChar(char32_t** cursor, bool with_quotes, bool is_byte, khArray(khLexError) * errors);
+khArray(char32_t) kh_lexString(char32_t** cursor, bool is_buffer, khArray(khLexError) * errors);
 
 uint64_t kh_lexInt(char32_t** cursor, uint8_t base, size_t max_length, bool* had_overflowed);
 double kh_lexFloat(char32_t** cursor, uint8_t base);

@@ -12,7 +12,8 @@ extern "C" {
 
 #include <stdint.h>
 
-#include "arrays.h"
+#include "array.h"
+#include "string.h"
 
 
 typedef enum {
@@ -140,14 +141,14 @@ typedef enum {
 
 
 typedef union {
-    khArray_char identifier;
+    khArray(char32_t) identifier;
     khKeywordToken keyword;
     khDelimiterToken delimiter;
     khOperatorToken operator_v;
 
     char32_t char_v;
-    khArray_char string;
-    khArray_byte buffer;
+    khArray(char32_t) string;
+    khArray(uint8_t) buffer;
 
     int8_t sbyte_v;
     uint8_t byte_v;
@@ -174,18 +175,11 @@ typedef struct {
 khToken khToken_copy(khToken* token);
 void khToken_delete(khToken* token);
 
-khArray_char khKeywordToken_string(khKeywordToken keyword);
-khArray_char khDelimiterToken_string(khDelimiterToken delimiter);
-khArray_char khOperatorToken_string(khOperatorToken operator_v);
-khArray_char khTokenType_string(khTokenType type);
-khArray_char khToken_string(khToken* token);
-
-
-#define khArray_TYPE khToken
-#define khArray_COPIER khToken_copy
-#define khArray_DELETER khToken_delete
-#include "t_array.h"
-
+khArray(char32_t) khKeywordToken_string(khKeywordToken keyword);
+khArray(char32_t) khDelimiterToken_string(khDelimiterToken delimiter);
+khArray(char32_t) khOperatorToken_string(khOperatorToken operator_v);
+khArray(char32_t) khTokenType_string(khTokenType type);
+khArray(char32_t) khToken_string(khToken* token);
 
 static inline khToken khToken_fromNone() {
     return (khToken){.type = khTokenType_NONE, .value = (khTokenValue){}};
@@ -199,7 +193,7 @@ static inline khToken khToken_fromNewline() {
     return (khToken){.type = khTokenType_NEWLINE, .value = (khTokenValue){}};
 }
 
-static inline khToken khToken_fromIdentifier(khArray_char identifier) {
+static inline khToken khToken_fromIdentifier(khArray(char32_t) identifier) {
     return (khToken){.type = khTokenType_IDENTIFIER, .value = (khTokenValue){.identifier = identifier}};
 }
 
@@ -219,11 +213,11 @@ static inline khToken khToken_fromChar(char32_t char_v) {
     return (khToken){.type = khTokenType_CHAR, .value = (khTokenValue){.char_v = char_v}};
 }
 
-static inline khToken khToken_fromString(khArray_char string) {
+static inline khToken khToken_fromString(khArray(char32_t) string) {
     return (khToken){.type = khTokenType_STRING, .value = (khTokenValue){.string = string}};
 }
 
-static inline khToken khToken_fromBuffer(khArray_byte buffer) {
+static inline khToken khToken_fromBuffer(khArray(uint8_t) buffer) {
     return (khToken){.type = khTokenType_BUFFER, .value = (khTokenValue){.buffer = buffer}};
 }
 
