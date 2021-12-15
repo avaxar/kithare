@@ -42,13 +42,13 @@ jobs:
       run: brew install sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf
 
     - name: Build source and tests
-      run: python3 builder --make installer
+      run: python3 build.py --make installer
     
     - name: Run tests
-      run: python3 builder --make test
+      run: python3 build.py --make test
     
     - name: Upload dist
       uses: actions/upload-artifact@v2
       with:
         name: kithare-darwin-installers
-        path: builder/packaging/dist/
+        path: dist/packaging/

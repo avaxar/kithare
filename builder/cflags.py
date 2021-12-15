@@ -234,7 +234,7 @@ class CompilerFlags:
 
         if ext.endswith("o"):
             yield from self.resolve_paths(*self.ldflags, hflag="-L")
-    
+
     def add_m_flags(self, *mflags: str):
         """
         Helper function to add -m flags to compiler flags. This updates both

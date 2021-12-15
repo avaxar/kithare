@@ -13,9 +13,9 @@ from pathlib import Path
 from typing import Optional
 from zipfile import ZipFile
 
-from constants import EXE, VERSION_PACKAGE_REV
-from downloader import ThreadedDownloader
-from utils import BuildError, ConvertType, convert_machine, copy, rmtree, run_cmd
+from .constants import EXE, VERSION_PACKAGE_REV
+from .downloader import ThreadedDownloader
+from .utils import BuildError, ConvertType, convert_machine, copy, rmtree, run_cmd
 
 # Windows INNO installer related constants, remember to keep updated
 INNO_SETUP_DOWNLOAD = "https://files.jrsoftware.org/is/6/innosetup-6.2.0.exe"
@@ -29,22 +29,9 @@ APPIMAGE_DOWNLOAD = "https://github.com/AppImage/AppImageKit/releases/latest/dow
 class DummyPackager:
     """
     A packager object being an instance of this class indicates that no
-    packages are actually being generated, this only serves as a baseclass that
-    only implements a few basic methods and attributes
+    packages are actually being generated. Subclasses of this implement
+    packager functionality.
     """
-
-    def __init__(self, basepath: Path):
-        """
-        Initialise DummyPackager class
-        """
-        self.packaging_dir = basepath / "builder" / "packaging"
-
-    def clean(self):
-        """
-        Clean packaging build and dist dirs
-        """
-        for dirname in {"build", "dist"}:
-            rmtree(self.packaging_dir / dirname)
 
     def setup(self):
         """
@@ -69,8 +56,13 @@ class Packager(DummyPackager):
         """
         Initialise Packager class
         """
-        super().__init__(basepath)
-        self.exepath = exepath
+        self.paths = {
+            "base": basepath,
+            "packaging": basepath / "builder" / "packaging",
+            "build": basepath / "build" / "packaging",
+            "dist": basepath / "dist" / "packaging",
+            "exe": exepath,
+        }
         self.machine = machine
         self.version = version
 
@@ -84,13 +76,15 @@ class Packager(DummyPackager):
         zipname = (
             f"kithare-{self.version}-{platform.system().lower()}-{self.machine}.zip"
         )
-        portable_zip = self.packaging_dir / "dist" / zipname
+        portable_zip = self.paths["dist"] / zipname
 
         portable_zip.parent.mkdir(exist_ok=True)
         with ZipFile(portable_zip, mode="w") as myzip:
             # copy executable and other files
-            for dfile in self.exepath.parent.rglob("*"):
-                zipped_file = Path("Kithare") / dfile.relative_to(self.exepath.parent)
+            for dfile in self.paths["exe"].parent.rglob("*"):
+                zipped_file = Path("Kithare") / dfile.relative_to(
+                    self.paths["exe"].parent
+                )
                 myzip.write(dfile, arcname=zipped_file)
 
         print(f"Finished making zipfile in '{portable_zip}'\n")
@@ -135,18 +129,17 @@ class WindowsPackager(Packager):
 
         print("Using Windows installer configuration")
 
-        installer_build_dir = self.packaging_dir / "build"
-        rmtree(installer_build_dir)  # clean old build dir
-        installer_build_dir.mkdir()
+        rmtree(self.paths["build"])  # clean old build dir
+        self.paths["build"].mkdir()
 
-        default_iss_file = self.packaging_dir / "kithare_windows.iss"
-        iss_file = self.packaging_dir / "build" / "kithare_windows.iss"
+        default_iss_file = self.paths["packaging"] / "kithare_windows.iss"
+        iss_file = self.paths["build"] / "kithare_windows.iss"
 
         # Rewrite iss file, with some macros defined
         iss_file.write_text(
             f'#define MyAppVersion "{self.version}"\n'
             + f'#define MyAppArch "{self.machine}"\n'
-            + f'#define BasePath "{self.packaging_dir.parents[1].resolve()}"\n'
+            + f'#define BasePath "{self.paths["base"].resolve()}"\n'
             + default_iss_file.read_text()
         )
 
@@ -154,7 +147,7 @@ class WindowsPackager(Packager):
             if self.downloader.is_downloading():
                 print("Waiting for INNO Setup download to finish")
 
-            inno_installer = installer_build_dir / "innosetup_installer.exe"
+            inno_installer = self.paths["build"] / "innosetup_installer.exe"
             inno_installer.write_bytes(self.downloader.get_one()[1])
 
             print("Installing Inno setup")
@@ -202,9 +195,7 @@ class LinuxPackager(Packager):
             print(f"Skipping AppImage generation, because {exc.emsg}\n")
             return
 
-        self.appimagekitdir = (
-            self.packaging_dir.parents[1] / "deps" / "AppImage" / appimage_type
-        )
+        self.appimagekitdir = self.paths["base"] / "deps" / "AppImage" / appimage_type
 
         if self.appimagekitdir.is_dir():
             # AppImageKit already exists, no installation required
@@ -244,23 +235,22 @@ class LinuxPackager(Packager):
 
         print("Making Linux universal packages with AppImage")
 
-        installer_build_dir = self.packaging_dir / "build" / "kithare.AppDir"
+        installer_build_dir = self.paths["build"] / "kithare.AppDir"
         rmtree(installer_build_dir)  # clean old build dir
 
         bin_dir = installer_build_dir / "usr" / "bin"
         bin_dir.mkdir(parents=True)
 
         # copy static dist exe
-        copied_file = copy(self.exepath.with_name(f"{EXE}-static"), bin_dir)
+        copied_file = copy(self.paths["exe"].with_name(f"{EXE}-static"), bin_dir)
         copied_file.rename(copied_file.with_name(EXE))
 
         # copy desktop file
-        copy(self.packaging_dir / "kithare.desktop", installer_build_dir)
+        copy(self.paths["packaging"] / "kithare.desktop", installer_build_dir)
 
         # copy icon file
         copied_icon = copy(
-            self.packaging_dir.parents[1] / "misc" / "small.png",
-            installer_build_dir,
+            self.paths["base"] / "misc" / "small.png", installer_build_dir
         )
         copied_icon.rename(copied_icon.with_name("kithare.png"))
 
@@ -296,8 +286,7 @@ class LinuxPackager(Packager):
         copy(appimagekit["AppImageRun"], installer_build_dir)
 
         dist_image = (
-            self.packaging_dir
-            / "dist"
+            self.paths["dist"]
             / f"kithare-{self.version}-{self.appimagekitdir.name}.AppImage"
         )
         dist_image.parent.mkdir(exist_ok=True)
@@ -322,22 +311,20 @@ class LinuxPackager(Packager):
 
         machine = convert_machine(self.machine, ConvertType.LINUX_DEB)
 
-        installer_dir = (
-            self.packaging_dir / "build" / "Debian" / f"kithare_{self.version}"
-        )
+        installer_dir = self.paths["build"] / "Debian" / f"kithare_{self.version}"
         rmtree(installer_dir.parent)  # clean old dir
 
         bin_dir = installer_dir / "usr" / "bin"
         bin_dir.mkdir(parents=True)
 
         # copy dist exe
-        copy(self.exepath, bin_dir)
+        copy(self.paths["exe"], bin_dir)
 
         # write a control file
         write_control_file = installer_dir / "DEBIAN" / "control"
         write_control_file.parent.mkdir()
 
-        control_file = self.packaging_dir / "debian_control.txt"
+        control_file = self.paths["packaging"] / "debian_control.txt"
         write_control_file.write_text(
             f"Version: {self.version}\n"
             + f"Architecture: {machine}\n"
@@ -347,12 +334,10 @@ class LinuxPackager(Packager):
         # write license file in the doc dir
         doc_dir = installer_dir / "usr" / "share" / "doc" / "kithare"
         doc_dir.mkdir(parents=True)
-        license_file = copy(self.packaging_dir / "debian_license.txt", doc_dir)
+        license_file = copy(self.paths["packaging"] / "debian_license.txt", doc_dir)
         license_file.rename(license_file.with_name("copyright"))
 
-        dist_dir = self.packaging_dir / "dist"
-
-        run_cmd("dpkg-deb", "--build", installer_dir, dist_dir, strict=True)
+        run_cmd("dpkg-deb", "--build", installer_dir, self.paths["dist"], strict=True)
         print(".deb file was made successfully\n")
 
         if self.use_alien:
@@ -363,16 +348,16 @@ class LinuxPackager(Packager):
                 "--to-rpm",
                 "--keep-version",
                 f"--target={rpm_machine}",
-                dist_dir / f"kithare_{self.version}_{machine}.deb",
+                self.paths["dist"] / f"kithare_{self.version}_{machine}.deb",
                 strict=True,
             )
 
             gen_rpm = (
-                self.packaging_dir.parents[1]
+                self.paths["base"]
                 / f"kithare-{self.version.replace('-', '_', 1)}.{rpm_machine}.rpm"
             )
             try:
-                rpm_file = copy(gen_rpm, dist_dir)
+                rpm_file = copy(gen_rpm, self.paths["dist"])
             finally:
                 if gen_rpm.is_file():
                     gen_rpm.unlink()
@@ -426,7 +411,7 @@ def get_packager(
                 "are not being made!"
             )
 
-        return DummyPackager(basepath)
+        return DummyPackager()
 
     system = platform.system()
     if system == "Windows":

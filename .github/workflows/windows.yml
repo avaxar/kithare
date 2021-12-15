@@ -39,14 +39,14 @@ jobs:
         python-version: 3.9
 
     - name: Build sources, tests and make installer
-      run: python3 builder --make installer --arch ${{ matrix.arch }}
+      run: python3 build.py --make installer --arch ${{ matrix.arch }}
     
     - name: Run tests
-      run: python3 builder --make test --arch ${{ matrix.arch }}
+      run: python3 build.py --make test --arch ${{ matrix.arch }}
     
     # TODO: Test with installed kcr as well
     - name: Upload installer
       uses: actions/upload-artifact@v2
       with:
         name: kithare-windows-installers
-        path: builder/packaging/dist/
+        path: dist/packaging/
