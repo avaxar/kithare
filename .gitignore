@@ -29,9 +29,5 @@ test.sh
 *.lib
 icon.res
 
-# Some packaging related output folders
-/builder/packaging/build
-/builder/packaging/dist
-
 # Python bytecode .pyc cache files
 __pycache__

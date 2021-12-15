@@ -15,8 +15,8 @@ import tarfile
 from pathlib import Path
 from typing import Union
 
-from downloader import ThreadedDownloader
-from utils import BuildError, ConvertType, convert_machine, copy, rmtree
+from .downloader import ThreadedDownloader
+from .utils import BuildError, ConvertType, convert_machine, copy, rmtree
 
 # SDL project-version pairs, remember to keep updated
 SDL_DEPS = {

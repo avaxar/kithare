@@ -14,16 +14,16 @@ else
 endif
 
 make:
-	${PYTHON} builder
+	${PYTHON} build.py
 
 test: make
-	${PYTHON} builder --make test
+	${PYTHON} build.py --make test
 
 clean:
-	${PYTHON} builder --clean build
+	${PYTHON} build.py --clean all
 
 debug:
-	${PYTHON} builder --make debug
+	${PYTHON} build.py --make debug
 
 installer:
-	${PYTHON} builder --make installer
+	${PYTHON} build.py --make installer

@@ -20,7 +20,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Union
 
-from constants import EPILOG, INIT_TEXT
+from .constants import EPILOG, INIT_TEXT
 
 # While we recursively search for include files, we don't want to seach
 # the whole file, because that would waste a lotta time. So, we just take
@@ -160,7 +160,14 @@ def find_includes_max_time(file: Path, incdir: Path) -> float:
             # not an include line
             continue
 
-        ret = max(ret, find_includes_max_time(incdir / words[1][1:-1], incdir))
+        if words[1].startswith("<") and words[1].endswith(">"):
+            fname = words[1][1:-1]
+            ret = max(ret, find_includes_max_time(incdir / fname, incdir))
+        else:
+            fname = words[1].strip('"')
+
+        if fname != words[1]:
+            ret = max(ret, find_includes_max_time(file.parent / fname, incdir))
 
     return ret
 
@@ -390,8 +397,11 @@ def parse_args():
 
     parser.add_argument(
         "--clean",
-        choices=("all", "dep", "build", "installers"),
-        help="Specifies the clean action",
+        metavar="level",
+        type=str,
+        help=(
+            "Clean action: can be dep, build, dist, package or any combination of those"
+        ),
     )
 
     parser.add_argument(

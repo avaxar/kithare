@@ -49,7 +49,7 @@
 ## Building
 
 - Kithare uses a python helper script to make building easier. So in order to build Kithare, you need Python v3.6 or above installed.
-- For advanced usage, you may checkout the `builder/__main__.py` file, which contains instructions on how to use the build script to achieve more things
+- For advanced usage, you may checkout the `build.py` file, which contains instructions on how to use the build script to achieve more things
 - A basic HOWTO to building Kithare is given below
 
 ### Setup
@@ -68,4 +68,4 @@
 
 ### Build
 
-- Run `python3 builder` to build the project. If you are a `make` user, there is a stub `makefile` that calls the python build helper.
+- Run `python3 build.py` to build the project. If you are a `make` user, there is a stub `makefile` that calls the python build helper.

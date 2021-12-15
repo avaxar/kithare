@@ -4,7 +4,7 @@ The source code for Kithare programming language is distributed under the MIT
 license.
 Copyright (C) 2021 Kithare Organization
 
-builder/builder.py
+builder/__init__.py
 Defines the main KithareBuilder class that builds Kithare
 """
 
@@ -16,10 +16,9 @@ import time
 from pathlib import Path
 from typing import Optional
 
-from downloader import install_mingw
-from cflags import CompilerFlags
-from compilerpool import CompilerPool
-from constants import (
+from .cflags import CompilerFlags
+from .compilerpool import CompilerPool
+from .constants import (
     C_STD_FLAG,
     COMPILER,
     CPP_STD_FLAG,
@@ -31,9 +30,10 @@ from constants import (
     INIT_TEXT,
     SUPPORTED_ARCHS,
 )
-from packaging import get_packager
-from sdl_installer import get_installer
-from utils import (
+from .downloader import install_mingw
+from .packaging import get_packager
+from .sdl_installer import get_installer
+from .utils import (
     BuildError,
     ConvertType,
     convert_machine,
@@ -46,6 +46,8 @@ from utils import (
     should_build,
 )
 
+__all__ = ["EPILOG", "KithareBuilder", "BuildError"]
+
 
 class KithareBuilder:
     """
@@ -56,7 +58,7 @@ class KithareBuilder:
         """
         Initialise kithare builder
         """
-        self.basepath = get_rel_path(Path(__file__).parents[1].resolve())
+        self.basepath = get_rel_path(Path(__file__).resolve().parents[1])
 
         is_32_bit, args = parse_args()
         machine = get_machine(is_32_bit)
@@ -96,20 +98,47 @@ class KithareBuilder:
             sys.exit(run_cmd(self.exepath, "--test"))
 
         if clean is not None:
-            if clean == "all":
-                clean = "dep build installers"
-
-            if "dep" in clean:
+            clean_list = (
+                ["dep", "build", "dist", "package"]
+                if clean == "all"
+                else clean.split("+")
+            )
+            cleaned = 0
+            if "dep" in clean_list:
+                cleaned += 1
                 deps_dir = self.basepath / "deps"
                 for dirname in deps_dir.iterdir():
                     rmtree(dirname)
 
-            if "build" in clean:
-                for dist in {self.builddir, self.exepath.parent}:
-                    rmtree(dist.parent)
+            if "build" in clean_list:
+                cleaned += 1
+                rmtree(self.builddir.parent)
 
-            if "installers" in clean:
-                self.installer.clean()
+            dist_dir = self.exepath.parents[1]
+            if "dist" in clean_list:
+                cleaned += 1
+
+                if (dist_dir / "packaging").is_dir():
+                    for sub in dist_dir.iterdir():
+                        if sub.is_dir() and sub.name != "packaging":
+                            rmtree(sub)
+                else:
+                    rmtree(dist_dir)
+
+            if "package" in clean_list:
+                cleaned += 1
+                rmtree(dist_dir / "packaging")
+
+            # remove dist dir if it is empty
+            try:
+                dist_dir.rmdir()
+            except OSError:
+                pass
+
+            if cleaned != len(clean_list):
+                raise BuildError(
+                    "Invalid 'clean' arg passed. Use --help to check the correct usage"
+                )
 
             sys.exit(0)
 
@@ -151,12 +180,15 @@ class KithareBuilder:
         self.cflags.ccflags.extend(
             (
                 "-Wall",
-                "-Werror",
                 "-pthread",
                 "-g" if make == "debug" else "-O3",  # no -O3 on debug mode
                 self.basepath / INCLUDE_DIRNAME,
             )
         )
+
+        if make != "debug":
+            # don't pass -Werror in debug mode
+            self.cflags.ccflags.append("-Werror")
 
         if COMPILER == "MinGW":
             self.cflags.add_m_flags("-municode", "-mthreads")
@@ -315,7 +347,7 @@ class KithareBuilder:
             )
 
         # copy LICENSE and readme to dist
-        for filename in {"LICENSE", "README.md"}:
+        for filename in ("LICENSE", "README.md"):
             copy(self.basepath / filename, self.exepath.parent)
 
         for dfile in self.exepath.parent.rglob("*"):

@@ -15,8 +15,9 @@ import time
 from pathlib import Path
 from typing import Optional, Sequence
 
-from cflags import CompilerFlags
-from constants import CPU_COUNT
+from .cflags import CompilerFlags
+from .constants import CPU_COUNT
+from .utils import BuildError
 
 
 class CompilerPool:
@@ -28,8 +29,8 @@ class CompilerPool:
         """
         Initialise CompilerPool instance. maxpoolsize is the limit on number of
         subprocesses that can be opened at a given point. If not specified
-        (None), defaults to number of cores on the machine. The varargs cflags
-        are compiler flags to be passed
+        (None), defaults to number of cores on the machine. The cflags arg is
+        the compiler flags to be passed
         """
         self.cflags = cflags
 
@@ -126,14 +127,20 @@ class CompilerPool:
         """
         return bool(self._queued_procs or self._procs)
 
-    def wait(self):
+    def wait(self, timeout: int = 300):
         """
-        Block until all queued files are compiled
+        Block until all queued files are compiled. A timeout arg is used to
+        kill builds if they take too much time.
         """
+        start_time = time.perf_counter()
         try:
             while self.poll():
                 self.update()
                 time.sleep(0.005)
+
+                if time.perf_counter() >= start_time + timeout:
+                    # hit timeout, quit wait
+                    raise BuildError(f"Hit build timeout of {timeout} s")
 
         finally:
             # gracefully terminate subprocesses on errors like KeyboardInterrupt

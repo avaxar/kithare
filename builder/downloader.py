@@ -19,7 +19,7 @@ import urllib.request as urllib
 import zipfile
 from pathlib import Path
 
-from utils import BuildError
+from .utils import BuildError
 
 # allow unverified SSL because armv7 CI errors at that for some reason while
 # downloading deps

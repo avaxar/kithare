@@ -4,9 +4,9 @@
     "tasks": [
         {
             "label": "Kithare Debug Build",
-            "command": "python3 builder --make debug",
+            "command": "python3 build.py --make debug",
             "windows": {
-                "command": "py -3 builder --make debug"
+                "command": "py -3 build.py --make debug"
             },
             "type": "shell",
             "problemMatcher": [
@@ -22,9 +22,9 @@
         },
         {
             "label": "Kithare Release Build",
-            "command": "python3 builder --make installer",
+            "command": "python3 build.py --make installer",
             "windows": {
-                "command": "py -3 builder --make installer"
+                "command": "py -3 build.py --make installer"
             },
             "type": "shell",
             "problemMatcher": [
@@ -37,9 +37,9 @@
         },
         {
             "label": "Kithare Unit Tests",
-            "command": "python3 builder --make test",
+            "command": "python3 build.py --make test",
             "windows": {
-                "command": "python builder --make test"
+                "command": "python build.py --make test"
             },
             "type": "shell",
             "problemMatcher": [

@@ -82,7 +82,7 @@ Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 ChangesEnvironment=true
-OutputDir={#BasePath}\builder\packaging\dist
+OutputDir={#BasePath}\dist\packaging
 
 [Code]
 procedure CurStepChanged(CurStep: TSetupStep);
