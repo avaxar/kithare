@@ -15,6 +15,7 @@
 #endif
 
 #include <kithare/array.h>
+#include <kithare/ast.h>
 #include <kithare/io.h>
 #include <kithare/lexer.h>
 #include <kithare/string.h>

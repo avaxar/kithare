@@ -192,7 +192,7 @@ khArray(char32_t) kh_escapeChar(char32_t chr) {
         default: {
             khArray(char32_t) string = khArray_new(char32_t, NULL);
 
-            if (iswalnum(chr) || iswspace(chr)) {
+            if (iswprint(chr)) {
                 khArray_append(&string, chr);
                 return string;
             }
@@ -342,23 +342,34 @@ khArray(char32_t) kh_floatToString(double floating, uint8_t precision, uint8_t b
         floating *= -1;
     }
 
-    double value = floating;
-    while (value >= 1) {
-        uint8_t digit = (uint8_t)fmod(value, base);
-        khArray_append(&string, (digit < 10 ? U'0' + digit : U'A' + digit - 10));
-        value /= base;
+    if (isinf(floating)) {
+        kh_appendCstring(&string, U"inf");
     }
-
-    khArray_reverse(&string);
-
-    if (precision > 0) {
-        khArray_append(&string, U'.');
-
-        value = floating;
-        for (uint8_t i = 0; i < precision; i++) {
-            value *= base;
+    else if (isnan(floating)) {
+        kh_appendCstring(&string, U"nan");
+    }
+    else {
+        double value = floating;
+        while (value >= 1) {
             uint8_t digit = (uint8_t)fmod(value, base);
             khArray_append(&string, (digit < 10 ? U'0' + digit : U'A' + digit - 10));
+            value /= base;
+        }
+
+        khArray_reverse(&string);
+        if (khArray_size(&string) == 0) {
+            khArray_append(&string, U'0');
+        }
+
+        if (precision > 0) {
+            khArray_append(&string, U'.');
+
+            value = floating;
+            for (uint8_t i = 0; i < precision; i++) {
+                value *= base;
+                uint8_t digit = (uint8_t)fmod(value, base);
+                khArray_append(&string, (digit < 10 ? U'0' + digit : U'A' + digit - 10));
+            }
         }
     }
 

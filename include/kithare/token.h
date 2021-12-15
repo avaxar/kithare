@@ -30,18 +30,12 @@ typedef enum {
     khTokenType_STRING,
     khTokenType_BUFFER,
 
-    khTokenType_SBYTE,
     khTokenType_BYTE,
-    khTokenType_SHORT,
-    khTokenType_USHORT,
-    khTokenType_INT,
-    khTokenType_UINT,
-    khTokenType_LONG,
-    khTokenType_ULONG,
-
+    khTokenType_INTEGER,
+    khTokenType_UINTEGER,
     khTokenType_FLOAT,
-    khTokenType_IFLOAT,
     khTokenType_DOUBLE,
+    khTokenType_IFLOAT,
     khTokenType_IDOUBLE
 } khTokenType;
 
@@ -108,12 +102,12 @@ typedef enum {
     khOperatorToken_IPOWER,
     khOperatorToken_IDOT,
 
-    khOperatorToken_ASSIGN,
-
     khOperatorToken_INCREMENT,
     khOperatorToken_DECREMENT,
 
-    khOperatorToken_EQUALS,
+    khOperatorToken_ASSIGN,
+
+    khOperatorToken_EQUAL,
     khOperatorToken_NOT_EQUAL,
     khOperatorToken_LESS,
     khOperatorToken_MORE,
@@ -150,19 +144,13 @@ typedef union {
     khArray(char32_t) string;
     khArray(uint8_t) buffer;
 
-    int8_t sbyte_v;
-    uint8_t byte_v;
-    int16_t short_v;
-    uint16_t ushort_v;
-    int32_t int_v;
-    uint32_t uint_v;
-    int64_t long_v;
-    uint64_t ulong_v;
-
+    uint8_t byte;
+    int64_t integer;
+    uint64_t uinteger;
     float float_v;
-    float ifloat_v;
     double double_v;
-    double idouble_v;
+    float ifloat;
+    double idouble;
 } khTokenValue;
 
 
@@ -170,7 +158,6 @@ typedef struct {
     khTokenType type;
     khTokenValue value;
 } khToken;
-
 
 khToken khToken_copy(khToken* token);
 void khToken_delete(khToken* token);
@@ -221,52 +208,32 @@ static inline khToken khToken_fromBuffer(khArray(uint8_t) buffer) {
     return (khToken){.type = khTokenType_BUFFER, .value = (khTokenValue){.buffer = buffer}};
 }
 
-static inline khToken khToken_fromSbyte(int8_t sbyte_v) {
-    return (khToken){.type = khTokenType_SBYTE, .value = (khTokenValue){.sbyte_v = sbyte_v}};
+static inline khToken khToken_fromByte(uint8_t byte) {
+    return (khToken){.type = khTokenType_BYTE, .value = (khTokenValue){.byte = byte}};
 }
 
-static inline khToken khToken_fromByte(uint8_t byte_v) {
-    return (khToken){.type = khTokenType_BYTE, .value = (khTokenValue){.byte_v = byte_v}};
+static inline khToken khToken_fromInteger(int64_t integer) {
+    return (khToken){.type = khTokenType_INTEGER, .value = (khTokenValue){.integer = integer}};
 }
 
-static inline khToken khToken_fromShort(int16_t short_v) {
-    return (khToken){.type = khTokenType_SHORT, .value = (khTokenValue){.short_v = short_v}};
-}
-
-static inline khToken khToken_fromUshort(uint16_t ushort_v) {
-    return (khToken){.type = khTokenType_USHORT, .value = (khTokenValue){.ushort_v = ushort_v}};
-}
-
-static inline khToken khToken_fromInt(int32_t int_v) {
-    return (khToken){.type = khTokenType_INT, .value = (khTokenValue){.int_v = int_v}};
-}
-
-static inline khToken khToken_fromUint(uint32_t uint_v) {
-    return (khToken){.type = khTokenType_UINT, .value = (khTokenValue){.uint_v = uint_v}};
-}
-
-static inline khToken khToken_fromLong(int64_t long_v) {
-    return (khToken){.type = khTokenType_LONG, .value = (khTokenValue){.long_v = long_v}};
-}
-
-static inline khToken khToken_fromUlong(uint64_t ulong_v) {
-    return (khToken){.type = khTokenType_ULONG, .value = (khTokenValue){.ulong_v = ulong_v}};
+static inline khToken khToken_fromUinteger(uint64_t uinteger) {
+    return (khToken){.type = khTokenType_UINTEGER, .value = (khTokenValue){.uinteger = uinteger}};
 }
 
 static inline khToken khToken_fromFloat(float float_v) {
     return (khToken){.type = khTokenType_FLOAT, .value = (khTokenValue){.float_v = float_v}};
 }
 
-static inline khToken khToken_fromIfloat(float ifloat_v) {
-    return (khToken){.type = khTokenType_IFLOAT, .value = (khTokenValue){.ifloat_v = ifloat_v}};
-}
-
 static inline khToken khToken_fromDouble(double double_v) {
     return (khToken){.type = khTokenType_DOUBLE, .value = (khTokenValue){.double_v = double_v}};
 }
 
-static inline khToken khToken_fromIdouble(double idouble_v) {
-    return (khToken){.type = khTokenType_IDOUBLE, .value = (khTokenValue){.idouble_v = idouble_v}};
+static inline khToken khToken_fromIfloat(float ifloat) {
+    return (khToken){.type = khTokenType_IFLOAT, .value = (khTokenValue){.ifloat = ifloat}};
+}
+
+static inline khToken khToken_fromIdouble(double idouble) {
+    return (khToken){.type = khTokenType_IDOUBLE, .value = (khTokenValue){.idouble = idouble}};
 }
 
 
