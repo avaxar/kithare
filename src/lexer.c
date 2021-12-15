@@ -228,40 +228,26 @@ khToken kh_lexNumber(char32_t** cursor, khArray(khLexError) * errors) {
     }
     // If it was a floating point
     else if (**cursor == U'e' || **cursor == U'E' || **cursor == U'p' || **cursor == U'P' ||
-             **cursor == U'.' || had_overflowed) {
+             **cursor == U'f' || **cursor == U'F' || **cursor == 'j' || **cursor == 'J' ||
+             **cursor == 'i' || **cursor == 'I' || **cursor == U'.') {
         *cursor = origin;
         double floating = kh_lexFloat(cursor, base);
 
         switch (*(*cursor)++) {
-            // 4.f -> float(4.0)
+            // Explicit float
             case U'f':
             case U'F':
                 return khToken_fromFloat(floating);
 
-            // 4.d -> double(4.0)
-            case U'd':
-            case U'D':
-                return khToken_fromDouble(floating);
+            // Imaginary float
+            case U'j':
+            case U'J':
+                return khToken_fromIfloat(floating);
 
-            // Imaginary floating points
+            // Imaginary double
             case U'i':
             case U'I':
-                switch (*(*cursor)++) {
-                    // 5.if -> cfloat(0.0, 5.0)
-                    case U'f':
-                    case U'F':
-                        return khToken_fromIfloat(floating);
-
-                    // 5.id -> cdouble(0.0, 5.0)
-                    case U'd':
-                    case U'D':
-                        return khToken_fromIdouble(floating);
-
-                    // Defaults to a cdouble, without any extra suffixes
-                    default:
-                        (*cursor)--;
-                        return khToken_fromIdouble(floating);
-                }
+                return khToken_fromIdouble(floating);
 
             // Defaults to a double, without any suffixes
             default:
@@ -269,105 +255,25 @@ khToken kh_lexNumber(char32_t** cursor, khArray(khLexError) * errors) {
                 return khToken_fromDouble(floating);
         }
     }
+    else if (had_overflowed) {
+        (*cursor)--;
+        ERROR_STR(U"integer constant must not exceed 2^64");
+        return khToken_fromNone();
+    }
+    else if (**cursor == U'u' || **cursor == U'U') {
+        (*cursor)++;
+        return khToken_fromUinteger(integer);
+    }
     else {
-        switch (*(*cursor)++) {
-            // 1b -> byte(1)
-            case U'b':
-            case U'B':
-                return khToken_fromByte(integer);
-
-            // 1s -> short(1)
-            case U's':
-            case U'S':
-                switch (*(*cursor)++) {
-                    // 2sb -> sbyte(2)
-                    case U'b':
-                    case U'B':
-                        return khToken_fromSbyte(integer);
-
-                    // 2ss -> short(2)
-                    case U's':
-                    case U'S':
-                        return khToken_fromShort(integer);
-
-                    // 2sl -> long(2)
-                    case U'l':
-                    case U'L':
-                        return khToken_fromLong(integer);
-
-                    // Defaults to an int16 (signed short), without any extra suffixes
-                    default:
-                        (*cursor)--;
-                        return khToken_fromShort(integer);
-                }
-
-            // 1l -> long(1)
-            case U'l':
-            case U'L':
-                return khToken_fromLong(integer);
-
-            // Unsigned integers
-            case U'u':
-            case U'U':
-                switch (*(*cursor)++) {
-                    // 2ub -> byte(2)
-                    case U'b':
-                    case U'B':
-                        return khToken_fromByte(integer);
-
-                    // 2us -> ushort(2)
-                    case U's':
-                    case U'S':
-                        return khToken_fromUshort(integer);
-
-                    // 2ul -> ulong(2)
-                    case U'l':
-                    case U'L':
-                        return khToken_fromUlong(integer);
-
-                    // Defaults to an uint32 (unsigned int), without any extra suffixes
-                    default:
-                        (*cursor)--;
-                        return khToken_fromUint(integer);
-                }
-
-            // 4f -> float(4.0)
-            case U'f':
-            case U'F':
-                return khToken_fromFloat(integer);
-
-            // 4d -> double(4.0)
-            case U'd':
-            case U'D':
-                return khToken_fromDouble(integer);
-
-            // Imaginary floating points
-            case U'i':
-            case U'I':
-                switch (*(*cursor)++) {
-                    // 5if -> cfloat(0.0, 5.0)
-                    case U'f':
-                    case U'F':
-                        return khToken_fromIfloat(integer);
-
-                    // 5id -> cdouble(0.0, 5.0)
-                    case U'd':
-                    case U'D':
-                        return khToken_fromIdouble(integer);
-
-                    // Defaults to an imaginary double, without any extra suffixes
-                    default:
-                        (*cursor)--;
-                        return khToken_fromIdouble(integer);
-                }
-
-            // Defaults to an int32 (unsigned int), without any suffixes
-            default:
-                (*cursor)--;
-                return khToken_fromInt(integer);
+        if (integer > (1ull << 63ull) - 1ull) {
+            return khToken_fromUinteger(integer);
+        }
+        else {
+            return khToken_fromInteger(integer);
         }
     }
 }
+
 
 khToken kh_lexSymbol(char32_t** cursor, khArray(khLexError) * errors) {
 #define CASE_DELIMITER(CHR, DELIMITER) \
@@ -474,7 +380,7 @@ khToken kh_lexSymbol(char32_t** cursor, khArray(khLexError) * errors) {
         case U'=':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_EQUALS);
+                return khToken_fromOperator(khOperatorToken_EQUAL);
             }
             else {
                 return khToken_fromOperator(khOperatorToken_ASSIGN);

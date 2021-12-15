@@ -23,7 +23,6 @@ typedef struct {
     khArray(char32_t) error;
 } khLexError;
 
-
 static inline khLexError khLexError_copy(khLexError* error) {
     return (khLexError){.ptr = error->ptr, .error = khArray_copy(&error->error, NULL)};
 }

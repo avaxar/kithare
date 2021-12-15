@@ -169,15 +169,15 @@ khArray(char32_t) khOperatorToken_string(khOperatorToken operator_v) {
         case khOperatorToken_IDOT:
             return kh_string(U"@=");
 
-        case khOperatorToken_ASSIGN:
-            return kh_string(U"=");
-
         case khOperatorToken_INCREMENT:
             return kh_string(U"++");
         case khOperatorToken_DECREMENT:
             return kh_string(U"--");
 
-        case khOperatorToken_EQUALS:
+        case khOperatorToken_ASSIGN:
+            return kh_string(U"=");
+
+        case khOperatorToken_EQUAL:
             return kh_string(U"==");
         case khOperatorToken_NOT_EQUAL:
             return kh_string(U"!=");
@@ -251,31 +251,20 @@ khArray(char32_t) khTokenType_string(khTokenType type) {
         case khTokenType_BUFFER:
             return kh_string(U"buffer");
 
-        case khTokenType_SBYTE:
-            return kh_string(U"sbyte");
         case khTokenType_BYTE:
             return kh_string(U"byte");
-        case khTokenType_SHORT:
-            return kh_string(U"short");
-        case khTokenType_USHORT:
-            return kh_string(U"ushort");
-        case khTokenType_INT:
-            return kh_string(U"int");
-        case khTokenType_UINT:
-            return kh_string(U"uint");
-        case khTokenType_LONG:
-            return kh_string(U"long");
-        case khTokenType_ULONG:
-            return kh_string(U"ulong");
-
+        case khTokenType_INTEGER:
+            return kh_string(U"integer");
+        case khTokenType_UINTEGER:
+            return kh_string(U"uinteger");
         case khTokenType_FLOAT:
             return kh_string(U"float");
-        case khTokenType_IFLOAT:
-            return kh_string(U"ifloat");
         case khTokenType_DOUBLE:
             return kh_string(U"double");
         case khTokenType_IDOUBLE:
             return kh_string(U"idouble");
+        case khTokenType_IFLOAT:
+            return kh_string(U"ifloat");
 
         default:
             return kh_string(U"[unknown]");
@@ -314,43 +303,29 @@ khArray(char32_t) khToken_string(khToken* token) {
             value = kh_quoteBuffer(&token->value.buffer);
             break;
 
-        case khTokenType_SBYTE:
-            value = kh_intToString(token->value.sbyte_v, 10);
-            break;
         case khTokenType_BYTE:
-            value = kh_uintToString(token->value.byte_v, 10);
+            kh_appendCstring(&string, U"b\'");
+            value = kh_escapeChar(token->value.byte);
+            khArray_append(&value, U'\'');
             break;
-        case khTokenType_SHORT:
-            value = kh_intToString(token->value.short_v, 10);
+        case khTokenType_INTEGER:
+            value = kh_intToString(token->value.integer, 10);
             break;
-        case khTokenType_USHORT:
-            value = kh_uintToString(token->value.ushort_v, 10);
+        case khTokenType_UINTEGER:
+            value = kh_uintToString(token->value.uinteger, 10);
             break;
-        case khTokenType_INT:
-            value = kh_intToString(token->value.int_v, 10);
-            break;
-        case khTokenType_UINT:
-            value = kh_uintToString(token->value.uint_v, 10);
-            break;
-        case khTokenType_LONG:
-            value = kh_intToString(token->value.long_v, 10);
-            break;
-        case khTokenType_ULONG:
-            value = kh_uintToString(token->value.ulong_v, 10);
-            break;
-
         case khTokenType_FLOAT:
             value = kh_floatToString(token->value.float_v, 4, 10);
-            break;
-        case khTokenType_IFLOAT:
-            value = kh_floatToString(token->value.ifloat_v, 4, 10);
-            khArray_append(&value, U'i');
             break;
         case khTokenType_DOUBLE:
             value = kh_floatToString(token->value.double_v, 4, 10);
             break;
+        case khTokenType_IFLOAT:
+            value = kh_floatToString(token->value.ifloat, 4, 10);
+            khArray_append(&value, U'i');
+            break;
         case khTokenType_IDOUBLE:
-            value = kh_floatToString(token->value.idouble_v, 4, 10);
+            value = kh_floatToString(token->value.idouble, 4, 10);
             khArray_append(&value, U'i');
             break;
 
