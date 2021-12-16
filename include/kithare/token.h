@@ -39,6 +39,8 @@ typedef enum {
     khTokenType_IDOUBLE
 } khTokenType;
 
+khArray(char32_t) khTokenType_string(khTokenType type);
+
 
 typedef enum {
     khKeywordToken_IMPORT,
@@ -65,6 +67,8 @@ typedef enum {
     khKeywordToken_RETURN
 } khKeywordToken;
 
+khArray(char32_t) khKeywordToken_string(khKeywordToken keyword);
+
 
 typedef enum {
     khDelimiterToken_DOT,
@@ -84,22 +88,24 @@ typedef enum {
     khDelimiterToken_ELLIPSIS
 } khDelimiterToken;
 
+khArray(char32_t) khDelimiterToken_string(khDelimiterToken delimiter);
+
 
 typedef enum {
     khOperatorToken_ADD,
     khOperatorToken_SUB,
     khOperatorToken_MUL,
     khOperatorToken_DIV,
-    khOperatorToken_MODULO,
-    khOperatorToken_POWER,
+    khOperatorToken_MOD,
+    khOperatorToken_POW,
     khOperatorToken_DOT,
 
     khOperatorToken_IADD,
     khOperatorToken_ISUB,
     khOperatorToken_IMUL,
     khOperatorToken_IDIV,
-    khOperatorToken_IMODULO,
-    khOperatorToken_IPOWER,
+    khOperatorToken_IMOD,
+    khOperatorToken_IPOW,
     khOperatorToken_IDOT,
 
     khOperatorToken_INCREMENT,
@@ -133,107 +139,101 @@ typedef enum {
     khOperatorToken_IBIT_RSHIFT
 } khOperatorToken;
 
-
-typedef union {
-    khArray(char32_t) identifier;
-    khKeywordToken keyword;
-    khDelimiterToken delimiter;
-    khOperatorToken operator_v;
-
-    char32_t char_v;
-    khArray(char32_t) string;
-    khArray(uint8_t) buffer;
-
-    uint8_t byte;
-    int64_t integer;
-    uint64_t uinteger;
-    float float_v;
-    double double_v;
-    float ifloat;
-    double idouble;
-} khTokenValue;
+khArray(char32_t) khOperatorToken_string(khOperatorToken operator_v);
 
 
 typedef struct {
     khTokenType type;
-    khTokenValue value;
+    union {
+        khArray(char32_t) identifier;
+        khKeywordToken keyword;
+        khDelimiterToken delimiter;
+        khOperatorToken operator_v;
+
+        char32_t char_v;
+        khArray(char32_t) string;
+        khArray(uint8_t) buffer;
+
+        uint8_t byte;
+        int64_t integer;
+        uint64_t uinteger;
+        float float_v;
+        double double_v;
+        float ifloat;
+        double idouble;
+    };
 } khToken;
 
 khToken khToken_copy(khToken* token);
 void khToken_delete(khToken* token);
-
-khArray(char32_t) khKeywordToken_string(khKeywordToken keyword);
-khArray(char32_t) khDelimiterToken_string(khDelimiterToken delimiter);
-khArray(char32_t) khOperatorToken_string(khOperatorToken operator_v);
-khArray(char32_t) khTokenType_string(khTokenType type);
 khArray(char32_t) khToken_string(khToken* token);
 
 static inline khToken khToken_fromNone() {
-    return (khToken){.type = khTokenType_NONE, .value = (khTokenValue){}};
+    return (khToken){.type = khTokenType_NONE};
 }
 
 static inline khToken khToken_fromComment() {
-    return (khToken){.type = khTokenType_COMMENT, .value = (khTokenValue){}};
+    return (khToken){.type = khTokenType_COMMENT};
 }
 
 static inline khToken khToken_fromNewline() {
-    return (khToken){.type = khTokenType_NEWLINE, .value = (khTokenValue){}};
+    return (khToken){.type = khTokenType_NEWLINE};
 }
 
 static inline khToken khToken_fromIdentifier(khArray(char32_t) identifier) {
-    return (khToken){.type = khTokenType_IDENTIFIER, .value = (khTokenValue){.identifier = identifier}};
+    return (khToken){.type = khTokenType_IDENTIFIER, .identifier = identifier};
 }
 
 static inline khToken khToken_fromKeyword(khKeywordToken keyword) {
-    return (khToken){.type = khTokenType_KEYWORD, .value = (khTokenValue){.keyword = keyword}};
+    return (khToken){.type = khTokenType_KEYWORD, .keyword = keyword};
 }
 
 static inline khToken khToken_fromDelimiter(khDelimiterToken delimiter) {
-    return (khToken){.type = khTokenType_DELIMITER, .value = (khTokenValue){.delimiter = delimiter}};
+    return (khToken){.type = khTokenType_DELIMITER, .delimiter = delimiter};
 }
 
 static inline khToken khToken_fromOperator(khOperatorToken operator_v) {
-    return (khToken){.type = khTokenType_OPERATOR, .value = (khTokenValue){.operator_v = operator_v}};
+    return (khToken){.type = khTokenType_OPERATOR, .operator_v = operator_v};
 }
 
 static inline khToken khToken_fromChar(char32_t char_v) {
-    return (khToken){.type = khTokenType_CHAR, .value = (khTokenValue){.char_v = char_v}};
+    return (khToken){.type = khTokenType_CHAR, .char_v = char_v};
 }
 
 static inline khToken khToken_fromString(khArray(char32_t) string) {
-    return (khToken){.type = khTokenType_STRING, .value = (khTokenValue){.string = string}};
+    return (khToken){.type = khTokenType_STRING, .string = string};
 }
 
 static inline khToken khToken_fromBuffer(khArray(uint8_t) buffer) {
-    return (khToken){.type = khTokenType_BUFFER, .value = (khTokenValue){.buffer = buffer}};
+    return (khToken){.type = khTokenType_BUFFER, .buffer = buffer};
 }
 
 static inline khToken khToken_fromByte(uint8_t byte) {
-    return (khToken){.type = khTokenType_BYTE, .value = (khTokenValue){.byte = byte}};
+    return (khToken){.type = khTokenType_BYTE, .byte = byte};
 }
 
 static inline khToken khToken_fromInteger(int64_t integer) {
-    return (khToken){.type = khTokenType_INTEGER, .value = (khTokenValue){.integer = integer}};
+    return (khToken){.type = khTokenType_INTEGER, .integer = integer};
 }
 
 static inline khToken khToken_fromUinteger(uint64_t uinteger) {
-    return (khToken){.type = khTokenType_UINTEGER, .value = (khTokenValue){.uinteger = uinteger}};
+    return (khToken){.type = khTokenType_UINTEGER, .uinteger = uinteger};
 }
 
 static inline khToken khToken_fromFloat(float float_v) {
-    return (khToken){.type = khTokenType_FLOAT, .value = (khTokenValue){.float_v = float_v}};
+    return (khToken){.type = khTokenType_FLOAT, .float_v = float_v};
 }
 
 static inline khToken khToken_fromDouble(double double_v) {
-    return (khToken){.type = khTokenType_DOUBLE, .value = (khTokenValue){.double_v = double_v}};
+    return (khToken){.type = khTokenType_DOUBLE, .double_v = double_v};
 }
 
 static inline khToken khToken_fromIfloat(float ifloat) {
-    return (khToken){.type = khTokenType_IFLOAT, .value = (khTokenValue){.ifloat = ifloat}};
+    return (khToken){.type = khTokenType_IFLOAT, .ifloat = ifloat};
 }
 
 static inline khToken khToken_fromIdouble(double idouble) {
-    return (khToken){.type = khTokenType_IDOUBLE, .value = (khTokenValue){.idouble = idouble}};
+    return (khToken){.type = khTokenType_IDOUBLE, .idouble = idouble};
 }
 
 

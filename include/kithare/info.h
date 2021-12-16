@@ -26,7 +26,7 @@ extern "C" {
 #define khCOMPILER_MINGW 2
 #define khCOMPILER_GCC_ARM64 3
 #define khCOMPILER_GCC_ARM 4
-#define khCOMPILER_GCC_POWERPC 5
+#define khCOMPILER_GCC_POWPC 5
 #define khCOMPILER_GCC64 6
 #define khCOMPILER_GCC 7
 #define khCOMPILER_CLANG 8
@@ -53,7 +53,7 @@ extern "C" {
 #define kh_COMPILER_STR "GCC-ARM"
 
 #elif defined(__GNUC__) && __powerpc64__
-#define kh_COMPILER khCOMPILER_GCC_POWERPC
+#define kh_COMPILER khCOMPILER_GCC_POWPC
 #define kh_COMPILER_STR "GCC-PowerPC"
 
 #elif defined(__GNUC__) && __x86_64__

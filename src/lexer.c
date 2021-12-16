@@ -353,19 +353,19 @@ khToken kh_lexSymbol(char32_t** cursor, khArray(khLexError) * errors) {
         case U'%':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_IMODULO);
+                return khToken_fromOperator(khOperatorToken_IMOD);
             }
             else {
-                return khToken_fromOperator(khOperatorToken_MODULO);
+                return khToken_fromOperator(khOperatorToken_MOD);
             }
 
         case U'^':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_IPOWER);
+                return khToken_fromOperator(khOperatorToken_IPOW);
             }
             else {
-                return khToken_fromOperator(khOperatorToken_POWER);
+                return khToken_fromOperator(khOperatorToken_POW);
             }
 
         case U'@':
