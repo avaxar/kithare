@@ -9,45 +9,48 @@
 #include <kithare/token.h>
 
 
-khToken khToken_copy(khToken* token) {
-    khTokenValue token_value = token->value;
+khArray(char32_t) khTokenType_string(khTokenType type) {
+    switch (type) {
+        case khTokenType_NONE:
+            return kh_string(U"none");
+        case khTokenType_COMMENT:
+            return kh_string(U"comment");
+        case khTokenType_NEWLINE:
+            return kh_string(U"newline");
 
-    switch (token->type) {
         case khTokenType_IDENTIFIER:
-            token_value.identifier = khArray_copy(&token->value.identifier, NULL);
-            break;
+            return kh_string(U"identifier");
+        case khTokenType_KEYWORD:
+            return kh_string(U"keyword");
+        case khTokenType_DELIMITER:
+            return kh_string(U"delimiter");
+        case khTokenType_OPERATOR:
+            return kh_string(U"operator");
 
+        case khTokenType_CHAR:
+            return kh_string(U"char");
         case khTokenType_STRING:
-            token_value.string = khArray_copy(&token->value.string, NULL);
-            break;
-
+            return kh_string(U"string");
         case khTokenType_BUFFER:
-            token_value.buffer = khArray_copy(&token->value.buffer, NULL);
-            break;
+            return kh_string(U"buffer");
+
+        case khTokenType_BYTE:
+            return kh_string(U"byte");
+        case khTokenType_INTEGER:
+            return kh_string(U"integer");
+        case khTokenType_UINTEGER:
+            return kh_string(U"uinteger");
+        case khTokenType_FLOAT:
+            return kh_string(U"float");
+        case khTokenType_DOUBLE:
+            return kh_string(U"double");
+        case khTokenType_IDOUBLE:
+            return kh_string(U"idouble");
+        case khTokenType_IFLOAT:
+            return kh_string(U"ifloat");
 
         default:
-            break;
-    }
-
-    return (khToken){.type = token->type, .value = token_value};
-}
-
-void khToken_delete(khToken* token) {
-    switch (token->type) {
-        case khTokenType_IDENTIFIER:
-            khArray_delete(&token->value.identifier);
-            break;
-
-        case khTokenType_STRING:
-            khArray_delete(&token->value.string);
-            break;
-
-        case khTokenType_BUFFER:
-            khArray_delete(&token->value.buffer);
-            break;
-
-        default:
-            break;
+            return kh_string(U"[unknown]");
     }
 }
 
@@ -147,9 +150,9 @@ khArray(char32_t) khOperatorToken_string(khOperatorToken operator_v) {
             return kh_string(U"*");
         case khOperatorToken_DIV:
             return kh_string(U"/");
-        case khOperatorToken_MODULO:
+        case khOperatorToken_MOD:
             return kh_string(U"%");
-        case khOperatorToken_POWER:
+        case khOperatorToken_POW:
             return kh_string(U"^");
         case khOperatorToken_DOT:
             return kh_string(U"@");
@@ -162,9 +165,9 @@ khArray(char32_t) khOperatorToken_string(khOperatorToken operator_v) {
             return kh_string(U"*=");
         case khOperatorToken_IDIV:
             return kh_string(U"/=");
-        case khOperatorToken_IMODULO:
+        case khOperatorToken_IMOD:
             return kh_string(U"%=");
-        case khOperatorToken_IPOWER:
+        case khOperatorToken_IPOW:
             return kh_string(U"^=");
         case khOperatorToken_IDOT:
             return kh_string(U"@=");
@@ -226,48 +229,45 @@ khArray(char32_t) khOperatorToken_string(khOperatorToken operator_v) {
     }
 }
 
-khArray(char32_t) khTokenType_string(khTokenType type) {
-    switch (type) {
-        case khTokenType_NONE:
-            return kh_string(U"none");
-        case khTokenType_COMMENT:
-            return kh_string(U"comment");
-        case khTokenType_NEWLINE:
-            return kh_string(U"newline");
+khToken khToken_copy(khToken* token) {
+    khToken copy = *token;
 
+    switch (token->type) {
         case khTokenType_IDENTIFIER:
-            return kh_string(U"identifier");
-        case khTokenType_KEYWORD:
-            return kh_string(U"keyword");
-        case khTokenType_DELIMITER:
-            return kh_string(U"delimiter");
-        case khTokenType_OPERATOR:
-            return kh_string(U"operator");
+            copy.identifier = khArray_copy(&token->identifier, NULL);
+            break;
 
-        case khTokenType_CHAR:
-            return kh_string(U"char");
         case khTokenType_STRING:
-            return kh_string(U"string");
-        case khTokenType_BUFFER:
-            return kh_string(U"buffer");
+            copy.string = khArray_copy(&token->string, NULL);
+            break;
 
-        case khTokenType_BYTE:
-            return kh_string(U"byte");
-        case khTokenType_INTEGER:
-            return kh_string(U"integer");
-        case khTokenType_UINTEGER:
-            return kh_string(U"uinteger");
-        case khTokenType_FLOAT:
-            return kh_string(U"float");
-        case khTokenType_DOUBLE:
-            return kh_string(U"double");
-        case khTokenType_IDOUBLE:
-            return kh_string(U"idouble");
-        case khTokenType_IFLOAT:
-            return kh_string(U"ifloat");
+        case khTokenType_BUFFER:
+            copy.buffer = khArray_copy(&token->buffer, NULL);
+            break;
 
         default:
-            return kh_string(U"[unknown]");
+            break;
+    }
+
+    return copy;
+}
+
+void khToken_delete(khToken* token) {
+    switch (token->type) {
+        case khTokenType_IDENTIFIER:
+            khArray_delete(&token->identifier);
+            break;
+
+        case khTokenType_STRING:
+            khArray_delete(&token->string);
+            break;
+
+        case khTokenType_BUFFER:
+            khArray_delete(&token->buffer);
+            break;
+
+        default:
+            break;
     }
 }
 
@@ -279,53 +279,53 @@ khArray(char32_t) khToken_string(khToken* token) {
 
     switch (token->type) {
         case khTokenType_IDENTIFIER:
-            value = khArray_copy(&token->value.identifier, NULL);
+            value = khArray_copy(&token->identifier, NULL);
             break;
         case khTokenType_KEYWORD:
-            value = khKeywordToken_string(token->value.keyword);
+            value = khKeywordToken_string(token->keyword);
             break;
         case khTokenType_DELIMITER:
-            value = khDelimiterToken_string(token->value.delimiter);
+            value = khDelimiterToken_string(token->delimiter);
             break;
         case khTokenType_OPERATOR:
-            value = khOperatorToken_string(token->value.operator_v);
+            value = khOperatorToken_string(token->operator_v);
             break;
 
         case khTokenType_CHAR:
             khArray_append(&string, U'\'');
-            value = kh_escapeChar(token->value.char_v);
+            value = kh_escapeChar(token->char_v);
             khArray_append(&value, U'\'');
             break;
         case khTokenType_STRING:
-            value = kh_quoteString(&token->value.string);
+            value = kh_quoteString(&token->string);
             break;
         case khTokenType_BUFFER:
-            value = kh_quoteBuffer(&token->value.buffer);
+            value = kh_quoteBuffer(&token->buffer);
             break;
 
         case khTokenType_BYTE:
             kh_appendCstring(&string, U"b\'");
-            value = kh_escapeChar(token->value.byte);
+            value = kh_escapeChar(token->byte);
             khArray_append(&value, U'\'');
             break;
         case khTokenType_INTEGER:
-            value = kh_intToString(token->value.integer, 10);
+            value = kh_intToString(token->integer, 10);
             break;
         case khTokenType_UINTEGER:
-            value = kh_uintToString(token->value.uinteger, 10);
+            value = kh_uintToString(token->uinteger, 10);
             break;
         case khTokenType_FLOAT:
-            value = kh_floatToString(token->value.float_v, 4, 10);
+            value = kh_floatToString(token->float_v, 4, 10);
             break;
         case khTokenType_DOUBLE:
-            value = kh_floatToString(token->value.double_v, 4, 10);
+            value = kh_floatToString(token->double_v, 4, 10);
             break;
         case khTokenType_IFLOAT:
-            value = kh_floatToString(token->value.ifloat, 4, 10);
+            value = kh_floatToString(token->ifloat, 4, 10);
             khArray_append(&value, U'i');
             break;
         case khTokenType_IDOUBLE:
-            value = kh_floatToString(token->value.idouble, 4, 10);
+            value = kh_floatToString(token->idouble, 4, 10);
             khArray_append(&value, U'i');
             break;
 
