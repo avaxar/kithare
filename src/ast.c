@@ -748,6 +748,46 @@ khArray(char32_t) khAstRefExpression_string(khAstRefExpression* ref_exp) {
 }
 
 
+khAstFunctionTypeExpression
+khAstFunctionTypeExpression_copy(khAstFunctionTypeExpression* function_type) {
+    khAstExpression* return_type = (khAstExpression*)malloc(sizeof(khAstExpression));
+    *return_type = khAstExpression_copy(function_type->return_type);
+
+    return (khAstFunctionTypeExpression){
+        .argument_types = khArray_copy(&function_type->argument_types, khAstExpression_copy),
+        .return_type = return_type};
+}
+
+void khAstFunctionTypeExpression_delete(khAstFunctionTypeExpression* function_type) {
+    khArray_delete(&function_type->argument_types);
+    khAstExpression_delete(function_type->return_type);
+}
+
+khArray(char32_t) khAstFunctionTypeExpression_string(khAstFunctionTypeExpression* function_type) {
+    khArray(char32_t) string = kh_string(U"((");
+
+    for (size_t i = 0; i < khArray_size(&function_type->argument_types); i++) {
+        khArray(char32_t) argument_type_str = khAstExpression_string(&function_type->argument_types[i]);
+        khArray_concatenate(&string, &argument_type_str, NULL);
+        khArray_delete(&argument_type_str);
+
+        if (i < khArray_size(&function_type->argument_types) - 1) {
+            kh_appendCstring(&string, U", ");
+        }
+    }
+
+    kh_appendCstring(&string, U"), ");
+
+    khArray(char32_t) return_type_str = khAstExpression_string(function_type->return_type);
+    khArray_concatenate(&string, &return_type_str, NULL);
+    khArray_delete(&return_type_str);
+
+    kh_appendCstring(&string, U"))");
+    khArray_append(&string, U')');
+    return string;
+}
+
+
 khAstTemplatizeExpression khAstTemplatizeExpression_copy(khAstTemplatizeExpression* templatize_exp) {
     khAstExpression* value = (khAstExpression*)malloc(sizeof(khAstExpression));
     *value = khAstExpression_copy(templatize_exp->value);
@@ -843,6 +883,9 @@ khAstExpression khAstExpression_copy(khAstExpression* expression) {
         case khAstExpressionType_REF:
             copy.ref = khAstRefExpression_copy(&expression->ref);
             break;
+        case khAstExpressionType_FUNCTION_TYPE:
+            copy.function_type = khAstFunctionTypeExpression_copy(&expression->function_type);
+            break;
         case khAstExpressionType_TEMPLATIZE:
             copy.templatize = khAstTemplatizeExpression_copy(&expression->templatize);
             break;
@@ -906,6 +949,9 @@ void khAstExpression_delete(khAstExpression* expression) {
             break;
         case khAstExpressionType_REF:
             khAstRefExpression_delete(&expression->ref);
+            break;
+        case khAstExpressionType_FUNCTION_TYPE:
+            khAstFunctionTypeExpression_delete(&expression->function_type);
             break;
         case khAstExpressionType_TEMPLATIZE:
             khAstTemplatizeExpression_delete(&expression->templatize);
@@ -1056,6 +1102,12 @@ khArray(char32_t) khAstExpression_string(khAstExpression* expression) {
             khArray(char32_t) ref_str = khAstRefExpression_string(&expression->ref);
             khArray_concatenate(&string, &ref_str, NULL);
             khArray_delete(&ref_str);
+        } break;
+        case khAstExpressionType_FUNCTION_TYPE: {
+            khArray(char32_t) function_type_str =
+                khAstFunctionTypeExpression_string(&expression->function_type);
+            khArray_concatenate(&string, &function_type_str, NULL);
+            khArray_delete(&function_type_str);
         } break;
         case khAstExpressionType_TEMPLATIZE: {
             khArray(char32_t) templatize_str =
