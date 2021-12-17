@@ -147,6 +147,7 @@ khToken kh_lexWord(char32_t** cursor, khArray(khLexError) * errors) {
     CASE_KEYWORD(U"alias", khKeywordToken_ALIAS);
 
     CASE_KEYWORD(U"ref", khKeywordToken_REF);
+    CASE_KEYWORD(U"wild", khKeywordToken_WILD);
     CASE_KEYWORD(U"static", khKeywordToken_STATIC);
 
     CASE_KEYWORD(U"if", khKeywordToken_IF);
