@@ -72,6 +72,7 @@ typedef enum {
     khAstExpressionType_VARIABLE_DECLARATION,
     khAstExpressionType_LAMBDA,
     khAstExpressionType_SCOPE,
+    khAstExpressionType_REF,
     khAstExpressionType_TEMPLATIZE
 } khAstExpressionType;
 
@@ -236,8 +237,10 @@ khArray(char32_t) khAstIndexExpression_string(khAstIndexExpression* index_exp);
 
 
 typedef struct {
-    khAstExpression* optional_type;
+    bool is_static;
+    bool is_wild;
     khArray(char32_t) name;
+    khAstExpression* optional_type;
     khAstExpression* optional_initializer;
 } khAstVariableDeclaration;
 
@@ -266,6 +269,15 @@ typedef struct {
 khAstScopeExpression khAstScopeExpression_copy(khAstScopeExpression* scope_exp);
 void khAstScopeExpression_delete(khAstScopeExpression* scope_exp);
 khArray(char32_t) khAstScopeExpression_string(khAstScopeExpression* scope_exp);
+
+
+typedef struct {
+    khAstExpression* value;
+} khAstRefExpression;
+
+khAstRefExpression khAstRefExpression_copy(khAstRefExpression* ref_exp);
+void khAstRefExpression_delete(khAstRefExpression* ref_exp);
+khArray(char32_t) khAstRefExpression_string(khAstRefExpression* ref_exp);
 
 
 typedef struct {
@@ -307,6 +319,7 @@ struct _khAstExpression {
         khAstVariableDeclaration variable_declaration;
         khAstLambdaExpression lambda;
         khAstScopeExpression scope;
+        khAstRefExpression ref;
         khAstTemplatizeExpression templatize;
     };
 };
@@ -338,6 +351,7 @@ khArray(char32_t) khAstInclude_string(khAstInclude* include);
 
 
 typedef struct {
+    bool is_static;
     khAstExpression name_point;
     khArray(khAstVariableDeclaration) arguments;
     khAstVariableDeclaration* optional_variadic_argument;

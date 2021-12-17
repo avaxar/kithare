@@ -275,7 +275,7 @@ void khToken_delete(khToken* token) {
 
 khArray(char32_t) khToken_string(khToken* token) {
     khArray(char32_t) string = khTokenType_string(token->type);
-    kh_appendCstring(&string, U" : ");
+    khArray_append(&string, U'(');
 
     khArray(char32_t) value;
 
@@ -306,7 +306,7 @@ khArray(char32_t) khToken_string(khToken* token) {
             break;
 
         case khTokenType_BYTE:
-            kh_appendCstring(&string, U"b\'");
+            kh_appendCstring(&string, U"\'");
             value = kh_escapeChar(token->byte);
             khArray_append(&value, U'\'');
             break;
@@ -324,11 +324,9 @@ khArray(char32_t) khToken_string(khToken* token) {
             break;
         case khTokenType_IFLOAT:
             value = kh_floatToString(token->ifloat, 4, 10);
-            khArray_append(&value, U'i');
             break;
         case khTokenType_IDOUBLE:
             value = kh_floatToString(token->idouble, 4, 10);
-            khArray_append(&value, U'i');
             break;
 
         default:
@@ -339,5 +337,7 @@ khArray(char32_t) khToken_string(khToken* token) {
 
     khArray_concatenate(&string, &value, NULL);
     khArray_delete(&value);
+    khArray_append(&string, U')');
+
     return string;
 }

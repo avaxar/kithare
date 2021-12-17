@@ -242,7 +242,7 @@ khArray(char32_t) kh_quoteString(khArray(char32_t) * string) {
 khArray(char32_t) kh_quoteBuffer(khArray(uint8_t) * buffer) {
     khArray(char32_t) quoted_buffer = khArray_new(char32_t, NULL);
 
-    kh_appendCstring(&quoted_buffer, U"b\"");
+    khArray_append(&quoted_buffer, U'\"');
     for (uint8_t* byte = *buffer; byte < *buffer + khArray_size(buffer); byte++) {
         khArray(char32_t) escaped = kh_escapeChar(*byte);
         khArray_concatenate(&quoted_buffer, &escaped, NULL);
