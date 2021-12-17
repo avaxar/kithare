@@ -77,6 +77,8 @@ khArray(char32_t) khKeywordToken_string(khKeywordToken keyword) {
 
         case khKeywordToken_REF:
             return kh_string(U"ref");
+        case khKeywordToken_WILD:
+            return kh_string(U"wild");
         case khKeywordToken_STATIC:
             return kh_string(U"static");
 

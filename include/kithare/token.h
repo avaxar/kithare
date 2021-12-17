@@ -54,6 +54,7 @@ typedef enum {
     khKeywordToken_ALIAS,
 
     khKeywordToken_REF,
+    khKeywordToken_WILD,
     khKeywordToken_STATIC,
 
     khKeywordToken_IF,
