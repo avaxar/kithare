@@ -73,6 +73,7 @@ typedef enum {
     khAstExpressionType_LAMBDA,
     khAstExpressionType_SCOPE,
     khAstExpressionType_REF,
+    khAstExpressionType_FUNCTION_TYPE,
     khAstExpressionType_TEMPLATIZE
 } khAstExpressionType;
 
@@ -281,6 +282,19 @@ khArray(char32_t) khAstRefExpression_string(khAstRefExpression* ref_exp);
 
 
 typedef struct {
+    khArray(khAstExpression) argument_types;
+    khAstExpression* return_type;
+} khAstFunctionTypeExpression;
+
+// I swear, I hate clang-format for this
+khAstFunctionTypeExpression
+khAstFunctionTypeExpression_copy(khAstFunctionTypeExpression* function_type);
+
+void khAstFunctionTypeExpression_delete(khAstFunctionTypeExpression* function_type);
+khArray(char32_t) khAstFunctionTypeExpression_string(khAstFunctionTypeExpression* function_type);
+
+
+typedef struct {
     khAstExpression* value;
     khArray(khAstExpression) template_arguments;
 } khAstTemplatizeExpression;
@@ -320,6 +334,7 @@ struct _khAstExpression {
         khAstLambdaExpression lambda;
         khAstScopeExpression scope;
         khAstRefExpression ref;
+        khAstFunctionTypeExpression function_type;
         khAstTemplatizeExpression templatize;
     };
 };
