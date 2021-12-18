@@ -163,11 +163,11 @@ def find_includes_max_time(file: Path, incdir: Path) -> float:
         if words[1].startswith("<") and words[1].endswith(">"):
             fname = words[1][1:-1]
             ret = max(ret, find_includes_max_time(incdir / fname, incdir))
-        else:
-            fname = words[1].strip('"')
 
+        fname = words[1].strip('"')
         if fname != words[1]:
             ret = max(ret, find_includes_max_time(file.parent / fname, incdir))
+            ret = max(ret, find_includes_max_time(incdir / fname, incdir))
 
     return ret
 
