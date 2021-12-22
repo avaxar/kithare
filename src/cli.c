@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
     system(" ");
 #endif
 
-    khArray(khArray(char32_t)) args = khArray_new(khArray(char32_t), NULL);
+    khArray(khArray(char32_t)) args = khArray_new(khArray(char32_t), khArray_arrayDeleter(char32_t));
     khArray_reserve(&args, argc);
 
     for (int i = 0; i < argc; i++) {
@@ -78,10 +78,6 @@ int main(int argc, char* argv[])
 
     cli(args);
 
-    // Have to manually destruct the items
-    for (int i = 0; i < argc; i++) {
-        khArray_delete(&args[i]);
-    }
     khArray_delete(&args);
 
     return 0;

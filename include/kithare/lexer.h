@@ -20,15 +20,15 @@ extern "C" {
 
 typedef struct {
     char32_t* ptr;
-    khArray(char32_t) error;
+    khArray(char32_t) error_str;
 } khLexError;
 
 static inline khLexError khLexError_copy(khLexError* error) {
-    return (khLexError){.ptr = error->ptr, .error = khArray_copy(&error->error, NULL)};
+    return (khLexError){.ptr = error->ptr, .error_str = khArray_copy(&error->error_str, NULL)};
 }
 
 static inline void khLexError_delete(khLexError* error) {
-    khArray_delete(&error->error);
+    khArray_delete(&error->error_str);
 }
 
 

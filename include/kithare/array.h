@@ -77,6 +77,7 @@ void* _khArray_new(size_t type_size, void (*deleter)(void*));
 
 void _khArray_delete(void** array);
 #define khArray_delete(ARRAY) _khArray_delete(_kh_verifyPtrToPtr(ARRAY))
+#define khArray_arrayDeleter(TYPE) ((void (*)(TYPE**))_khArray_delete)
 
 void _khArray_reserve(void** array, size_t size);
 #define khArray_reserve(ARRAY, SIZE) _khArray_reserve(_kh_verifyPtrToPtr(ARRAY), SIZE)
