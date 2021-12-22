@@ -22,6 +22,8 @@ typedef struct _khAstExpression khAstExpression;
 
 
 typedef enum {
+    khAstType_INVALID,
+
     khAstType_EXPRESSION,
 
     khAstType_IMPORT,
@@ -46,6 +48,8 @@ khArray(char32_t) khAstType_string(khAstType type);
 
 
 typedef enum {
+    khAstExpressionType_INVALID,
+
     khAstExpressionType_IDENTIFIER,
     khAstExpressionType_CHAR,
     khAstExpressionType_STRING,
@@ -366,6 +370,7 @@ khArray(char32_t) khAstInclude_string(khAstInclude* include);
 
 
 typedef struct {
+    bool is_incase;
     bool is_static;
     khAstExpression name_point;
     khArray(khAstVariableDeclaration) arguments;
@@ -380,8 +385,10 @@ khArray(char32_t) khAstFunction_string(khAstFunction* function);
 
 
 typedef struct {
+    bool is_incase;
     khArray(char32_t) name;
     khArray(khArray(char32_t)) template_arguments;
+    khAstExpression* optional_base_type;
     khArray(khAst) content;
 } khAstClass;
 
@@ -391,8 +398,10 @@ khArray(char32_t) khAstClass_string(khAstClass* class_v);
 
 
 typedef struct {
+    bool is_incase;
     khArray(char32_t) name;
     khArray(khArray(char32_t)) template_arguments;
+    khAstExpression* optional_base_type;
     khArray(khAst) content;
 } khAstStruct;
 
@@ -404,7 +413,6 @@ khArray(char32_t) khAstStruct_string(khAstStruct* struct_v);
 typedef struct {
     khArray(char32_t) name;
     khArray(khArray(char32_t)) members;
-    khArray(uint64_t) values;
 } khAstEnum;
 
 khAstEnum khAstEnum_copy(khAstEnum* enum_v);
@@ -413,6 +421,7 @@ khArray(char32_t) khAstEnum_string(khAstEnum* enum_v);
 
 
 typedef struct {
+    bool is_incase;
     khArray(char32_t) name;
     khAstExpression expression;
 } khAstAlias;

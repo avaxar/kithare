@@ -13,6 +13,9 @@
 
 khArray(char32_t) khAstType_string(khAstType type) {
     switch (type) {
+        case khAstType_INVALID:
+            return kh_string(U"invalid");
+
         case khAstType_EXPRESSION:
             return kh_string(U"expression");
 
@@ -56,6 +59,9 @@ khArray(char32_t) khAstType_string(khAstType type) {
 
 khArray(char32_t) khAstExpressionType_string(khAstExpressionType type) {
     switch (type) {
+        case khAstExpressionType_INVALID:
+            return kh_string(U"invalid");
+
         case khAstExpressionType_IDENTIFIER:
             return kh_string(U"identifier");
         case khAstExpressionType_CHAR:
@@ -685,7 +691,8 @@ khAstScopeExpression khAstScopeExpression_copy(khAstScopeExpression* scope_exp) 
     khAstExpression* value = (khAstExpression*)malloc(sizeof(khAstExpression));
     *value = khAstExpression_copy(scope_exp->value);
 
-    khArray(khArray(char32_t)) scope_names = khArray_new(khArray(char32_t), NULL);
+    khArray(khArray(char32_t)) scope_names =
+        khArray_new(khArray(char32_t), khArray_arrayDeleter(char32_t));
     for (size_t i = 0; i < khArray_size(&scope_exp->scope_names); i++) {
         khArray_append(&scope_names, khArray_copy(&scope_exp->scope_names[i], NULL));
     }
@@ -695,9 +702,6 @@ khAstScopeExpression khAstScopeExpression_copy(khAstScopeExpression* scope_exp) 
 
 void khAstScopeExpression_delete(khAstScopeExpression* scope_exp) {
     khAstExpression_delete(scope_exp->value);
-    for (size_t i = 0; i < khArray_size(&scope_exp->scope_names); i++) {
-        khArray_delete(&scope_exp->scope_names[i]);
-    }
     khArray_delete(&scope_exp->scope_names);
 }
 
@@ -965,6 +969,10 @@ khArray(char32_t) khAstExpression_string(khAstExpression* expression) {
     khArray(char32_t) string = khAstExpressionType_string(expression->type);
 
     switch (expression->type) {
+        case khAstExpressionType_INVALID:
+            kh_appendCstring(&string, U"()");
+            break;
+
         case khAstExpressionType_IDENTIFIER: {
             khArray_append(&string, U'(');
             khArray(char32_t) identifier_str = kh_quoteString(&expression->identifier);
@@ -1125,7 +1133,7 @@ khArray(char32_t) khAstExpression_string(khAstExpression* expression) {
 
 
 khAstImport khAstImport_copy(khAstImport* import_v) {
-    khArray(khArray(char32_t)) path = khArray_new(khArray(char32_t), NULL);
+    khArray(khArray(char32_t)) path = khArray_new(khArray(char32_t), khArray_arrayDeleter(char32_t));
     for (size_t i = 0; i < khArray_size(&import_v->path); i++) {
         khArray_append(&path, khArray_copy(&import_v->path[i], NULL));
     }
@@ -1180,7 +1188,7 @@ khArray(char32_t) khAstImport_string(khAstImport* import_v) {
 
 
 khAstInclude khAstInclude_copy(khAstInclude* include) {
-    khArray(khArray(char32_t)) path = khArray_new(khArray(char32_t), NULL);
+    khArray(khArray(char32_t)) path = khArray_new(khArray(char32_t), khArray_arrayDeleter(char32_t));
     for (size_t i = 0; i < khArray_size(&include->path); i++) {
         khArray_append(&path, khArray_copy(&include->path[i], NULL));
     }
@@ -1189,9 +1197,6 @@ khAstInclude khAstInclude_copy(khAstInclude* include) {
 }
 
 void khAstInclude_delete(khAstInclude* include) {
-    for (size_t i = 0; i < khArray_size(&include->path); i++) {
-        khArray_delete(&include->path[i]);
-    }
     khArray_delete(&include->path);
 }
 
@@ -1232,7 +1237,8 @@ khAstFunction khAstFunction_copy(khAstFunction* function) {
         *optional_return_type = khAstExpression_copy(function->optional_return_type);
     }
 
-    return (khAstFunction){.is_static = function->is_static,
+    return (khAstFunction){.is_incase = function->is_incase,
+                           .is_static = function->is_static,
                            .name_point = khAstExpression_copy(&function->name_point),
                            .arguments =
                                khArray_copy(&function->arguments, khAstVariableDeclaration_copy),
@@ -1256,6 +1262,7 @@ void khAstFunction_delete(khAstFunction* function) {
 khArray(char32_t) khAstFunction_string(khAstFunction* function) {
     khArray(char32_t) string = kh_string(U"(");
 
+    kh_appendCstring(&string, function->is_incase ? U"true, " : U"false, ");
     kh_appendCstring(&string, function->is_static ? U"true, " : U"false, ");
 
     khArray(char32_t) name_point_str = khAstExpression_string(&function->name_point);
@@ -1312,27 +1319,38 @@ khArray(char32_t) khAstFunction_string(khAstFunction* function) {
 
 
 khAstClass khAstClass_copy(khAstClass* class_v) {
-    khArray(khArray(char32_t)) template_arguments = khArray_new(khArray(char32_t), NULL);
+    khArray(khArray(char32_t)) template_arguments =
+        khArray_new(khArray(char32_t), khArray_arrayDeleter(char32_t));
     for (size_t i = 0; i < khArray_size(&class_v->template_arguments); i++) {
         khArray_append(&template_arguments, khArray_copy(&class_v->template_arguments[i], NULL));
     }
 
-    return (khAstClass){.name = khArray_copy(&class_v->name, NULL),
+    khAstExpression* optional_base_type = NULL;
+    if (class_v->optional_base_type != NULL) {
+        optional_base_type = (khAstExpression*)malloc(sizeof(khAstExpression));
+        *optional_base_type = khAstExpression_copy(class_v->optional_base_type);
+    }
+
+    return (khAstClass){.is_incase = class_v->is_incase,
+                        .name = khArray_copy(&class_v->name, NULL),
                         .template_arguments = template_arguments,
+                        .optional_base_type = optional_base_type,
                         .content = khArray_copy(&class_v->content, khAst_copy)};
 }
 
 void khAstClass_delete(khAstClass* class_v) {
     khArray_delete(&class_v->name);
-    for (size_t i = 0; i < khArray_size(&class_v->template_arguments); i++) {
-        khArray_delete(&class_v->template_arguments[i]);
-    }
     khArray_delete(&class_v->template_arguments);
+    if (class_v->optional_base_type != NULL) {
+        khAstExpression_delete(class_v->optional_base_type);
+    }
     khArray_delete(&class_v->content);
 }
 
 khArray(char32_t) khAstClass_string(khAstClass* class_v) {
     khArray(char32_t) string = kh_string(U"(");
+
+    kh_appendCstring(&string, class_v->is_incase ? U"true, " : U"false, ");
 
     khArray(char32_t) name_str = kh_quoteString(&class_v->name);
     khArray_concatenate(&name_str, &class_v->name, NULL);
@@ -1349,8 +1367,18 @@ khArray(char32_t) khAstClass_string(khAstClass* class_v) {
         }
     }
 
-    kh_appendCstring(&string, U"), (");
+    kh_appendCstring(&string, U"), ");
 
+    if (class_v->optional_base_type != NULL) {
+        khArray(char32_t) base_type_str = khAstExpression_string(class_v->optional_base_type);
+        khArray_concatenate(&string, &base_type_str, NULL);
+        khArray_delete(&base_type_str);
+    }
+    else {
+        kh_appendCstring(&string, U"unspecified");
+    }
+
+    kh_appendCstring(&string, U", (");
     for (size_t i = 0; i < khArray_size(&class_v->content); i++) {
         khArray(char32_t) ast_str = khAst_string(&class_v->content[i]);
         khArray_concatenate(&string, &ast_str, NULL);
@@ -1368,27 +1396,38 @@ khArray(char32_t) khAstClass_string(khAstClass* class_v) {
 
 
 khAstStruct khAstStruct_copy(khAstStruct* struct_v) {
-    khArray(khArray(char32_t)) template_arguments = khArray_new(khArray(char32_t), NULL);
+    khArray(khArray(char32_t)) template_arguments =
+        khArray_new(khArray(char32_t), khArray_arrayDeleter(char32_t));
     for (size_t i = 0; i < khArray_size(&struct_v->template_arguments); i++) {
         khArray_append(&template_arguments, khArray_copy(&struct_v->template_arguments[i], NULL));
     }
 
-    return (khAstStruct){.name = khArray_copy(&struct_v->name, NULL),
+    khAstExpression* optional_base_type = NULL;
+    if (struct_v->optional_base_type != NULL) {
+        optional_base_type = (khAstExpression*)malloc(sizeof(khAstExpression));
+        *optional_base_type = khAstExpression_copy(struct_v->optional_base_type);
+    }
+
+    return (khAstStruct){.is_incase = struct_v->is_incase,
+                         .name = khArray_copy(&struct_v->name, NULL),
                          .template_arguments = template_arguments,
+                         .optional_base_type = optional_base_type,
                          .content = khArray_copy(&struct_v->content, khAst_copy)};
 }
 
 void khAstStruct_delete(khAstStruct* struct_v) {
     khArray_delete(&struct_v->name);
-    for (size_t i = 0; i < khArray_size(&struct_v->template_arguments); i++) {
-        khArray_delete(&struct_v->template_arguments[i]);
-    }
     khArray_delete(&struct_v->template_arguments);
+    if (struct_v->optional_base_type != NULL) {
+        khAstExpression_delete(struct_v->optional_base_type);
+    }
     khArray_delete(&struct_v->content);
 }
 
 khArray(char32_t) khAstStruct_string(khAstStruct* struct_v) {
     khArray(char32_t) string = kh_string(U"(");
+
+    kh_appendCstring(&string, struct_v->is_incase ? U"true, " : U"false, ");
 
     khArray(char32_t) name_str = kh_quoteString(&struct_v->name);
     khArray_concatenate(&name_str, &struct_v->name, NULL);
@@ -1405,7 +1444,18 @@ khArray(char32_t) khAstStruct_string(khAstStruct* struct_v) {
         }
     }
 
-    kh_appendCstring(&string, U"), (");
+    kh_appendCstring(&string, U"), ");
+
+    if (struct_v->optional_base_type != NULL) {
+        khArray(char32_t) base_type_str = khAstExpression_string(struct_v->optional_base_type);
+        khArray_concatenate(&string, &base_type_str, NULL);
+        khArray_delete(&base_type_str);
+    }
+    else {
+        kh_appendCstring(&string, U"unspecified");
+    }
+
+    kh_appendCstring(&string, U", (");
 
     for (size_t i = 0; i < khArray_size(&struct_v->content); i++) {
         khArray(char32_t) ast_str = khAst_string(&struct_v->content[i]);
@@ -1424,23 +1474,17 @@ khArray(char32_t) khAstStruct_string(khAstStruct* struct_v) {
 
 
 khAstEnum khAstEnum_copy(khAstEnum* enum_v) {
-    khArray(khArray(char32_t)) members = khArray_new(khArray(char32_t), NULL);
+    khArray(khArray(char32_t)) members = khArray_new(khArray(char32_t), khArray_arrayDeleter(char32_t));
     for (size_t i = 0; i < khArray_size(&enum_v->members); i++) {
         khArray_append(&members, khArray_copy(&enum_v->members[i], NULL));
     }
 
-    return (khAstEnum){.name = khArray_copy(&enum_v->name, NULL),
-                       .members = members,
-                       .values = khArray_copy(&enum_v->values, NULL)};
+    return (khAstEnum){.name = khArray_copy(&enum_v->name, NULL), .members = members};
 }
 
 void khAstEnum_delete(khAstEnum* enum_v) {
     khArray_delete(&enum_v->name);
-    for (size_t i = 0; i < khArray_size(&enum_v->members); i++) {
-        khArray_delete(&enum_v->members[i]);
-    }
     khArray_delete(&enum_v->members);
-    khArray_delete(&enum_v->values);
 }
 
 khArray(char32_t) khAstEnum_string(khAstEnum* enum_v) {
@@ -1453,19 +1497,10 @@ khArray(char32_t) khAstEnum_string(khAstEnum* enum_v) {
     kh_appendCstring(&string, U", (");
 
     for (size_t i = 0; i < khArray_size(&enum_v->members); i++) {
-        khArray_append(&string, U'(');
-
         khArray(char32_t) member_str = kh_quoteString(&enum_v->members[i]);
         khArray_concatenate(&string, &member_str, NULL);
         khArray_delete(&member_str);
 
-        kh_appendCstring(&string, U", ");
-
-        khArray(char32_t) value_str = kh_uintToString(enum_v->values[i], 10);
-        khArray_concatenate(&string, &value_str, NULL);
-        khArray_delete(&value_str);
-
-        khArray_append(&string, U')');
         if (i < khArray_size(&enum_v->members) - 1) {
             kh_appendCstring(&string, U", ");
         }
@@ -1478,7 +1513,8 @@ khArray(char32_t) khAstEnum_string(khAstEnum* enum_v) {
 
 
 khAstAlias khAstAlias_copy(khAstAlias* alias) {
-    return (khAstAlias){.name = khArray_copy(&alias->name, NULL),
+    return (khAstAlias){.is_incase = alias->is_incase,
+                        .name = khArray_copy(&alias->name, NULL),
                         .expression = khAstExpression_copy(&alias->expression)};
 }
 
@@ -1489,6 +1525,8 @@ void khAstAlias_delete(khAstAlias* alias) {
 
 khArray(char32_t) khAstAlias_string(khAstAlias* alias) {
     khArray(char32_t) string = kh_string(U"(");
+
+    kh_appendCstring(&string, alias->is_incase ? U"true, " : U"false, ");
 
     khArray(char32_t) name_str = kh_quoteString(&alias->name);
     khArray_concatenate(&name_str, &alias->name, NULL);
@@ -1506,7 +1544,8 @@ khArray(char32_t) khAstAlias_string(khAstAlias* alias) {
 
 
 khAstIfBranch khAstIfBranch_copy(khAstIfBranch* if_branch) {
-    khArray(khArray(khAst)) branch_contents = khArray_new(khArray(khAst), NULL);
+    khArray(khArray(khAst)) branch_contents =
+        khArray_new(khArray(khAst), khArray_arrayDeleter(char32_t));
     for (size_t i = 0; i < khArray_size(&if_branch->branch_contents); i++) {
         khArray_append(&branch_contents, khArray_copy(&if_branch->branch_contents[i], khAst_copy));
     }
@@ -1519,9 +1558,6 @@ khAstIfBranch khAstIfBranch_copy(khAstIfBranch* if_branch) {
 
 void khAstIfBranch_delete(khAstIfBranch* if_branch) {
     khArray_delete(&if_branch->branch_conditions);
-    for (size_t i = 0; i < khArray_size(&if_branch->branch_contents); i++) {
-        khArray_delete(&if_branch->branch_contents[i]);
-    }
     khArray_delete(&if_branch->branch_contents);
     khArray_delete(&if_branch->else_content);
 }
@@ -1920,6 +1956,10 @@ khArray(char32_t) khAst_string(khAst* ast) {
     khArray(char32_t) string = khAstType_string(ast->type);
 
     switch (ast->type) {
+        case khAstType_INVALID:
+            kh_appendCstring(&string, U"()");
+            break;
+
         case khAstType_EXPRESSION: {
             khArray_delete(&string);
             string = khAstExpression_string(&ast->expression);

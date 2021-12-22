@@ -13,9 +13,9 @@
 #include <kithare/string.h>
 
 
-#define ERROR(MSG)                                                            \
-    if (errors) {                                                             \
-        khArray_append(errors, ((khLexError){.ptr = *cursor, .error = MSG})); \
+#define ERROR(MSG)                                                                \
+    if (errors) {                                                                 \
+        khArray_append(errors, ((khLexError){.ptr = *cursor, .error_str = MSG})); \
     }
 
 #define ERROR_STR(MSG) ERROR(kh_string(MSG))
@@ -139,7 +139,6 @@ khToken kh_lexWord(char32_t** cursor, khArray(khLexError) * errors) {
     CASE_KEYWORD(U"import", khKeywordToken_IMPORT);
     CASE_KEYWORD(U"include", khKeywordToken_INCLUDE);
     CASE_KEYWORD(U"as", khKeywordToken_AS);
-    CASE_KEYWORD(U"incase", khKeywordToken_INCASE);
     CASE_KEYWORD(U"def", khKeywordToken_DEF);
     CASE_KEYWORD(U"class", khKeywordToken_CLASS);
     CASE_KEYWORD(U"struct", khKeywordToken_STRUCT);
@@ -148,12 +147,14 @@ khToken kh_lexWord(char32_t** cursor, khArray(khLexError) * errors) {
 
     CASE_KEYWORD(U"ref", khKeywordToken_REF);
     CASE_KEYWORD(U"wild", khKeywordToken_WILD);
+    CASE_KEYWORD(U"incase", khKeywordToken_INCASE);
     CASE_KEYWORD(U"static", khKeywordToken_STATIC);
 
     CASE_KEYWORD(U"if", khKeywordToken_IF);
     CASE_KEYWORD(U"elif", khKeywordToken_ELIF);
     CASE_KEYWORD(U"else", khKeywordToken_ELSE);
     CASE_KEYWORD(U"for", khKeywordToken_FOR);
+    CASE_KEYWORD(U"in", khKeywordToken_IN);
     CASE_KEYWORD(U"while", khKeywordToken_WHILE);
     CASE_KEYWORD(U"do", khKeywordToken_DO);
     CASE_KEYWORD(U"break", khKeywordToken_BREAK);
@@ -169,7 +170,7 @@ khToken kh_lexWord(char32_t** cursor, khArray(khLexError) * errors) {
 khToken kh_lexNumber(char32_t** cursor, khArray(khLexError) * errors) {
     if (digitOf(**cursor) > 9) {
         ERROR_STR(U"expecting a decimal number, from 0 to 9");
-        return khToken_fromNone();
+        return khToken_fromInvalid();
     }
 
     uint8_t base = 10;
@@ -225,7 +226,7 @@ khToken kh_lexNumber(char32_t** cursor, khArray(khLexError) * errors) {
                 break;
         }
 
-        return khToken_fromNone();
+        return khToken_fromInvalid();
     }
     // If it was a floating point
     else if (**cursor == U'e' || **cursor == U'E' || **cursor == U'p' || **cursor == U'P' ||
@@ -259,7 +260,7 @@ khToken kh_lexNumber(char32_t** cursor, khArray(khLexError) * errors) {
     else if (had_overflowed) {
         (*cursor)--;
         ERROR_STR(U"integer constant must not exceed 2^64");
-        return khToken_fromNone();
+        return khToken_fromInvalid();
     }
     else if (**cursor == U'u' || **cursor == U'U') {
         (*cursor)++;
@@ -370,7 +371,7 @@ khToken kh_lexSymbol(char32_t** cursor, khArray(khLexError) * errors) {
             }
 
         case U'@':
-            if (**cursor == U'@') {
+            if (**cursor == U'=') {
                 (*cursor)++;
                 return khToken_fromOperator(khOperatorToken_IDOT);
             }
@@ -462,16 +463,15 @@ khToken kh_lexSymbol(char32_t** cursor, khArray(khLexError) * errors) {
                 return khToken_fromOperator(khOperatorToken_BIT_OR);
             }
 
-        // Unexpected null-terminator
+        // Null-terminator, string end
         case U'\0':
             (*cursor)--;
-            ERROR_STR(U"expecting a token, met with a dead end");
-            return khToken_fromNone();
+            return khToken_fromEof();
 
         default:
             (*cursor)--;
             ERROR_STR(U"unknown character");
-            return khToken_fromNone();
+            return khToken_fromInvalid();
     }
 #undef CASE_DELIMITER
 }

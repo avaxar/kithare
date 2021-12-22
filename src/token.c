@@ -11,12 +11,14 @@
 
 khArray(char32_t) khTokenType_string(khTokenType type) {
     switch (type) {
-        case khTokenType_NONE:
-            return kh_string(U"none");
-        case khTokenType_COMMENT:
-            return kh_string(U"comment");
+        case khTokenType_INVALID:
+            return kh_string(U"invalid");
+        case khTokenType_EOF:
+            return kh_string(U"eof");
         case khTokenType_NEWLINE:
             return kh_string(U"newline");
+        case khTokenType_COMMENT:
+            return kh_string(U"comment");
 
         case khTokenType_IDENTIFIER:
             return kh_string(U"identifier");
@@ -54,6 +56,7 @@ khArray(char32_t) khTokenType_string(khTokenType type) {
     }
 }
 
+
 khArray(char32_t) khKeywordToken_string(khKeywordToken keyword) {
     switch (keyword) {
         case khKeywordToken_IMPORT:
@@ -62,8 +65,6 @@ khArray(char32_t) khKeywordToken_string(khKeywordToken keyword) {
             return kh_string(U"include");
         case khKeywordToken_AS:
             return kh_string(U"as");
-        case khKeywordToken_INCASE:
-            return kh_string(U"incase");
         case khKeywordToken_DEF:
             return kh_string(U"def");
         case khKeywordToken_CLASS:
@@ -79,6 +80,8 @@ khArray(char32_t) khKeywordToken_string(khKeywordToken keyword) {
             return kh_string(U"ref");
         case khKeywordToken_WILD:
             return kh_string(U"wild");
+        case khKeywordToken_INCASE:
+            return kh_string(U"incase");
         case khKeywordToken_STATIC:
             return kh_string(U"static");
 
@@ -90,6 +93,8 @@ khArray(char32_t) khKeywordToken_string(khKeywordToken keyword) {
             return kh_string(U"else");
         case khKeywordToken_FOR:
             return kh_string(U"for");
+        case khKeywordToken_IN:
+            return kh_string(U"in");
         case khKeywordToken_WHILE:
             return kh_string(U"while");
         case khKeywordToken_DO:
@@ -105,6 +110,7 @@ khArray(char32_t) khKeywordToken_string(khKeywordToken keyword) {
             return kh_string(U"[unknown]");
     }
 }
+
 
 khArray(char32_t) khDelimiterToken_string(khDelimiterToken delimiter) {
     switch (delimiter) {
@@ -141,6 +147,7 @@ khArray(char32_t) khDelimiterToken_string(khDelimiterToken delimiter) {
             return kh_string(U"[unknown]");
     }
 }
+
 
 khArray(char32_t) khOperatorToken_string(khOperatorToken operator_v) {
     switch (operator_v) {
@@ -230,6 +237,7 @@ khArray(char32_t) khOperatorToken_string(khOperatorToken operator_v) {
             return kh_string(U"[unknown]");
     }
 }
+
 
 khToken khToken_copy(khToken* token) {
     khToken copy = *token;

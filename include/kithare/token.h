@@ -17,9 +17,10 @@ extern "C" {
 
 
 typedef enum {
-    khTokenType_NONE,
-    khTokenType_COMMENT,
+    khTokenType_INVALID,
+    khTokenType_EOF,
     khTokenType_NEWLINE,
+    khTokenType_COMMENT,
 
     khTokenType_IDENTIFIER,
     khTokenType_KEYWORD,
@@ -46,7 +47,6 @@ typedef enum {
     khKeywordToken_IMPORT,
     khKeywordToken_INCLUDE,
     khKeywordToken_AS,
-    khKeywordToken_INCASE,
     khKeywordToken_DEF,
     khKeywordToken_CLASS,
     khKeywordToken_STRUCT,
@@ -55,12 +55,14 @@ typedef enum {
 
     khKeywordToken_REF,
     khKeywordToken_WILD,
+    khKeywordToken_INCASE,
     khKeywordToken_STATIC,
 
     khKeywordToken_IF,
     khKeywordToken_ELIF,
     khKeywordToken_ELSE,
     khKeywordToken_FOR,
+    khKeywordToken_IN,
     khKeywordToken_WHILE,
     khKeywordToken_DO,
     khKeywordToken_BREAK,
@@ -169,16 +171,20 @@ khToken khToken_copy(khToken* token);
 void khToken_delete(khToken* token);
 khArray(char32_t) khToken_string(khToken* token);
 
-static inline khToken khToken_fromNone() {
-    return (khToken){.type = khTokenType_NONE};
+static inline khToken khToken_fromInvalid() {
+    return (khToken){.type = khTokenType_INVALID};
 }
 
-static inline khToken khToken_fromComment() {
-    return (khToken){.type = khTokenType_COMMENT};
+static inline khToken khToken_fromEof() {
+    return (khToken){.type = khTokenType_EOF};
 }
 
 static inline khToken khToken_fromNewline() {
     return (khToken){.type = khTokenType_NEWLINE};
+}
+
+static inline khToken khToken_fromComment() {
+    return (khToken){.type = khTokenType_COMMENT};
 }
 
 static inline khToken khToken_fromIdentifier(khArray(char32_t) identifier) {
