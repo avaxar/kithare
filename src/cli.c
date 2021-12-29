@@ -18,24 +18,24 @@
 #include <kithare/ast.h>
 #include <kithare/io.h>
 #include <kithare/lexer.h>
+#include <kithare/parser.h>
 #include <kithare/string.h>
 
 
 static void cli(khArray(khArray(char32_t)) args) {
-    khArray(char32_t) str = kh_string(U"\"\\x69\\x99\\u1020\\U99999999dkasdkas hello\\0\"");
+    khArray(char32_t) str = kh_string(U"def main(args: char[][]) -> int {\n"
+                                      U"    import std\n"
+                                      U"   print(\"Hello, world!\")\n"
+                                      U"}");
     char32_t* str_ptr = str;
 
-    khArray(khLexError) errors = khArray_new(khLexError, khLexError_delete);
-    khToken token = kh_lex(&str_ptr, &errors);
+    khAst ast = kh_parse(&str_ptr);
 
-    khArray(char32_t) string = khToken_string(&token);
+    khArray(char32_t) string = khAst_string(&ast);
     khPrintln(&string);
     khArray_delete(&string);
 
-    printf("BREAKPOINT\n");
-
-    khToken_delete(&token);
-    khArray_delete(&errors);
+    khAst_delete(&ast);
     khArray_delete(&str);
 }
 

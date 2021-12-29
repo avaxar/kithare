@@ -1149,9 +1149,6 @@ khAstImport khAstImport_copy(khAstImport* import_v) {
 }
 
 void khAstImport_delete(khAstImport* import_v) {
-    for (size_t i = 0; i < khArray_size(&import_v->path); i++) {
-        khArray_delete(&import_v->path[i]);
-    }
     khArray_delete(&import_v->path);
     if (import_v->optional_alias != NULL) {
         khArray_delete(import_v->optional_alias);
@@ -1269,7 +1266,7 @@ khArray(char32_t) khAstFunction_string(khAstFunction* function) {
     khArray_concatenate(&string, &name_point_str, NULL);
     khArray_delete(&name_point_str);
 
-    khArray_append(&string, U'(');
+    kh_appendCstring(&string, U", (");
     for (size_t i = 0; i < khArray_size(&function->arguments); i++) {
         khArray(char32_t) argument_str = khAstVariableDeclaration_string(&function->arguments[i]);
         khArray_concatenate(&string, &argument_str, NULL);
@@ -1353,8 +1350,8 @@ khArray(char32_t) khAstClass_string(khAstClass* class_v) {
     kh_appendCstring(&string, class_v->is_incase ? U"true, " : U"false, ");
 
     khArray(char32_t) name_str = kh_quoteString(&class_v->name);
-    khArray_concatenate(&name_str, &class_v->name, NULL);
-    khArray_delete(&class_v->name);
+    khArray_concatenate(&string, &name_str, NULL);
+    khArray_delete(&name_str);
 
     kh_appendCstring(&string, U", (");
     for (size_t i = 0; i < khArray_size(&class_v->template_arguments); i++) {
@@ -1430,8 +1427,8 @@ khArray(char32_t) khAstStruct_string(khAstStruct* struct_v) {
     kh_appendCstring(&string, struct_v->is_incase ? U"true, " : U"false, ");
 
     khArray(char32_t) name_str = kh_quoteString(&struct_v->name);
-    khArray_concatenate(&name_str, &struct_v->name, NULL);
-    khArray_delete(&struct_v->name);
+    khArray_concatenate(&string, &name_str, NULL);
+    khArray_delete(&name_str);
 
     kh_appendCstring(&string, U", (");
     for (size_t i = 0; i < khArray_size(&struct_v->template_arguments); i++) {
@@ -1491,8 +1488,8 @@ khArray(char32_t) khAstEnum_string(khAstEnum* enum_v) {
     khArray(char32_t) string = kh_string(U"(");
 
     khArray(char32_t) name_str = kh_quoteString(&enum_v->name);
-    khArray_concatenate(&name_str, &enum_v->name, NULL);
-    khArray_delete(&enum_v->name);
+    khArray_concatenate(&string, &name_str, NULL);
+    khArray_delete(&name_str);
 
     kh_appendCstring(&string, U", (");
 
@@ -1529,8 +1526,8 @@ khArray(char32_t) khAstAlias_string(khAstAlias* alias) {
     kh_appendCstring(&string, alias->is_incase ? U"true, " : U"false, ");
 
     khArray(char32_t) name_str = kh_quoteString(&alias->name);
-    khArray_concatenate(&name_str, &alias->name, NULL);
-    khArray_delete(&alias->name);
+    khArray_concatenate(&string, &name_str, NULL);
+    khArray_delete(&name_str);
 
     kh_appendCstring(&string, U", ");
 
@@ -1584,7 +1581,11 @@ khArray(char32_t) khAstIfBranch_string(khAstIfBranch* if_branch) {
             }
         }
 
-        kh_appendCstring(&string, U")), ");
+        kh_appendCstring(&string, U"))");
+
+        if (i < khArray_size(&if_branch->branch_conditions) - 1) {
+            kh_appendCstring(&string, U", ");
+        }
     }
 
     for (size_t i = 0; i < khArray_size(&if_branch->else_content); i++) {

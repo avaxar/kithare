@@ -18,6 +18,7 @@ static inline khToken currentToken(char32_t** cursor, bool ignore_newline) {
     // Ignoring newlines means that it would lex the next token if a newline token was encountered
     while (token.type == khTokenType_COMMENT || (token.type == khTokenType_NEWLINE && ignore_newline)) {
         khToken_delete(&token);
+        *cursor = cursor_copy;
         token = kh_lex(&cursor_copy, &errors);
     }
 
@@ -201,6 +202,10 @@ khAst kh_parse(char32_t** cursor) {
         (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_SEMICOLON)) {
         skipToken(cursor, false);
     }
+    else if (token.type == khTokenType_DELIMITER &&
+             token.delimiter == khDelimiterToken_CURLY_BRACKET_CLOSE) {
+        // Do nothing
+    }
     else {
         // Still skips a token, to prevent other being stuck at the same token
         skipToken(cursor, false);
@@ -263,8 +268,8 @@ khAstImport kh_parseImport(char32_t** cursor) {
     // Ensures `import` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_IMPORT) {
         khToken_delete(&token);
-        skipToken(cursor, true);
-        token = currentToken(cursor, true);
+        skipToken(cursor, false);
+        token = currentToken(cursor, false);
     }
     else {
         // TODO: handle error
@@ -280,7 +285,7 @@ khAstImport kh_parseImport(char32_t** cursor) {
 
     // Minimum one identifier
     if (token.type == khTokenType_IDENTIFIER) {
-        khArray_append(&import_v.path, token.identifier);
+        khArray_append(&import_v.path, khArray_copy(&token.identifier, NULL));
         khToken_delete(&token);
         skipToken(cursor, false);
         token = currentToken(cursor, false);
@@ -296,7 +301,7 @@ khAstImport kh_parseImport(char32_t** cursor) {
         token = currentToken(cursor, false);
 
         if (token.type == khTokenType_IDENTIFIER) {
-            khArray_append(&import_v.path, token.identifier);
+            khArray_append(&import_v.path, khArray_copy(&token.identifier, NULL));
             khToken_delete(&token);
             skipToken(cursor, false);
             token = currentToken(cursor, false);
@@ -345,8 +350,8 @@ khAstInclude kh_parseInclude(char32_t** cursor) {
     // Ensures `include` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_INCLUDE) {
         khToken_delete(&token);
-        skipToken(cursor, true);
-        token = currentToken(cursor, true);
+        skipToken(cursor, false);
+        token = currentToken(cursor, false);
     }
     else {
         // TODO: handle error
@@ -362,7 +367,7 @@ khAstInclude kh_parseInclude(char32_t** cursor) {
 
     // Minimum one identifier
     if (token.type == khTokenType_IDENTIFIER) {
-        khArray_append(&include.path, token.identifier);
+        khArray_append(&include.path, khArray_copy(&token.identifier, NULL));
         khToken_delete(&token);
         skipToken(cursor, false);
         token = currentToken(cursor, false);
@@ -378,7 +383,7 @@ khAstInclude kh_parseInclude(char32_t** cursor) {
         token = currentToken(cursor, false);
 
         if (token.type == khTokenType_IDENTIFIER) {
-            khArray_append(&include.path, token.identifier);
+            khArray_append(&include.path, khArray_copy(&token.identifier, NULL));
             khToken_delete(&token);
             skipToken(cursor, false);
             token = currentToken(cursor, false);
@@ -401,19 +406,143 @@ khAstInclude kh_parseInclude(char32_t** cursor) {
     return include;
 }
 
-khAstFunction kh_parseFunction(char32_t** cursor) {}
+static inline void parseFunctionOrLambda(char32_t** cursor,
+                                         khArray(khAstVariableDeclaration) * arguments,
+                                         khAstVariableDeclaration** optional_variadic_argument,
+                                         khAstExpression** optional_return_type,
+                                         khArray(khAst) * content) {
+    khToken token = currentToken(cursor, false);
+
+    // Starts out by parsing the argument
+    if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_PARENTHESES_OPEN) {
+        khToken_delete(&token);
+        skipToken(cursor, true);
+        token = currentToken(cursor, true);
+    }
+    else {
+        // TODO: handle error
+    }
+
+    while (!(token.type == khTokenType_DELIMITER &&
+             token.delimiter == khDelimiterToken_PARENTHESES_CLOSE)) {
+        // End variadic argument
+        if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_ELLIPSIS) {
+            skipToken(cursor, true);
+
+            *optional_variadic_argument = malloc(sizeof(khAstVariableDeclaration));
+            **optional_variadic_argument = kh_exparseVariableDeclaration(cursor, true);
+
+            khToken_delete(&token);
+            token = currentToken(cursor, true);
+
+            if (!(token.type == khTokenType_DELIMITER &&
+                  token.delimiter == khDelimiterToken_PARENTHESES_CLOSE)) {
+                // TODO: handle error
+            }
+
+            break;
+        }
+
+        // Parse argument
+        khArray_append(arguments, kh_exparseVariableDeclaration(cursor, true));
+        khToken_delete(&token);
+        token = currentToken(cursor, true);
+
+        if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_COMMA) {
+            khToken_delete(&token);
+            skipToken(cursor, true);
+            token = currentToken(cursor, true);
+        }
+        else if (token.type == khTokenType_DELIMITER &&
+                 token.delimiter == khDelimiterToken_PARENTHESES_CLOSE) {
+            // Do nothing
+        }
+        else if (token.type == khTokenType_EOF) {
+            // TODO: handle error
+            break;
+        }
+        else {
+            // TODO: handle error
+            khToken_delete(&token);
+            skipToken(cursor, true);
+            token = currentToken(cursor, true);
+        }
+    }
+
+    khToken_delete(&token);
+    skipToken(cursor, true);
+    token = currentToken(cursor, true);
+
+    // Optional return type
+    if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_ARROW) {
+        skipToken(cursor, true);
+
+        *optional_return_type = malloc(sizeof(khAstExpression));
+        **optional_return_type = kh_parseExpression(cursor, true, true);
+
+        khToken_delete(&token);
+        token = currentToken(cursor, true);
+    }
+
+    // Body
+    *content = kh_parseBlock(cursor);
+
+    khToken_delete(&token);
+}
+
+khAstFunction kh_parseFunction(char32_t** cursor) {
+    khToken token = currentToken(cursor, true);
+    khAstFunction function = {
+        .is_incase = false,
+        .is_static = false,
+        .arguments = khArray_new(khAstVariableDeclaration, khAstVariableDeclaration_delete),
+        .optional_variadic_argument = NULL,
+        .optional_return_type = NULL};
+
+    // Any specifiers: `incase static def function() { ... }`
+    if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_INCASE) {
+        function.is_incase = true;
+        khToken_delete(&token);
+        skipToken(cursor, false);
+        token = currentToken(cursor, false);
+    }
+
+    if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_STATIC) {
+        function.is_static = true;
+        khToken_delete(&token);
+        skipToken(cursor, false);
+        token = currentToken(cursor, false);
+    }
+
+    // Ensures `def` keyword
+    if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_DEF) {
+        skipToken(cursor, false);
+    }
+    else {
+        // TODO: handle error
+    }
+
+    function.name_point = kh_parseExpression(cursor, false, true);
+
+    parseFunctionOrLambda(cursor, &function.arguments, &function.optional_variadic_argument,
+                          &function.optional_return_type, &function.content);
+
+    khToken_delete(&token);
+
+    return function;
+}
 
 static inline void parseClassOrStruct(char32_t** cursor, khArray(char32_t) * name,
                                       khArray(khArray(char32_t)) * template_arguments,
                                       khAstExpression** optional_base_type, khArray(khAst) * content) {
-    khToken token = currentToken(cursor, true);
+    khToken token = currentToken(cursor, false);
 
     // Ensures the name identifier of the class or struct
     if (token.type == khTokenType_IDENTIFIER) {
         *name = khArray_copy(&token.identifier, NULL);
         khToken_delete(&token);
-        skipToken(cursor, true);
-        token = currentToken(cursor, true);
+        skipToken(cursor, false);
+        token = currentToken(cursor, false);
     }
     else {
         *name = khArray_new(char32_t, NULL);
@@ -423,15 +552,15 @@ static inline void parseClassOrStruct(char32_t** cursor, khArray(char32_t) * nam
     // Any template args
     if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_EXCLAMATION) {
         khToken_delete(&token);
-        skipToken(cursor, true);
-        token = currentToken(cursor, true);
+        skipToken(cursor, false);
+        token = currentToken(cursor, false);
 
         // Single template argument: `class Name!T`
         if (token.type == khTokenType_IDENTIFIER) {
-            khArray_append(template_arguments, token.identifier);
+            khArray_append(template_arguments, khArray_copy(&token.identifier, NULL));
             khToken_delete(&token);
-            skipToken(cursor, true);
-            token = currentToken(cursor, true);
+            skipToken(cursor, false);
+            token = currentToken(cursor, false);
         }
         // Multiple template arguments in parentheses: `class Name!(T, U)`
         else if (token.type == khTokenType_DELIMITER &&
@@ -442,7 +571,7 @@ static inline void parseClassOrStruct(char32_t** cursor, khArray(char32_t) * nam
                 token = currentToken(cursor, true);
 
                 if (token.type == khTokenType_IDENTIFIER) {
-                    khArray_append(template_arguments, token.identifier);
+                    khArray_append(template_arguments, khArray_copy(&token.identifier, NULL));
                 }
                 else {
                     // TODO: handle error
@@ -456,8 +585,8 @@ static inline void parseClassOrStruct(char32_t** cursor, khArray(char32_t) * nam
             if (token.type == khTokenType_DELIMITER &&
                 token.delimiter == khDelimiterToken_PARENTHESES_CLOSE) {
                 khToken_delete(&token);
-                skipToken(cursor, true);
-                token = currentToken(cursor, true);
+                skipToken(cursor, false);
+                token = currentToken(cursor, false);
             }
             else {
                 // TODO: handle error
@@ -472,7 +601,7 @@ static inline void parseClassOrStruct(char32_t** cursor, khArray(char32_t) * nam
     if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_PARENTHESES_OPEN) {
         skipToken(cursor, true);
         *optional_base_type = malloc(sizeof(khAstExpression));
-        **optional_base_type = kh_parseExpression(cursor, true, false);
+        **optional_base_type = kh_parseExpression(cursor, true, true);
 
         khToken_delete(&token);
         token = currentToken(cursor, true);
@@ -502,25 +631,23 @@ khAstClass kh_parseClass(char32_t** cursor) {
                           .content = khArray_new(khAst, khAst_delete)};
 
     // Any specifiers: `incase class E { ... }`
-    if (token.type == khTokenType_KEYWORD) {
-        if (token.keyword == khKeywordToken_INCASE) {
-            class_v.is_incase = true;
-            khToken_delete(&token);
-            skipToken(cursor, true);
-            token = currentToken(cursor, true);
-        }
+    if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_INCASE) {
+        class_v.is_incase = true;
+        khToken_delete(&token);
+        skipToken(cursor, false);
+        token = currentToken(cursor, false);
+    }
 
-        if (token.keyword == khKeywordToken_STATIC) {
-            // TODO: handle error
-            khToken_delete(&token);
-            skipToken(cursor, true);
-            token = currentToken(cursor, true);
-        }
+    if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_STATIC) {
+        // TODO: handle error
+        khToken_delete(&token);
+        skipToken(cursor, false);
+        token = currentToken(cursor, false);
     }
 
     // Ensures `class` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_CLASS) {
-        skipToken(cursor, true);
+        skipToken(cursor, false);
     }
     else {
         // TODO: handle error
@@ -543,25 +670,24 @@ khAstStruct kh_parseStruct(char32_t** cursor) {
                             .content = khArray_new(khAst, khAst_delete)};
 
     // Any specifiers: `incase struct E { ... }`
-    if (token.type == khTokenType_KEYWORD) {
-        if (token.keyword == khKeywordToken_INCASE) {
-            struct_v.is_incase = true;
-            khToken_delete(&token);
-            skipToken(cursor, true);
-            token = currentToken(cursor, true);
-        }
-
-        if (token.keyword == khKeywordToken_STATIC) {
-            // TODO: handle error
-            khToken_delete(&token);
-            skipToken(cursor, true);
-            token = currentToken(cursor, true);
-        }
+    if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_INCASE) {
+        struct_v.is_incase = true;
+        khToken_delete(&token);
+        skipToken(cursor, false);
+        token = currentToken(cursor, false);
     }
+
+    if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_STATIC) {
+        // TODO: handle error
+        khToken_delete(&token);
+        skipToken(cursor, false);
+        token = currentToken(cursor, false);
+    }
+
 
     // Ensures `struct` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_STRUCT) {
-        skipToken(cursor, true);
+        skipToken(cursor, false);
     }
     else {
         // TODO: handle error
@@ -583,8 +709,8 @@ khAstEnum kh_parseEnum(char32_t** cursor) {
     // Ensures `enum` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_ENUM) {
         khToken_delete(&token);
-        skipToken(cursor, true);
-        token = currentToken(cursor, true);
+        skipToken(cursor, false);
+        token = currentToken(cursor, false);
     }
     else {
         // TODO: handle error
@@ -594,8 +720,8 @@ khAstEnum kh_parseEnum(char32_t** cursor) {
     if (token.type == khTokenType_IDENTIFIER) {
         enum_v.name = khArray_copy(&token.identifier, NULL);
         khToken_delete(&token);
-        skipToken(cursor, true);
-        token = currentToken(cursor, true);
+        skipToken(cursor, false);
+        token = currentToken(cursor, false);
     }
     else {
         enum_v.name = khArray_new(char32_t, NULL);
@@ -624,9 +750,7 @@ khAstEnum kh_parseEnum(char32_t** cursor) {
         // Ensures closing bracket at the end
         if (token.type == khTokenType_DELIMITER &&
             token.delimiter == khDelimiterToken_CURLY_BRACKET_CLOSE) {
-            khToken_delete(&token);
             skipToken(cursor, true);
-            token = currentToken(cursor, true);
         }
         else {
             // TODO: handle error
@@ -648,27 +772,25 @@ khAstAlias kh_parseAlias(char32_t** cursor) {
                         .expression = (khAstExpression){.type = khAstExpressionType_INVALID}};
 
     // Any specifiers
-    if (token.type == khTokenType_KEYWORD) {
-        if (token.keyword == khKeywordToken_INCASE) {
-            alias.is_incase = true;
-            khToken_delete(&token);
-            skipToken(cursor, true);
-            token = currentToken(cursor, true);
-        }
+    if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_INCASE) {
+        alias.is_incase = true;
+        khToken_delete(&token);
+        skipToken(cursor, false);
+        token = currentToken(cursor, false);
+    }
 
-        if (token.keyword == khKeywordToken_STATIC) {
-            // TODO: handle error
-            khToken_delete(&token);
-            skipToken(cursor, true);
-            token = currentToken(cursor, true);
-        }
+    if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_STATIC) {
+        // TODO: handle error
+        khToken_delete(&token);
+        skipToken(cursor, false);
+        token = currentToken(cursor, false);
     }
 
     // Ensures `alias` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_ALIAS) {
         khToken_delete(&token);
-        skipToken(cursor, true);
-        token = currentToken(cursor, true);
+        skipToken(cursor, false);
+        token = currentToken(cursor, false);
     }
     else {
         // TODO: handle error
@@ -715,13 +837,16 @@ khAstIfBranch kh_parseIfBranch(char32_t** cursor) {
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_IF) {
         khToken_delete(&token);
         skipToken(cursor, true);
-        token = currentToken(cursor, true);
+        token = currentToken(cursor, false);
     }
     else {
         // TODO: handle error
     }
 
+    goto in;
     do {
+        skipToken(cursor, true);
+    in:
         khArray_append(&if_branch.branch_conditions, kh_parseExpression(cursor, false, false));
         khArray_append(&if_branch.branch_contents, kh_parseBlock(cursor));
 
@@ -1356,7 +1481,7 @@ khAstExpression kh_exparseRef(char32_t** cursor, bool ignore_newline, bool filte
 
 khAstExpression kh_exparseUnary(char32_t** cursor, bool ignore_newline, bool filter_type) {
     if (filter_type) {
-        return kh_exparseScopeTemplatization(cursor, ignore_newline, filter_type);
+        return kh_exparseReverseUnary(cursor, ignore_newline, filter_type);
     }
 
     khToken token = currentToken(cursor, ignore_newline);
@@ -1365,29 +1490,131 @@ khAstExpression kh_exparseUnary(char32_t** cursor, bool ignore_newline, bool fil
     if (token.type == khTokenType_OPERATOR) {
         switch (token.operator_v) {
             case khOperatorToken_ADD:
-                RCD_UNARY_CASE(kh_exparseUnary, khAstUnaryExpressionType_POSITIVE);
+                RCD_UNARY_CASE(kh_exparseReverseUnary, khAstUnaryExpressionType_POSITIVE);
             case khOperatorToken_SUB:
-                RCD_UNARY_CASE(kh_exparseUnary, khAstUnaryExpressionType_NEGATIVE);
+                RCD_UNARY_CASE(kh_exparseReverseUnary, khAstUnaryExpressionType_NEGATIVE);
 
             case khOperatorToken_INCREMENT:
-                RCD_UNARY_CASE(kh_exparseUnary, khAstUnaryExpressionType_PRE_INCREMENT);
+                RCD_UNARY_CASE(kh_exparseReverseUnary, khAstUnaryExpressionType_PRE_INCREMENT);
             case khOperatorToken_DECREMENT:
-                RCD_UNARY_CASE(kh_exparseUnary, khAstUnaryExpressionType_PRE_DECREMENT);
+                RCD_UNARY_CASE(kh_exparseReverseUnary, khAstUnaryExpressionType_PRE_DECREMENT);
 
             case khOperatorToken_NOT:
-                RCD_UNARY_CASE(kh_exparseUnary, khAstUnaryExpressionType_NOT);
+                RCD_UNARY_CASE(kh_exparseReverseUnary, khAstUnaryExpressionType_NOT);
             case khOperatorToken_BIT_NOT:
-                RCD_UNARY_CASE(kh_exparseUnary, khAstUnaryExpressionType_BIT_NOT);
+                RCD_UNARY_CASE(kh_exparseReverseUnary, khAstUnaryExpressionType_BIT_NOT);
 
             default:
                 khToken_delete(&token);
-                return kh_exparseScopeTemplatization(cursor, ignore_newline, filter_type);
+                return kh_exparseReverseUnary(cursor, ignore_newline, filter_type);
         }
     }
     else {
         khToken_delete(&token);
-        return kh_exparseScopeTemplatization(cursor, ignore_newline, filter_type);
+        return kh_exparseReverseUnary(cursor, ignore_newline, filter_type);
     }
+}
+
+khAstExpression kh_exparseReverseUnary(char32_t** cursor, bool ignore_newline, bool filter_type) {
+    khAstExpression expression = kh_exparseScopeTemplatization(cursor, ignore_newline, filter_type);
+    khToken token = currentToken(cursor, ignore_newline);
+
+    while (token.type == khTokenType_DELIMITER || token.type == khTokenType_OPERATOR) {
+        switch (token.type) {
+            case khTokenType_DELIMITER:
+                switch (token.delimiter) {
+                    case khDelimiterToken_PARENTHESES_OPEN: {
+                        if (filter_type) {
+                            goto out;
+                        }
+
+                        khArray(khAstExpression) arguments = kh_exparseList(
+                            cursor, khDelimiterToken_PARENTHESES_OPEN,
+                            khDelimiterToken_PARENTHESES_CLOSE, ignore_newline, filter_type);
+
+                        khAstExpression* callee = malloc(sizeof(khAstExpression));
+                        *callee = expression;
+
+                        expression =
+                            (khAstExpression){.type = khAstExpressionType_CALL,
+                                              .call = {.callee = callee, .arguments = arguments}};
+
+                        khToken_delete(&token);
+                        token = currentToken(cursor, ignore_newline);
+                    } break;
+
+                    case khDelimiterToken_SQUARE_BRACKET_OPEN: {
+                        khArray(khAstExpression) arguments = kh_exparseList(
+                            cursor, khDelimiterToken_SQUARE_BRACKET_OPEN,
+                            khDelimiterToken_SQUARE_BRACKET_CLOSE, ignore_newline, filter_type);
+
+                        khAstExpression* indexee = malloc(sizeof(khAstExpression));
+                        *indexee = expression;
+
+                        expression =
+                            (khAstExpression){.type = khAstExpressionType_INDEX,
+                                              .index = {.indexee = indexee, .arguments = arguments}};
+
+                        khToken_delete(&token);
+                        token = currentToken(cursor, ignore_newline);
+                    } break;
+
+                    default:
+                        goto out;
+                }
+                break;
+
+            case khTokenType_OPERATOR:
+                switch (token.operator_v) {
+                    case khOperatorToken_INCREMENT: {
+                        if (filter_type) {
+                            goto out;
+                        }
+
+                        khAstExpression* operand = malloc(sizeof(khAstExpression));
+                        *operand = expression;
+
+                        expression =
+                            (khAstExpression){.type = khAstExpressionType_UNARY,
+                                              .unary = {.type = khAstUnaryExpressionType_POST_INCREMENT,
+                                                        .operand = operand}};
+
+                        khToken_delete(&token);
+                        skipToken(cursor, ignore_newline);
+                        token = currentToken(cursor, ignore_newline);
+                    } break;
+
+                    case khOperatorToken_DECREMENT: {
+                        if (filter_type) {
+                            goto out;
+                        }
+
+                        khAstExpression* operand = malloc(sizeof(khAstExpression));
+                        *operand = expression;
+
+                        expression =
+                            (khAstExpression){.type = khAstExpressionType_UNARY,
+                                              .unary = {.type = khAstUnaryExpressionType_POST_INCREMENT,
+                                                        .operand = operand}};
+
+                        khToken_delete(&token);
+                        skipToken(cursor, ignore_newline);
+                        token = currentToken(cursor, ignore_newline);
+                    } break;
+
+                    default:
+                        goto out;
+                }
+
+            default:
+                goto out;
+        }
+    }
+out:
+
+    khToken_delete(&token);
+
+    return expression;
 }
 
 khAstExpression kh_exparseScopeTemplatization(char32_t** cursor, bool ignore_newline,
@@ -1466,9 +1693,10 @@ khAstExpression kh_exparseScopeTemplatization(char32_t** cursor, bool ignore_new
             } break;
 
             default:
-                break;
+                goto out;
         }
     }
+out:
 
     khToken_delete(&token);
 
@@ -1484,12 +1712,11 @@ khAstExpression kh_exparseOther(char32_t** cursor, bool ignore_newline, bool fil
             char32_t* initial = *cursor;
 
             skipToken(cursor, ignore_newline);
-            khToken_delete(&token);
-            token = currentToken(cursor, ignore_newline);
+            khToken next_token = currentToken(cursor, ignore_newline);
 
             // Variable declaration: `identifier: Type = value`
-            if (!filter_type && token.type == khTokenType_DELIMITER &&
-                token.delimiter == khDelimiterToken_COLON) {
+            if (!filter_type && next_token.type == khTokenType_DELIMITER &&
+                next_token.delimiter == khDelimiterToken_COLON) {
                 *cursor = initial;
                 expression = (khAstExpression){
                     .type = khAstExpressionType_VARIABLE_DECLARATION,
@@ -1497,8 +1724,11 @@ khAstExpression kh_exparseOther(char32_t** cursor, bool ignore_newline, bool fil
             }
             else {
                 expression = (khAstExpression){.type = khAstExpressionType_IDENTIFIER,
-                                               .identifier = token.identifier};
+                                               .identifier = khArray_copy(&token.identifier, NULL)};
             }
+
+            khToken_delete(&token);
+            token = next_token;
         } break;
 
         case khTokenType_KEYWORD:
@@ -1609,9 +1839,12 @@ khAstExpression kh_exparseOther(char32_t** cursor, bool ignore_newline, bool fil
             break;
 
         case khTokenType_INTEGER:
-            if (filter_type) {
-                // TODO: handle error
-            }
+            // Integers should be able to be parsed even with `filter_type`, in order for static array
+            // types to be parsed
+            /* if (filter_type) {
+             *     // TODO: handle error
+             * }
+             */
 
             skipToken(cursor, ignore_newline);
             expression =
@@ -1619,9 +1852,11 @@ khAstExpression kh_exparseOther(char32_t** cursor, bool ignore_newline, bool fil
             break;
 
         case khTokenType_UINTEGER:
-            if (filter_type) {
-                // TODO: handle error
-            }
+            // Same for unsigned integers
+            /* if (filter_type) {
+             *     // TODO: handle error
+             * }
+             */
 
             skipToken(cursor, ignore_newline);
             expression =
@@ -1741,7 +1976,28 @@ khAstVariableDeclaration kh_exparseVariableDeclaration(char32_t** cursor, bool i
     return declaration;
 }
 
-khAstLambdaExpression kh_exparseLambda(char32_t** cursor, bool ignore_newline) {}
+khAstLambdaExpression kh_exparseLambda(char32_t** cursor, bool ignore_newline) {
+    khToken token = currentToken(cursor, ignore_newline);
+    khAstLambdaExpression lambda = {
+        .arguments = khArray_new(khAstVariableDeclaration, khAstVariableDeclaration_delete),
+        .optional_variadic_argument = NULL,
+        .optional_return_type = NULL};
+
+    // Ensures `def` keyword
+    if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_DEF) {
+        skipToken(cursor, ignore_newline);
+    }
+    else {
+        // TODO: handle error
+    }
+
+    parseFunctionOrLambda(cursor, &lambda.arguments, &lambda.optional_variadic_argument,
+                          &lambda.optional_return_type, &lambda.content);
+
+    khToken_delete(&token);
+
+    return lambda;
+}
 
 khArray(khAstExpression)
     kh_exparseList(char32_t** cursor, khDelimiterToken opening_delimiter,
@@ -1765,22 +2021,28 @@ khArray(khAstExpression)
     }
     else {
         while (true) {
+            // Avoid infinite loop
+            if (token.type == khTokenType_EOF) {
+                break;
+            }
+
             khArray_append(&expressions, kh_parseExpression(cursor, true, filter_type));
 
             khToken_delete(&token);
             token = currentToken(cursor, true);
 
-            // Intentional skip
-            skipToken(cursor, true);
-
             // Do nothing after a comma
-            if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_COMMA) {}
+            if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_COMMA) {
+                skipToken(cursor, true);
+            }
             // Breaks out of the loop after list close
             else if (token.type == khTokenType_DELIMITER && token.delimiter == closing_delimiter) {
+                skipToken(cursor, true);
                 break;
             }
             else {
                 // TODO: handle error
+                skipToken(cursor, true);
             }
         }
     }
