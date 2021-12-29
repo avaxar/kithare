@@ -50,6 +50,7 @@ khAstExpression kh_exparseMulDivMod(char32_t** cursor, bool ignore_newline, bool
 khAstExpression kh_exparsePow(char32_t** cursor, bool ignore_newline, bool filter_type);
 khAstExpression kh_exparseRef(char32_t** cursor, bool ignore_newline, bool filter_type);
 khAstExpression kh_exparseUnary(char32_t** cursor, bool ignore_newline, bool filter_type);
+khAstExpression kh_exparseReverseUnary(char32_t** cursor, bool ignore_newline, bool filter_type);
 khAstExpression kh_exparseScopeTemplatization(char32_t** cursor, bool ignore_newline, bool filter_type);
 khAstExpression kh_exparseOther(char32_t** cursor, bool ignore_newline, bool filter_type);
 

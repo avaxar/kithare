@@ -293,7 +293,7 @@ khToken kh_lexSymbol(char32_t** cursor, khArray(khLexError) * errors) {
         CASE_DELIMITER('{', khDelimiterToken_CURLY_BRACKET_OPEN);
         CASE_DELIMITER('}', khDelimiterToken_CURLY_BRACKET_CLOSE);
         CASE_DELIMITER('[', khDelimiterToken_SQUARE_BRACKET_OPEN);
-        CASE_DELIMITER(']', khDelimiterToken_CURLY_BRACKET_CLOSE);
+        CASE_DELIMITER(']', khDelimiterToken_SQUARE_BRACKET_CLOSE);
 
         case U'.':
             if ((*cursor)[0] == U'.' && (*cursor)[1] == U'.') {
