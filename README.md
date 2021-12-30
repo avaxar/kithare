@@ -18,7 +18,7 @@
 
 - **Windows** is well supported by Kithare; both Windows 10 and Windows 11. Although not tested, Kithare should work well on Windows 7 and above too. Both 32-bit and 64-bit variants are supported on Windows, however, Windows on ARM architecture is not supported yet
 - **GNU/Linux** is also well supported by Kithare; primarily Debian and Ubuntu based modern sufficient Linux distros. Kithare supports a range of architectures (x86, x64, armv6, armv7, arm64, s390x and ppc64le).
-- **MacOS (Darwin)** machines whose version is 10.9 or above is supported. Kithare supports x86_64 (Intel) architecture and arm64 (Apple Silicon) architecture. In the future, Kithare will also support 'universal' binaries, ones that works on both architectures. These univeral builds are 'fat' builds, one that contains the binaries of both architectures in one binary. The usage of the 'universal' builds are recommended over the usage of the architecture specific builds.
+- **MacOS (Darwin)** machines whose version is 10.9 or above are supported. Kithare supports x86_64 (Intel) architecture and arm64 (Apple Silicon) architecture. In the future, Kithare will also support "universal" binaries, ones that works on both architectures. These univeral builds are "fat" builds, one that contains the binaries of both architectures in one binary. The usage of the "universal" builds are recommended over the usage of the architecture specific builds.
 
 ## Installation and Versioning
 
@@ -47,7 +47,7 @@
 #### Others
 
 - On other platforms, you would need the GCC compiler installed (On Mac, GCC is just a shim for clang).
-- Install the development libraries for these: `SDL2`, `SDL2_mixer`, `SDL2_image`, `SDL2_ttf`, `SDL2_net`. You may use your disto's package manager to do this.
+- Install the development libraries for these: `SDL2`, `SDL2_mixer`, `SDL2_image`, `SDL2_ttf`, `SDL2_net`. You may use your distro's package manager to do this.
 - A recommended way to do this on Mac is to use Homebrew. Just run `brew install sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf`.
 - On Ubuntu and other debian based systems, you can do `sudo apt-get install libsdl2-dev libjpeg-dev libwebp-dev libtiff5-dev libsdl2-image-dev libmikmod-dev libfishsound1-dev libsmpeg-dev liboggz2-dev libflac-dev libfluidsynth-dev libsdl2-mixer-dev libfreetype6-dev libsdl2-ttf-dev libsdl2-net-dev -y` (These are mostly SDL dependencies).
 
