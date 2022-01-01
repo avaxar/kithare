@@ -31,12 +31,6 @@ khArray(uint8_t) kh_buffer(const char* cstring) {
     return buffer;
 }
 
-void kh_appendCstring(khArray(char32_t) * string, const char32_t* cstring) {
-    size_t size = 0;
-    for (; cstring[size] != U'\0'; size++) {}
-    khArray_memory(string, (char32_t*)cstring, size, NULL);
-}
-
 bool kh_compareString(khArray(char32_t) * a, khArray(char32_t) * b) {
     if (khArray_size(a) != khArray_size(b)) {
         return false;
@@ -58,23 +52,6 @@ bool kh_compareBuffer(khArray(uint8_t) * a, khArray(uint8_t) * b) {
 
     for (size_t i = 0; i < khArray_size(a); i++) {
         if ((*a)[i] != (*b)[i]) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-bool kh_compareCstring(khArray(char32_t) * a, const char32_t* b) {
-    size_t length = 0;
-    for (; b[length] != '\0'; length++) {}
-
-    if (khArray_size(a) != length) {
-        return false;
-    }
-
-    for (size_t i = 0; i < khArray_size(a); i++) {
-        if ((*a)[i] != b[i]) {
             return false;
         }
     }
@@ -213,7 +190,7 @@ khArray(char32_t) kh_escapeChar(char32_t chr) {
 
             // Fills the placeholder zeroes \x0AAA
             khArray(char32_t) hex = kh_uintToString(chr, 16);
-            for (uint8_t i = 0; i < khArray_size(&hex) - chars; i++) {
+            for (uint8_t i = 0; i < (uint8_t)khArray_size(&hex) - chars; i++) {
                 khArray_append(&string, U'0');
             }
 

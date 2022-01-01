@@ -45,12 +45,14 @@ khToken kh_lex(char32_t** cursor, khArray(khLexError) * errors) {
         // Special case for newline
         if (**cursor == U'\n') {
             (*cursor)++;
-            return khToken_fromNewline();
+            return khToken_fromNewline(*cursor - 1, *cursor);
         }
         else {
             (*cursor)++;
         }
     }
+
+    char32_t* begin = *cursor;
 
     if (iswalpha(**cursor)) {
         if (**cursor == U'b' || **cursor == U'B') {
@@ -58,8 +60,12 @@ khToken kh_lex(char32_t** cursor, khArray(khLexError) * errors) {
 
             switch (**cursor) {
                 // Byte characters: b'X'
-                case U'\'':
-                    return khToken_fromByte(kh_lexChar(cursor, true, true, errors));
+                case U'\'': {
+                    // Don't put kh_lexChar call in khToken_fromByte, as the evaluation of arguments
+                    // aren't set by the C standard
+                    char32_t chr = kh_lexChar(cursor, true, true, errors);
+                    return khToken_fromByte(chr, begin, *cursor);
+                }
 
                 // Buffers: b"1234"
                 case U'"': {
@@ -72,7 +78,7 @@ khToken kh_lex(char32_t** cursor, khArray(khLexError) * errors) {
                     }
 
                     khArray_delete(&string);
-                    return khToken_fromBuffer(buffer);
+                    return khToken_fromBuffer(buffer, begin, *cursor);
                 }
 
                 default:
@@ -89,10 +95,15 @@ khToken kh_lex(char32_t** cursor, khArray(khLexError) * errors) {
     }
     else {
         switch (**cursor) {
-            case U'\'':
-                return khToken_fromChar(kh_lexChar(cursor, true, false, errors));
-            case U'"':
-                return khToken_fromString(kh_lexString(cursor, false, errors));
+            case U'\'': {
+                char32_t chr = kh_lexChar(cursor, true, false, errors);
+                return khToken_fromChar(chr, begin, *cursor);
+            }
+
+            case U'"': {
+                khArray(char32_t) string = kh_lexString(cursor, false, errors);
+                return khToken_fromString(string, begin, *cursor);
+            }
 
             case U'#':
                 (*cursor)++;
@@ -100,7 +111,7 @@ khToken kh_lex(char32_t** cursor, khArray(khLexError) * errors) {
                 if (**cursor == U'\n') {
                     (*cursor)++;
                 }
-                return khToken_fromComment();
+                return khToken_fromComment(begin, *cursor);
 
             default:
                 return kh_lexSymbol(cursor, errors);
@@ -109,7 +120,7 @@ khToken kh_lex(char32_t** cursor, khArray(khLexError) * errors) {
 }
 
 khToken kh_lexWord(char32_t** cursor, khArray(khLexError) * errors) {
-    char32_t* origin = *cursor;
+    char32_t* begin = *cursor;
 
     // Passes through alphanumeric characters in a row
     while (iswalnum(**cursor)) {
@@ -117,12 +128,12 @@ khToken kh_lexWord(char32_t** cursor, khArray(khLexError) * errors) {
     }
 
     khArray(char32_t) identifier = khArray_new(char32_t, NULL);
-    khArray_memory(&identifier, origin, *cursor - origin, NULL);
+    khArray_memory(&identifier, begin, *cursor - begin, NULL);
 
-#define CASE_OPERATOR(STRING, OPERATOR)           \
-    if (kh_compareCstring(&identifier, STRING)) { \
-        khArray_delete(&identifier);              \
-        return khToken_fromOperator(OPERATOR);    \
+#define CASE_OPERATOR(STRING, OPERATOR)                        \
+    if (kh_compareCstring(&identifier, STRING)) {              \
+        khArray_delete(&identifier);                           \
+        return khToken_fromOperator(OPERATOR, begin, *cursor); \
     }
 
     CASE_OPERATOR(U"not", khOperatorToken_NOT);
@@ -130,10 +141,10 @@ khToken kh_lexWord(char32_t** cursor, khArray(khLexError) * errors) {
     CASE_OPERATOR(U"or", khOperatorToken_OR);
     CASE_OPERATOR(U"xor", khOperatorToken_XOR);
 
-#define CASE_KEYWORD(STRING, KEYWORD)             \
-    if (kh_compareCstring(&identifier, STRING)) { \
-        khArray_delete(&identifier);              \
-        return khToken_fromKeyword(KEYWORD);      \
+#define CASE_KEYWORD(STRING, KEYWORD)                        \
+    if (kh_compareCstring(&identifier, STRING)) {            \
+        khArray_delete(&identifier);                         \
+        return khToken_fromKeyword(KEYWORD, begin, *cursor); \
     }
 
     CASE_KEYWORD(U"import", khKeywordToken_IMPORT);
@@ -164,13 +175,15 @@ khToken kh_lexWord(char32_t** cursor, khArray(khLexError) * errors) {
 #undef CASE_OPERATOR
 #undef CASE_KEYWORD
 
-    return khToken_fromIdentifier(identifier);
+    return khToken_fromIdentifier(identifier, begin, *cursor);
 }
 
 khToken kh_lexNumber(char32_t** cursor, khArray(khLexError) * errors) {
+    char32_t* begin = *cursor;
+
     if (digitOf(**cursor) > 9) {
         ERROR_STR(U"expecting a decimal number, from 0 to 9");
-        return khToken_fromInvalid();
+        return khToken_fromInvalid(*cursor, *cursor + 1);
     }
 
     uint8_t base = 10;
@@ -226,7 +239,7 @@ khToken kh_lexNumber(char32_t** cursor, khArray(khLexError) * errors) {
                 break;
         }
 
-        return khToken_fromInvalid();
+        return khToken_fromInvalid(begin, *cursor);
     }
     // If it was a floating point
     else if (**cursor == U'e' || **cursor == U'E' || **cursor == U'p' || **cursor == U'P' ||
@@ -239,48 +252,50 @@ khToken kh_lexNumber(char32_t** cursor, khArray(khLexError) * errors) {
             // Explicit float
             case U'f':
             case U'F':
-                return khToken_fromFloat(floating);
+                return khToken_fromFloat(floating, begin, *cursor);
 
             // Imaginary float
             case U'j':
             case U'J':
-                return khToken_fromIfloat(floating);
+                return khToken_fromIfloat(floating, begin, *cursor);
 
             // Imaginary double
             case U'i':
             case U'I':
-                return khToken_fromIdouble(floating);
+                return khToken_fromIdouble(floating, begin, *cursor);
 
             // Defaults to a double, without any suffixes
             default:
                 (*cursor)--;
-                return khToken_fromDouble(floating);
+                return khToken_fromDouble(floating, begin, *cursor);
         }
     }
     else if (had_overflowed) {
         (*cursor)--;
         ERROR_STR(U"integer constant must not exceed 2^64");
-        return khToken_fromInvalid();
+        return khToken_fromInvalid(begin, *cursor);
     }
     else if (**cursor == U'u' || **cursor == U'U') {
         (*cursor)++;
-        return khToken_fromUinteger(integer);
+        return khToken_fromUinteger(integer, begin, *cursor);
     }
     else {
         if (integer > (1ull << 63ull) - 1ull) {
-            return khToken_fromUinteger(integer);
+            return khToken_fromUinteger(integer, begin, *cursor);
         }
         else {
-            return khToken_fromInteger(integer);
+            return khToken_fromInteger(integer, begin, *cursor);
         }
     }
 }
 
 
 khToken kh_lexSymbol(char32_t** cursor, khArray(khLexError) * errors) {
+    char32_t* begin = *cursor;
+
 #define CASE_DELIMITER(CHR, DELIMITER) \
     case CHR:                          \
-        return khToken_fromDelimiter(DELIMITER)
+        return khToken_fromDelimiter(DELIMITER, begin, *cursor)
 
     switch (*(*cursor)++) {
         // Pretty repetitive stuff here. Macros are utilized
@@ -298,180 +313,180 @@ khToken kh_lexSymbol(char32_t** cursor, khArray(khLexError) * errors) {
         case U'.':
             if ((*cursor)[0] == U'.' && (*cursor)[1] == U'.') {
                 *cursor += 2;
-                return khToken_fromDelimiter(khDelimiterToken_ELLIPSIS);
+                return khToken_fromDelimiter(khDelimiterToken_ELLIPSIS, begin, *cursor);
             }
             else {
-                return khToken_fromDelimiter(khDelimiterToken_DOT);
+                return khToken_fromDelimiter(khDelimiterToken_DOT, begin, *cursor);
             }
 
         // Down here are where many multiple-character-operators are handled
         case U'+':
             switch (*(*cursor)++) {
                 case U'+':
-                    return khToken_fromOperator(khOperatorToken_INCREMENT);
+                    return khToken_fromOperator(khOperatorToken_INCREMENT, begin, *cursor);
 
                 case U'=':
-                    return khToken_fromOperator(khOperatorToken_IADD);
+                    return khToken_fromOperator(khOperatorToken_IADD, begin, *cursor);
 
                 default:
                     (*cursor)--;
-                    return khToken_fromOperator(khOperatorToken_ADD);
+                    return khToken_fromOperator(khOperatorToken_ADD, begin, *cursor);
             }
 
         case U'-':
             switch (*(*cursor)++) {
                 case U'-':
-                    return khToken_fromOperator(khOperatorToken_DECREMENT);
+                    return khToken_fromOperator(khOperatorToken_DECREMENT, begin, *cursor);
 
                 case U'=':
-                    return khToken_fromOperator(khOperatorToken_ISUB);
+                    return khToken_fromOperator(khOperatorToken_ISUB, begin, *cursor);
 
                 case U'>':
-                    return khToken_fromDelimiter(khDelimiterToken_ARROW);
+                    return khToken_fromDelimiter(khDelimiterToken_ARROW, begin, *cursor);
 
                 default:
                     (*cursor)--;
-                    return khToken_fromOperator(khOperatorToken_SUB);
+                    return khToken_fromOperator(khOperatorToken_SUB, begin, *cursor);
             }
 
         case U'*':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_IMUL);
+                return khToken_fromOperator(khOperatorToken_IMUL, begin, *cursor);
             }
             else {
-                return khToken_fromOperator(khOperatorToken_MUL);
+                return khToken_fromOperator(khOperatorToken_MUL, begin, *cursor);
             }
 
         case U'/':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_IDIV);
+                return khToken_fromOperator(khOperatorToken_IDIV, begin, *cursor);
             }
             else {
-                return khToken_fromOperator(khOperatorToken_DIV);
+                return khToken_fromOperator(khOperatorToken_DIV, begin, *cursor);
             }
 
         case U'%':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_IMOD);
+                return khToken_fromOperator(khOperatorToken_IMOD, begin, *cursor);
             }
             else {
-                return khToken_fromOperator(khOperatorToken_MOD);
+                return khToken_fromOperator(khOperatorToken_MOD, begin, *cursor);
             }
 
         case U'^':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_IPOW);
+                return khToken_fromOperator(khOperatorToken_IPOW, begin, *cursor);
             }
             else {
-                return khToken_fromOperator(khOperatorToken_POW);
+                return khToken_fromOperator(khOperatorToken_POW, begin, *cursor);
             }
 
         case U'@':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_IDOT);
+                return khToken_fromOperator(khOperatorToken_IDOT, begin, *cursor);
             }
             else {
-                return khToken_fromOperator(khOperatorToken_DOT);
+                return khToken_fromOperator(khOperatorToken_DOT, begin, *cursor);
             }
 
         case U'=':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_EQUAL);
+                return khToken_fromOperator(khOperatorToken_EQUAL, begin, *cursor);
             }
             else {
-                return khToken_fromOperator(khOperatorToken_ASSIGN);
+                return khToken_fromOperator(khOperatorToken_ASSIGN, begin, *cursor);
             }
 
         case U'!':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_NOT_EQUAL);
+                return khToken_fromOperator(khOperatorToken_NOT_EQUAL, begin, *cursor);
             }
             else {
-                return khToken_fromDelimiter(khDelimiterToken_EXCLAMATION);
+                return khToken_fromDelimiter(khDelimiterToken_EXCLAMATION, begin, *cursor);
             }
 
         case U'<':
             switch (*(*cursor)++) {
                 case U'=':
-                    return khToken_fromOperator(khOperatorToken_ELESS);
+                    return khToken_fromOperator(khOperatorToken_ELESS, begin, *cursor);
 
                 case U'<':
                     if (**cursor == U'=') {
                         (*cursor)++;
-                        return khToken_fromOperator(khOperatorToken_IBIT_LSHIFT);
+                        return khToken_fromOperator(khOperatorToken_IBIT_LSHIFT, begin, *cursor);
                     }
                     else {
-                        return khToken_fromOperator(khOperatorToken_BIT_LSHIFT);
+                        return khToken_fromOperator(khOperatorToken_BIT_LSHIFT, begin, *cursor);
                     }
 
                 default:
                     (*cursor)--;
-                    return khToken_fromOperator(khOperatorToken_LESS);
+                    return khToken_fromOperator(khOperatorToken_LESS, begin, *cursor);
             }
 
         case U'>':
             switch (*(*cursor)++) {
                 case U'=':
-                    return khToken_fromOperator(khOperatorToken_EMORE);
+                    return khToken_fromOperator(khOperatorToken_EMORE, begin, *cursor);
 
                 case U'<':
                     if (**cursor == U'=') {
                         (*cursor)++;
-                        return khToken_fromOperator(khOperatorToken_IBIT_RSHIFT);
+                        return khToken_fromOperator(khOperatorToken_IBIT_RSHIFT, begin, *cursor);
                     }
                     else {
-                        return khToken_fromOperator(khOperatorToken_BIT_RSHIFT);
+                        return khToken_fromOperator(khOperatorToken_BIT_RSHIFT, begin, *cursor);
                     }
 
                 default:
                     (*cursor)--;
-                    return khToken_fromOperator(khOperatorToken_MORE);
+                    return khToken_fromOperator(khOperatorToken_MORE, begin, *cursor);
             }
 
         case U'~':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_IBIT_XOR);
+                return khToken_fromOperator(khOperatorToken_IBIT_XOR, begin, *cursor);
             }
             else {
                 // It's also khOperatorToken_BIT_XOR
-                return khToken_fromOperator(khOperatorToken_BIT_OR);
+                return khToken_fromOperator(khOperatorToken_BIT_OR, begin, *cursor);
             }
 
         case U'&':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_IBIT_AND);
+                return khToken_fromOperator(khOperatorToken_IBIT_AND, begin, *cursor);
             }
             else {
-                return khToken_fromOperator(khOperatorToken_BIT_AND);
+                return khToken_fromOperator(khOperatorToken_BIT_AND, begin, *cursor);
             }
 
         case U'|':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_IBIT_OR);
+                return khToken_fromOperator(khOperatorToken_IBIT_OR, begin, *cursor);
             }
             else {
-                return khToken_fromOperator(khOperatorToken_BIT_OR);
+                return khToken_fromOperator(khOperatorToken_BIT_OR, begin, *cursor);
             }
 
         // Null-terminator, string end
         case U'\0':
             (*cursor)--;
-            return khToken_fromEof();
+            return khToken_fromEof(begin, *cursor);
 
         default:
             (*cursor)--;
             ERROR_STR(U"unknown character");
-            return khToken_fromInvalid();
+            return khToken_fromInvalid(begin, *cursor + 1);
     }
 #undef CASE_DELIMITER
 }

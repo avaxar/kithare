@@ -146,6 +146,9 @@ khArray(char32_t) khOperatorToken_string(khOperatorToken operator_v);
 
 
 typedef struct {
+    char32_t* begin;
+    char32_t* end;
+
     khTokenType type;
     union {
         khArray(char32_t) identifier;
@@ -169,78 +172,82 @@ typedef struct {
 
 khToken khToken_copy(khToken* token);
 void khToken_delete(khToken* token);
-khArray(char32_t) khToken_string(khToken* token);
+khArray(char32_t) khToken_string(khToken* token, char32_t* origin);
 
-static inline khToken khToken_fromInvalid() {
-    return (khToken){.type = khTokenType_INVALID};
+static inline khToken khToken_fromInvalid(char32_t* begin, char32_t* end) {
+    return (khToken){.begin = begin, .end = end, .type = khTokenType_INVALID};
 }
 
-static inline khToken khToken_fromEof() {
-    return (khToken){.type = khTokenType_EOF};
+static inline khToken khToken_fromEof(char32_t* begin, char32_t* end) {
+    return (khToken){.begin = begin, .end = end, .type = khTokenType_EOF};
 }
 
-static inline khToken khToken_fromNewline() {
-    return (khToken){.type = khTokenType_NEWLINE};
+static inline khToken khToken_fromNewline(char32_t* begin, char32_t* end) {
+    return (khToken){.begin = begin, .end = end, .type = khTokenType_NEWLINE};
 }
 
-static inline khToken khToken_fromComment() {
-    return (khToken){.type = khTokenType_COMMENT};
+static inline khToken khToken_fromComment(char32_t* begin, char32_t* end) {
+    return (khToken){.begin = begin, .end = end, .type = khTokenType_COMMENT};
 }
 
-static inline khToken khToken_fromIdentifier(khArray(char32_t) identifier) {
-    return (khToken){.type = khTokenType_IDENTIFIER, .identifier = identifier};
+static inline khToken khToken_fromIdentifier(khArray(char32_t) identifier, char32_t* begin,
+                                             char32_t* end) {
+    return (khToken){
+        .begin = begin, .end = end, .type = khTokenType_IDENTIFIER, .identifier = identifier};
 }
 
-static inline khToken khToken_fromKeyword(khKeywordToken keyword) {
-    return (khToken){.type = khTokenType_KEYWORD, .keyword = keyword};
+static inline khToken khToken_fromKeyword(khKeywordToken keyword, char32_t* begin, char32_t* end) {
+    return (khToken){.begin = begin, .end = end, .type = khTokenType_KEYWORD, .keyword = keyword};
 }
 
-static inline khToken khToken_fromDelimiter(khDelimiterToken delimiter) {
-    return (khToken){.type = khTokenType_DELIMITER, .delimiter = delimiter};
+static inline khToken khToken_fromDelimiter(khDelimiterToken delimiter, char32_t* begin,
+                                            char32_t* end) {
+    return (khToken){.begin = begin, .end = end, .type = khTokenType_DELIMITER, .delimiter = delimiter};
 }
 
-static inline khToken khToken_fromOperator(khOperatorToken operator_v) {
-    return (khToken){.type = khTokenType_OPERATOR, .operator_v = operator_v};
+static inline khToken khToken_fromOperator(khOperatorToken operator_v, char32_t* begin, char32_t* end) {
+    return (khToken){
+        .begin = begin, .end = end, .type = khTokenType_OPERATOR, .operator_v = operator_v};
 }
 
-static inline khToken khToken_fromChar(char32_t char_v) {
-    return (khToken){.type = khTokenType_CHAR, .char_v = char_v};
+static inline khToken khToken_fromChar(char32_t char_v, char32_t* begin, char32_t* end) {
+    return (khToken){.begin = begin, .end = end, .type = khTokenType_CHAR, .char_v = char_v};
 }
 
-static inline khToken khToken_fromString(khArray(char32_t) string) {
-    return (khToken){.type = khTokenType_STRING, .string = string};
+static inline khToken khToken_fromString(khArray(char32_t) string, char32_t* begin, char32_t* end) {
+    return (khToken){.begin = begin, .end = end, .type = khTokenType_STRING, .string = string};
 }
 
-static inline khToken khToken_fromBuffer(khArray(uint8_t) buffer) {
-    return (khToken){.type = khTokenType_BUFFER, .buffer = buffer};
+static inline khToken khToken_fromBuffer(khArray(uint8_t) buffer, char32_t* begin, char32_t* end) {
+    return (khToken){.begin = begin, .end = end, .type = khTokenType_BUFFER, .buffer = buffer};
 }
 
-static inline khToken khToken_fromByte(uint8_t byte) {
-    return (khToken){.type = khTokenType_BYTE, .byte = byte};
+static inline khToken khToken_fromByte(uint8_t byte, char32_t* begin, char32_t* end) {
+    return (khToken){.begin = begin, .end = end, .type = khTokenType_BYTE, .byte = byte};
 }
 
-static inline khToken khToken_fromInteger(int64_t integer) {
-    return (khToken){.type = khTokenType_INTEGER, .integer = integer};
+static inline khToken khToken_fromInteger(int64_t integer, char32_t* begin, char32_t* end) {
+    return (khToken){.begin = begin, .end = end, .type = khTokenType_INTEGER, .integer = integer};
 }
 
-static inline khToken khToken_fromUinteger(uint64_t uinteger) {
-    return (khToken){.type = khTokenType_UINTEGER, .uinteger = uinteger};
+static inline khToken khToken_fromUinteger(uint64_t uinteger, char32_t* begin, char32_t* end) {
+    return (khToken){.begin = begin, .end = end, .type = khTokenType_UINTEGER, .uinteger = uinteger};
 }
 
-static inline khToken khToken_fromFloat(float float_v) {
-    return (khToken){.type = khTokenType_FLOAT, .float_v = float_v};
+static inline khToken khToken_fromFloat(float float_v, char32_t* begin, char32_t* end) {
+    return (khToken){.begin = begin, .end = end, .type = khTokenType_FLOAT, .float_v = float_v};
 }
 
-static inline khToken khToken_fromDouble(double double_v) {
-    return (khToken){.type = khTokenType_DOUBLE, .double_v = double_v};
+static inline khToken khToken_fromDouble(double double_v, char32_t* begin, char32_t* end) {
+    return (khToken){.begin = begin, .end = end, .type = khTokenType_DOUBLE, .double_v = double_v};
 }
 
-static inline khToken khToken_fromIfloat(float ifloat) {
-    return (khToken){.type = khTokenType_IFLOAT, .ifloat = ifloat};
+static inline khToken khToken_fromIfloat(float ifloat, char32_t* begin, char32_t* end) {
+    return (khToken){.begin = begin, .end = end, .type = khTokenType_IFLOAT, .ifloat = ifloat};
 }
 
-static inline khToken khToken_fromIdouble(double idouble) {
-    return (khToken){.type = khTokenType_IDOUBLE, .idouble = idouble};
+static inline khToken khToken_fromIdouble(double idouble, char32_t* begin, char32_t* end) {
+    return (khToken){.begin = begin, .end = end, .type = khTokenType_IDOUBLE, .idouble = idouble};
 }
 
 

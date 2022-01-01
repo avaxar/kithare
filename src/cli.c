@@ -23,16 +23,18 @@
 
 
 static void cli(khArray(khArray(char32_t)) args) {
-    khArray(char32_t) str = kh_string(U"def main(args: char[][]) -> int {\n"
-                                      U"    import std\n"
-                                      U"   print(\"Hello, world!\")\n"
-                                      U"}");
+    khArray(char32_t) str = kh_string(U"def main() {\n"
+                                      U"    callback := def(a: int, b: int) -> int {\n"
+                                      U"        return a + b\n"
+                                      U"    }\n"
+                                      U"    std.println(callback(62, 42))\n"
+                                      U"}\n");
     char32_t* str_ptr = str;
 
     khAst ast = kh_parse(&str_ptr);
 
     khArray(char32_t) string = khAst_string(&ast);
-    khPrintln(&string);
+    kh_println(&string);
     khArray_delete(&string);
 
     khAst_delete(&ast);
