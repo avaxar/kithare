@@ -281,12 +281,21 @@ void khToken_delete(khToken* token) {
     }
 }
 
-khArray(char32_t) khToken_string(khToken* token) {
+khArray(char32_t) khToken_string(khToken* token, char32_t* origin) {
     khArray(char32_t) string = khTokenType_string(token->type);
     khArray_append(&string, U'(');
 
-    khArray(char32_t) value;
+    khArray(char32_t) begin_str = kh_uintToString((token->begin - origin) / sizeof(char32_t), 10);
+    khArray_concatenate(&string, &begin_str, NULL);
+    khArray_delete(&begin_str);
+    kh_appendCstring(&string, U", ");
 
+    khArray(char32_t) end_str = kh_uintToString((token->end - origin) / sizeof(char32_t), 10);
+    khArray_concatenate(&string, &end_str, NULL);
+    khArray_delete(&end_str);
+    kh_appendCstring(&string, U", ");
+
+    khArray(char32_t) value;
     switch (token->type) {
         case khTokenType_IDENTIFIER:
             value = khArray_copy(&token->identifier, NULL);

@@ -568,9 +568,11 @@ void khAstVariableDeclaration_delete(khAstVariableDeclaration* declaration) {
     khArray_delete(&declaration->name);
     if (declaration->optional_type != NULL) {
         khAstExpression_delete(declaration->optional_type);
+        free(declaration->optional_type);
     }
     if (declaration->optional_initializer != NULL) {
         khAstExpression_delete(declaration->optional_initializer);
+        free(declaration->optional_initializer);
     }
 }
 
@@ -628,8 +630,14 @@ khAstLambdaExpression khAstLambdaExpression_copy(khAstLambdaExpression* lambda) 
 
 void khAstLambdaExpression_delete(khAstLambdaExpression* lambda) {
     khArray_delete(&lambda->arguments);
-    khAstExpression_delete(lambda->optional_variadic_argument);
-    khAstExpression_delete(lambda->optional_return_type);
+    if (lambda->optional_variadic_argument != NULL) {
+        khAstExpression_delete(lambda->optional_variadic_argument);
+        free(lambda->optional_variadic_argument);
+    }
+    if (lambda->optional_return_type != NULL) {
+        khAstExpression_delete(lambda->optional_return_type);
+        free(lambda->optional_return_type);
+    }
     khArray_delete(&lambda->content);
 }
 
@@ -1078,6 +1086,12 @@ khArray(char32_t) khAstExpression_string(khAstExpression* expression) {
             khArray_concatenate(&string, &ternary_str, NULL);
             khArray_delete(&ternary_str);
         } break;
+        case khAstExpressionType_COMPARISON: {
+            khArray(char32_t) comparison_str =
+                khAstComparisonExpression_string(&expression->comparison);
+            khArray_concatenate(&string, &comparison_str, NULL);
+            khArray_delete(&comparison_str);
+        } break;
         case khAstExpressionType_CALL: {
             khArray(char32_t) call_str = khAstCallExpression_string(&expression->call);
             khArray_concatenate(&string, &call_str, NULL);
@@ -1151,6 +1165,7 @@ void khAstImport_delete(khAstImport* import_v) {
     khArray_delete(&import_v->path);
     if (import_v->optional_alias != NULL) {
         khArray_delete(import_v->optional_alias);
+        free(import_v->optional_alias);
     }
 }
 
@@ -1245,9 +1260,11 @@ void khAstFunction_delete(khAstFunction* function) {
     khArray_delete(&function->arguments);
     if (function->optional_variadic_argument != NULL) {
         khAstExpression_delete(function->optional_variadic_argument);
+        free(function->optional_variadic_argument);
     }
     if (function->optional_return_type != NULL) {
         khAstExpression_delete(function->optional_return_type);
+        free(function->optional_return_type);
     }
     khArray_delete(&function->content);
 }
@@ -1337,6 +1354,7 @@ void khAstClass_delete(khAstClass* class_v) {
     khArray_delete(&class_v->template_arguments);
     if (class_v->optional_base_type != NULL) {
         khAstExpression_delete(class_v->optional_base_type);
+        free(class_v->optional_base_type);
     }
     khArray_delete(&class_v->content);
 }
@@ -1414,6 +1432,7 @@ void khAstStruct_delete(khAstStruct* struct_v) {
     khArray_delete(&struct_v->template_arguments);
     if (struct_v->optional_base_type != NULL) {
         khAstExpression_delete(struct_v->optional_base_type);
+        free(struct_v->optional_base_type);
     }
     khArray_delete(&struct_v->content);
 }

@@ -309,6 +309,9 @@ khArray(char32_t) khAstTemplatizeExpression_string(khAstTemplatizeExpression* te
 
 
 struct _khAstExpression {
+    char32_t* begin;
+    char32_t* end;
+
     khAstExpressionType type;
     union {
         khArray(char32_t) identifier;
@@ -513,6 +516,9 @@ khArray(char32_t) khAstReturn_string(khAstReturn* return_v);
 
 
 struct _khAst {
+    char32_t* begin;
+    char32_t* end;
+
     khAstType type;
     union {
         khAstExpression expression;
