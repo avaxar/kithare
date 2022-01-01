@@ -608,11 +608,10 @@ khArray(char32_t) khAstVariableDeclaration_string(khAstVariableDeclaration* decl
 
 
 khAstLambdaExpression khAstLambdaExpression_copy(khAstLambdaExpression* lambda) {
-    khAstVariableDeclaration* optional_variadic_argument = NULL;
+    khAstExpression* optional_variadic_argument = NULL;
     if (lambda->optional_variadic_argument != NULL) {
-        optional_variadic_argument =
-            (khAstVariableDeclaration*)malloc(sizeof(khAstVariableDeclaration));
-        *optional_variadic_argument = khAstVariableDeclaration_copy(lambda->optional_variadic_argument);
+        optional_variadic_argument = (khAstExpression*)malloc(sizeof(khAstExpression));
+        *optional_variadic_argument = khAstExpression_copy(lambda->optional_variadic_argument);
     }
 
     khAstExpression* optional_return_type = NULL;
@@ -621,8 +620,7 @@ khAstLambdaExpression khAstLambdaExpression_copy(khAstLambdaExpression* lambda) 
         *optional_return_type = khAstExpression_copy(lambda->optional_return_type);
     }
 
-    return (khAstLambdaExpression){.arguments =
-                                       khArray_copy(&lambda->arguments, khAstVariableDeclaration_copy),
+    return (khAstLambdaExpression){.arguments = khArray_copy(&lambda->arguments, khAstExpression_copy),
                                    .optional_variadic_argument = optional_variadic_argument,
                                    .optional_return_type = optional_return_type,
                                    .content = khArray_copy(&lambda->content, khAst_copy)};
@@ -630,7 +628,7 @@ khAstLambdaExpression khAstLambdaExpression_copy(khAstLambdaExpression* lambda) 
 
 void khAstLambdaExpression_delete(khAstLambdaExpression* lambda) {
     khArray_delete(&lambda->arguments);
-    khAstVariableDeclaration_delete(lambda->optional_variadic_argument);
+    khAstExpression_delete(lambda->optional_variadic_argument);
     khAstExpression_delete(lambda->optional_return_type);
     khArray_delete(&lambda->content);
 }
@@ -640,7 +638,8 @@ khArray(char32_t) khAstLambdaExpression_string(khAstLambdaExpression* lambda) {
 
     khArray_append(&string, U'(');
     for (size_t i = 0; i < khArray_size(&lambda->arguments); i++) {
-        khArray(char32_t) argument_str = khAstVariableDeclaration_string(&lambda->arguments[i]);
+        khArray(char32_t) argument_str =
+            khAstVariableDeclaration_string(&lambda->arguments[i].variable_declaration);
         khArray_concatenate(&string, &argument_str, NULL);
         khArray_delete(&argument_str);
 
@@ -652,7 +651,7 @@ khArray(char32_t) khAstLambdaExpression_string(khAstLambdaExpression* lambda) {
 
     if (lambda->optional_variadic_argument != NULL) {
         khArray(char32_t) variadic_argument_str =
-            khAstVariableDeclaration_string(lambda->optional_variadic_argument);
+            khAstVariableDeclaration_string(&lambda->optional_variadic_argument->variable_declaration);
         khArray_concatenate(&string, &variadic_argument_str, NULL);
         khArray_delete(&variadic_argument_str);
     }
@@ -1220,12 +1219,10 @@ khArray(char32_t) khAstInclude_string(khAstInclude* include) {
 
 
 khAstFunction khAstFunction_copy(khAstFunction* function) {
-    khAstVariableDeclaration* optional_variadic_argument = NULL;
+    khAstExpression* optional_variadic_argument = NULL;
     if (function->optional_variadic_argument != NULL) {
-        optional_variadic_argument =
-            (khAstVariableDeclaration*)malloc(sizeof(khAstVariableDeclaration));
-        *optional_variadic_argument =
-            khAstVariableDeclaration_copy(function->optional_variadic_argument);
+        optional_variadic_argument = (khAstExpression*)malloc(sizeof(khAstExpression));
+        *optional_variadic_argument = khAstExpression_copy(function->optional_variadic_argument);
     }
 
     khAstExpression* optional_return_type = NULL;
@@ -1237,8 +1234,7 @@ khAstFunction khAstFunction_copy(khAstFunction* function) {
     return (khAstFunction){.is_incase = function->is_incase,
                            .is_static = function->is_static,
                            .name_point = khAstExpression_copy(&function->name_point),
-                           .arguments =
-                               khArray_copy(&function->arguments, khAstVariableDeclaration_copy),
+                           .arguments = khArray_copy(&function->arguments, khAstExpression_copy),
                            .optional_variadic_argument = optional_variadic_argument,
                            .optional_return_type = optional_return_type,
                            .content = khArray_copy(&function->content, khAst_copy)};
@@ -1248,7 +1244,7 @@ void khAstFunction_delete(khAstFunction* function) {
     khAstExpression_delete(&function->name_point);
     khArray_delete(&function->arguments);
     if (function->optional_variadic_argument != NULL) {
-        khAstVariableDeclaration_delete(function->optional_variadic_argument);
+        khAstExpression_delete(function->optional_variadic_argument);
     }
     if (function->optional_return_type != NULL) {
         khAstExpression_delete(function->optional_return_type);
@@ -1268,7 +1264,8 @@ khArray(char32_t) khAstFunction_string(khAstFunction* function) {
 
     kh_appendCstring(&string, U", (");
     for (size_t i = 0; i < khArray_size(&function->arguments); i++) {
-        khArray(char32_t) argument_str = khAstVariableDeclaration_string(&function->arguments[i]);
+        khArray(char32_t) argument_str =
+            khAstVariableDeclaration_string(&function->arguments[i].variable_declaration);
         khArray_concatenate(&string, &argument_str, NULL);
         khArray_delete(&argument_str);
 
@@ -1279,8 +1276,8 @@ khArray(char32_t) khAstFunction_string(khAstFunction* function) {
     kh_appendCstring(&string, U"), ");
 
     if (function->optional_variadic_argument != NULL) {
-        khArray(char32_t) variadic_argument_str =
-            khAstVariableDeclaration_string(function->optional_variadic_argument);
+        khArray(char32_t) variadic_argument_str = khAstVariableDeclaration_string(
+            &function->optional_variadic_argument->variable_declaration);
         khArray_concatenate(&string, &variadic_argument_str, NULL);
         khArray_delete(&variadic_argument_str);
     }

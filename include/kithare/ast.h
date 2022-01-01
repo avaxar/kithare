@@ -255,8 +255,8 @@ khArray(char32_t) khAstVariableDeclaration_string(khAstVariableDeclaration* decl
 
 
 typedef struct {
-    khArray(khAstVariableDeclaration) arguments;
-    khAstVariableDeclaration* optional_variadic_argument;
+    khArray(khAstExpression) arguments;
+    khAstExpression* optional_variadic_argument;
     khAstExpression* optional_return_type;
     khArray(khAst) content;
 } khAstLambdaExpression;
@@ -373,8 +373,8 @@ typedef struct {
     bool is_incase;
     bool is_static;
     khAstExpression name_point;
-    khArray(khAstVariableDeclaration) arguments;
-    khAstVariableDeclaration* optional_variadic_argument;
+    khArray(khAstExpression) arguments;
+    khAstExpression* optional_variadic_argument;
     khAstExpression* optional_return_type;
     khArray(khAst) content;
 } khAstFunction;
