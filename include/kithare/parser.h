@@ -54,8 +54,8 @@ khAstExpression kh_exparseReverseUnary(char32_t** cursor, bool ignore_newline, b
 khAstExpression kh_exparseScopeTemplatization(char32_t** cursor, bool ignore_newline, bool filter_type);
 khAstExpression kh_exparseOther(char32_t** cursor, bool ignore_newline, bool filter_type);
 
-khAstVariableDeclaration kh_exparseVariableDeclaration(char32_t** cursor, bool ignore_newline);
-khAstLambdaExpression kh_exparseLambda(char32_t** cursor, bool ignore_newline);
+khAstExpression kh_exparseVariableDeclaration(char32_t** cursor, bool ignore_newline);
+khAstExpression kh_exparseLambda(char32_t** cursor, bool ignore_newline);
 khArray(khAstExpression)
     kh_exparseList(char32_t** cursor, khDelimiterToken opening_delimiter,
                    khDelimiterToken closing_delimiter, bool ignore_newline, bool filter_type);
