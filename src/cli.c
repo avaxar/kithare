@@ -14,12 +14,12 @@
 #include <windows.h>
 #endif
 
-#include <kithare/array.h>
-#include <kithare/ast.h>
-#include <kithare/io.h>
-#include <kithare/lexer.h>
-#include <kithare/parser.h>
-#include <kithare/string.h>
+#include <kithare/core/ast.h>
+#include <kithare/core/lexer.h>
+#include <kithare/core/parser.h>
+#include <kithare/lib/array.h>
+#include <kithare/lib/io.h>
+#include <kithare/lib/string.h>
 
 
 static void cli(khArray(khArray(char32_t)) args) {

@@ -10,13 +10,24 @@
 extern "C" {
 #endif
 
+#include <stdio.h>
+#include <wchar.h>
+
 #include "array.h"
-#include "ast.h"
+#include "string.h"
 
 
-khAst kh_parse(char32_t** cursor);
-khAstExpression kh_parseExpression(char32_t** cursor, bool ignore_newline, bool filter_type);
+static inline void kh_print(khArray(char32_t) * string) {
+    khArray(uint8_t) buffer = kh_encodeUtf8(string);
+    printf("%s", (char*)buffer);
+    khArray_delete(&buffer);
+}
 
+static inline void kh_println(khArray(char32_t) * string) {
+    khArray(uint8_t) buffer = kh_encodeUtf8(string);
+    printf("%s\n", (char*)buffer);
+    khArray_delete(&buffer);
+}
 
 #ifdef __cplusplus
 }

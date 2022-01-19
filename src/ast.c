@@ -7,8 +7,8 @@
 
 #include <stdlib.h>
 
-#include <kithare/ast.h>
-#include <kithare/string.h>
+#include <kithare/core/ast.h>
+#include <kithare/lib/string.h>
 
 
 khArray(char32_t) khAstType_string(khAstType type) {

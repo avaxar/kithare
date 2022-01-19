@@ -9,8 +9,8 @@
 #include <string.h>
 #include <wctype.h>
 
-#include <kithare/lexer.h>
-#include <kithare/string.h>
+#include <kithare/core/lexer.h>
+#include <kithare/lib/string.h>
 
 
 #define ERROR(MSG)                                                                \
