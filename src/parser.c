@@ -5,9 +5,9 @@
  * Copyright (C) 2021 Kithare Organization at https://www.kithare.de
  */
 
-#include <kithare/lexer.h>
-#include <kithare/parser.h>
-#include <kithare/token.h>
+#include <kithare/core/lexer.h>
+#include <kithare/core/parser.h>
+#include <kithare/core/token.h>
 
 
 // Sub-level parsing levels

@@ -5,8 +5,8 @@
  * Copyright (C) 2021 Kithare Organization at https://www.kithare.de
  */
 
-#include <kithare/string.h>
-#include <kithare/token.h>
+#include <kithare/core/token.h>
+#include <kithare/lib/string.h>
 
 
 khArray(char32_t) khTokenType_string(khTokenType type) {

@@ -10,11 +10,12 @@
 extern "C" {
 #endif
 
-#include "string.h"
+#include <kithare/lib/array.h>
 
 
-void kh_print(khArray(char32_t) * string);
-void kh_println(khArray(char32_t) * string);
+typedef struct {
+    khArray(char32_t) message;
+} khError;
 
 
 #ifdef __cplusplus

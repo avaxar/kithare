@@ -13,9 +13,9 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "array.h"
-#include "string.h"
-#include "token.h"
+#include <kithare/core/token.h>
+#include <kithare/lib/array.h>
+#include <kithare/lib/string.h>
 
 
 typedef struct {

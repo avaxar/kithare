@@ -10,12 +10,12 @@
 extern "C" {
 #endif
 
-#include "array.h"
+#include <kithare/core/ast.h>
+#include <kithare/lib/array.h>
 
 
-typedef struct {
-    khArray(char32_t) message;
-} khError;
+khAst kh_parse(char32_t** cursor);
+khAstExpression kh_parseExpression(char32_t** cursor, bool ignore_newline, bool filter_type);
 
 
 #ifdef __cplusplus
