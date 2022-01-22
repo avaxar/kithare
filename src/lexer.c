@@ -10,15 +10,16 @@
 #include <wctype.h>
 
 #include <kithare/core/lexer.h>
+#include <kithare/lib/buffer.h>
 #include <kithare/lib/string.h>
 
 
 #define ERROR(MSG)                                                                \
     if (errors) {                                                                 \
-        khArray_append(errors, ((khLexError){.ptr = *cursor, .error_str = MSG})); \
+        kharray_append(errors, ((khLexError){.ptr = *cursor, .error_str = MSG})); \
     }
 
-#define ERROR_STR(MSG) ERROR(kh_string(MSG))
+#define ERROR_STR(MSG) ERROR(khstring_new(MSG))
 
 
 static inline uint8_t digitOf(char32_t chr) {
@@ -39,7 +40,7 @@ static inline uint8_t digitOf(char32_t chr) {
     }
 }
 
-khToken kh_lex(char32_t** cursor, khArray(khLexError) * errors) {
+khToken kh_lex(char32_t** cursor, kharray(khLexError) * errors) {
     // Skips any whitespace
     while (iswspace(**cursor)) {
         // Special case for newline
@@ -69,15 +70,15 @@ khToken kh_lex(char32_t** cursor, khArray(khLexError) * errors) {
 
                 // Buffers: b"1234"
                 case U'"': {
-                    khArray(char32_t) string = kh_lexString(cursor, true, errors);
-                    khArray(uint8_t) buffer = khArray_new(uint8_t, NULL);
-                    khArray_reserve(&buffer, khArray_size(&string));
+                    khstring string = kh_lexString(cursor, true, errors);
+                    khbuffer buffer = khbuffer_new("");
+                    kharray_reserve(&buffer, khstring_size(&string));
 
-                    for (char32_t* chr = string; chr < string + khArray_size(&string); chr++) {
-                        khArray_append(&buffer, *chr);
+                    for (char32_t* chr = string; chr < string + khstring_size(&string); chr++) {
+                        khbuffer_append(&buffer, *chr);
                     }
 
-                    khArray_delete(&string);
+                    khstring_delete(&string);
                     return khToken_fromBuffer(buffer, begin, *cursor);
                 }
 
@@ -101,7 +102,7 @@ khToken kh_lex(char32_t** cursor, khArray(khLexError) * errors) {
             }
 
             case U'"': {
-                khArray(char32_t) string = kh_lexString(cursor, false, errors);
+                khstring string = kh_lexString(cursor, false, errors);
                 return khToken_fromString(string, begin, *cursor);
             }
 
@@ -119,7 +120,7 @@ khToken kh_lex(char32_t** cursor, khArray(khLexError) * errors) {
     }
 }
 
-khToken kh_lexWord(char32_t** cursor, khArray(khLexError) * errors) {
+khToken kh_lexWord(char32_t** cursor, kharray(khLexError) * errors) {
     char32_t* begin = *cursor;
 
     // Passes through alphanumeric characters in a row
@@ -127,12 +128,12 @@ khToken kh_lexWord(char32_t** cursor, khArray(khLexError) * errors) {
         (*cursor)++;
     }
 
-    khArray(char32_t) identifier = khArray_new(char32_t, NULL);
-    khArray_memory(&identifier, begin, *cursor - begin, NULL);
+    khstring identifier = khstring_new(U"");
+    kharray_memory(&identifier, begin, *cursor - begin, NULL);
 
 #define CASE_OPERATOR(STRING, OPERATOR)                        \
-    if (kh_compareCstring(&identifier, STRING)) {              \
-        khArray_delete(&identifier);                           \
+    if (khstring_compareCstring(&identifier, STRING)) {        \
+        khstring_delete(&identifier);                          \
         return khToken_fromOperator(OPERATOR, begin, *cursor); \
     }
 
@@ -142,8 +143,8 @@ khToken kh_lexWord(char32_t** cursor, khArray(khLexError) * errors) {
     CASE_OPERATOR(U"xor", khOperatorToken_XOR);
 
 #define CASE_KEYWORD(STRING, KEYWORD)                        \
-    if (kh_compareCstring(&identifier, STRING)) {            \
-        khArray_delete(&identifier);                         \
+    if (khstring_compareCstring(&identifier, STRING)) {      \
+        khstring_delete(&identifier);                        \
         return khToken_fromKeyword(KEYWORD, begin, *cursor); \
     }
 
@@ -178,7 +179,7 @@ khToken kh_lexWord(char32_t** cursor, khArray(khLexError) * errors) {
     return khToken_fromIdentifier(identifier, begin, *cursor);
 }
 
-khToken kh_lexNumber(char32_t** cursor, khArray(khLexError) * errors) {
+khToken kh_lexNumber(char32_t** cursor, kharray(khLexError) * errors) {
     char32_t* begin = *cursor;
 
     if (digitOf(**cursor) > 9) {
@@ -290,7 +291,7 @@ khToken kh_lexNumber(char32_t** cursor, khArray(khLexError) * errors) {
 }
 
 
-khToken kh_lexSymbol(char32_t** cursor, khArray(khLexError) * errors) {
+khToken kh_lexSymbol(char32_t** cursor, kharray(khLexError) * errors) {
     char32_t* begin = *cursor;
 
 #define CASE_DELIMITER(CHR, DELIMITER) \
@@ -491,7 +492,7 @@ khToken kh_lexSymbol(char32_t** cursor, khArray(khLexError) * errors) {
 #undef CASE_DELIMITER
 }
 
-char32_t kh_lexChar(char32_t** cursor, bool with_quotes, bool is_byte, khArray(khLexError) * errors) {
+char32_t kh_lexChar(char32_t** cursor, bool with_quotes, bool is_byte, kharray(khLexError) * errors) {
     char32_t chr = 0;
 
     if (with_quotes) {
@@ -655,8 +656,8 @@ char32_t kh_lexChar(char32_t** cursor, bool with_quotes, bool is_byte, khArray(k
     return chr;
 }
 
-khArray(char32_t) kh_lexString(char32_t** cursor, bool is_buffer, khArray(khLexError) * errors) {
-    khArray(char32_t) string = khArray_new(char32_t, NULL);
+khstring kh_lexString(char32_t** cursor, bool is_buffer, kharray(khLexError) * errors) {
+    khstring string = khstring_new(U"");
     bool multiline = false;
 
     if (**cursor == U'"') {
@@ -683,7 +684,7 @@ khArray(char32_t) kh_lexString(char32_t** cursor, bool is_buffer, khArray(khLexE
                     }
                     else {
                         (*cursor)++;
-                        khArray_append(&string, U'"');
+                        khstring_append(&string, U'"');
                     }
                 }
                 else {
@@ -696,7 +697,7 @@ khArray(char32_t) kh_lexString(char32_t** cursor, bool is_buffer, khArray(khLexE
             case U'\n':
                 if (multiline) {
                     (*cursor)++;
-                    khArray_append(&string, U'\n');
+                    khstring_append(&string, U'\n');
                 }
                 else {
                     ERROR_STR(U"a newline instead of an inline character, use U'\\n' or a multiline "
@@ -711,7 +712,7 @@ khArray(char32_t) kh_lexString(char32_t** cursor, bool is_buffer, khArray(khLexE
 
             // Use kh_lexChar for other character encounters
             default:
-                khArray_append(&string, kh_lexChar(cursor, false, is_buffer, errors));
+                khstring_append(&string, kh_lexChar(cursor, false, is_buffer, errors));
                 break;
         }
     }

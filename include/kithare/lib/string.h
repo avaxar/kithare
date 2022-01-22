@@ -27,34 +27,72 @@ typedef __CHAR32_TYPE__ char32_t;
 #include "array.h"
 
 
-static inline khArray(char32_t) kh_string(const char32_t* cstring) {
+typedef kharray(uint8_t) khbuffer;
+typedef kharray(char32_t) khstring;
+
+
+static inline khstring khstring_new(const char32_t* cstring) {
     size_t size = 0;
     for (; cstring[size] != U'\0'; size++) {}
 
-    khArray(char32_t) string = khArray_new(char32_t, NULL);
-    khArray_memory(&string, (char32_t*)cstring, size, NULL);
+    khstring string = kharray_new(char32_t, NULL);
+    kharray_memory(&string, (char32_t*)cstring, size, NULL);
 
     return string;
 }
 
-static inline khArray(uint8_t) kh_buffer(const char* cstring) {
-    khArray(uint8_t) buffer = khArray_new(uint8_t, NULL);
-    khArray_memory(&buffer, (uint8_t*)cstring, strlen(cstring), NULL);
-    return buffer;
+static inline khstring khstring_copy(khstring* string) {
+    return kharray_copy(string, NULL);
 }
 
-static inline void kh_appendCstring(khArray(char32_t) * string, const char32_t* cstring) {
+static inline void khstring_delete(khstring* string) {
+    kharray_delete(string);
+}
+
+static inline size_t khstring_size(khstring* string) {
+    return kharray_size(string);
+}
+
+static inline size_t khstring_reserved(khstring* string) {
+    return kharray_reserved(string);
+}
+
+static inline void khstring_reserve(khstring* string, size_t size) {
+    kharray_reserve(string, size);
+}
+
+static inline void khstring_fit(khstring* string) {
+    kharray_fit(string);
+}
+
+static inline void khstring_pop(khstring* string, size_t items) {
+    kharray_pop(string, items);
+}
+
+static inline void khstring_reverse(khstring* string) {
+    kharray_reverse(string);
+}
+
+static inline void khstring_append(khstring* string, char32_t chr) {
+    kharray_append(string, chr);
+}
+
+static inline void khstring_concatenate(khstring* string, khstring* other) {
+    kharray_concatenate(string, other, NULL);
+}
+
+static inline void khstring_concatenateCstring(khstring* string, const char32_t* cstring) {
     size_t size = 0;
     for (; cstring[size] != U'\0'; size++) {}
-    khArray_memory(string, (char32_t*)cstring, size, NULL);
+    kharray_memory(string, (char32_t*)cstring, size, NULL);
 }
 
-static inline bool kh_compareString(khArray(char32_t) * a, khArray(char32_t) * b) {
-    if (khArray_size(a) != khArray_size(b)) {
+static inline bool khstring_compare(khstring* a, khstring* b) {
+    if (khstring_size(a) != khstring_size(b)) {
         return false;
     }
 
-    for (size_t i = 0; i < khArray_size(a); i++) {
+    for (size_t i = 0; i < khstring_size(a); i++) {
         if ((*a)[i] != (*b)[i]) {
             return false;
         }
@@ -63,15 +101,15 @@ static inline bool kh_compareString(khArray(char32_t) * a, khArray(char32_t) * b
     return true;
 }
 
-static inline bool kh_compareCstring(khArray(char32_t) * a, const char32_t* b) {
+static inline bool khstring_compareCstring(khstring* a, const char32_t* b) {
     size_t length = 0;
     for (; b[length] != '\0'; length++) {}
 
-    if (khArray_size(a) != length) {
+    if (khstring_size(a) != length) {
         return false;
     }
 
-    for (size_t i = 0; i < khArray_size(a); i++) {
+    for (size_t i = 0; i < khstring_size(a); i++) {
         if ((*a)[i] != b[i]) {
             return false;
         }
@@ -80,88 +118,74 @@ static inline bool kh_compareCstring(khArray(char32_t) * a, const char32_t* b) {
     return true;
 }
 
-static inline bool kh_compareBuffer(khArray(uint8_t) * a, khArray(uint8_t) * b) {
-    if (khArray_size(a) != khArray_size(b)) {
-        return false;
-    }
-
-    for (size_t i = 0; i < khArray_size(a); i++) {
-        if ((*a)[i] != (*b)[i]) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-static inline khArray(char32_t) kh_uintToString(uint64_t uint_v, uint8_t base) {
-    khArray(char32_t) string = khArray_new(char32_t, NULL);
+static inline khstring kh_uintToString(uint64_t uint_v, uint8_t base) {
+    khstring string = khstring_new(U"");
 
     uint64_t value = uint_v;
     while (value > 0) {
         uint8_t digit = value % base;
-        khArray_append(&string, (digit < 10 ? U'0' + digit : U'A' + digit - 10));
+        khstring_append(&string, (digit < 10 ? U'0' + digit : U'A' + digit - 10));
         value /= base;
     }
 
-    if (khArray_size(&string) == 0) {
-        khArray_append(&string, U'0');
+    if (khstring_size(&string) == 0) {
+        khstring_append(&string, U'0');
     }
 
-    khArray_reverse(&string);
+    kharray_reverse(&string);
     return string;
 }
 
-static inline khArray(char32_t) kh_intToString(int64_t int_v, uint8_t base) {
-    khArray(char32_t) string = khArray_new(char32_t, NULL);
+static inline khstring kh_intToString(int64_t int_v, uint8_t base) {
+    khstring string = khstring_new(U"");
 
     if (int_v < 0) {
-        khArray_append(&string, U'-');
+        khstring_append(&string, U'-');
         int_v *= -1;
     }
 
-    khArray(char32_t) str = kh_uintToString(int_v, base);
-    khArray_concatenate(&string, &str, NULL);
-    khArray_delete(&str);
+    khstring str = kh_uintToString(int_v, base);
+    khstring_concatenate(&string, &str);
+    khstring_delete(&str);
 
     return string;
 }
 
-static inline khArray(char32_t) kh_floatToString(double floating, uint8_t precision, uint8_t base) {
-    khArray(char32_t) string = khArray_new(char32_t, NULL);
+static inline khstring kh_floatToString(double floating, uint8_t precision, uint8_t base) {
+    khstring string = khstring_new(U"");
 
     if (floating < 0) {
-        khArray_append(&string, U'-');
+        khstring_append(&string, U'-');
         floating *= -1;
     }
 
     if (isinf(floating)) {
-        kh_appendCstring(&string, U"inf");
+        khstring_concatenateCstring(&string, U"inf");
     }
     else if (isnan(floating)) {
-        kh_appendCstring(&string, U"nan");
+        khstring_concatenateCstring(&string, U"nan");
     }
     else {
         double value = floating;
         while (value >= 1) {
             uint8_t digit = (uint8_t)fmod(value, base);
-            khArray_append(&string, (digit < 10 ? U'0' + digit : U'A' + digit - 10));
+            khstring_append(&string, (digit < 10 ? U'0' + digit : U'A' + digit - 10));
             value /= base;
         }
 
-        khArray_reverse(&string);
-        if (khArray_size(&string) == 0) {
-            khArray_append(&string, U'0');
+        kharray_reverse(&string);
+        if (khstring_size(&string) == 0) {
+            khstring_append(&string, U'0');
         }
 
         if (precision > 0) {
-            khArray_append(&string, U'.');
+            khstring_append(&string, U'.');
 
             value = floating;
             for (uint8_t i = 0; i < precision; i++) {
                 value *= base;
                 uint8_t digit = (uint8_t)fmod(value, base);
-                khArray_append(&string, (digit < 10 ? U'0' + digit : U'A' + digit - 10));
+                khstring_append(&string, (digit < 10 ? U'0' + digit : U'A' + digit - 10));
             }
         }
     }
@@ -210,134 +234,121 @@ static inline char32_t kh_utf8(uint8_t** cursor) {
     return chr;
 }
 
-static inline khArray(uint8_t) kh_encodeUtf8(khArray(char32_t) * string) {
-    khArray(uint8_t) buffer = khArray_new(uint8_t, NULL);
-    khArray_reserve(&buffer, khArray_size(string));
+static inline khbuffer kh_encodeUtf8(khstring* string) {
+    khbuffer buffer = kharray_new(uint8_t, NULL); // Can't use `khbuffer_new`
+    kharray_reserve(&buffer, khstring_size(string));
 
-    for (char32_t* chr = *string; chr < *string + khArray_size(string); chr++) {
+    // Can't use `khbuffer_append`
+    for (char32_t* chr = *string; chr < *string + khstring_size(string); chr++) {
         if (*chr > 0xFFFF) {
-            khArray_append(&buffer, 0b11110000 | (uint8_t)(0b00000111 & (*chr >> 18)));
-            khArray_append(&buffer, 0b10000000 | (uint8_t)(0b00111111 & (*chr >> 12)));
-            khArray_append(&buffer, 0b10000000 | (uint8_t)(0b00111111 & (*chr >> 6)));
-            khArray_append(&buffer, 0b10000000 | (uint8_t)(0b00111111 & *chr));
+            kharray_append(&buffer, 0b11110000 | (uint8_t)(0b00000111 & (*chr >> 18)));
+            kharray_append(&buffer, 0b10000000 | (uint8_t)(0b00111111 & (*chr >> 12)));
+            kharray_append(&buffer, 0b10000000 | (uint8_t)(0b00111111 & (*chr >> 6)));
+            kharray_append(&buffer, 0b10000000 | (uint8_t)(0b00111111 & *chr));
         }
         else if (*chr > 0x7FF) {
-            khArray_append(&buffer, 0b11100000 | (uint8_t)(0b00001111 & (*chr >> 12)));
-            khArray_append(&buffer, 0b10000000 | (uint8_t)(0b00111111 & (*chr >> 6)));
-            khArray_append(&buffer, 0b10000000 | (uint8_t)(0b00111111 & *chr));
+            kharray_append(&buffer, 0b11100000 | (uint8_t)(0b00001111 & (*chr >> 12)));
+            kharray_append(&buffer, 0b10000000 | (uint8_t)(0b00111111 & (*chr >> 6)));
+            kharray_append(&buffer, 0b10000000 | (uint8_t)(0b00111111 & *chr));
         }
         else if (*chr > 0x7F) {
-            khArray_append(&buffer, 0b11000000 | (uint8_t)(0b00011111 & (*chr >> 6)));
-            khArray_append(&buffer, 0b10000000 | (uint8_t)(0b00111111 & *chr));
+            kharray_append(&buffer, 0b11000000 | (uint8_t)(0b00011111 & (*chr >> 6)));
+            kharray_append(&buffer, 0b10000000 | (uint8_t)(0b00111111 & *chr));
         }
         else {
-            khArray_append(&buffer, *chr);
+            kharray_append(&buffer, *chr);
         }
     }
 
     return buffer;
 }
 
-static inline khArray(char32_t) kh_decodeUtf8(khArray(uint8_t) * buffer) {
-    khArray(char32_t) string = khArray_new(char32_t, NULL);
-    khArray_reserve(&string, khArray_size(buffer));
+static inline khstring kh_decodeUtf8(khbuffer* buffer) {
+    khstring string = khstring_new(U"");
+    kharray_reserve(&string, kharray_size(buffer)); // Can't use khbuffer_size
 
     uint8_t* cursor = *buffer;
-    while (cursor != *buffer + khArray_size(buffer)) {
-        khArray_append(&string, kh_utf8(&cursor));
+    while (cursor != *buffer + kharray_size(buffer)) {
+        khstring_append(&string, kh_utf8(&cursor));
     }
 
     return string;
 }
 
-static inline khArray(char32_t) kh_escapeChar(char32_t chr) {
+static inline khstring kh_escapeChar(char32_t chr) {
     switch (chr) {
         // Regular single character escapes
         case U'\0':
-            return kh_string(U"\\0");
+            return khstring_new(U"\\0");
         case U'\n':
-            return kh_string(U"\\n");
+            return khstring_new(U"\\n");
         case U'\r':
-            return kh_string(U"\\r");
+            return khstring_new(U"\\r");
         case U'\t':
-            return kh_string(U"\\t");
+            return khstring_new(U"\\t");
         case U'\v':
-            return kh_string(U"\\v");
+            return khstring_new(U"\\v");
         case U'\b':
-            return kh_string(U"\\b");
+            return khstring_new(U"\\b");
         case U'\a':
-            return kh_string(U"\\a");
+            return khstring_new(U"\\a");
         case U'\f':
-            return kh_string(U"\\f");
+            return khstring_new(U"\\f");
         case U'\\':
-            return kh_string(U"\\\\");
+            return khstring_new(U"\\\\");
         case U'\'':
-            return kh_string(U"\\\'");
+            return khstring_new(U"\\\'");
         case U'\"':
-            return kh_string(U"\\\"");
+            return khstring_new(U"\\\"");
 
         default: {
-            khArray(char32_t) string = khArray_new(char32_t, NULL);
+            khstring string = khstring_new(U"");
 
             if (iswprint(chr)) {
-                khArray_append(&string, chr);
+                khstring_append(&string, chr);
                 return string;
             }
 
             uint8_t chars;
             if (chr < 0x100) {
-                kh_appendCstring(&string, U"\\x");
+                khstring_concatenateCstring(&string, U"\\x");
                 chars = 2;
             }
             else if (chr < 0x10000) {
-                kh_appendCstring(&string, U"\\u");
+                khstring_concatenateCstring(&string, U"\\u");
                 chars = 4;
             }
             else {
-                kh_appendCstring(&string, U"\\U");
+                khstring_concatenateCstring(&string, U"\\U");
                 chars = 8;
             }
 
             // Fills the placeholder zeroes \x0AAA
-            khArray(char32_t) hex = kh_uintToString(chr, 16);
-            for (uint8_t i = 0; i < (uint8_t)khArray_size(&hex) - chars; i++) {
-                khArray_append(&string, U'0');
+            khstring hex = kh_uintToString(chr, 16);
+            for (uint8_t i = 0; i < (uint8_t)khstring_size(&hex) - chars; i++) {
+                khstring_append(&string, U'0');
             }
 
-            khArray_concatenate(&string, &hex, NULL);
-            khArray_delete(&hex);
+            khstring_concatenate(&string, &hex);
+            khstring_delete(&hex);
 
             return string;
         }
     }
 }
 
-static inline khArray(char32_t) kh_quoteString(khArray(char32_t) * string) {
-    khArray(char32_t) quoted_string = khArray_new(char32_t, NULL);
+static inline khstring khstring_quote(khstring* string) {
+    khstring quoted_string = khstring_new(U"");
 
-    khArray_append(&quoted_string, U'\"');
-    for (char32_t* chr = *string; chr < *string + khArray_size(string); chr++) {
-        khArray(char32_t) escaped = kh_escapeChar(*chr);
-        khArray_concatenate(&quoted_string, &escaped, NULL);
-        khArray_delete(&escaped);
+    khstring_append(&quoted_string, U'\"');
+    for (char32_t* chr = *string; chr < *string + khstring_size(string); chr++) {
+        khstring escaped = kh_escapeChar(*chr);
+        khstring_concatenate(&quoted_string, &escaped);
+        khstring_delete(&escaped);
     }
-    khArray_append(&quoted_string, U'\"');
+    khstring_append(&quoted_string, U'\"');
 
     return quoted_string;
-}
-
-static inline khArray(char32_t) kh_quoteBuffer(khArray(uint8_t) * buffer) {
-    khArray(char32_t) quoted_buffer = khArray_new(char32_t, NULL);
-
-    khArray_append(&quoted_buffer, U'\"');
-    for (uint8_t* byte = *buffer; byte < *buffer + khArray_size(buffer); byte++) {
-        khArray(char32_t) escaped = kh_escapeChar(*byte);
-        khArray_concatenate(&quoted_buffer, &escaped, NULL);
-        khArray_delete(&escaped);
-    }
-    khArray_append(&quoted_buffer, U'\"');
-
-    return quoted_buffer;
 }
 
 

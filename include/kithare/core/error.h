@@ -14,7 +14,7 @@ extern "C" {
 
 
 typedef struct {
-    khArray(char32_t) message;
+    khstring message;
 } khError;
 
 

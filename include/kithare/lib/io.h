@@ -14,19 +14,20 @@ extern "C" {
 #include <wchar.h>
 
 #include "array.h"
+#include "buffer.h"
 #include "string.h"
 
 
-static inline void kh_print(khArray(char32_t) * string) {
-    khArray(uint8_t) buffer = kh_encodeUtf8(string);
+static inline void kh_print(khstring* string) {
+    khbuffer buffer = kh_encodeUtf8(string);
     printf("%s", (char*)buffer);
-    khArray_delete(&buffer);
+    khbuffer_delete(&buffer);
 }
 
-static inline void kh_println(khArray(char32_t) * string) {
-    khArray(uint8_t) buffer = kh_encodeUtf8(string);
+static inline void kh_println(khstring* string) {
+    khbuffer buffer = kh_encodeUtf8(string);
     printf("%s\n", (char*)buffer);
-    khArray_delete(&buffer);
+    khbuffer_delete(&buffer);
 }
 
 #ifdef __cplusplus
