@@ -13,6 +13,7 @@ extern "C" {
 #include <stdint.h>
 
 #include <kithare/lib/array.h>
+#include <kithare/lib/buffer.h>
 #include <kithare/lib/string.h>
 
 
@@ -40,7 +41,7 @@ typedef enum {
     khTokenType_IDOUBLE
 } khTokenType;
 
-khArray(char32_t) khTokenType_string(khTokenType type);
+khstring khTokenType_string(khTokenType type);
 
 
 typedef enum {
@@ -70,7 +71,7 @@ typedef enum {
     khKeywordToken_RETURN
 } khKeywordToken;
 
-khArray(char32_t) khKeywordToken_string(khKeywordToken keyword);
+khstring khKeywordToken_string(khKeywordToken keyword);
 
 
 typedef enum {
@@ -91,7 +92,7 @@ typedef enum {
     khDelimiterToken_ELLIPSIS
 } khDelimiterToken;
 
-khArray(char32_t) khDelimiterToken_string(khDelimiterToken delimiter);
+khstring khDelimiterToken_string(khDelimiterToken delimiter);
 
 
 typedef enum {
@@ -142,7 +143,7 @@ typedef enum {
     khOperatorToken_IBIT_RSHIFT
 } khOperatorToken;
 
-khArray(char32_t) khOperatorToken_string(khOperatorToken operator_v);
+khstring khOperatorToken_string(khOperatorToken operator_v);
 
 
 typedef struct {
@@ -151,14 +152,14 @@ typedef struct {
 
     khTokenType type;
     union {
-        khArray(char32_t) identifier;
+        khstring identifier;
         khKeywordToken keyword;
         khDelimiterToken delimiter;
         khOperatorToken operator_v;
 
         char32_t char_v;
-        khArray(char32_t) string;
-        khArray(uint8_t) buffer;
+        khstring string;
+        khbuffer buffer;
 
         uint8_t byte;
         int64_t integer;
@@ -172,7 +173,7 @@ typedef struct {
 
 khToken khToken_copy(khToken* token);
 void khToken_delete(khToken* token);
-khArray(char32_t) khToken_string(khToken* token, char32_t* origin);
+khstring khToken_string(khToken* token, char32_t* origin);
 
 static inline khToken khToken_fromInvalid(char32_t* begin, char32_t* end) {
     return (khToken){.begin = begin, .end = end, .type = khTokenType_INVALID};
@@ -190,8 +191,7 @@ static inline khToken khToken_fromComment(char32_t* begin, char32_t* end) {
     return (khToken){.begin = begin, .end = end, .type = khTokenType_COMMENT};
 }
 
-static inline khToken khToken_fromIdentifier(khArray(char32_t) identifier, char32_t* begin,
-                                             char32_t* end) {
+static inline khToken khToken_fromIdentifier(khstring identifier, char32_t* begin, char32_t* end) {
     return (khToken){
         .begin = begin, .end = end, .type = khTokenType_IDENTIFIER, .identifier = identifier};
 }
@@ -214,11 +214,11 @@ static inline khToken khToken_fromChar(char32_t char_v, char32_t* begin, char32_
     return (khToken){.begin = begin, .end = end, .type = khTokenType_CHAR, .char_v = char_v};
 }
 
-static inline khToken khToken_fromString(khArray(char32_t) string, char32_t* begin, char32_t* end) {
+static inline khToken khToken_fromString(khstring string, char32_t* begin, char32_t* end) {
     return (khToken){.begin = begin, .end = end, .type = khTokenType_STRING, .string = string};
 }
 
-static inline khToken khToken_fromBuffer(khArray(uint8_t) buffer, char32_t* begin, char32_t* end) {
+static inline khToken khToken_fromBuffer(khbuffer buffer, char32_t* begin, char32_t* end) {
     return (khToken){.begin = begin, .end = end, .type = khTokenType_BUFFER, .buffer = buffer};
 }
 

@@ -20,52 +20,52 @@ typedef struct {
     size_t size;
     size_t reserved;
     void (*deleter)(void*);
-} _khArrayHeader;
+} _kharrayHeader;
 
 
 // Getter macros from the header
-#define khArray(TYPE) TYPE* // Type alias
-#define khArray_header(ARRAY) (((_khArrayHeader*)(*ARRAY))[-1])
-#define khArray_typeSize(ARRAY) (khArray_header(ARRAY).type_size)
-#define khArray_size(ARRAY) (khArray_header(ARRAY).size)
-#define khArray_reserved(ARRAY) (khArray_header(ARRAY).reserved)
-#define khArray_deleter(ARRAY) (khArray_header(ARRAY).deleter)
+#define kharray(TYPE) TYPE* // Type alias
+#define kharray_header(ARRAY) (((_kharrayHeader*)(*ARRAY))[-1])
+#define kharray_typeSize(ARRAY) (kharray_header(ARRAY).type_size)
+#define kharray_size(ARRAY) (kharray_header(ARRAY).size)
+#define kharray_reserved(ARRAY) (kharray_header(ARRAY).reserved)
+#define kharray_deleter(ARRAY) (kharray_header(ARRAY).deleter)
 
 
-#define khArray_new(TYPE, DELETER) (TYPE*)_khArray_new(sizeof(TYPE), (void (*)(void*))(DELETER))
-static inline void* _khArray_new(size_t type_size, void (*deleter)(void*)) {
+#define kharray_new(TYPE, DELETER) (TYPE*)_kharray_new(sizeof(TYPE), (void (*)(void*))(DELETER))
+static inline void* _kharray_new(size_t type_size, void (*deleter)(void*)) {
     // Don't forget to allocate an extra null-terminator space in case it's a string
-    void* array = calloc(sizeof(_khArrayHeader) + type_size, 1);
-    *(_khArrayHeader*)array =
-        (_khArrayHeader){.type_size = type_size, .size = 0, .reserved = 0, .deleter = deleter};
-    return array + sizeof(_khArrayHeader);
+    void* array = calloc(sizeof(_kharrayHeader) + type_size, 1);
+    *(_kharrayHeader*)array =
+        (_kharrayHeader){.type_size = type_size, .size = 0, .reserved = 0, .deleter = deleter};
+    return array + sizeof(_kharrayHeader);
 }
 
 // The gnu11 standard must be used with some of the macros here. Since some utilize `typeof` and
 // statement-expressions, which are not available in vanilla C
-#define khArray_copy(ARRAY, COPIER)                                                                \
+#define kharray_copy(ARRAY, COPIER)                                                                \
     ({                                                                                             \
         typeof(ARRAY) __kh_array_ptr = ARRAY;                                                      \
         typeof(*__kh_array_ptr) __kh_array = *__kh_array_ptr;                                      \
                                                                                                    \
         /* The copied array */                                                                     \
         typeof(__kh_array) __kh_copy =                                                             \
-            calloc(sizeof(_khArrayHeader) +                                                        \
-                       khArray_typeSize(__kh_array_ptr) * (khArray_size(__kh_array_ptr) + 1),      \
+            calloc(sizeof(_kharrayHeader) +                                                        \
+                       kharray_typeSize(__kh_array_ptr) * (kharray_size(__kh_array_ptr) + 1),      \
                    1);                                                                             \
                                                                                                    \
         /* Placing the array header and fitting the reserve count, then offsetting the copy */     \
-        *(_khArrayHeader*)__kh_copy = khArray_header(__kh_array_ptr);                              \
-        ((_khArrayHeader*)__kh_copy)->reserved = khArray_size(__kh_array_ptr);                     \
-        __kh_copy = (typeof(__kh_array))((_khArrayHeader*)__kh_copy + 1);                          \
+        *(_kharrayHeader*)__kh_copy = kharray_header(__kh_array_ptr);                              \
+        ((_kharrayHeader*)__kh_copy)->reserved = kharray_size(__kh_array_ptr);                     \
+        __kh_copy = (typeof(__kh_array))((_kharrayHeader*)__kh_copy + 1);                          \
                                                                                                    \
         /* Call the copy constructor of each element, unless it's NULL */                          \
         if (COPIER == NULL) {                                                                      \
             memcpy(__kh_copy, __kh_array,                                                          \
-                   khArray_typeSize(__kh_array_ptr) * khArray_size(__kh_array_ptr));               \
+                   kharray_typeSize(__kh_array_ptr) * kharray_size(__kh_array_ptr));               \
         }                                                                                          \
         else {                                                                                     \
-            for (size_t __kh_i = 0; __kh_i < khArray_size(__kh_array_ptr); __kh_i++) {             \
+            for (size_t __kh_i = 0; __kh_i < kharray_size(__kh_array_ptr); __kh_i++) {             \
                 __kh_copy[__kh_i] =                                                                \
                     ((typeof (*__kh_array) (*)(typeof(__kh_array)))(COPIER))(&__kh_array[__kh_i]); \
             }                                                                                      \
@@ -85,105 +85,105 @@ static inline void* _khArray_new(size_t type_size, void (*deleter)(void*)) {
     })
 
 
-#define khArray_delete(ARRAY) _khArray_delete(_kh_verifyPtrToPtr(ARRAY))
-#define khArray_arrayDeleter(TYPE) ((void (*)(TYPE**))_khArray_delete)
-static inline void _khArray_delete(void** array) {
-    if (khArray_deleter(array) != NULL) {
+#define kharray_delete(ARRAY) _kharray_delete(_kh_verifyPtrToPtr(ARRAY))
+#define kharray_arrayDeleter(TYPE) ((void (*)(TYPE**))_kharray_delete)
+static inline void _kharray_delete(void** array) {
+    if (kharray_deleter(array) != NULL) {
         // Increment by type size
-        for (size_t i = 0; i < khArray_typeSize(array) * khArray_size(array);
-             i += khArray_typeSize(array)) {
-            khArray_deleter(array)(*array + i);
+        for (size_t i = 0; i < kharray_typeSize(array) * kharray_size(array);
+             i += kharray_typeSize(array)) {
+            kharray_deleter(array)(*array + i);
         }
     }
 
     // Don't forget to undo the header offset before freeing it
-    free(*array - sizeof(_khArrayHeader));
+    free(*array - sizeof(_kharrayHeader));
     *array = NULL;
 }
 
-#define khArray_reserve(ARRAY, SIZE) _khArray_reserve(_kh_verifyPtrToPtr(ARRAY), SIZE)
-static inline void _khArray_reserve(void** array, size_t size) {
-    if (khArray_reserved(array) >= size) {
+#define kharray_reserve(ARRAY, SIZE) _kharray_reserve(_kh_verifyPtrToPtr(ARRAY), SIZE)
+static inline void _kharray_reserve(void** array, size_t size) {
+    if (kharray_reserved(array) >= size) {
         return;
     }
 
     // Also, don't forget the null-terminator space
-    void* expanded_array = calloc(sizeof(_khArrayHeader) + khArray_typeSize(array) * (size + 1), 1);
-    *(_khArrayHeader*)expanded_array = khArray_header(array);
-    memcpy(expanded_array + sizeof(_khArrayHeader), *array,
-           khArray_typeSize(array) * khArray_size(array));
+    void* expanded_array = calloc(sizeof(_kharrayHeader) + kharray_typeSize(array) * (size + 1), 1);
+    *(_kharrayHeader*)expanded_array = kharray_header(array);
+    memcpy(expanded_array + sizeof(_kharrayHeader), *array,
+           kharray_typeSize(array) * kharray_size(array));
     // Undo offset, free!
-    free(*array - sizeof(_khArrayHeader));
+    free(*array - sizeof(_kharrayHeader));
 
-    ((_khArrayHeader*)expanded_array)->reserved = size;
-    *array = expanded_array + sizeof(_khArrayHeader);
+    ((_kharrayHeader*)expanded_array)->reserved = size;
+    *array = expanded_array + sizeof(_kharrayHeader);
 }
 
-#define khArray_fit(ARRAY) _khArray_fit(_kh_verifyPtrToPtr(ARRAY));
-static inline void _khArray_fit(void** array) {
-    // Pretty much the same implementation of `_khArray_reserve` but with this part different
-    if (khArray_reserved(array) == khArray_size(array)) {
+#define kharray_fit(ARRAY) _kharray_fit(_kh_verifyPtrToPtr(ARRAY));
+static inline void _kharray_fit(void** array) {
+    // Pretty much the same implementation of `_kharray_reserve` but with this part different
+    if (kharray_reserved(array) == kharray_size(array)) {
         return;
     }
 
     void* shrunk_array =
-        calloc(sizeof(_khArrayHeader) + khArray_typeSize(array) * (khArray_size(array) + 1), 1);
-    *(_khArrayHeader*)shrunk_array = khArray_header(array);
-    memcpy(shrunk_array + sizeof(_khArrayHeader), *array,
-           khArray_typeSize(array) * khArray_size(array));
-    free(*array - sizeof(_khArrayHeader));
+        calloc(sizeof(_kharrayHeader) + kharray_typeSize(array) * (kharray_size(array) + 1), 1);
+    *(_kharrayHeader*)shrunk_array = kharray_header(array);
+    memcpy(shrunk_array + sizeof(_kharrayHeader), *array,
+           kharray_typeSize(array) * kharray_size(array));
+    free(*array - sizeof(_kharrayHeader));
 
-    ((_khArrayHeader*)shrunk_array)->reserved = khArray_size(array);
-    *array = shrunk_array + sizeof(_khArrayHeader);
+    ((_kharrayHeader*)shrunk_array)->reserved = kharray_size(array);
+    *array = shrunk_array + sizeof(_kharrayHeader);
 }
 
-#define khArray_pop(ARRAY, ITEMS) _khArray_pop(_kh_verifyPtrToPtr(ARRAY), ITEMS)
-static inline void _khArray_pop(void** array, size_t items) {
+#define kharray_pop(ARRAY, ITEMS) _kharray_pop(_kh_verifyPtrToPtr(ARRAY), ITEMS)
+static inline void _kharray_pop(void** array, size_t items) {
     // If it's trying to pop more items than the array actually has, cap it
-    items = items > khArray_size(array) ? khArray_size(array) : items;
+    items = items > kharray_size(array) ? kharray_size(array) : items;
 
-    if (khArray_deleter(array) != NULL) {
+    if (kharray_deleter(array) != NULL) {
         for (size_t i = items; i > 0; i--) {
-            khArray_deleter(array)(*array + khArray_typeSize(array) * (khArray_size(array) - i));
+            kharray_deleter(array)(*array + kharray_typeSize(array) * (kharray_size(array) - i));
         }
     }
 
     // Clean after yourself
-    memset(*array + khArray_typeSize(array) * (khArray_size(array) - items), 0,
-           khArray_typeSize(array) * items);
-    khArray_size(array) -= items;
+    memset(*array + kharray_typeSize(array) * (kharray_size(array) - items), 0,
+           kharray_typeSize(array) * items);
+    kharray_size(array) -= items;
 }
 
-#define khArray_reverse(ARRAY) _khArray_reverse(_kh_verifyPtrToPtr(ARRAY))
-static inline void _khArray_reverse(void** array) {
-    for (size_t i = 0; i < khArray_size(array) / 2; i++) {
-        char tmp[khArray_typeSize(array)];
+#define kharray_reverse(ARRAY) _kharray_reverse(_kh_verifyPtrToPtr(ARRAY))
+static inline void _kharray_reverse(void** array) {
+    for (size_t i = 0; i < kharray_size(array) / 2; i++) {
+        char tmp[kharray_typeSize(array)];
 
         // front -> tmp
-        memcpy(tmp, *array + i * khArray_typeSize(array), khArray_typeSize(array));
+        memcpy(tmp, *array + i * kharray_typeSize(array), kharray_typeSize(array));
 
         // back -> front
-        memcpy(*array + i * khArray_typeSize(array),
-               *array + (khArray_size(array) - i - 1) * khArray_typeSize(array),
-               khArray_typeSize(array));
+        memcpy(*array + i * kharray_typeSize(array),
+               *array + (kharray_size(array) - i - 1) * kharray_typeSize(array),
+               kharray_typeSize(array));
 
         // tmp -> back
-        memcpy(*array + (khArray_size(array) - i - 1) * khArray_typeSize(array), tmp,
-               khArray_typeSize(array));
+        memcpy(*array + (kharray_size(array) - i - 1) * kharray_typeSize(array), tmp,
+               kharray_typeSize(array));
     }
 }
 
-#define khArray_memory(ARRAY, PTR, SIZE, COPIER)                                                      \
+#define kharray_memory(ARRAY, PTR, SIZE, COPIER)                                                      \
     {                                                                                                 \
         typeof(ARRAY) __kh_array_ptr = ARRAY;                                                         \
         typeof(PTR) __kh_ptr = PTR;                                                                   \
         size_t __kh_size = SIZE;                                                                      \
                                                                                                       \
         /* If the reserved memory isn't enough, try to allocate more by *2 of the existing memory */  \
-        if (khArray_size(__kh_array_ptr) + __kh_size > khArray_reserved(__kh_array_ptr)) {            \
-            size_t __kh_exsize = khArray_size(__kh_array_ptr) ? khArray_size(__kh_array_ptr) * 2 : 2; \
-            khArray_reserve(__kh_array_ptr, __kh_exsize < khArray_size(__kh_array_ptr) + __kh_size    \
-                                                ? khArray_size(__kh_array_ptr) + __kh_size            \
+        if (kharray_size(__kh_array_ptr) + __kh_size > kharray_reserved(__kh_array_ptr)) {            \
+            size_t __kh_exsize = kharray_size(__kh_array_ptr) ? kharray_size(__kh_array_ptr) * 2 : 2; \
+            kharray_reserve(__kh_array_ptr, __kh_exsize < kharray_size(__kh_array_ptr) + __kh_size    \
+                                                ? kharray_size(__kh_array_ptr) + __kh_size            \
                                                 : __kh_exsize);                                       \
         }                                                                                             \
                                                                                                       \
@@ -191,30 +191,30 @@ static inline void _khArray_reverse(void** array) {
                                                                                                       \
         /* Call the copy constructor of each element, unless it's NULL */                             \
         if (COPIER == NULL) {                                                                         \
-            memcpy(__kh_array + khArray_size(__kh_array_ptr), __kh_ptr,                               \
-                   khArray_typeSize(__kh_array_ptr) * __kh_size);                                     \
+            memcpy(__kh_array + kharray_size(__kh_array_ptr), __kh_ptr,                               \
+                   kharray_typeSize(__kh_array_ptr) * __kh_size);                                     \
         }                                                                                             \
         else {                                                                                        \
             for (size_t __kh_i = 0; __kh_i < __kh_size; __kh_i++) {                                   \
-                __kh_array[khArray_size(__kh_array_ptr) + __kh_i] =                                   \
+                __kh_array[kharray_size(__kh_array_ptr) + __kh_i] =                                   \
                     ((typeof (*__kh_array) (*)(typeof(__kh_array)))(COPIER))(__kh_ptr + __kh_i);      \
             }                                                                                         \
         }                                                                                             \
                                                                                                       \
-        khArray_size(__kh_array_ptr) += __kh_size;                                                    \
+        kharray_size(__kh_array_ptr) += __kh_size;                                                    \
     }
 
-#define khArray_append(ARRAY, ITEM)                              \
+#define kharray_append(ARRAY, ITEM)                              \
     {                                                            \
         typeof(ARRAY) ___kh_array_ptr = ARRAY;                   \
         typeof(*___kh_array_ptr) ___kh_array = *___kh_array_ptr; \
         typeof(*___kh_array) ___kh_item = ITEM;                  \
                                                                  \
-        khArray_memory(___kh_array_ptr, &___kh_item, 1, NULL);   \
+        kharray_memory(___kh_array_ptr, &___kh_item, 1, NULL);   \
     }
 
-#define khArray_concatenate(ARRAY, OTHER, COPIER) \
-    khArray_memory(ARRAY, *(OTHER), khArray_size(OTHER), COPIER)
+#define kharray_concatenate(ARRAY, OTHER, COPIER) \
+    kharray_memory(ARRAY, *(OTHER), kharray_size(OTHER), COPIER)
 
 
 #ifdef __cplusplus
