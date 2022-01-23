@@ -245,6 +245,7 @@ khAstUnaryExpression khAstUnaryExpression_copy(khAstUnaryExpression* unary_exp) 
 
 void khAstUnaryExpression_delete(khAstUnaryExpression* unary_exp) {
     khAstExpression_delete(unary_exp->operand);
+    free(unary_exp->operand);
 }
 
 khstring khAstUnaryExpression_string(khAstUnaryExpression* unary_exp) {
@@ -341,7 +342,9 @@ khAstBinaryExpression khAstBinaryExpression_copy(khAstBinaryExpression* binary_e
 
 void khAstBinaryExpression_delete(khAstBinaryExpression* binary_exp) {
     khAstExpression_delete(binary_exp->left);
+    free(binary_exp->left);
     khAstExpression_delete(binary_exp->right);
+    free(binary_exp->right);
 }
 
 khstring khAstBinaryExpression_string(khAstBinaryExpression* binary_exp) {
@@ -376,8 +379,11 @@ khAstTernaryExpression khAstTernaryExpression_copy(khAstTernaryExpression* terna
 }
 void khAstTernaryExpression_delete(khAstTernaryExpression* ternary_exp) {
     khAstExpression_delete(ternary_exp->condition);
+    free(ternary_exp->condition);
     khAstExpression_delete(ternary_exp->value);
+    free(ternary_exp->value);
     khAstExpression_delete(ternary_exp->otherwise);
+    free(ternary_exp->otherwise);
 }
 
 khstring khAstTernaryExpression_string(khAstTernaryExpression* ternary_exp) {
@@ -475,6 +481,7 @@ khAstCallExpression khAstCallExpression_copy(khAstCallExpression* call_exp) {
 
 void khAstCallExpression_delete(khAstCallExpression* call_exp) {
     khAstExpression_delete(call_exp->callee);
+    free(call_exp->callee);
     kharray_delete(&call_exp->arguments);
 }
 
@@ -514,6 +521,7 @@ khAstIndexExpression khAstIndexExpression_copy(khAstIndexExpression* index_exp) 
 
 void khAstIndexExpression_delete(khAstIndexExpression* index_exp) {
     khAstExpression_delete(index_exp->indexee);
+    free(index_exp->indexee);
     kharray_delete(&index_exp->arguments);
 }
 
@@ -558,6 +566,7 @@ khAstVariableDeclaration khAstVariableDeclaration_copy(khAstVariableDeclaration*
 
     return (khAstVariableDeclaration){.is_static = declaration->is_static,
                                       .is_wild = declaration->is_wild,
+                                      .is_ref = declaration->is_ref,
                                       .name = khstring_copy(&declaration->name),
                                       .optional_type = optional_type,
                                       .optional_initializer = optional_initializer};
@@ -580,6 +589,7 @@ khstring khAstVariableDeclaration_string(khAstVariableDeclaration* declaration) 
 
     khstring_concatenateCstring(&string, declaration->is_static ? U"true, " : U"false, ");
     khstring_concatenateCstring(&string, declaration->is_wild ? U"true, " : U"false, ");
+    khstring_concatenateCstring(&string, declaration->is_ref ? U"true, " : U"false, ");
 
     khstring name_str = khstring_quote(&declaration->name);
     khstring_concatenate(&string, &name_str);
@@ -623,6 +633,7 @@ khAstLambdaExpression khAstLambdaExpression_copy(khAstLambdaExpression* lambda) 
 
     return (khAstLambdaExpression){.arguments = kharray_copy(&lambda->arguments, khAstExpression_copy),
                                    .optional_variadic_argument = optional_variadic_argument,
+                                   .is_return_type_ref = lambda->is_return_type_ref,
                                    .optional_return_type = optional_return_type,
                                    .content = kharray_copy(&lambda->content, khAst_copy)};
 }
@@ -707,6 +718,7 @@ khAstScopeExpression khAstScopeExpression_copy(khAstScopeExpression* scope_exp) 
 
 void khAstScopeExpression_delete(khAstScopeExpression* scope_exp) {
     khAstExpression_delete(scope_exp->value);
+    free(scope_exp->value);
     kharray_delete(&scope_exp->scope_names);
 }
 
@@ -734,29 +746,6 @@ khstring khAstScopeExpression_string(khAstScopeExpression* scope_exp) {
 }
 
 
-khAstRefExpression khAstRefExpression_copy(khAstRefExpression* ref_exp) {
-    khAstExpression* value = (khAstExpression*)malloc(sizeof(khAstExpression));
-    *value = khAstExpression_copy(ref_exp->value);
-
-    return (khAstRefExpression){.value = value};
-}
-
-void khAstRefExpression_delete(khAstRefExpression* ref_exp) {
-    khAstExpression_delete(ref_exp->value);
-}
-
-khstring khAstRefExpression_string(khAstRefExpression* ref_exp) {
-    khstring string = khstring_new(U"(");
-
-    khstring value_str = khAstExpression_string(ref_exp->value);
-    khstring_concatenate(&string, &value_str);
-    khstring_delete(&value_str);
-
-    khstring_append(&string, U')');
-    return string;
-}
-
-
 khAstFunctionTypeExpression
 khAstFunctionTypeExpression_copy(khAstFunctionTypeExpression* function_type) {
     khAstExpression* return_type = (khAstExpression*)malloc(sizeof(khAstExpression));
@@ -770,6 +759,7 @@ khAstFunctionTypeExpression_copy(khAstFunctionTypeExpression* function_type) {
 void khAstFunctionTypeExpression_delete(khAstFunctionTypeExpression* function_type) {
     kharray_delete(&function_type->argument_types);
     khAstExpression_delete(function_type->return_type);
+    free(function_type->return_type);
 }
 
 khstring khAstFunctionTypeExpression_string(khAstFunctionTypeExpression* function_type) {
@@ -808,6 +798,7 @@ khAstTemplatizeExpression khAstTemplatizeExpression_copy(khAstTemplatizeExpressi
 
 void khAstTemplatizeExpression_delete(khAstTemplatizeExpression* templatize_exp) {
     khAstExpression_delete(templatize_exp->value);
+    free(templatize_exp->value);
     kharray_delete(&templatize_exp->template_arguments);
 }
 
@@ -888,9 +879,6 @@ khAstExpression khAstExpression_copy(khAstExpression* expression) {
         case khAstExpressionType_SCOPE:
             copy.scope = khAstScopeExpression_copy(&expression->scope);
             break;
-        case khAstExpressionType_REF:
-            copy.ref = khAstRefExpression_copy(&expression->ref);
-            break;
         case khAstExpressionType_FUNCTION_TYPE:
             copy.function_type = khAstFunctionTypeExpression_copy(&expression->function_type);
             break;
@@ -954,9 +942,6 @@ void khAstExpression_delete(khAstExpression* expression) {
             break;
         case khAstExpressionType_SCOPE:
             khAstScopeExpression_delete(&expression->scope);
-            break;
-        case khAstExpressionType_REF:
-            khAstRefExpression_delete(&expression->ref);
             break;
         case khAstExpressionType_FUNCTION_TYPE:
             khAstFunctionTypeExpression_delete(&expression->function_type);
@@ -1115,11 +1100,6 @@ khstring khAstExpression_string(khAstExpression* expression) {
             khstring_concatenate(&string, &scope_str);
             khstring_delete(&scope_str);
         } break;
-        case khAstExpressionType_REF: {
-            khstring ref_str = khAstRefExpression_string(&expression->ref);
-            khstring_concatenate(&string, &ref_str);
-            khstring_delete(&ref_str);
-        } break;
         case khAstExpressionType_FUNCTION_TYPE: {
             khstring function_type_str = khAstFunctionTypeExpression_string(&expression->function_type);
             khstring_concatenate(&string, &function_type_str);
@@ -1245,6 +1225,7 @@ khAstFunction khAstFunction_copy(khAstFunction* function) {
                            .name_point = khAstExpression_copy(&function->name_point),
                            .arguments = kharray_copy(&function->arguments, khAstExpression_copy),
                            .optional_variadic_argument = optional_variadic_argument,
+                           .is_return_type_ref = function->is_return_type_ref,
                            .optional_return_type = optional_return_type,
                            .content = kharray_copy(&function->content, khAst_copy)};
 }
@@ -1295,6 +1276,8 @@ khstring khAstFunction_string(khAstFunction* function) {
     else {
         khstring_concatenateCstring(&string, U"unspecified");
     }
+
+    khstring_concatenateCstring(&string, function->is_return_type_ref ? U", true" : U", false");
 
     khstring_concatenateCstring(&string, U", ");
     if (function->optional_return_type != NULL) {
@@ -1778,42 +1761,6 @@ khstring khAstForEachLoop_string(khAstForEachLoop* for_each_loop) {
 }
 
 
-khAstBreak khAstBreak_copy(khAstBreak* break_v) {
-    return *break_v;
-}
-
-void khAstBreak_delete(khAstBreak* break_v) {}
-
-khstring khAstBreak_string(khAstBreak* break_v) {
-    khstring string = khstring_new(U"(");
-
-    khstring breakings_str = kh_uintToString(break_v->breakings, 10);
-    khstring_concatenate(&string, &breakings_str);
-    khstring_delete(&breakings_str);
-
-    khstring_append(&string, U')');
-    return string;
-}
-
-
-khAstContinue khAstContinue_copy(khAstContinue* continue_v) {
-    return *continue_v;
-}
-
-void khAstContinue_delete(khAstContinue* continue_v) {}
-
-khstring khAstContinue_string(khAstContinue* continue_v) {
-    khstring string = khstring_new(U"(");
-
-    khstring continuations_str = kh_uintToString(continue_v->continuations, 10);
-    khstring_concatenate(&string, &continuations_str);
-    khstring_delete(&continuations_str);
-
-    khstring_append(&string, U')');
-    return string;
-}
-
-
 khAstReturn khAstReturn_copy(khAstReturn* return_v) {
     return (khAstReturn){.values = kharray_copy(&return_v->values, khAstExpression_copy)};
 }
@@ -1885,12 +1832,6 @@ khAst khAst_copy(khAst* ast) {
         case khAstType_FOR_EACH_LOOP:
             copy.for_each_loop = khAstForEachLoop_copy(&ast->for_each_loop);
             break;
-        case khAstType_BREAK:
-            copy.break_v = khAstBreak_copy(&ast->break_v);
-            break;
-        case khAstType_CONTINUE:
-            copy.continue_v = khAstContinue_copy(&ast->continue_v);
-            break;
         case khAstType_RETURN:
             copy.return_v = khAstReturn_copy(&ast->return_v);
             break;
@@ -1944,12 +1885,6 @@ void khAst_delete(khAst* ast) {
             break;
         case khAstType_FOR_EACH_LOOP:
             khAstForEachLoop_delete(&ast->for_each_loop);
-            break;
-        case khAstType_BREAK:
-            khAstBreak_delete(&ast->break_v);
-            break;
-        case khAstType_CONTINUE:
-            khAstContinue_delete(&ast->continue_v);
             break;
         case khAstType_RETURN:
             khAstReturn_delete(&ast->return_v);
@@ -2035,15 +1970,13 @@ khstring khAst_string(khAst* ast) {
             khstring_delete(&for_each_loop_str);
         } break;
         case khAstType_BREAK: {
-            khstring break_str = khAstBreak_string(&ast->break_v);
-            khstring_concatenate(&string, &break_str);
-            khstring_delete(&break_str);
-        } break;
+            khstring_concatenateCstring(&string, U"()");
+            break;
+        }
         case khAstType_CONTINUE: {
-            khstring continue_str = khAstContinue_string(&ast->continue_v);
-            khstring_concatenate(&string, &continue_str);
-            khstring_delete(&continue_str);
-        } break;
+            khstring_concatenateCstring(&string, U"()");
+            break;
+        }
         case khAstType_RETURN: {
             khstring return_str = khAstReturn_string(&ast->return_v);
             khstring_concatenate(&string, &return_str);

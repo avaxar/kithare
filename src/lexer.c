@@ -21,7 +21,6 @@
 
 #define ERROR_STR(MSG) ERROR(khstring_new(MSG))
 
-
 static inline uint8_t digitOf(char32_t chr) {
     // Regular decimal characters
     if (chr >= U'0' && chr <= U'9') {
@@ -38,6 +37,18 @@ static inline uint8_t digitOf(char32_t chr) {
     else {
         return 0xFF;
     }
+}
+
+kharray(khToken) kh_lexicate(khstring* string, kharray(khLexError) * errors) {
+    kharray(khToken) tokens = kharray_new(khToken, khToken_delete);
+    char32_t* cursor = *string;
+
+    do {
+        kharray_append(&tokens, kh_lex(&cursor, errors));
+    } while (tokens[kharray_size(&tokens) - 1].type != khTokenType_EOF);
+    kharray_pop(&tokens, 1);
+
+    return tokens;
 }
 
 khToken kh_lex(char32_t** cursor, kharray(khLexError) * errors) {
