@@ -298,7 +298,7 @@ khstring khToken_string(khToken* token, char32_t* origin) {
     khstring value;
     switch (token->type) {
         case khTokenType_IDENTIFIER:
-            value = kharray_copy(&token->identifier, NULL);
+            value = khstring_copy(&token->identifier);
             break;
         case khTokenType_KEYWORD:
             value = khKeywordToken_string(token->keyword);

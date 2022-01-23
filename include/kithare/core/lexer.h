@@ -24,13 +24,15 @@ typedef struct {
 } khLexError;
 
 static inline khLexError khLexError_copy(khLexError* error) {
-    return (khLexError){.ptr = error->ptr, .error_str = kharray_copy(&error->error_str, NULL)};
+    return (khLexError){.ptr = error->ptr, .error_str = khstring_copy(&error->error_str)};
 }
 
 static inline void khLexError_delete(khLexError* error) {
     khstring_delete(&error->error_str);
 }
 
+
+kharray(khToken) kh_lexicate(khstring* string, kharray(khLexError) * errors);
 
 khToken kh_lex(char32_t** cursor, kharray(khLexError) * errors);
 khToken kh_lexWord(char32_t** cursor, kharray(khLexError) * errors);

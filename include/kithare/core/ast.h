@@ -77,7 +77,6 @@ typedef enum {
     khAstExpressionType_VARIABLE_DECLARATION,
     khAstExpressionType_LAMBDA,
     khAstExpressionType_SCOPE,
-    khAstExpressionType_REF,
     khAstExpressionType_FUNCTION_TYPE,
     khAstExpressionType_TEMPLATIZE
 } khAstExpressionType;
@@ -245,6 +244,7 @@ khstring khAstIndexExpression_string(khAstIndexExpression* index_exp);
 typedef struct {
     bool is_static;
     bool is_wild;
+    bool is_ref;
     khstring name;
     khAstExpression* optional_type;
     khAstExpression* optional_initializer;
@@ -258,6 +258,7 @@ khstring khAstVariableDeclaration_string(khAstVariableDeclaration* declaration);
 typedef struct {
     kharray(khAstExpression) arguments;
     khAstExpression* optional_variadic_argument;
+    bool is_return_type_ref;
     khAstExpression* optional_return_type;
     kharray(khAst) content;
 } khAstLambdaExpression;
@@ -275,15 +276,6 @@ typedef struct {
 khAstScopeExpression khAstScopeExpression_copy(khAstScopeExpression* scope_exp);
 void khAstScopeExpression_delete(khAstScopeExpression* scope_exp);
 khstring khAstScopeExpression_string(khAstScopeExpression* scope_exp);
-
-
-typedef struct {
-    khAstExpression* value;
-} khAstRefExpression;
-
-khAstRefExpression khAstRefExpression_copy(khAstRefExpression* ref_exp);
-void khAstRefExpression_delete(khAstRefExpression* ref_exp);
-khstring khAstRefExpression_string(khAstRefExpression* ref_exp);
 
 
 typedef struct {
@@ -341,7 +333,6 @@ struct _khAstExpression {
         khAstVariableDeclaration variable_declaration;
         khAstLambdaExpression lambda;
         khAstScopeExpression scope;
-        khAstRefExpression ref;
         khAstFunctionTypeExpression function_type;
         khAstTemplatizeExpression templatize;
     };
@@ -379,6 +370,7 @@ typedef struct {
     khAstExpression name_point;
     kharray(khAstExpression) arguments;
     khAstExpression* optional_variadic_argument;
+    bool is_return_type_ref;
     khAstExpression* optional_return_type;
     kharray(khAst) content;
 } khAstFunction;
@@ -490,24 +482,6 @@ khstring khAstForEachLoop_string(khAstForEachLoop* for_each_loop);
 
 
 typedef struct {
-    uint64_t breakings;
-} khAstBreak;
-
-khAstBreak khAstBreak_copy(khAstBreak* break_v);
-void khAstBreak_delete(khAstBreak* break_v);
-khstring khAstBreak_string(khAstBreak* break_v);
-
-
-typedef struct {
-    uint64_t continuations;
-} khAstContinue;
-
-khAstContinue khAstContinue_copy(khAstContinue* continue_v);
-void khAstContinue_delete(khAstContinue* continue_v);
-khstring khAstContinue_string(khAstContinue* continue_v);
-
-
-typedef struct {
     kharray(khAstExpression) values;
 } khAstReturn;
 
@@ -537,8 +511,6 @@ struct _khAst {
         khAstDoWhileLoop do_while_loop;
         khAstForLoop for_loop;
         khAstForEachLoop for_each_loop;
-        khAstBreak break_v;
-        khAstContinue continue_v;
         khAstReturn return_v;
     };
 };
