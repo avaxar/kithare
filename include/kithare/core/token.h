@@ -81,8 +81,8 @@ typedef enum {
     khDelimiterToken_SEMICOLON,
     khDelimiterToken_EXCLAMATION,
 
-    khDelimiterToken_PARENTHESES_OPEN,
-    khDelimiterToken_PARENTHESES_CLOSE,
+    khDelimiterToken_PARENTHESIS_OPEN,
+    khDelimiterToken_PARENTHESIS_CLOSE,
     khDelimiterToken_CURLY_BRACKET_OPEN,
     khDelimiterToken_CURLY_BRACKET_CLOSE,
     khDelimiterToken_SQUARE_BRACKET_OPEN,

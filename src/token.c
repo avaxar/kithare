@@ -125,9 +125,9 @@ khstring khDelimiterToken_string(khDelimiterToken delimiter) {
         case khDelimiterToken_EXCLAMATION:
             return khstring_new(U"!");
 
-        case khDelimiterToken_PARENTHESES_OPEN:
+        case khDelimiterToken_PARENTHESIS_OPEN:
             return khstring_new(U"(");
-        case khDelimiterToken_PARENTHESES_CLOSE:
+        case khDelimiterToken_PARENTHESIS_CLOSE:
             return khstring_new(U")");
         case khDelimiterToken_CURLY_BRACKET_OPEN:
             return khstring_new(U"{");

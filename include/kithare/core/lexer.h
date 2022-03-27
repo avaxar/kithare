@@ -13,34 +13,21 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <kithare/core/error.h>
 #include <kithare/core/token.h>
 #include <kithare/lib/array.h>
 #include <kithare/lib/string.h>
 
 
-typedef struct {
-    char32_t* ptr;
-    khstring error_str;
-} khLexError;
+kharray(khToken) kh_lexicate(khstring* string);
 
-static inline khLexError khLexError_copy(khLexError* error) {
-    return (khLexError){.ptr = error->ptr, .error_str = khstring_copy(&error->error_str)};
-}
+khToken kh_lexToken(char32_t** cursor);
+khToken kh_lexWord(char32_t** cursor);
+khToken kh_lexNumber(char32_t** cursor);
+khToken kh_lexSymbol(char32_t** cursor);
 
-static inline void khLexError_delete(khLexError* error) {
-    khstring_delete(&error->error_str);
-}
-
-
-kharray(khToken) kh_lexicate(khstring* string, kharray(khLexError) * errors);
-
-khToken kh_lex(char32_t** cursor, kharray(khLexError) * errors);
-khToken kh_lexWord(char32_t** cursor, kharray(khLexError) * errors);
-khToken kh_lexNumber(char32_t** cursor, kharray(khLexError) * errors);
-khToken kh_lexSymbol(char32_t** cursor, kharray(khLexError) * errors);
-
-char32_t kh_lexChar(char32_t** cursor, bool with_quotes, bool is_byte, kharray(khLexError) * errors);
-khstring kh_lexString(char32_t** cursor, bool is_buffer, kharray(khLexError) * errors);
+char32_t kh_lexChar(char32_t** cursor, bool with_quotes, bool is_byte);
+khstring kh_lexString(char32_t** cursor, bool is_buffer);
 
 uint64_t kh_lexInt(char32_t** cursor, uint8_t base, size_t max_length, bool* had_overflowed);
 double kh_lexFloat(char32_t** cursor, uint8_t base);

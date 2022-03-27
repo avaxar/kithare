@@ -1,4 +1,4 @@
-// VS Code task to generate a Debug Kithare build
+// VS Code task to compile a kcr build, either a debug or release build
 {
     "version": "2.0.0",
     "tasks": [
@@ -36,7 +36,7 @@
             "group": "build"
         },
         {
-            "label": "Kithare Unit Tests",
+            "label": "Kithare Unittests",
             "command": "python3 build.py --make test",
             "windows": {
                 "command": "python build.py --make test"

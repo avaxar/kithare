@@ -24,19 +24,32 @@
 
 
 static void cli(kharray(khstring) args) {
-    khstring str = khstring_new(U"def main() {\n"
-                                U"    callback := def(a: int, b: int) -> int {\n"
-                                U"        return a + b\n"
-                                U"    }\n"
-                                U"    std.println(callback(62, 42))\n"
-                                U"}\n");
+    khstring str = khstring_new(
+        U"def getMovement(pos: float[2], target: float[2], speed: float) -> (float[2], float) {\n"
+        U"angle := math.atan2(pos.y - target.y, pos.x - target.x)\n"
+        U"diff := pos - target\n"
+        U"vector := diff / math.sqrt(diff.x^2 + diff.y^2)\n"
+        U"return vector, angle\n"
+        U"}\n");
     char32_t* str_ptr = str;
 
-    khAst ast = kh_parse(&str_ptr);
+    khAst ast = kh_parseAst(&str_ptr);
 
     khstring string = khAst_string(&ast);
-    kh_println(&string);
+    kh_putln(&string);
     khstring_delete(&string);
+
+    if (kh_hasErrors()) {
+        printf("You've got error(s)\n");
+
+        for (size_t i = 0; i < kh_hasErrors(); i++) {
+            khError* error = &(*kh_getErrors())[i];
+            kh_putln(&error->message);
+        }
+    }
+    else {
+        printf("No errors\n");
+    }
 
     khAst_delete(&ast);
     khstring_delete(&str);

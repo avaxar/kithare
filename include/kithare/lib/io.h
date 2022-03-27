@@ -18,13 +18,13 @@ extern "C" {
 #include "string.h"
 
 
-static inline void kh_print(khstring* string) {
+static inline void kh_put(khstring* string) {
     khbuffer buffer = kh_encodeUtf8(string);
     printf("%s", (char*)buffer);
     khbuffer_delete(&buffer);
 }
 
-static inline void kh_println(khstring* string) {
+static inline void kh_putln(khstring* string) {
     khbuffer buffer = kh_encodeUtf8(string);
     printf("%s\n", (char*)buffer);
     khbuffer_delete(&buffer);
