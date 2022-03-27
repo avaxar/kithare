@@ -7,11 +7,11 @@ test.sh
 *~
 *.swp
 .vs/
+.vscode/*
 
-# Ignore only a few VS Code specific files. We want the user to still use
-# launch.json and tasks.json to use the C/C++ debugging tool
-.vscode/c_cpp_properties.json
-.vscode/settings.json
+# Keep launch.json and tasks.json to use the C/C++ debugging tool from VS Code
+!.vscode/launch.json
+!.vscode/tasks.json
 
 # Executable/compiler generated files
 /build

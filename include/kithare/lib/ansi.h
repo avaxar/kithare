@@ -11,8 +11,6 @@ extern "C" {
 #endif
 
 
-#define kh_ANSI_RESET "\033[0m"
-
 #define kh_ANSI_FG_BLACK "\033[30m"
 #define kh_ANSI_FG_RED "\033[31m"
 #define kh_ANSI_FG_GREEN "\033[32m"
@@ -34,6 +32,7 @@ extern "C" {
 #define kh_ANSI_FG_RGB(R, G, B) "\033[38;2;" #R ";" #G ";" #B "m"
 #define kh_ANSI_BG_RGB(R, G, B) "\033[48;2;" #R ";" #B ";" #B "m"
 
+#define kh_ANSI_RESET "\033[0m"
 #define kh_ANSI_BOLD "\033[1m"
 #define kh_ANSI_DIM "\033[2m"
 #define kh_ANSI_ITALIC "\033[3m"

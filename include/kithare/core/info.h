@@ -70,7 +70,7 @@ extern "C" {
 
 #else
 #define kh_COMPILER khCOMPILER_UNKNOWN
-#define kh_COMPILER_STR "unknown"
+#define kh_COMPILER_STR "Unknown"
 #endif
 
 
@@ -137,7 +137,7 @@ extern "C" {
 
 #else
 #define kh_PLATFORM khPLATFORM_UNKNOWN
-#define kh_PLATFORM_STR "unknown"
+#define kh_PLATFORM_STR "Unknown"
 #endif
 
 

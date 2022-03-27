@@ -11,10 +11,11 @@ extern "C" {
 #endif
 
 #include <kithare/core/ast.h>
+#include <kithare/core/error.h>
 #include <kithare/lib/array.h>
 
 
-khAst kh_parse(char32_t** cursor);
+khAst kh_parseAst(char32_t** cursor);
 khAstExpression kh_parseExpression(char32_t** cursor, bool ignore_newline, bool filter_type);
 
 

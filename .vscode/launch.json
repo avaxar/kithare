@@ -1,9 +1,9 @@
-// VS Code launch file for Kithare Debug builds
+// VS Code launch configuration to execute and debug kcr
 {
-    "version": "0.2.0",
+    "version": "2.0.0",
     "configurations": [
         {
-            "name": "Kithare Debug",
+            "name": "Kithare Debugging",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/dist/GCC-Debug/kcr",
@@ -25,19 +25,19 @@
             ],
             // Windows specific overrides
             "windows": {
-                "name": "Kithare Debug",
+                "name": "Kithare Debugging",
                 "type": "cppdbg",
                 "request": "launch",
-                // different program path
+                // With .exe extension
                 "program": "${workspaceFolder}/dist/MinGW-Debug/kcr.exe",
             },
             // Mac specific overrides
             "osx": {
-                "name": "Kithare Debug",
+                "name": "Kithare Debugging",
                 "type": "cppdbg",
                 "request": "launch",
                 "program": "${workspaceFolder}/dist/GCC-Debug/kcr",
-                "MIMode": "lldb", // use lldb on mac
+                "MIMode": "lldb", // Use lldb on Mac
             },
         }
     ]

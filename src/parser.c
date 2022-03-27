@@ -5,9 +5,49 @@
  * Copyright (C) 2021 Kithare Organization at https://www.kithare.de
  */
 
+#include <kithare/core/error.h>
 #include <kithare/core/lexer.h>
 #include <kithare/core/parser.h>
 #include <kithare/core/token.h>
+
+
+static inline void raiseError(char32_t* ptr, const char32_t* message) {
+    kh_raiseError((khError){.type = khErrorType_PARSER, .message = khstring_new(message), .data = ptr});
+}
+
+// Token getter function
+static inline khToken currentToken(char32_t** cursor, bool ignore_newline) {
+    char32_t* cursor_copy = *cursor;
+    khToken token = kh_lexToken(&cursor_copy);
+
+    // Ignoring newlines means that it would lex the next token if a newline token was encountered
+    while (token.type == khTokenType_COMMENT || (token.type == khTokenType_NEWLINE && ignore_newline)) {
+        khToken_delete(&token);
+        *cursor = cursor_copy;
+        token = kh_lexToken(&cursor_copy);
+    }
+
+    return token;
+}
+
+// Basically, a sort of `next` function
+static inline void skipToken(char32_t** cursor, bool ignore_newline) {
+    char32_t* origin = *cursor;
+    khToken token = kh_lexToken(cursor);
+
+    // Ignoring newlines, lex the next token
+    while (token.type == khTokenType_COMMENT || (token.type == khTokenType_NEWLINE && ignore_newline)) {
+        khToken_delete(&token);
+        token = kh_lexToken(cursor);
+    }
+
+    khToken_delete(&token);
+
+    // To avoid being stuck at the same token
+    if (origin == *cursor && **cursor != U'\0') {
+        (*cursor)++;
+    }
+}
 
 
 // Sub-level parsing levels
@@ -56,54 +96,12 @@ static kharray(khAstExpression) exparseList(char32_t** cursor, khDelimiterToken 
                                             khDelimiterToken closing_delimiter, EXPARSE_ARGS);
 
 
-khAst kh_parse(char32_t** cursor) {
+khAst kh_parseAst(char32_t** cursor) {
     return sparseStatement(cursor);
 }
 
 khAstExpression kh_parseExpression(char32_t** cursor, EXPARSE_ARGS) {
     return exparseInplaceOperators(cursor, ignore_newline, filter_type);
-}
-
-
-// Token getter function
-static inline khToken currentToken(char32_t** cursor, bool ignore_newline) {
-    kharray(khLexError) errors = kharray_new(khLexError, khLexError_delete);
-    char32_t* cursor_copy = *cursor;
-    khToken token = kh_lex(&cursor_copy, &errors);
-
-    // Ignoring newlines means that it would lex the next token if a newline token was encountered
-    while (token.type == khTokenType_COMMENT || (token.type == khTokenType_NEWLINE && ignore_newline)) {
-        khToken_delete(&token);
-        *cursor = cursor_copy;
-        token = kh_lex(&cursor_copy, &errors);
-    }
-
-    if (kharray_size(&errors) != 0) {
-        // TODO: handle error
-    }
-
-    kharray_delete(&errors);
-
-    return token;
-}
-
-// Basically, a sort of `next` function
-static inline void skipToken(char32_t** cursor, bool ignore_newline) {
-    char32_t* origin = *cursor;
-    khToken token = kh_lex(cursor, NULL);
-
-    // Ignoring newlines, lex the next token
-    while (token.type == khTokenType_COMMENT || (token.type == khTokenType_NEWLINE && ignore_newline)) {
-        khToken_delete(&token);
-        token = kh_lex(cursor, NULL);
-    }
-
-    khToken_delete(&token);
-
-    // To avoid being stuck at the same token
-    if (origin == *cursor && **cursor != U'\0') {
-        (*cursor)++;
-    }
 }
 
 static khAst sparseStatement(char32_t** cursor) {
@@ -130,7 +128,7 @@ static khAst sparseStatement(char32_t** cursor) {
             }
 
             case khKeywordToken_AS:
-                // TODO: handle error
+                raiseError(token.begin, U"unexpected keyword");
                 khToken_delete(&token);
                 goto end;
 
@@ -238,13 +236,11 @@ static khAst sparseStatement(char32_t** cursor) {
                             goto out;
 
                         default:
-                            // TODO: handle error
-                            goto end;
+                            goto out;
                     }
                 }
                 else {
-                    // TODO: handle error
-                    goto end;
+                    goto out;
                 }
             }
 
@@ -259,12 +255,12 @@ static khAst sparseStatement(char32_t** cursor) {
             }
 
             case khKeywordToken_ELIF:
-                // TODO: handle error
+                raiseError(token.begin, U"no following if statement to have an elif statement");
                 khToken_delete(&token);
                 goto end;
 
             case khKeywordToken_ELSE:
-                // TODO: handle error
+                raiseError(token.begin, U"no following if statement to have an else statement");
                 khToken_delete(&token);
                 goto end;
 
@@ -320,8 +316,8 @@ static khAst sparseStatement(char32_t** cursor) {
         }
     }
     else if (token.type == khTokenType_EOF) {
+        raiseError(token.begin, U"expecting a statement, met with a dead end");
         khToken_delete(&token);
-        // TODO: handle error
         goto end;
     }
 out:;
@@ -343,7 +339,7 @@ out:;
     else {
         // Still skips a token, to prevent other being stuck at the same token
         skipToken(cursor, false);
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a newline or a semicolon");
     }
 
     khToken_delete(&token);
@@ -365,7 +361,7 @@ static kharray(khAst) sparseBlock(char32_t** cursor) {
         token = currentToken(cursor, true);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting an opening curly bracket");
     }
 
     // Gets the next khAst until closing bracket
@@ -373,6 +369,7 @@ static kharray(khAst) sparseBlock(char32_t** cursor) {
              token.delimiter == khDelimiterToken_CURLY_BRACKET_CLOSE)) {
         // To make sure it won't get into an infinite loop
         if (token.type == khTokenType_EOF) {
+            raiseError(token.begin, U"expecting a statement, met with a dead end");
             khToken_delete(&token);
             goto end;
         }
@@ -404,7 +401,7 @@ static void sparseSpecifiers(char32_t** cursor, bool allow_incase, bool* is_inca
         switch (token.keyword) {
             case khKeywordToken_INCASE:
                 if (!allow_incase) {
-                    // TODO: handle error
+                    raiseError(token.begin, U"the `incase` keyword is not allowed here");
                 }
                 else if (is_incase) {
                     *is_incase = true;
@@ -417,7 +414,7 @@ static void sparseSpecifiers(char32_t** cursor, bool allow_incase, bool* is_inca
 
             case khKeywordToken_STATIC:
                 if (!allow_static) {
-                    // TODO: handle error
+                    raiseError(token.begin, U"the `static` keyword is not allowed here");
                 }
                 else if (is_static) {
                     *is_static = true;
@@ -449,7 +446,7 @@ static khAstImport sparseImport(char32_t** cursor) {
         token = currentToken(cursor, false);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting an `import` keyword");
     }
 
     // For relative imports, `import .a_script_file_in_the_same_folder;`
@@ -468,7 +465,7 @@ static khAstImport sparseImport(char32_t** cursor) {
         token = currentToken(cursor, false);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting something to import");
     }
 
     // Continues on
@@ -484,7 +481,7 @@ static khAstImport sparseImport(char32_t** cursor) {
             token = currentToken(cursor, false);
         }
         else {
-            // TODO: handle error
+            raiseError(token.begin, U"expecting another identifier");
         }
     }
 
@@ -502,7 +499,7 @@ static khAstImport sparseImport(char32_t** cursor) {
             token = currentToken(cursor, false);
         }
         else {
-            // TODO: handle error
+            raiseError(token.begin, U"expecting an identifier to alias the imported module as");
         }
     }
 
@@ -510,8 +507,12 @@ static khAstImport sparseImport(char32_t** cursor) {
         (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_SEMICOLON)) {
         skipToken(cursor, false);
     }
+    else if (token.type == khTokenType_DELIMITER &&
+             token.delimiter == khDelimiterToken_CURLY_BRACKET_CLOSE) {
+        // Do nothing
+    }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a newline or a semicolon");
     }
 
     khToken_delete(&token);
@@ -530,7 +531,7 @@ static khAstInclude sparseInclude(char32_t** cursor) {
         token = currentToken(cursor, false);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting an `include` keyword");
     }
 
     // For relative includes, `include .a_script_file_in_the_same_folder;`
@@ -549,7 +550,7 @@ static khAstInclude sparseInclude(char32_t** cursor) {
         token = currentToken(cursor, false);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting something to include");
     }
 
     // Continues on
@@ -565,7 +566,7 @@ static khAstInclude sparseInclude(char32_t** cursor) {
             token = currentToken(cursor, false);
         }
         else {
-            // TODO: handle error
+            raiseError(token.begin, U"expecting another identifier");
         }
     }
 
@@ -573,8 +574,12 @@ static khAstInclude sparseInclude(char32_t** cursor) {
         (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_SEMICOLON)) {
         skipToken(cursor, false);
     }
+    else if (token.type == khTokenType_DELIMITER &&
+             token.delimiter == khDelimiterToken_CURLY_BRACKET_CLOSE) {
+        // Do nothing
+    }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a newline or a semicolon");
     }
 
     khToken_delete(&token);
@@ -590,17 +595,17 @@ static inline void sparseFunctionOrLambda(char32_t** cursor, kharray(khAstExpres
     khToken token = currentToken(cursor, false);
 
     // Starts out by parsing the argument
-    if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_PARENTHESES_OPEN) {
+    if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_PARENTHESIS_OPEN) {
         khToken_delete(&token);
         skipToken(cursor, true);
         token = currentToken(cursor, true);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting an opening parenthesis for the arguments");
     }
 
     while (!(token.type == khTokenType_DELIMITER &&
-             token.delimiter == khDelimiterToken_PARENTHESES_CLOSE)) {
+             token.delimiter == khDelimiterToken_PARENTHESIS_CLOSE)) {
         // End variadic argument
         if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_ELLIPSIS) {
             skipToken(cursor, true);
@@ -612,8 +617,8 @@ static inline void sparseFunctionOrLambda(char32_t** cursor, kharray(khAstExpres
             token = currentToken(cursor, true);
 
             if (!(token.type == khTokenType_DELIMITER &&
-                  token.delimiter == khDelimiterToken_PARENTHESES_CLOSE)) {
-                // TODO: handle error
+                  token.delimiter == khDelimiterToken_PARENTHESIS_CLOSE)) {
+                raiseError(token.begin, U"expecting a closing parenthesis after the variadic argument");
             }
 
             break;
@@ -630,15 +635,18 @@ static inline void sparseFunctionOrLambda(char32_t** cursor, kharray(khAstExpres
             token = currentToken(cursor, true);
         }
         else if (token.type == khTokenType_DELIMITER &&
-                 token.delimiter == khDelimiterToken_PARENTHESES_CLOSE) {
+                 token.delimiter == khDelimiterToken_PARENTHESIS_CLOSE) {
             // Do nothing
         }
         else if (token.type == khTokenType_EOF) {
-            // TODO: handle error
+            raiseError(token.begin,
+                       U"expecting a comma with another argument or a closing parenthesis, "
+                       U"met with a dead end");
             break;
         }
         else {
-            // TODO: handle error
+            raiseError(token.begin,
+                       U"expecting a comma with another argument or a closing parenthesis");
             khToken_delete(&token);
             skipToken(cursor, true);
             token = currentToken(cursor, true);
@@ -693,7 +701,7 @@ static khAstFunction sparseFunction(char32_t** cursor) {
         skipToken(cursor, false);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a `def` keyword");
     }
 
     function.name_point = kh_parseExpression(cursor, false, true);
@@ -721,7 +729,7 @@ static inline void sparseClassOrStruct(char32_t** cursor, khstring* name,
     }
     else {
         *name = khstring_new(U"");
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a name for the type");
     }
 
     // Any template args
@@ -739,7 +747,7 @@ static inline void sparseClassOrStruct(char32_t** cursor, khstring* name,
         }
         // Multiple template arguments in parentheses: `class Name!(T, U)`
         else if (token.type == khTokenType_DELIMITER &&
-                 token.delimiter == khDelimiterToken_PARENTHESES_OPEN) {
+                 token.delimiter == khDelimiterToken_PARENTHESIS_OPEN) {
             do {
                 khToken_delete(&token);
                 skipToken(cursor, true);
@@ -749,7 +757,7 @@ static inline void sparseClassOrStruct(char32_t** cursor, khstring* name,
                     kharray_append(template_arguments, khstring_copy(&token.identifier));
                 }
                 else {
-                    // TODO: handle error
+                    raiseError(token.begin, U"expecting the name for a template argument");
                 }
 
                 khToken_delete(&token);
@@ -758,22 +766,22 @@ static inline void sparseClassOrStruct(char32_t** cursor, khstring* name,
             } while (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_COMMA);
 
             if (token.type == khTokenType_DELIMITER &&
-                token.delimiter == khDelimiterToken_PARENTHESES_CLOSE) {
+                token.delimiter == khDelimiterToken_PARENTHESIS_CLOSE) {
                 khToken_delete(&token);
                 skipToken(cursor, false);
                 token = currentToken(cursor, false);
             }
             else {
-                // TODO: handle error
+                raiseError(token.begin, U"expecting a closing parenthesis");
             }
         }
         else {
-            // TODO: handle error
+            raiseError(token.begin, U"expecting template argument(s)");
         }
     }
 
     // If it's inheriting something: `class Name(Base)`
-    if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_PARENTHESES_OPEN) {
+    if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_PARENTHESIS_OPEN) {
         skipToken(cursor, true);
         *optional_base_type = malloc(sizeof(khAstExpression));
         **optional_base_type = kh_parseExpression(cursor, true, true);
@@ -782,11 +790,11 @@ static inline void sparseClassOrStruct(char32_t** cursor, khstring* name,
         token = currentToken(cursor, true);
 
         if (token.type == khTokenType_DELIMITER &&
-            token.delimiter == khDelimiterToken_PARENTHESES_CLOSE) {
+            token.delimiter == khDelimiterToken_PARENTHESIS_CLOSE) {
             skipToken(cursor, true);
         }
         else {
-            // TODO: handle error
+            raiseError(token.begin, U"expecting a closing parenthesis");
         }
     }
 
@@ -812,7 +820,7 @@ static khAstClass sparseClass(char32_t** cursor) {
         skipToken(cursor, false);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a `class` keyword");
     }
 
     sparseClassOrStruct(cursor, &class_v.name, &class_v.template_arguments, &class_v.optional_base_type,
@@ -838,7 +846,7 @@ static khAstStruct sparseStruct(char32_t** cursor) {
         skipToken(cursor, false);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a `struct` keyword");
     }
 
     sparseClassOrStruct(cursor, &struct_v.name, &struct_v.template_arguments,
@@ -863,7 +871,7 @@ static khAstEnum sparseEnum(char32_t** cursor) {
         token = currentToken(cursor, false);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting an `enum` keyword");
     }
 
     // Its name
@@ -875,7 +883,7 @@ static khAstEnum sparseEnum(char32_t** cursor) {
     }
     else {
         enum_v.name = khstring_new(U"");
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a name for the enum type");
     }
 
     // Its members
@@ -889,7 +897,7 @@ static khAstEnum sparseEnum(char32_t** cursor) {
                 kharray_append(&enum_v.members, khstring_copy(&token.identifier));
             }
             else {
-                // TODO: handle error
+                raiseError(token.begin, U"expecting a member name");
             }
 
             khToken_delete(&token);
@@ -903,11 +911,12 @@ static khAstEnum sparseEnum(char32_t** cursor) {
             skipToken(cursor, true);
         }
         else {
-            // TODO: handle error
+            raiseError(token.begin,
+                       U"expecting a comma with another member or a closing curly bracket");
         }
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a `class` keyword");
     }
 
     khToken_delete(&token);
@@ -931,7 +940,7 @@ static khAstAlias sparseAlias(char32_t** cursor) {
         token = currentToken(cursor, false);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting an `alias` keyword");
     }
 
     // Its name
@@ -943,7 +952,7 @@ static khAstAlias sparseAlias(char32_t** cursor) {
     }
     else {
         alias.name = khstring_new(U"");
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a name for the alias");
     }
 
     // Its alias expression
@@ -955,8 +964,12 @@ static khAstAlias sparseAlias(char32_t** cursor) {
         (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_SEMICOLON)) {
         skipToken(cursor, false);
     }
+    else if (token.type == khTokenType_DELIMITER &&
+             token.delimiter == khDelimiterToken_CURLY_BRACKET_CLOSE) {
+        // Do nothing
+    }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a newline or a semicolon");
     }
 
     khToken_delete(&token);
@@ -979,7 +992,7 @@ static khAstIfBranch sparseIfBranch(char32_t** cursor) {
         token = currentToken(cursor, false);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting an `if` keyword");
     }
 
     goto in;
@@ -1016,7 +1029,7 @@ static khAstWhileLoop sparseWhileLoop(char32_t** cursor) {
         skipToken(cursor, true);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a `while` keyword");
     }
 
     // Its condition and block content
@@ -1038,7 +1051,7 @@ static khAstDoWhileLoop sparseDoWhileLoop(char32_t** cursor) {
         skipToken(cursor, true);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a `do` keyword");
     }
 
     // Its content
@@ -1052,7 +1065,7 @@ static khAstDoWhileLoop sparseDoWhileLoop(char32_t** cursor) {
         skipToken(cursor, true);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a `while` keyword");
     }
 
     // And its condition
@@ -1066,8 +1079,12 @@ static khAstDoWhileLoop sparseDoWhileLoop(char32_t** cursor) {
         (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_SEMICOLON)) {
         skipToken(cursor, false);
     }
+    else if (token.type == khTokenType_DELIMITER &&
+             token.delimiter == khDelimiterToken_CURLY_BRACKET_CLOSE) {
+        // Do nothing
+    }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a newline or a semicolon");
     }
 
     khToken_delete(&token);
@@ -1084,7 +1101,7 @@ static khAst sparseForLoop(char32_t** cursor) {
         skipToken(cursor, true);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a `for` keyword");
     }
 
     kharray(khAstExpression) expressions = kharray_new(khAstExpression, khAstExpression_delete);
@@ -1128,7 +1145,7 @@ static khAst sparseForLoop(char32_t** cursor) {
     else {
         khToken_delete(&token);
         kharray_delete(&expressions);
-        // TODO: handle error
+        raiseError(token.begin, U"too many arguments for a non-for-each for loop");
         return (khAst){.begin = origin, .end = *cursor, .type = khAstType_INVALID};
     }
 }
@@ -1143,7 +1160,7 @@ static void sparseBreak(char32_t** cursor) {
         token = currentToken(cursor, true);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a `break` keyword");
     }
 
     // Ensure it ends with a newline or a semicolon
@@ -1151,8 +1168,12 @@ static void sparseBreak(char32_t** cursor) {
         (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_SEMICOLON)) {
         skipToken(cursor, false);
     }
+    else if (token.type == khTokenType_DELIMITER &&
+             token.delimiter == khDelimiterToken_CURLY_BRACKET_CLOSE) {
+        // Do nothing
+    }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a newline or a semicolon");
     }
 
     khToken_delete(&token);
@@ -1168,7 +1189,7 @@ static void sparseContinue(char32_t** cursor) {
         token = currentToken(cursor, true);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a `continue` keyword");
     }
 
     // Ensure it ends with a newline or a semicolon
@@ -1176,8 +1197,12 @@ static void sparseContinue(char32_t** cursor) {
         (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_SEMICOLON)) {
         skipToken(cursor, false);
     }
+    else if (token.type == khTokenType_DELIMITER &&
+             token.delimiter == khDelimiterToken_CURLY_BRACKET_CLOSE) {
+        // Do nothing
+    }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a newline or a semicolon");
     }
 
     khToken_delete(&token);
@@ -1193,7 +1218,7 @@ static khAstReturn sparseReturn(char32_t** cursor) {
         token = currentToken(cursor, true);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a `return` keyword");
     }
 
     // Instant return in a non-returning function
@@ -1222,8 +1247,12 @@ static khAstReturn sparseReturn(char32_t** cursor) {
         (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_SEMICOLON)) {
         skipToken(cursor, false);
     }
+    else if (token.type == khTokenType_DELIMITER &&
+             token.delimiter == khDelimiterToken_CURLY_BRACKET_CLOSE) {
+        // Do nothing
+    }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a newline or a semicolon");
     }
 
     khToken_delete(&token);
@@ -1376,7 +1405,7 @@ static khAstExpression exparseTernary(char32_t** cursor, EXPARSE_ARGS) {
             skipToken(cursor, ignore_newline);
         }
         else {
-            // TODO: handle error
+            raiseError(token.begin, U"expecting an `else` keyword after the condition");
         }
 
         // Its otherwise value
@@ -1690,14 +1719,14 @@ static khAstExpression exparseReverseUnary(char32_t** cursor, EXPARSE_ARGS) {
         switch (token.type) {
             case khTokenType_DELIMITER:
                 switch (token.delimiter) {
-                    case khDelimiterToken_PARENTHESES_OPEN: {
+                    case khDelimiterToken_PARENTHESIS_OPEN: {
                         if (filter_type) {
                             goto out;
                         }
 
                         kharray(khAstExpression) arguments = exparseList(
-                            cursor, khDelimiterToken_PARENTHESES_OPEN,
-                            khDelimiterToken_PARENTHESES_CLOSE, ignore_newline, filter_type);
+                            cursor, khDelimiterToken_PARENTHESIS_OPEN,
+                            khDelimiterToken_PARENTHESIS_CLOSE, ignore_newline, filter_type);
 
                         khAstExpression* callee = malloc(sizeof(khAstExpression));
                         *callee = expression;
@@ -1819,7 +1848,7 @@ static khAstExpression exparseScopeTemplatization(char32_t** cursor, EXPARSE_ARG
                         token = currentToken(cursor, ignore_newline);
                     }
                     else {
-                        // TODO: handle error
+                        raiseError(token.begin, U"expecting an identifier to scope into");
                     }
                 }
 
@@ -1857,10 +1886,10 @@ static khAstExpression exparseScopeTemplatization(char32_t** cursor, EXPARSE_ARG
                 }
                 // Multiple template arguments: `Type!(int, float)`
                 else if (token.type == khTokenType_DELIMITER &&
-                         token.delimiter == khDelimiterToken_PARENTHESES_OPEN) {
+                         token.delimiter == khDelimiterToken_PARENTHESIS_OPEN) {
                     kharray(khAstExpression) template_arguments =
-                        exparseList(cursor, khDelimiterToken_PARENTHESES_OPEN,
-                                    khDelimiterToken_PARENTHESES_CLOSE, ignore_newline, true);
+                        exparseList(cursor, khDelimiterToken_PARENTHESIS_OPEN,
+                                    khDelimiterToken_PARENTHESIS_CLOSE, ignore_newline, true);
 
                     expression = (khAstExpression){
                         .begin = origin,
@@ -1870,7 +1899,7 @@ static khAstExpression exparseScopeTemplatization(char32_t** cursor, EXPARSE_ARG
                 }
                 else {
                     free(value);
-                    // TODO: handle error
+                    raiseError(token.begin, U"expecting a type argument for templatizing");
                 }
             } break;
 
@@ -1919,7 +1948,7 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
                 // Lambdas
                 case khKeywordToken_DEF:
                     if (filter_type) {
-                        // TODO: handle error
+                        raiseError(token.begin, U"expecting a type, not a lambda");
                     }
 
                     expression = exparseLambda(cursor, ignore_newline);
@@ -1930,14 +1959,14 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
                 case khKeywordToken_WILD:
                 case khKeywordToken_REF:
                     if (filter_type) {
-                        // TODO: handle error
+                        raiseError(token.begin, U"expecting a type, not a variable declaration");
                     }
 
                     expression = exparseVariableDeclaration(cursor, ignore_newline);
                     break;
 
                 default:
-                    // TODO: handle error
+                    raiseError(token.begin, U"unexpected delimiter in an expression");
                     break;
             }
             break;
@@ -1945,10 +1974,10 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
         case khTokenType_DELIMITER:
             switch (token.keyword) {
                 // Parentheses enclosed expressions or tuples
-                case khDelimiterToken_PARENTHESES_OPEN: {
+                case khDelimiterToken_PARENTHESIS_OPEN: {
                     kharray(khAstExpression) values =
-                        exparseList(cursor, khDelimiterToken_PARENTHESES_OPEN,
-                                    khDelimiterToken_PARENTHESES_CLOSE, ignore_newline, filter_type);
+                        exparseList(cursor, khDelimiterToken_PARENTHESIS_OPEN,
+                                    khDelimiterToken_PARENTHESIS_CLOSE, ignore_newline, filter_type);
 
                     if (kharray_size(&values) == 1) {
                         expression = khAstExpression_copy(&values[0]);
@@ -1965,7 +1994,7 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
                 // Arrays
                 case khDelimiterToken_SQUARE_BRACKET_OPEN:
                     if (filter_type) {
-                        // TODO: handle error
+                        raiseError(token.begin, U"expecting a type, not an array");
                     }
 
                     expression = (khAstExpression){
@@ -1976,7 +2005,7 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
                     break;
 
                 default:
-                    // TODO: handle error
+                    raiseError(token.begin, U"expecting a type, not a lambda");
                     break;
             }
             break;
@@ -1985,7 +2014,7 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
 
         case khTokenType_CHAR:
             if (filter_type) {
-                // TODO: handle error
+                raiseError(token.begin, U"expecting a type, not a character");
             }
 
             skipToken(cursor, ignore_newline);
@@ -1997,7 +2026,7 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
 
         case khTokenType_STRING:
             if (filter_type) {
-                // TODO: handle error
+                raiseError(token.begin, U"expecting a type, not a string");
             }
 
             skipToken(cursor, ignore_newline);
@@ -2009,7 +2038,7 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
 
         case khTokenType_BUFFER:
             if (filter_type) {
-                // TODO: handle error
+                raiseError(token.begin, U"expecting a type, not a buffer");
             }
 
             skipToken(cursor, ignore_newline);
@@ -2021,7 +2050,7 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
 
         case khTokenType_BYTE:
             if (filter_type) {
-                // TODO: handle error
+                raiseError(token.begin, U"expecting a type, not a byte");
             }
 
             skipToken(cursor, ignore_newline);
@@ -2033,7 +2062,7 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
             // Integers should be able to be parsed even with `filter_type`, in order for static array
             // types to be parsed
             /* if (filter_type) {
-             *     // TODO: handle error
+             *     raiseError(token.begin, U"expecting a type, not an integer");
              * }
              */
 
@@ -2047,7 +2076,7 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
         case khTokenType_UINTEGER:
             // Same for unsigned integers
             /* if (filter_type) {
-             *     // TODO: handle error
+             *     raiseError(token.begin, U"expecting a type, not an unsigned integer");
              * }
              */
 
@@ -2060,7 +2089,7 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
 
         case khTokenType_FLOAT:
             if (filter_type) {
-                // TODO: handle error
+                raiseError(token.begin, U"expecting a type, not a floating-point number");
             }
 
             skipToken(cursor, ignore_newline);
@@ -2072,7 +2101,7 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
 
         case khTokenType_DOUBLE:
             if (filter_type) {
-                // TODO: handle error
+                raiseError(token.begin, U"expecting a type, not a double floating-point number");
             }
 
             skipToken(cursor, ignore_newline);
@@ -2084,7 +2113,7 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
 
         case khTokenType_IFLOAT:
             if (filter_type) {
-                // TODO: handle error
+                raiseError(token.begin, U"expecting a type, not an imaginary floating-point number");
             }
 
             skipToken(cursor, ignore_newline);
@@ -2096,7 +2125,8 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
 
         case khTokenType_IDOUBLE:
             if (filter_type) {
-                // TODO: handle error
+                raiseError(token.begin,
+                           U"expecting a type, not an imaginary double floating-point number");
             }
 
             skipToken(cursor, ignore_newline);
@@ -2107,7 +2137,7 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
             break;
 
         default:
-            // TODO: handle error
+            raiseError(token.begin, U"unexpected token in an expression");
             break;
     }
 
@@ -2157,7 +2187,7 @@ static khAstExpression exparseVariableDeclaration(char32_t** cursor, bool ignore
     }
     else {
         declaration.name = khstring_new(U"");
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a name for the variable in the declaration");
     }
 
     // Passes through the colon
@@ -2167,7 +2197,7 @@ static khAstExpression exparseVariableDeclaration(char32_t** cursor, bool ignore
         token = currentToken(cursor, ignore_newline);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a colon to separate the name and the type of the variable");
     }
 
     // If there's no assign op at first, it's a type: `name: Type`
@@ -2205,7 +2235,7 @@ static khAstExpression exparseLambda(char32_t** cursor, bool ignore_newline) {
         skipToken(cursor, ignore_newline);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting a `def` keyword");
     }
 
     sparseFunctionOrLambda(cursor, &lambda.arguments, &lambda.optional_variadic_argument,
@@ -2228,7 +2258,7 @@ static kharray(khAstExpression) exparseList(char32_t** cursor, khDelimiterToken 
         token = currentToken(cursor, true);
     }
     else {
-        // TODO: handle error
+        raiseError(token.begin, U"expecting an opening delimiter");
     }
 
     // Instant close
@@ -2257,7 +2287,8 @@ static kharray(khAstExpression) exparseList(char32_t** cursor, khDelimiterToken 
                 break;
             }
             else {
-                // TODO: handle error
+                raiseError(token.begin,
+                           U"expecting a comma with another element or a closing delimiter");
                 skipToken(cursor, true);
             }
         }
