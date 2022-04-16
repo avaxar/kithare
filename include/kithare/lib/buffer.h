@@ -2,7 +2,7 @@
  * This file is a part of the Kithare programming language source code.
  * The source code for Kithare programming language is distributed under the MIT license,
  *     and it is available as a repository at https://github.com/Kithare/Kithare
- * Copyright (C) 2021 Kithare Organization at https://www.kithare.de
+ * Copyright (C) 2022 Kithare Organization at https://www.kithare.de
  */
 
 #pragma once
@@ -69,7 +69,7 @@ static inline void khbuffer_concatenateCstring(khbuffer* buffer, const char* cst
     kharray_memory(buffer, (uint8_t*)cstring, strlen(cstring), NULL);
 }
 
-static inline bool khbuffer_compare(khbuffer* a, khbuffer* b) {
+static inline bool khbuffer_equal(khbuffer* a, khbuffer* b) {
     if (khbuffer_size(a) != khbuffer_size(b)) {
         return false;
     }
@@ -83,7 +83,7 @@ static inline bool khbuffer_compare(khbuffer* a, khbuffer* b) {
     return true;
 }
 
-static inline bool khbuffer_compareCstring(khbuffer* buffer, const char* cstring) {
+static inline bool khbuffer_equalCstring(khbuffer* buffer, const char* cstring) {
     size_t length = strlen(cstring);
     if (khbuffer_size(buffer) != length) {
         return false;
@@ -98,17 +98,74 @@ static inline bool khbuffer_compareCstring(khbuffer* buffer, const char* cstring
     return true;
 }
 
-static inline khstring khbuffer_quote(khbuffer* buffer) {
-    khstring quoted_buffer = khstring_new(U"");
+static inline bool khbuffer_startswith(khbuffer* buffer, khbuffer* prefix) {
+    if (khbuffer_size(buffer) < khbuffer_size(prefix)) {
+        return false;
+    }
 
-    khstring_append(&quoted_buffer, U'\"');
+    for (size_t i = 0; i < khbuffer_size(prefix); i++) {
+        if ((*buffer)[i] != (*prefix)[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static inline bool khbuffer_startswithCstring(khbuffer* buffer, const char* cstring) {
+    size_t length = strlen(cstring);
+    if (khbuffer_size(buffer) < length) {
+        return false;
+    }
+
+    for (size_t i = 0; i < length; i++) {
+        if ((*buffer)[i] != cstring[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static inline bool khbuffer_endswith(khbuffer* buffer, khbuffer* suffix) {
+    if (khbuffer_size(buffer) < khbuffer_size(suffix)) {
+        return false;
+    }
+
+    for (size_t i = 0; i < khbuffer_size(suffix); i++) {
+        if ((*buffer)[khbuffer_size(buffer) - khbuffer_size(suffix) + i] != (*suffix)[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static inline bool khbuffer_endswithCstring(khbuffer* buffer, const char* cstring) {
+    size_t length = strlen(cstring);
+    if (khbuffer_size(buffer) < length) {
+        return false;
+    }
+
+    for (size_t i = 0; i < length; i++) {
+        if ((*buffer)[khbuffer_size(buffer) - length + i] != cstring[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static inline khstring khbuffer_quote(khbuffer* buffer) {
+    khstring quoted_buffer = khstring_new(U"\"");
+
     for (uint8_t* byte = *buffer; byte < *buffer + khbuffer_size(buffer); byte++) {
         khstring escaped = kh_escapeChar(*byte);
         khstring_concatenate(&quoted_buffer, &escaped);
         khstring_delete(&escaped);
     }
-    khstring_append(&quoted_buffer, U'\"');
 
+    khstring_append(&quoted_buffer, U'\"');
     return quoted_buffer;
 }
 

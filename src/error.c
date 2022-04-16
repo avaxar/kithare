@@ -2,7 +2,7 @@
  * This file is a part of the Kithare programming language source code.
  * The source code for Kithare programming language is distributed under the MIT license,
  *     and it is available as a repository at https://github.com/Kithare/Kithare
- * Copyright (C) 2021 Kithare Organization at https://www.kithare.de
+ * Copyright (C) 2022 Kithare Organization at https://www.kithare.de
  */
 
 #include <stddef.h>
@@ -23,7 +23,7 @@ void kh_raiseError(khError error) {
     for (size_t i = 0; i < kharray_size(&error_stack); i++) {
         khError* err = &error_stack[i];
 
-        if (err->type == error.type && khstring_compare(&err->message, &error.message) &&
+        if (err->type == error.type && khstring_equal(&err->message, &error.message) &&
             err->data == error.data) {
             is_duplicate = true;
             break;

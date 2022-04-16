@@ -2,7 +2,7 @@
 This file is a part of the Kithare programming language source code.
 The source code for Kithare programming language is distributed under the MIT
 license.
-Copyright (C) 2021 Kithare Organization
+Copyright (C) 2022 Kithare Organization
 
 builder/__init__.py
 Defines the main KithareBuilder class that builds Kithare
@@ -95,7 +95,9 @@ class KithareBuilder:
         Utility method to handle the first argument
         """
         if arg == "test":
-            sys.exit(run_cmd(self.exepath, "--test"))
+            # # CKithare currently doesn't have unittests
+            # sys.exit(run_cmd(self.exepath, "--test"))
+            sys.exit(run_cmd(self.exepath))
 
         if clean is not None:
             clean_list = (

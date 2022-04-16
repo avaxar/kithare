@@ -9,5 +9,5 @@ Description: Kithare Programming Language
  The source code for Kithare programming language is distributed
  under the MIT license.
  .
- Copyright (C) 2021 Kithare Organization
+ Copyright (C) 2022 Kithare Organization
  GitHub: https://github.com/Kithare/Kithare

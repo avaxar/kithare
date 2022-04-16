@@ -2,7 +2,7 @@
  * This file is a part of the Kithare programming language source code.
  * The source code for Kithare programming language is distributed under the MIT license,
  *     and it is available as a repository at https://github.com/Kithare/Kithare
- * Copyright (C) 2021 Kithare Organization at https://www.kithare.de
+ * Copyright (C) 2022 Kithare Organization at https://www.kithare.de
  */
 
 #include <stdlib.h>
@@ -52,7 +52,7 @@ khstring khAstType_string(khAstType type) {
             return khstring_new(U"return");
 
         default:
-            return khstring_new(U"[unknown]");
+            return khstring_new(U"unknown");
     }
 }
 
@@ -115,7 +115,7 @@ khstring khAstExpressionType_string(khAstExpressionType type) {
             return khstring_new(U"templatize");
 
         default:
-            return khstring_new(U"[unknown]");
+            return khstring_new(U"unknown");
     }
 }
 
@@ -128,20 +128,20 @@ void khAstTuple_delete(khAstTuple* tuple) {
     kharray_delete(&tuple->values);
 }
 
-khstring khAstTuple_string(khAstTuple* tuple) {
-    khstring string = khstring_new(U"(");
+khstring khAstTuple_string(khAstTuple* tuple, char32_t* origin) {
+    khstring string = khstring_new(U"{\"values\": [");
 
     for (size_t i = 0; i < kharray_size(&tuple->values); i++) {
-        khstring value_str = khAstExpression_string(&tuple->values[i]);
-        khstring_concatenate(&string, &value_str);
-        khstring_delete(&value_str);
+        khstring expression_str = khAstExpression_string(&tuple->values[i], origin);
+        khstring_concatenate(&string, &expression_str);
+        khstring_delete(&expression_str);
 
         if (i < kharray_size(&tuple->values) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
 
-    khstring_append(&string, U')');
+    khstring_concatenateCstring(&string, U"]}");
     return string;
 }
 
@@ -154,20 +154,20 @@ void khAstArray_delete(khAstArray* array) {
     kharray_delete(&array->values);
 }
 
-khstring khAstArray_string(khAstArray* array) {
-    khstring string = khstring_new(U"(");
+khstring khAstArray_string(khAstArray* array, char32_t* origin) {
+    khstring string = khstring_new(U"{\"values\": [");
 
     for (size_t i = 0; i < kharray_size(&array->values); i++) {
-        khstring value_str = khAstExpression_string(&array->values[i]);
-        khstring_concatenate(&string, &value_str);
-        khstring_delete(&value_str);
+        khstring expression_str = khAstExpression_string(&array->values[i], origin);
+        khstring_concatenate(&string, &expression_str);
+        khstring_delete(&expression_str);
 
         if (i < kharray_size(&array->values) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
 
-    khstring_append(&string, U')');
+    khstring_concatenateCstring(&string, U"]}");
     return string;
 }
 
@@ -182,29 +182,32 @@ void khAstDict_delete(khAstDict* dict) {
     kharray_delete(&dict->values);
 }
 
-khstring khAstDict_string(khAstDict* dict) {
-    khstring string = khstring_new(U"(");
+khstring khAstDict_string(khAstDict* dict, char32_t* origin) {
+    khstring string = khstring_new(U"{\"keys\": [");
 
     for (size_t i = 0; i < kharray_size(&dict->keys); i++) {
-        khstring_append(&string, U'(');
+        khstring expression_str = khAstExpression_string(&dict->keys[i], origin);
+        khstring_concatenate(&string, &expression_str);
+        khstring_delete(&expression_str);
 
-        khstring key_str = khAstExpression_string(&dict->keys[i]);
-        khstring_concatenate(&string, &key_str);
-        khstring_delete(&key_str);
-
-        khstring_concatenateCstring(&string, U", ");
-
-        khstring value_str = khAstExpression_string(&dict->values[i]);
-        khstring_concatenate(&string, &value_str);
-        khstring_delete(&value_str);
-
-        khstring_append(&string, U')');
         if (i < kharray_size(&dict->keys) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
 
-    khstring_append(&string, U')');
+    khstring_concatenateCstring(&string, U"], \"values\": [");
+
+    for (size_t i = 0; i < kharray_size(&dict->values); i++) {
+        khstring expression_str = khAstExpression_string(&dict->values[i], origin);
+        khstring_concatenate(&string, &expression_str);
+        khstring_delete(&expression_str);
+
+        if (i < kharray_size(&dict->values) - 1) {
+            khstring_concatenateCstring(&string, U", ");
+        }
+    }
+
+    khstring_concatenateCstring(&string, U"]}");
     return string;
 }
 
@@ -231,7 +234,7 @@ khstring khAstUnaryExpressionType_string(khAstUnaryExpressionType type) {
             return khstring_new(U"bit_not");
 
         default:
-            return khstring_new(U"[unknown]");
+            return khstring_new(U"unknown");
     }
 }
 
@@ -248,14 +251,20 @@ void khAstUnaryExpression_delete(khAstUnaryExpression* unary_exp) {
     free(unary_exp->operand);
 }
 
-khstring khAstUnaryExpression_string(khAstUnaryExpression* unary_exp) {
-    khstring string = khstring_new(U"(");
+khstring khAstUnaryExpression_string(khAstUnaryExpression* unary_exp, char32_t* origin) {
+    khstring string = khstring_new(U"{\"type\": ");
+    khstring type_str = khAstUnaryExpressionType_string(unary_exp->type);
+    khstring quoted_type = khstring_quote(&type_str);
+    khstring_concatenate(&string, &quoted_type);
+    khstring_delete(&type_str);
+    khstring_delete(&quoted_type);
 
-    khstring operand_str = khAstExpression_string(unary_exp->operand);
+    khstring_concatenateCstring(&string, U", \"operand\": ");
+    khstring operand_str = khAstExpression_string(unary_exp->operand, origin);
     khstring_concatenate(&string, &operand_str);
     khstring_delete(&operand_str);
 
-    khstring_append(&string, U')');
+    khstring_concatenateCstring(&string, U"}");
     return string;
 }
 
@@ -325,7 +334,7 @@ khstring khAstBinaryExpressionType_string(khAstBinaryExpressionType type) {
             return khstring_new(U"ibit_rshift");
 
         default:
-            return khstring_new(U"[unknown]");
+            return khstring_new(U"unknown");
     }
 }
 
@@ -347,20 +356,25 @@ void khAstBinaryExpression_delete(khAstBinaryExpression* binary_exp) {
     free(binary_exp->right);
 }
 
-khstring khAstBinaryExpression_string(khAstBinaryExpression* binary_exp) {
-    khstring string = khstring_new(U"(");
+khstring khAstBinaryExpression_string(khAstBinaryExpression* binary_exp, char32_t* origin) {
+    khstring string = khstring_new(U"{\"type\": ");
+    khstring type_str = khAstBinaryExpressionType_string(binary_exp->type);
+    khstring quoted_type = khstring_quote(&type_str);
+    khstring_concatenate(&string, &quoted_type);
+    khstring_delete(&type_str);
+    khstring_delete(&quoted_type);
 
-    khstring left_str = khAstExpression_string(binary_exp->left);
+    khstring_concatenateCstring(&string, U", \"left\": ");
+    khstring left_str = khAstExpression_string(binary_exp->left, origin);
     khstring_concatenate(&string, &left_str);
     khstring_delete(&left_str);
 
-    khstring_concatenateCstring(&string, U", ");
-
-    khstring right_str = khAstExpression_string(binary_exp->right);
+    khstring_concatenateCstring(&string, U", \"right\": ");
+    khstring right_str = khAstExpression_string(binary_exp->right, origin);
     khstring_concatenate(&string, &right_str);
     khstring_delete(&right_str);
 
-    khstring_append(&string, U')');
+    khstring_concatenateCstring(&string, U"}");
     return string;
 }
 
@@ -386,26 +400,23 @@ void khAstTernaryExpression_delete(khAstTernaryExpression* ternary_exp) {
     free(ternary_exp->otherwise);
 }
 
-khstring khAstTernaryExpression_string(khAstTernaryExpression* ternary_exp) {
-    khstring string = khstring_new(U"(");
-
-    khstring condition_str = khAstExpression_string(ternary_exp->condition);
+khstring khAstTernaryExpression_string(khAstTernaryExpression* ternary_exp, char32_t* origin) {
+    khstring string = khstring_new(U"{\"condition\": ");
+    khstring condition_str = khAstExpression_string(ternary_exp->condition, origin);
     khstring_concatenate(&string, &condition_str);
     khstring_delete(&condition_str);
 
-    khstring_concatenateCstring(&string, U", ");
-
-    khstring value_str = khAstExpression_string(ternary_exp->value);
+    khstring_concatenateCstring(&string, U", \"value\": ");
+    khstring value_str = khAstExpression_string(ternary_exp->value, origin);
     khstring_concatenate(&string, &value_str);
     khstring_delete(&value_str);
 
-    khstring_concatenateCstring(&string, U", ");
-
-    khstring otherwise_str = khAstExpression_string(ternary_exp->otherwise);
+    khstring_concatenateCstring(&string, U", \"otherwise\": ");
+    khstring otherwise_str = khAstExpression_string(ternary_exp->otherwise, origin);
     khstring_concatenate(&string, &otherwise_str);
     khstring_delete(&otherwise_str);
 
-    khstring_append(&string, U')');
+    khstring_concatenateCstring(&string, U"}");
     return string;
 }
 
@@ -426,7 +437,7 @@ khstring khAstComparisonExpressionType_string(khAstComparisonExpressionType type
             return khstring_new(U"emore");
 
         default:
-            return khstring_new(U"[unknown]");
+            return khstring_new(U"unknown");
     }
 }
 
@@ -442,31 +453,32 @@ void khAstComparisonExpression_delete(khAstComparisonExpression* comparison_exp)
     kharray_delete(&comparison_exp->operands);
 }
 
-khstring khAstComparisonExpression_string(khAstComparisonExpression* comparison_exp) {
-    khstring string = khstring_new(U"(");
-
+khstring khAstComparisonExpression_string(khAstComparisonExpression* comparison_exp, char32_t* origin) {
+    khstring string = khstring_new(U"{\"operations\": [");
     for (size_t i = 0; i < kharray_size(&comparison_exp->operations); i++) {
-        khstring operand_str = khAstExpression_string(&comparison_exp->operands[i]);
-        khstring_concatenate(&string, &operand_str);
-        khstring_delete(&operand_str);
-
-        khstring_concatenateCstring(&string, U", ");
-
         khstring operation_str = khAstComparisonExpressionType_string(comparison_exp->operations[i]);
-        khstring_concatenate(&string, &operation_str);
+        khstring quoted_operation = khstring_quote(&operation_str);
+        khstring_concatenate(&string, &quoted_operation);
         khstring_delete(&operation_str);
+        khstring_delete(&quoted_operation);
 
-        khstring_concatenateCstring(&string, U", ");
+        if (i < kharray_size(&comparison_exp->operations) - 1) {
+            khstring_concatenateCstring(&string, U", ");
+        }
     }
 
-    if (kharray_size(&comparison_exp->operands) > 0) {
-        khstring operand_str = khAstExpression_string(
-            &comparison_exp->operands[kharray_size(&comparison_exp->operations)]);
+    khstring_concatenateCstring(&string, U"], \"operands\": [");
+    for (size_t i = 0; i < kharray_size(&comparison_exp->operands); i++) {
+        khstring operand_str = khAstExpression_string(&comparison_exp->operands[i], origin);
         khstring_concatenate(&string, &operand_str);
         khstring_delete(&operand_str);
+
+        if (i < kharray_size(&comparison_exp->operands) - 1) {
+            khstring_concatenateCstring(&string, U", ");
+        }
     }
 
-    khstring_append(&string, U')');
+    khstring_concatenateCstring(&string, U"]}");
     return string;
 }
 
@@ -485,18 +497,15 @@ void khAstCallExpression_delete(khAstCallExpression* call_exp) {
     kharray_delete(&call_exp->arguments);
 }
 
-khstring khAstCallExpression_string(khAstCallExpression* call_exp) {
-    khstring string = khstring_new(U"(");
-
-    khstring callee_str = khAstExpression_string(call_exp->callee);
+khstring khAstCallExpression_string(khAstCallExpression* call_exp, char32_t* origin) {
+    khstring string = khstring_new(U"{\"callee\": ");
+    khstring callee_str = khAstExpression_string(call_exp->callee, origin);
     khstring_concatenate(&string, &callee_str);
     khstring_delete(&callee_str);
 
-    khstring_concatenateCstring(&string, U", ");
-
-    khstring_append(&string, U'(');
+    khstring_concatenateCstring(&string, U", \"arguments\": [");
     for (size_t i = 0; i < kharray_size(&call_exp->arguments); i++) {
-        khstring argument_str = khAstExpression_string(&call_exp->arguments[i]);
+        khstring argument_str = khAstExpression_string(&call_exp->arguments[i], origin);
         khstring_concatenate(&string, &argument_str);
         khstring_delete(&argument_str);
 
@@ -505,8 +514,7 @@ khstring khAstCallExpression_string(khAstCallExpression* call_exp) {
         }
     }
 
-    khstring_concatenateCstring(&string, U"))");
-
+    khstring_concatenateCstring(&string, U"]}");
     return string;
 }
 
@@ -525,18 +533,15 @@ void khAstIndexExpression_delete(khAstIndexExpression* index_exp) {
     kharray_delete(&index_exp->arguments);
 }
 
-khstring khAstIndexExpression_string(khAstIndexExpression* index_exp) {
-    khstring string = khstring_new(U"(");
-
-    khstring indexee_str = khAstExpression_string(index_exp->indexee);
+khstring khAstIndexExpression_string(khAstIndexExpression* index_exp, char32_t* origin) {
+    khstring string = khstring_new(U"{\"indexee\": ");
+    khstring indexee_str = khAstExpression_string(index_exp->indexee, origin);
     khstring_concatenate(&string, &indexee_str);
     khstring_delete(&indexee_str);
 
-    khstring_concatenateCstring(&string, U", ");
-
-    khstring_append(&string, U'(');
+    khstring_concatenateCstring(&string, U", \"arguments\": [");
     for (size_t i = 0; i < kharray_size(&index_exp->arguments); i++) {
-        khstring argument_str = khAstExpression_string(&index_exp->arguments[i]);
+        khstring argument_str = khAstExpression_string(&index_exp->arguments[i], origin);
         khstring_concatenate(&string, &argument_str);
         khstring_delete(&argument_str);
 
@@ -545,8 +550,7 @@ khstring khAstIndexExpression_string(khAstIndexExpression* index_exp) {
         }
     }
 
-    khstring_concatenateCstring(&string, U"))");
-
+    khstring_concatenateCstring(&string, U"]}");
     return string;
 }
 
@@ -584,36 +588,43 @@ void khAstVariableDeclaration_delete(khAstVariableDeclaration* declaration) {
     }
 }
 
-khstring khAstVariableDeclaration_string(khAstVariableDeclaration* declaration) {
-    khstring string = khstring_new(U"(");
+khstring khAstVariableDeclaration_string(khAstVariableDeclaration* declaration, char32_t* origin) {
+    khstring string = khstring_new(U"{\"is_static\": ");
+    khstring_concatenateCstring(&string, declaration->is_static ? U"true" : U"false");
 
-    khstring_concatenateCstring(&string, declaration->is_static ? U"true, " : U"false, ");
-    khstring_concatenateCstring(&string, declaration->is_wild ? U"true, " : U"false, ");
-    khstring_concatenateCstring(&string, declaration->is_ref ? U"true, " : U"false, ");
+    khstring_concatenateCstring(&string, U", \"is_wild\": ");
+    khstring_concatenateCstring(&string, declaration->is_wild ? U"true" : U"false");
 
-    khstring name_str = khstring_quote(&declaration->name);
-    khstring_concatenate(&string, &name_str);
-    khstring_delete(&name_str);
+    khstring_concatenateCstring(&string, U", \"is_ref\": ");
+    khstring_concatenateCstring(&string, declaration->is_ref ? U"true" : U"false");
 
-    khstring_concatenateCstring(&string, U", ");
+    khstring_concatenateCstring(&string, U", \"name\": ");
+    khstring quoted_name = khstring_quote(&declaration->name);
+    khstring_concatenate(&string, &quoted_name);
+    khstring_delete(&quoted_name);
+
+    khstring_concatenateCstring(&string, U", \"optional_type\": ");
     if (declaration->optional_type != NULL) {
-        khstring type_str = khAstExpression_string(declaration->optional_type);
-        khstring_concatenate(&string, &type_str);
-        khstring_delete(&type_str);
+        khstring optional_type_str = khAstExpression_string(declaration->optional_type, origin);
+        khstring_concatenate(&string, &optional_type_str);
+        khstring_delete(&optional_type_str);
     }
     else {
-        khstring_concatenateCstring(&string, U"unspecified");
+        khstring_concatenateCstring(&string, U"null");
     }
 
+    khstring_concatenateCstring(&string, U", \"optional_initializer\": ");
     if (declaration->optional_initializer != NULL) {
-        khstring_concatenateCstring(&string, U", ");
-
-        khstring initializer_str = khAstExpression_string(declaration->optional_initializer);
-        khstring_concatenate(&string, &initializer_str);
-        khstring_delete(&initializer_str);
+        khstring optional_initializer_str =
+            khAstExpression_string(declaration->optional_initializer, origin);
+        khstring_concatenate(&string, &optional_initializer_str);
+        khstring_delete(&optional_initializer_str);
+    }
+    else {
+        khstring_concatenateCstring(&string, U"null");
     }
 
-    khstring_append(&string, U')');
+    khstring_concatenateCstring(&string, U"}");
     return string;
 }
 
@@ -651,13 +662,10 @@ void khAstLambdaExpression_delete(khAstLambdaExpression* lambda) {
     kharray_delete(&lambda->content);
 }
 
-khstring khAstLambdaExpression_string(khAstLambdaExpression* lambda) {
-    khstring string = khstring_new(U"(");
-
-    khstring_append(&string, U'(');
+khstring khAstLambdaExpression_string(khAstLambdaExpression* lambda, char32_t* origin) {
+    khstring string = khstring_new(U"{\"arguments\": [");
     for (size_t i = 0; i < kharray_size(&lambda->arguments); i++) {
-        khstring argument_str =
-            khAstVariableDeclaration_string(&lambda->arguments[i].variable_declaration);
+        khstring argument_str = khAstExpression_string(&lambda->arguments[i], origin);
         khstring_concatenate(&string, &argument_str);
         khstring_delete(&argument_str);
 
@@ -665,41 +673,44 @@ khstring khAstLambdaExpression_string(khAstLambdaExpression* lambda) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
-    khstring_concatenateCstring(&string, U"), ");
 
+    khstring_concatenateCstring(&string, U"], \"optional_variadic_argument\": ");
     if (lambda->optional_variadic_argument != NULL) {
-        khstring variadic_argument_str =
-            khAstVariableDeclaration_string(&lambda->optional_variadic_argument->variable_declaration);
-        khstring_concatenate(&string, &variadic_argument_str);
-        khstring_delete(&variadic_argument_str);
+        khstring optional_variadic_argument_str =
+            khAstExpression_string(lambda->optional_variadic_argument, origin);
+        khstring_concatenate(&string, &optional_variadic_argument_str);
+        khstring_delete(&optional_variadic_argument_str);
     }
     else {
-        khstring_concatenateCstring(&string, U"unspecified");
+        khstring_concatenateCstring(&string, U"null");
     }
 
-    khstring_concatenateCstring(&string, U", ");
+    khstring_concatenateCstring(&string, U", \"is_return_type_ref\": ");
+    khstring_concatenateCstring(&string, lambda->is_return_type_ref ? U"true" : U"false");
+
+    khstring_concatenateCstring(&string, U", \"optional_return_type\": ");
     if (lambda->optional_return_type != NULL) {
-        khstring return_type_str = khAstExpression_string(lambda->optional_return_type);
-        khstring_concatenate(&string, &return_type_str);
-        khstring_delete(&return_type_str);
+        khstring optional_return_type_str =
+            khAstExpression_string(lambda->optional_return_type, origin);
+        khstring_concatenate(&string, &optional_return_type_str);
+        khstring_delete(&optional_return_type_str);
     }
     else {
-        khstring_concatenateCstring(&string, U"unspecified");
+        khstring_concatenateCstring(&string, U"null");
     }
 
-    khstring_concatenateCstring(&string, U", (");
+    khstring_concatenateCstring(&string, U", \"content\": [");
     for (size_t i = 0; i < kharray_size(&lambda->content); i++) {
-        khstring ast_str = khAst_string(&lambda->content[i]);
-        khstring_concatenate(&string, &ast_str);
-        khstring_delete(&ast_str);
+        khstring statement_str = khAst_string(&lambda->content[i], origin);
+        khstring_concatenate(&string, &statement_str);
+        khstring_delete(&statement_str);
 
         if (i < kharray_size(&lambda->content) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
 
-    khstring_concatenateCstring(&string, U"))");
-
+    khstring_concatenateCstring(&string, U"]}");
     return string;
 }
 
@@ -722,26 +733,24 @@ void khAstScopeExpression_delete(khAstScopeExpression* scope_exp) {
     kharray_delete(&scope_exp->scope_names);
 }
 
-khstring khAstScopeExpression_string(khAstScopeExpression* scope_exp) {
-    khstring string = khstring_new(U"(");
-
-    khstring value_str = khAstExpression_string(scope_exp->value);
+khstring khAstScopeExpression_string(khAstScopeExpression* scope_exp, char32_t* origin) {
+    khstring string = khstring_new(U"{\"value\": ");
+    khstring value_str = khAstExpression_string(scope_exp->value, origin);
     khstring_concatenate(&string, &value_str);
     khstring_delete(&value_str);
 
-    khstring_concatenateCstring(&string, U", (");
-
+    khstring_concatenateCstring(&string, U", \"scope_names\": [");
     for (size_t i = 0; i < kharray_size(&scope_exp->scope_names); i++) {
-        khstring scope_name_str = khstring_quote(&scope_exp->scope_names[i]);
-        khstring_concatenate(&string, &scope_name_str);
-        khstring_delete(&scope_name_str);
+        khstring quoted_scope_name = khstring_quote(&scope_exp->scope_names[i]);
+        khstring_concatenate(&string, &quoted_scope_name);
+        khstring_delete(&quoted_scope_name);
 
         if (i < kharray_size(&scope_exp->scope_names) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
-    khstring_concatenateCstring(&string, U"))");
 
+    khstring_concatenateCstring(&string, U"]}");
     return string;
 }
 
@@ -762,11 +771,11 @@ void khAstFunctionTypeExpression_delete(khAstFunctionTypeExpression* function_ty
     free(function_type->return_type);
 }
 
-khstring khAstFunctionTypeExpression_string(khAstFunctionTypeExpression* function_type) {
-    khstring string = khstring_new(U"((");
-
+khstring khAstFunctionTypeExpression_string(khAstFunctionTypeExpression* function_type,
+                                            char32_t* origin) {
+    khstring string = khstring_new(U"{\"argument_types\": [");
     for (size_t i = 0; i < kharray_size(&function_type->argument_types); i++) {
-        khstring argument_type_str = khAstExpression_string(&function_type->argument_types[i]);
+        khstring argument_type_str = khAstExpression_string(&function_type->argument_types[i], origin);
         khstring_concatenate(&string, &argument_type_str);
         khstring_delete(&argument_type_str);
 
@@ -775,14 +784,12 @@ khstring khAstFunctionTypeExpression_string(khAstFunctionTypeExpression* functio
         }
     }
 
-    khstring_concatenateCstring(&string, U"), ");
-
-    khstring return_type_str = khAstExpression_string(function_type->return_type);
+    khstring_concatenateCstring(&string, U"], \"return_type\": ");
+    khstring return_type_str = khAstExpression_string(function_type->return_type, origin);
     khstring_concatenate(&string, &return_type_str);
     khstring_delete(&return_type_str);
 
-    khstring_concatenateCstring(&string, U"))");
-    khstring_append(&string, U')');
+    khstring_concatenateCstring(&string, U"}");
     return string;
 }
 
@@ -802,17 +809,16 @@ void khAstTemplatizeExpression_delete(khAstTemplatizeExpression* templatize_exp)
     kharray_delete(&templatize_exp->template_arguments);
 }
 
-khstring khAstTemplatizeExpression_string(khAstTemplatizeExpression* templatize_exp) {
-    khstring string = khstring_new(U"(");
-
-    khstring value_str = khAstExpression_string(templatize_exp->value);
+khstring khAstTemplatizeExpression_string(khAstTemplatizeExpression* templatize_exp, char32_t* origin) {
+    khstring string = khstring_new(U"{\"value\": ");
+    khstring value_str = khAstExpression_string(templatize_exp->value, origin);
     khstring_concatenate(&string, &value_str);
     khstring_delete(&value_str);
 
-    khstring_concatenateCstring(&string, U", (");
-
+    khstring_concatenateCstring(&string, U", \"template_arguments\": [");
     for (size_t i = 0; i < kharray_size(&templatize_exp->template_arguments); i++) {
-        khstring template_argument_str = khAstExpression_string(&templatize_exp->template_arguments[i]);
+        khstring template_argument_str =
+            khAstExpression_string(&templatize_exp->template_arguments[i], origin);
         khstring_concatenate(&string, &template_argument_str);
         khstring_delete(&template_argument_str);
 
@@ -820,8 +826,8 @@ khstring khAstTemplatizeExpression_string(khAstTemplatizeExpression* templatize_
             khstring_concatenateCstring(&string, U", ");
         }
     }
-    khstring_concatenateCstring(&string, U"))");
 
+    khstring_concatenateCstring(&string, U"]}");
     return string;
 }
 
@@ -954,167 +960,164 @@ void khAstExpression_delete(khAstExpression* expression) {
     }
 }
 
-khstring khAstExpression_string(khAstExpression* expression) {
-    khstring string = khAstExpressionType_string(expression->type);
+khstring khAstExpression_string(khAstExpression* expression, char32_t* origin) {
+    khstring string = khstring_new(U"{\"type\": ");
+    khstring type_str = khAstExpressionType_string(expression->type);
+    khstring quoted_type = khstring_quote(&type_str);
+    khstring_concatenate(&string, &quoted_type);
+    khstring_delete(&type_str);
+    khstring_delete(&quoted_type);
 
+    khstring_concatenateCstring(&string, U", \"begin\": ");
+    khstring begin_str = kh_uintToString(expression->begin - origin, 10);
+    khstring_concatenate(&string, &begin_str);
+    khstring_delete(&begin_str);
+
+    khstring_concatenateCstring(&string, U", \"end\": ");
+    khstring end_str = kh_uintToString(expression->end - origin, 10);
+    khstring_concatenate(&string, &end_str);
+    khstring_delete(&end_str);
+
+    khstring_concatenateCstring(&string, U", \"value\": ");
     switch (expression->type) {
-        case khAstExpressionType_INVALID:
-            khstring_concatenateCstring(&string, U"()");
-            break;
-
         case khAstExpressionType_IDENTIFIER: {
-            khstring_append(&string, U'(');
-            khstring identifier_str = khstring_quote(&expression->identifier);
-            khstring_concatenate(&string, &identifier_str);
-            khstring_delete(&identifier_str);
-            khstring_append(&string, U')');
+            khstring quoted_identfier = khstring_quote(&expression->identifier);
+            khstring_concatenate(&string, &quoted_identfier);
+            khstring_delete(&quoted_identfier);
         } break;
         case khAstExpressionType_CHAR: {
-            khstring_concatenateCstring(&string, U"(\'");
-            khstring char_str = kh_escapeChar(expression->char_v);
-            khstring_concatenate(&string, &char_str);
-            khstring_delete(&char_str);
-            khstring_concatenateCstring(&string, U"\')");
+            khstring_append(&string, U'\"');
+            khstring escaped_char = kh_escapeChar(expression->char_v);
+            khstring_concatenate(&string, &escaped_char);
+            khstring_delete(&escaped_char);
+            khstring_append(&string, U'\"');
         } break;
         case khAstExpressionType_STRING: {
-            khstring_append(&string, U'(');
-            khstring string_str = khstring_quote(&expression->string);
-            khstring_concatenate(&string, &string_str);
-            khstring_delete(&string_str);
-            khstring_append(&string, U')');
+            khstring quoted_string = khstring_quote(&expression->string);
+            khstring_concatenate(&string, &quoted_string);
+            khstring_delete(&quoted_string);
         } break;
         case khAstExpressionType_BUFFER: {
-            khstring_append(&string, U'(');
-            khstring buffer_str = khbuffer_quote(&expression->buffer);
-            khstring_concatenate(&string, &buffer_str);
-            khstring_delete(&buffer_str);
-            khstring_append(&string, U')');
+            khstring quoted_buffer = khbuffer_quote(&expression->buffer);
+            khstring_concatenate(&string, &quoted_buffer);
+            khstring_delete(&quoted_buffer);
+        } break;
+        case khAstExpressionType_BYTE: {
+            khstring byte_str = kh_uintToString(expression->byte, 10);
+            khstring_concatenate(&string, &byte_str);
+            khstring_delete(&byte_str);
         } break;
         case khAstExpressionType_INTEGER: {
-            khstring_append(&string, U'(');
             khstring integer_str = kh_intToString(expression->integer, 10);
             khstring_concatenate(&string, &integer_str);
             khstring_delete(&integer_str);
-            khstring_append(&string, U')');
         } break;
         case khAstExpressionType_UINTEGER: {
-            khstring_append(&string, U'(');
             khstring uinteger_str = kh_uintToString(expression->uinteger, 10);
             khstring_concatenate(&string, &uinteger_str);
             khstring_delete(&uinteger_str);
-            khstring_append(&string, U')');
         } break;
         case khAstExpressionType_FLOAT: {
-            khstring_append(&string, U'(');
-            khstring float_str = kh_floatToString(expression->float_v, 4, 10);
+            khstring float_str = kh_floatToString(expression->float_v, 8, 10);
             khstring_concatenate(&string, &float_str);
             khstring_delete(&float_str);
-            khstring_append(&string, U')');
         } break;
         case khAstExpressionType_DOUBLE: {
-            khstring_append(&string, U'(');
-            khstring double_str = kh_floatToString(expression->double_v, 4, 10);
+            khstring double_str = kh_floatToString(expression->double_v, 16, 10);
             khstring_concatenate(&string, &double_str);
             khstring_delete(&double_str);
-            khstring_append(&string, U')');
         } break;
         case khAstExpressionType_IFLOAT: {
-            khstring_append(&string, U'(');
-            khstring ifloat_str = kh_floatToString(expression->ifloat, 4, 10);
+            khstring ifloat_str = kh_floatToString(expression->ifloat, 8, 10);
             khstring_concatenate(&string, &ifloat_str);
             khstring_delete(&ifloat_str);
-            khstring_append(&string, U')');
         } break;
         case khAstExpressionType_IDOUBLE: {
-            khstring_append(&string, U'(');
-            khstring idouble_str = kh_floatToString(expression->idouble, 4, 10);
+            khstring idouble_str = kh_floatToString(expression->idouble, 16, 10);
             khstring_concatenate(&string, &idouble_str);
             khstring_delete(&idouble_str);
-            khstring_append(&string, U')');
         } break;
 
         case khAstExpressionType_TUPLE: {
-            khstring tuple_str = khAstTuple_string(&expression->tuple);
+            khstring tuple_str = khAstTuple_string(&expression->tuple, origin);
             khstring_concatenate(&string, &tuple_str);
             khstring_delete(&tuple_str);
         } break;
         case khAstExpressionType_ARRAY: {
-            khstring array_str = khAstArray_string(&expression->array);
+            khstring array_str = khAstArray_string(&expression->array, origin);
             khstring_concatenate(&string, &array_str);
             khstring_delete(&array_str);
         } break;
         case khAstExpressionType_DICT: {
-            khstring dict_str = khAstDict_string(&expression->dict);
+            khstring dict_str = khAstDict_string(&expression->dict, origin);
             khstring_concatenate(&string, &dict_str);
             khstring_delete(&dict_str);
         } break;
 
         case khAstExpressionType_UNARY: {
-            khstring_delete(&string);
-            string = khAstUnaryExpressionType_string(expression->unary.type);
-            khstring unary_str = khAstUnaryExpression_string(&expression->unary);
+            khstring unary_str = khAstUnaryExpression_string(&expression->unary, origin);
             khstring_concatenate(&string, &unary_str);
             khstring_delete(&unary_str);
         } break;
         case khAstExpressionType_BINARY: {
-            khstring_delete(&string);
-            string = khAstBinaryExpressionType_string(expression->binary.type);
-            khstring binary_str = khAstBinaryExpression_string(&expression->binary);
+            khstring binary_str = khAstBinaryExpression_string(&expression->binary, origin);
             khstring_concatenate(&string, &binary_str);
             khstring_delete(&binary_str);
         } break;
         case khAstExpressionType_TERNARY: {
-            khstring ternary_str = khAstTernaryExpression_string(&expression->ternary);
+            khstring ternary_str = khAstTernaryExpression_string(&expression->ternary, origin);
             khstring_concatenate(&string, &ternary_str);
             khstring_delete(&ternary_str);
         } break;
         case khAstExpressionType_COMPARISON: {
-            khstring comparison_str = khAstComparisonExpression_string(&expression->comparison);
+            khstring comparison_str = khAstComparisonExpression_string(&expression->comparison, origin);
             khstring_concatenate(&string, &comparison_str);
             khstring_delete(&comparison_str);
         } break;
         case khAstExpressionType_CALL: {
-            khstring call_str = khAstCallExpression_string(&expression->call);
+            khstring call_str = khAstCallExpression_string(&expression->call, origin);
             khstring_concatenate(&string, &call_str);
             khstring_delete(&call_str);
         } break;
         case khAstExpressionType_INDEX: {
-            khstring index_str = khAstIndexExpression_string(&expression->index);
+            khstring index_str = khAstIndexExpression_string(&expression->index, origin);
             khstring_concatenate(&string, &index_str);
             khstring_delete(&index_str);
         } break;
 
         case khAstExpressionType_VARIABLE_DECLARATION: {
-            khstring variable_declaration_str =
-                khAstVariableDeclaration_string(&expression->variable_declaration);
-            khstring_concatenate(&string, &variable_declaration_str);
-            khstring_delete(&variable_declaration_str);
+            khstring declaration_str =
+                khAstVariableDeclaration_string(&expression->variable_declaration, origin);
+            khstring_concatenate(&string, &declaration_str);
+            khstring_delete(&declaration_str);
         } break;
         case khAstExpressionType_LAMBDA: {
-            khstring lambda_str = khAstLambdaExpression_string(&expression->lambda);
+            khstring lambda_str = khAstLambdaExpression_string(&expression->lambda, origin);
             khstring_concatenate(&string, &lambda_str);
             khstring_delete(&lambda_str);
         } break;
         case khAstExpressionType_SCOPE: {
-            khstring scope_str = khAstScopeExpression_string(&expression->scope);
+            khstring scope_str = khAstScopeExpression_string(&expression->scope, origin);
             khstring_concatenate(&string, &scope_str);
             khstring_delete(&scope_str);
         } break;
         case khAstExpressionType_FUNCTION_TYPE: {
-            khstring function_type_str = khAstFunctionTypeExpression_string(&expression->function_type);
+            khstring function_type_str =
+                khAstFunctionTypeExpression_string(&expression->function_type, origin);
             khstring_concatenate(&string, &function_type_str);
             khstring_delete(&function_type_str);
         } break;
         case khAstExpressionType_TEMPLATIZE: {
-            khstring templatize_str = khAstTemplatizeExpression_string(&expression->templatize);
+            khstring templatize_str = khAstTemplatizeExpression_string(&expression->templatize, origin);
             khstring_concatenate(&string, &templatize_str);
             khstring_delete(&templatize_str);
         } break;
 
         default:
-            break;
+            khstring_concatenateCstring(&string, U"null");
     }
 
+    khstring_concatenateCstring(&string, U"}");
     return string;
 }
 
@@ -1143,31 +1146,32 @@ void khAstImport_delete(khAstImport* import_v) {
     }
 }
 
-khstring khAstImport_string(khAstImport* import_v) {
-    khstring string = khstring_new(U"(");
-
-    khstring path = import_v->relative ? khstring_new(U".") : khstring_new(U"");
+khstring khAstImport_string(khAstImport* import_v, char32_t* origin) {
+    khstring string = khstring_new(U"{\"path\": [");
     for (size_t i = 0; i < kharray_size(&import_v->path); i++) {
-        khstring_concatenate(&path, &import_v->path[i]);
+        khstring quoted_path = khstring_quote(&import_v->path[i]);
+        khstring_concatenate(&string, &quoted_path);
+        khstring_delete(&quoted_path);
 
         if (i < kharray_size(&import_v->path) - 1) {
-            kharray_append(&path, U'.');
+            khstring_concatenateCstring(&string, U", ");
         }
     }
 
-    khstring path_str = khstring_quote(&path);
-    khstring_concatenate(&string, &path_str);
-    khstring_delete(&path_str);
-    khstring_delete(&path);
+    khstring_concatenateCstring(&string, U"], \"relative\": ");
+    khstring_concatenateCstring(&string, import_v->relative ? U"true" : U"false");
 
-    if (import_v->optional_alias != NULL) {
-        khstring_concatenateCstring(&string, U", ");
-        khstring alias_str = khstring_quote(import_v->optional_alias);
-        khstring_concatenate(&string, &alias_str);
-        khstring_delete(&alias_str);
+    khstring_concatenateCstring(&string, U", \"optional_alias\": ");
+    if (import_v->optional_alias == NULL) {
+        khstring_concatenateCstring(&string, U"null");
+    }
+    else {
+        khstring quoted_alias = khstring_quote(import_v->optional_alias);
+        khstring_concatenate(&string, &quoted_alias);
+        khstring_delete(&quoted_alias);
     }
 
-    khstring_append(&string, U')');
+    khstring_concatenateCstring(&string, U"}");
     return string;
 }
 
@@ -1185,24 +1189,22 @@ void khAstInclude_delete(khAstInclude* include) {
     kharray_delete(&include->path);
 }
 
-khstring khAstInclude_string(khAstInclude* include) {
-    khstring string = khstring_new(U"(");
-
-    khstring path = include->relative ? khstring_new(U".") : khstring_new(U"");
+khstring khAstInclude_string(khAstInclude* include, char32_t* origin) {
+    khstring string = khstring_new(U"{\"path\": [");
     for (size_t i = 0; i < kharray_size(&include->path); i++) {
-        khstring_concatenate(&path, &include->path[i]);
+        khstring quoted_path = khstring_quote(&include->path[i]);
+        khstring_concatenate(&string, &quoted_path);
+        khstring_delete(&quoted_path);
 
         if (i < kharray_size(&include->path) - 1) {
-            kharray_append(&path, U'.');
+            khstring_concatenateCstring(&string, U", ");
         }
     }
 
-    khstring path_str = khstring_quote(&path);
-    khstring_concatenate(&string, &path_str);
-    khstring_delete(&path_str);
-    khstring_delete(&path);
+    khstring_concatenateCstring(&string, U"], \"relative\": ");
+    khstring_concatenateCstring(&string, include->relative ? U"true" : U"false");
 
-    khstring_append(&string, U')');
+    khstring_concatenateCstring(&string, U"}");
     return string;
 }
 
@@ -1244,20 +1246,21 @@ void khAstFunction_delete(khAstFunction* function) {
     kharray_delete(&function->content);
 }
 
-khstring khAstFunction_string(khAstFunction* function) {
-    khstring string = khstring_new(U"(");
+khstring khAstFunction_string(khAstFunction* function, char32_t* origin) {
+    khstring string = khstring_new(U"{\"is_incase\": ");
+    khstring_concatenateCstring(&string, function->is_incase ? U"true" : U"false");
 
-    khstring_concatenateCstring(&string, function->is_incase ? U"true, " : U"false, ");
-    khstring_concatenateCstring(&string, function->is_static ? U"true, " : U"false, ");
+    khstring_concatenateCstring(&string, U", \"is_static\": ");
+    khstring_concatenateCstring(&string, function->is_static ? U"true" : U"false");
 
-    khstring name_point_str = khAstExpression_string(&function->name_point);
+    khstring_concatenateCstring(&string, U", \"name_point\": ");
+    khstring name_point_str = khAstExpression_string(&function->name_point, origin);
     khstring_concatenate(&string, &name_point_str);
     khstring_delete(&name_point_str);
 
-    khstring_concatenateCstring(&string, U", (");
+    khstring_concatenateCstring(&string, U", \"arguments\": [");
     for (size_t i = 0; i < kharray_size(&function->arguments); i++) {
-        khstring argument_str =
-            khAstVariableDeclaration_string(&function->arguments[i].variable_declaration);
+        khstring argument_str = khAstExpression_string(&function->arguments[i], origin);
         khstring_concatenate(&string, &argument_str);
         khstring_delete(&argument_str);
 
@@ -1265,43 +1268,42 @@ khstring khAstFunction_string(khAstFunction* function) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
-    khstring_concatenateCstring(&string, U"), ");
 
-    if (function->optional_variadic_argument != NULL) {
-        khstring variadic_argument_str = khAstVariableDeclaration_string(
-            &function->optional_variadic_argument->variable_declaration);
-        khstring_concatenate(&string, &variadic_argument_str);
-        khstring_delete(&variadic_argument_str);
+    khstring_concatenateCstring(&string, U"], \"optional_variadic_argument\": ");
+    if (function->optional_variadic_argument == NULL) {
+        khstring_concatenateCstring(&string, U"null");
     }
     else {
-        khstring_concatenateCstring(&string, U"unspecified");
+        khstring argument_str = khAstExpression_string(function->optional_variadic_argument, origin);
+        khstring_concatenate(&string, &argument_str);
+        khstring_delete(&argument_str);
     }
 
-    khstring_concatenateCstring(&string, function->is_return_type_ref ? U", true" : U", false");
+    khstring_concatenateCstring(&string, U", \"is_return_type_ref\": ");
+    khstring_concatenateCstring(&string, function->is_return_type_ref ? U"true" : U"false");
 
-    khstring_concatenateCstring(&string, U", ");
-    if (function->optional_return_type != NULL) {
-        khstring return_type_str = khAstExpression_string(function->optional_return_type);
-        khstring_concatenate(&string, &return_type_str);
-        khstring_delete(&return_type_str);
+    khstring_concatenateCstring(&string, U", \"optional_return_type\": ");
+    if (function->optional_return_type == NULL) {
+        khstring_concatenateCstring(&string, U"null");
     }
     else {
-        khstring_concatenateCstring(&string, U"unspecified");
+        khstring argument_str = khAstExpression_string(function->optional_return_type, origin);
+        khstring_concatenate(&string, &argument_str);
+        khstring_delete(&argument_str);
     }
 
-    khstring_concatenateCstring(&string, U", (");
+    khstring_concatenateCstring(&string, U", \"content\": [");
     for (size_t i = 0; i < kharray_size(&function->content); i++) {
-        khstring ast_str = khAst_string(&function->content[i]);
-        khstring_concatenate(&string, &ast_str);
-        khstring_delete(&ast_str);
+        khstring content_str = khAst_string(&function->content[i], origin);
+        khstring_concatenate(&string, &content_str);
+        khstring_delete(&content_str);
 
         if (i < kharray_size(&function->content) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
 
-    khstring_concatenateCstring(&string, U"))");
-
+    khstring_concatenateCstring(&string, U"]}");
     return string;
 }
 
@@ -1335,50 +1337,48 @@ void khAstClass_delete(khAstClass* class_v) {
     kharray_delete(&class_v->content);
 }
 
-khstring khAstClass_string(khAstClass* class_v) {
-    khstring string = khstring_new(U"(");
+khstring khAstClass_string(khAstClass* class_v, char32_t* origin) {
+    khstring string = khstring_new(U"{\"is_incase\": ");
+    khstring_concatenateCstring(&string, class_v->is_incase ? U"true" : U"false");
 
-    khstring_concatenateCstring(&string, class_v->is_incase ? U"true, " : U"false, ");
+    khstring_concatenateCstring(&string, U", \"name\": ");
+    khstring quoted_name = khstring_quote(&class_v->name);
+    khstring_concatenate(&string, &quoted_name);
+    khstring_delete(&quoted_name);
 
-    khstring name_str = khstring_quote(&class_v->name);
-    khstring_concatenate(&string, &name_str);
-    khstring_delete(&name_str);
-
-    khstring_concatenateCstring(&string, U", (");
+    khstring_concatenateCstring(&string, U", \"template_arguments\": [");
     for (size_t i = 0; i < kharray_size(&class_v->template_arguments); i++) {
-        khstring template_argument_str = khstring_quote(&class_v->template_arguments[i]);
-        khstring_concatenate(&string, &template_argument_str);
-        khstring_delete(&template_argument_str);
+        khstring quoted_argument = khstring_quote(&class_v->template_arguments[i]);
+        khstring_concatenate(&string, &quoted_argument);
+        khstring_delete(&quoted_argument);
 
         if (i < kharray_size(&class_v->template_arguments) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
 
-    khstring_concatenateCstring(&string, U"), ");
-
-    if (class_v->optional_base_type != NULL) {
-        khstring base_type_str = khAstExpression_string(class_v->optional_base_type);
+    khstring_concatenateCstring(&string, U"], \"optional_base_type\": ");
+    if (class_v->optional_base_type == NULL) {
+        khstring_concatenateCstring(&string, U"null");
+    }
+    else {
+        khstring base_type_str = khAstExpression_string(class_v->optional_base_type, origin);
         khstring_concatenate(&string, &base_type_str);
         khstring_delete(&base_type_str);
     }
-    else {
-        khstring_concatenateCstring(&string, U"unspecified");
-    }
 
-    khstring_concatenateCstring(&string, U", (");
+    khstring_concatenateCstring(&string, U", \"content\": [");
     for (size_t i = 0; i < kharray_size(&class_v->content); i++) {
-        khstring ast_str = khAst_string(&class_v->content[i]);
-        khstring_concatenate(&string, &ast_str);
-        khstring_delete(&ast_str);
+        khstring content_str = khAst_string(&class_v->content[i], origin);
+        khstring_concatenate(&string, &content_str);
+        khstring_delete(&content_str);
 
         if (i < kharray_size(&class_v->content) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
 
-    khstring_concatenateCstring(&string, U"))");
-
+    khstring_concatenateCstring(&string, U"]}");
     return string;
 }
 
@@ -1412,51 +1412,48 @@ void khAstStruct_delete(khAstStruct* struct_v) {
     kharray_delete(&struct_v->content);
 }
 
-khstring khAstStruct_string(khAstStruct* struct_v) {
-    khstring string = khstring_new(U"(");
+khstring khAstStruct_string(khAstStruct* struct_v, char32_t* origin) {
+    khstring string = khstring_new(U"{\"is_incase\": ");
+    khstring_concatenateCstring(&string, struct_v->is_incase ? U"true" : U"false");
 
-    khstring_concatenateCstring(&string, struct_v->is_incase ? U"true, " : U"false, ");
+    khstring_concatenateCstring(&string, U", \"name\": ");
+    khstring quoted_name = khstring_quote(&struct_v->name);
+    khstring_concatenate(&string, &quoted_name);
+    khstring_delete(&quoted_name);
 
-    khstring name_str = khstring_quote(&struct_v->name);
-    khstring_concatenate(&string, &name_str);
-    khstring_delete(&name_str);
-
-    khstring_concatenateCstring(&string, U", (");
+    khstring_concatenateCstring(&string, U", \"template_arguments\": [");
     for (size_t i = 0; i < kharray_size(&struct_v->template_arguments); i++) {
-        khstring template_argument_str = khstring_quote(&struct_v->template_arguments[i]);
-        khstring_concatenate(&string, &template_argument_str);
-        khstring_delete(&template_argument_str);
+        khstring quoted_argument = khstring_quote(&struct_v->template_arguments[i]);
+        khstring_concatenate(&string, &quoted_argument);
+        khstring_delete(&quoted_argument);
 
         if (i < kharray_size(&struct_v->template_arguments) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
 
-    khstring_concatenateCstring(&string, U"), ");
-
-    if (struct_v->optional_base_type != NULL) {
-        khstring base_type_str = khAstExpression_string(struct_v->optional_base_type);
+    khstring_concatenateCstring(&string, U"], \"optional_base_type\": ");
+    if (struct_v->optional_base_type == NULL) {
+        khstring_concatenateCstring(&string, U"null");
+    }
+    else {
+        khstring base_type_str = khAstExpression_string(struct_v->optional_base_type, origin);
         khstring_concatenate(&string, &base_type_str);
         khstring_delete(&base_type_str);
     }
-    else {
-        khstring_concatenateCstring(&string, U"unspecified");
-    }
 
-    khstring_concatenateCstring(&string, U", (");
-
+    khstring_concatenateCstring(&string, U", \"content\": [");
     for (size_t i = 0; i < kharray_size(&struct_v->content); i++) {
-        khstring ast_str = khAst_string(&struct_v->content[i]);
-        khstring_concatenate(&string, &ast_str);
-        khstring_delete(&ast_str);
+        khstring content_str = khAst_string(&struct_v->content[i], origin);
+        khstring_concatenate(&string, &content_str);
+        khstring_delete(&content_str);
 
         if (i < kharray_size(&struct_v->content) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
 
-    khstring_concatenateCstring(&string, U"))");
-
+    khstring_concatenateCstring(&string, U"]}");
     return string;
 }
 
@@ -1475,27 +1472,24 @@ void khAstEnum_delete(khAstEnum* enum_v) {
     kharray_delete(&enum_v->members);
 }
 
-khstring khAstEnum_string(khAstEnum* enum_v) {
-    khstring string = khstring_new(U"(");
+khstring khAstEnum_string(khAstEnum* enum_v, char32_t* origin) {
+    khstring string = khstring_new(U"{\"name\": ");
+    khstring quoted_name = khstring_quote(&enum_v->name);
+    khstring_concatenate(&string, &quoted_name);
+    khstring_delete(&quoted_name);
 
-    khstring name_str = khstring_quote(&enum_v->name);
-    khstring_concatenate(&string, &name_str);
-    khstring_delete(&name_str);
-
-    khstring_concatenateCstring(&string, U", (");
-
+    khstring_concatenateCstring(&string, U", \"members\": [");
     for (size_t i = 0; i < kharray_size(&enum_v->members); i++) {
-        khstring member_str = khstring_quote(&enum_v->members[i]);
-        khstring_concatenate(&string, &member_str);
-        khstring_delete(&member_str);
+        khstring quoted_member = khstring_quote(&enum_v->members[i]);
+        khstring_concatenate(&string, &quoted_member);
+        khstring_delete(&quoted_member);
 
         if (i < kharray_size(&enum_v->members) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
 
-    khstring_concatenateCstring(&string, U"))");
-
+    khstring_concatenateCstring(&string, U"]}");
     return string;
 }
 
@@ -1511,22 +1505,21 @@ void khAstAlias_delete(khAstAlias* alias) {
     khAstExpression_delete(&alias->expression);
 }
 
-khstring khAstAlias_string(khAstAlias* alias) {
-    khstring string = khstring_new(U"(");
+khstring khAstAlias_string(khAstAlias* alias, char32_t* origin) {
+    khstring string = khstring_new(U"{\"is_incase\": ");
+    khstring_concatenateCstring(&string, alias->is_incase ? U"true" : U"false");
 
-    khstring_concatenateCstring(&string, alias->is_incase ? U"true, " : U"false, ");
+    khstring_concatenateCstring(&string, U", \"name\": ");
+    khstring quoted_name = khstring_quote(&alias->name);
+    khstring_concatenate(&string, &quoted_name);
+    khstring_delete(&quoted_name);
 
-    khstring name_str = khstring_quote(&alias->name);
-    khstring_concatenate(&string, &name_str);
-    khstring_delete(&name_str);
-
-    khstring_concatenateCstring(&string, U", ");
-
-    khstring expression_str = khAstExpression_string(&alias->expression);
+    khstring_concatenateCstring(&string, U", \"expression\": ");
+    khstring expression_str = khAstExpression_string(&alias->expression, origin);
     khstring_concatenate(&string, &expression_str);
     khstring_delete(&expression_str);
 
-    khstring_append(&string, U')');
+    khstring_concatenateCstring(&string, U"}");
     return string;
 }
 
@@ -1549,46 +1542,50 @@ void khAstIfBranch_delete(khAstIfBranch* if_branch) {
     kharray_delete(&if_branch->else_content);
 }
 
-khstring khAstIfBranch_string(khAstIfBranch* if_branch) {
-    khstring string = khstring_new(U"(");
-
+khstring khAstIfBranch_string(khAstIfBranch* if_branch, char32_t* origin) {
+    khstring string = khstring_new(U"{\"branch_conditions\": [");
     for (size_t i = 0; i < kharray_size(&if_branch->branch_conditions); i++) {
-        khstring_append(&string, U'(');
-
-        khstring condition_str = khAstExpression_string(&if_branch->branch_conditions[i]);
-        khstring_concatenate(&string, &condition_str);
-        khstring_delete(&condition_str);
-
-        khstring_concatenateCstring(&string, U", (");
-
-        for (size_t j = 0; j < kharray_size(&if_branch->branch_contents[i]); j++) {
-            khstring content_str = khAst_string(&if_branch->branch_contents[i][j]);
-            khstring_concatenate(&string, &content_str);
-            khstring_delete(&content_str);
-
-            if (j < kharray_size(&if_branch->branch_contents[i]) - 1) {
-                khstring_concatenateCstring(&string, U", ");
-            }
-        }
-
-        khstring_concatenateCstring(&string, U"))");
+        khstring branch_condition_str =
+            khAstExpression_string(&if_branch->branch_conditions[i], origin);
+        khstring_concatenate(&string, &branch_condition_str);
+        khstring_delete(&branch_condition_str);
 
         if (i < kharray_size(&if_branch->branch_conditions) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
 
+    khstring_concatenateCstring(&string, U"], \"branch_contents\": [");
+    for (size_t i = 0; i < kharray_size(&if_branch->branch_contents); i++) {
+        khstring_append(&string, U'[');
+        for (size_t j = 0; j < kharray_size(&if_branch->branch_contents[i]); j++) {
+            khstring branch_content_str = khAst_string(&if_branch->branch_contents[i][j], origin);
+            khstring_concatenate(&string, &branch_content_str);
+            khstring_delete(&branch_content_str);
+
+            if (j < kharray_size(&if_branch->branch_contents[i]) - 1) {
+                khstring_concatenateCstring(&string, U", ");
+            }
+        }
+        khstring_append(&string, U']');
+
+        if (i < kharray_size(&if_branch->branch_contents) - 1) {
+            khstring_concatenateCstring(&string, U", ");
+        }
+    }
+
+    khstring_concatenateCstring(&string, U"], \"else_content\": [");
     for (size_t i = 0; i < kharray_size(&if_branch->else_content); i++) {
-        khstring content_str = khAst_string(&if_branch->else_content[i]);
-        khstring_concatenate(&string, &content_str);
-        khstring_delete(&content_str);
+        khstring else_content_str = khAst_string(&if_branch->else_content[i], origin);
+        khstring_concatenate(&string, &else_content_str);
+        khstring_delete(&else_content_str);
 
         if (i < kharray_size(&if_branch->else_content) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
 
-    khstring_append(&string, U')');
+    khstring_concatenateCstring(&string, U"]}");
     return string;
 }
 
@@ -1603,17 +1600,15 @@ void khAstWhileLoop_delete(khAstWhileLoop* while_loop) {
     kharray_delete(&while_loop->content);
 }
 
-khstring khAstWhileLoop_string(khAstWhileLoop* while_loop) {
-    khstring string = khstring_new(U"(");
-
-    khstring condition_str = khAstExpression_string(&while_loop->condition);
+khstring khAstWhileLoop_string(khAstWhileLoop* while_loop, char32_t* origin) {
+    khstring string = khstring_new(U"{\"condition\": ");
+    khstring condition_str = khAstExpression_string(&while_loop->condition, origin);
     khstring_concatenate(&string, &condition_str);
     khstring_delete(&condition_str);
 
-    khstring_concatenateCstring(&string, U", (");
-
+    khstring_concatenateCstring(&string, U", \"content\": [");
     for (size_t i = 0; i < kharray_size(&while_loop->content); i++) {
-        khstring content_str = khAst_string(&while_loop->content[i]);
+        khstring content_str = khAst_string(&while_loop->content[i], origin);
         khstring_concatenate(&string, &content_str);
         khstring_delete(&content_str);
 
@@ -1622,8 +1617,7 @@ khstring khAstWhileLoop_string(khAstWhileLoop* while_loop) {
         }
     }
 
-    khstring_concatenateCstring(&string, U"))");
-
+    khstring_concatenateCstring(&string, U"]}");
     return string;
 }
 
@@ -1638,17 +1632,15 @@ void khAstDoWhileLoop_delete(khAstDoWhileLoop* do_while_loop) {
     kharray_delete(&do_while_loop->content);
 }
 
-khstring khAstDoWhileLoop_string(khAstDoWhileLoop* do_while_loop) {
-    khstring string = khstring_new(U"(");
-
-    khstring condition_str = khAstExpression_string(&do_while_loop->condition);
+khstring khAstDoWhileLoop_string(khAstDoWhileLoop* do_while_loop, char32_t* origin) {
+    khstring string = khstring_new(U"{\"condition\": ");
+    khstring condition_str = khAstExpression_string(&do_while_loop->condition, origin);
     khstring_concatenate(&string, &condition_str);
     khstring_delete(&condition_str);
 
-    khstring_concatenateCstring(&string, U", (");
-
+    khstring_concatenateCstring(&string, U", \"content\": [");
     for (size_t i = 0; i < kharray_size(&do_while_loop->content); i++) {
-        khstring content_str = khAst_string(&do_while_loop->content[i]);
+        khstring content_str = khAst_string(&do_while_loop->content[i], origin);
         khstring_concatenate(&string, &content_str);
         khstring_delete(&content_str);
 
@@ -1657,8 +1649,7 @@ khstring khAstDoWhileLoop_string(khAstDoWhileLoop* do_while_loop) {
         }
     }
 
-    khstring_concatenateCstring(&string, U"))");
-
+    khstring_concatenateCstring(&string, U"]}");
     return string;
 }
 
@@ -1677,26 +1668,25 @@ void khAstForLoop_delete(khAstForLoop* for_loop) {
     kharray_delete(&for_loop->content);
 }
 
-khstring khAstForLoop_string(khAstForLoop* for_loop) {
-    khstring string = khstring_new(U"(");
-
-    khstring initial_expression_str = khAstExpression_string(&for_loop->initial_expression);
+khstring khAstForLoop_string(khAstForLoop* for_loop, char32_t* origin) {
+    khstring string = khstring_new(U"{\"initial_expression\": ");
+    khstring initial_expression_str = khAstExpression_string(&for_loop->initial_expression, origin);
     khstring_concatenate(&string, &initial_expression_str);
     khstring_delete(&initial_expression_str);
 
-    khstring_concatenateCstring(&string, U", ");
-    khstring loop_condition_str = khAstExpression_string(&for_loop->loop_condition);
+    khstring_concatenateCstring(&string, U", \"loop_condition\": ");
+    khstring loop_condition_str = khAstExpression_string(&for_loop->loop_condition, origin);
     khstring_concatenate(&string, &loop_condition_str);
     khstring_delete(&loop_condition_str);
 
-    khstring_concatenateCstring(&string, U", ");
-    khstring update_expression_str = khAstExpression_string(&for_loop->update_expression);
+    khstring_concatenateCstring(&string, U", \"update_expression\": ");
+    khstring update_expression_str = khAstExpression_string(&for_loop->update_expression, origin);
     khstring_concatenate(&string, &update_expression_str);
     khstring_delete(&update_expression_str);
 
-    khstring_concatenateCstring(&string, U", (");
+    khstring_concatenateCstring(&string, U", \"content\": [");
     for (size_t i = 0; i < kharray_size(&for_loop->content); i++) {
-        khstring content_str = khAst_string(&for_loop->content[i]);
+        khstring content_str = khAst_string(&for_loop->content[i], origin);
         khstring_concatenate(&string, &content_str);
         khstring_delete(&content_str);
 
@@ -1705,8 +1695,7 @@ khstring khAstForLoop_string(khAstForLoop* for_loop) {
         }
     }
 
-    khstring_concatenateCstring(&string, U"))");
-
+    khstring_concatenateCstring(&string, U"]}");
     return string;
 }
 
@@ -1724,29 +1713,26 @@ void khAstForEachLoop_delete(khAstForEachLoop* for_each_loop) {
     kharray_delete(&for_each_loop->content);
 }
 
-khstring khAstForEachLoop_string(khAstForEachLoop* for_each_loop) {
-    khstring string = khstring_new(U"((");
-
+khstring khAstForEachLoop_string(khAstForEachLoop* for_each_loop, char32_t* origin) {
+    khstring string = khstring_new(U"{\"iterators\": [");
     for (size_t i = 0; i < kharray_size(&for_each_loop->iterators); i++) {
-        khstring iterator_str = khAstExpression_string(&for_each_loop->iterators[i]);
-        khstring_concatenate(&string, &iterator_str);
-        khstring_delete(&iterator_str);
+        khstring iterators_str = khAstExpression_string(&for_each_loop->iterators[i], origin);
+        khstring_concatenate(&string, &iterators_str);
+        khstring_delete(&iterators_str);
 
         if (i < kharray_size(&for_each_loop->iterators) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
 
-    khstring_concatenateCstring(&string, U"), ");
-
-    khstring iteratee_str = khAstExpression_string(&for_each_loop->iteratee);
+    khstring_concatenateCstring(&string, U"], \"iteratee\": ");
+    khstring iteratee_str = khAstExpression_string(&for_each_loop->iteratee, origin);
     khstring_concatenate(&string, &iteratee_str);
     khstring_delete(&iteratee_str);
 
-    khstring_concatenateCstring(&string, U", (");
-
+    khstring_concatenateCstring(&string, U", \"content\": [");
     for (size_t i = 0; i < kharray_size(&for_each_loop->content); i++) {
-        khstring content_str = khAst_string(&for_each_loop->content[i]);
+        khstring content_str = khAst_string(&for_each_loop->content[i], origin);
         khstring_concatenate(&string, &content_str);
         khstring_delete(&content_str);
 
@@ -1755,8 +1741,7 @@ khstring khAstForEachLoop_string(khAstForEachLoop* for_each_loop) {
         }
     }
 
-    khstring_concatenateCstring(&string, U"))");
-
+    khstring_concatenateCstring(&string, U"]}");
     return string;
 }
 
@@ -1769,20 +1754,19 @@ void khAstReturn_delete(khAstReturn* return_v) {
     kharray_delete(&return_v->values);
 }
 
-khstring khAstReturn_string(khAstReturn* return_v) {
-    khstring string = khstring_new(U"(");
-
+khstring khAstReturn_string(khAstReturn* return_v, char32_t* origin) {
+    khstring string = khstring_new(U"{\"values\": [");
     for (size_t i = 0; i < kharray_size(&return_v->values); i++) {
-        khstring value_str = khAstExpression_string(&return_v->values[i]);
-        khstring_concatenate(&string, &value_str);
-        khstring_delete(&value_str);
+        khstring values_str = khAstExpression_string(&return_v->values[i], origin);
+        khstring_concatenate(&string, &values_str);
+        khstring_delete(&values_str);
 
         if (i < kharray_size(&return_v->values) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
 
-    khstring_append(&string, U')');
+    khstring_concatenateCstring(&string, U"]}");
     return string;
 }
 
@@ -1895,97 +1879,103 @@ void khAst_delete(khAst* ast) {
     }
 }
 
-khstring khAst_string(khAst* ast) {
-    khstring string = khAstType_string(ast->type);
+khstring khAst_string(khAst* ast, char32_t* origin) {
+    khstring string = khstring_new(U"{\"type\": ");
+    khstring type_str = khAstType_string(ast->type);
+    khstring quoted_type = khstring_quote(&type_str);
+    khstring_concatenate(&string, &quoted_type);
+    khstring_delete(&type_str);
+    khstring_delete(&quoted_type);
 
+    khstring_concatenateCstring(&string, U", \"begin\": ");
+    khstring begin_str = kh_uintToString(ast->begin - origin, 10);
+    khstring_concatenate(&string, &begin_str);
+    khstring_delete(&begin_str);
+
+    khstring_concatenateCstring(&string, U", \"end\": ");
+    khstring end_str = kh_uintToString(ast->end - origin, 10);
+    khstring_concatenate(&string, &end_str);
+    khstring_delete(&end_str);
+
+    khstring_concatenateCstring(&string, U", \"value\": ");
     switch (ast->type) {
-        case khAstType_INVALID:
-            khstring_concatenateCstring(&string, U"()");
-            break;
-
         case khAstType_EXPRESSION: {
-            khstring_delete(&string);
-            string = khAstExpression_string(&ast->expression);
+            khstring expression_str = khAstExpression_string(&ast->expression, origin);
+            khstring_concatenate(&string, &expression_str);
+            khstring_delete(&expression_str);
         } break;
 
         case khAstType_IMPORT: {
-            khstring import_str = khAstImport_string(&ast->import_v);
+            khstring import_str = khAstImport_string(&ast->import_v, origin);
             khstring_concatenate(&string, &import_str);
             khstring_delete(&import_str);
         } break;
         case khAstType_INCLUDE: {
-            khstring include_str = khAstInclude_string(&ast->include);
+            khstring include_str = khAstInclude_string(&ast->include, origin);
             khstring_concatenate(&string, &include_str);
             khstring_delete(&include_str);
         } break;
         case khAstType_FUNCTION: {
-            khstring function_str = khAstFunction_string(&ast->function);
+            khstring function_str = khAstFunction_string(&ast->function, origin);
             khstring_concatenate(&string, &function_str);
             khstring_delete(&function_str);
         } break;
         case khAstType_CLASS: {
-            khstring class_str = khAstClass_string(&ast->class_v);
+            khstring class_str = khAstClass_string(&ast->class_v, origin);
             khstring_concatenate(&string, &class_str);
             khstring_delete(&class_str);
         } break;
         case khAstType_STRUCT: {
-            khstring struct_str = khAstStruct_string(&ast->struct_v);
+            khstring struct_str = khAstStruct_string(&ast->struct_v, origin);
             khstring_concatenate(&string, &struct_str);
             khstring_delete(&struct_str);
         } break;
         case khAstType_ENUM: {
-            khstring enum_str = khAstEnum_string(&ast->enum_v);
+            khstring enum_str = khAstEnum_string(&ast->enum_v, origin);
             khstring_concatenate(&string, &enum_str);
             khstring_delete(&enum_str);
         } break;
         case khAstType_ALIAS: {
-            khstring alias_str = khAstAlias_string(&ast->alias);
+            khstring alias_str = khAstAlias_string(&ast->alias, origin);
             khstring_concatenate(&string, &alias_str);
             khstring_delete(&alias_str);
         } break;
 
         case khAstType_IF_BRANCH: {
-            khstring if_branch_str = khAstIfBranch_string(&ast->if_branch);
+            khstring if_branch_str = khAstIfBranch_string(&ast->if_branch, origin);
             khstring_concatenate(&string, &if_branch_str);
             khstring_delete(&if_branch_str);
         } break;
         case khAstType_WHILE_LOOP: {
-            khstring while_loop_str = khAstWhileLoop_string(&ast->while_loop);
+            khstring while_loop_str = khAstWhileLoop_string(&ast->while_loop, origin);
             khstring_concatenate(&string, &while_loop_str);
             khstring_delete(&while_loop_str);
         } break;
         case khAstType_DO_WHILE_LOOP: {
-            khstring do_while_loop_str = khAstDoWhileLoop_string(&ast->do_while_loop);
+            khstring do_while_loop_str = khAstDoWhileLoop_string(&ast->do_while_loop, origin);
             khstring_concatenate(&string, &do_while_loop_str);
             khstring_delete(&do_while_loop_str);
         } break;
         case khAstType_FOR_LOOP: {
-            khstring for_loop_str = khAstForLoop_string(&ast->for_loop);
+            khstring for_loop_str = khAstForLoop_string(&ast->for_loop, origin);
             khstring_concatenate(&string, &for_loop_str);
             khstring_delete(&for_loop_str);
         } break;
         case khAstType_FOR_EACH_LOOP: {
-            khstring for_each_loop_str = khAstForEachLoop_string(&ast->for_each_loop);
+            khstring for_each_loop_str = khAstForEachLoop_string(&ast->for_each_loop, origin);
             khstring_concatenate(&string, &for_each_loop_str);
             khstring_delete(&for_each_loop_str);
         } break;
-        case khAstType_BREAK: {
-            khstring_concatenateCstring(&string, U"()");
-            break;
-        }
-        case khAstType_CONTINUE: {
-            khstring_concatenateCstring(&string, U"()");
-            break;
-        }
         case khAstType_RETURN: {
-            khstring return_str = khAstReturn_string(&ast->return_v);
+            khstring return_str = khAstReturn_string(&ast->return_v, origin);
             khstring_concatenate(&string, &return_str);
             khstring_delete(&return_str);
         } break;
 
         default:
-            break;
+            khstring_concatenateCstring(&string, U"null");
     }
 
+    khstring_concatenateCstring(&string, U"}");
     return string;
 }

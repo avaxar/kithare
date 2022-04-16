@@ -2,7 +2,7 @@
  * This file is a part of the Kithare programming language source code.
  * The source code for Kithare programming language is distributed under the MIT license,
  *     and it is available as a repository at https://github.com/Kithare/Kithare
- * Copyright (C) 2021 Kithare Organization at https://www.kithare.de
+ * Copyright (C) 2022 Kithare Organization at https://www.kithare.de
  */
 
 #pragma once
@@ -87,7 +87,7 @@ static inline void khstring_concatenateCstring(khstring* string, const char32_t*
     kharray_memory(string, (char32_t*)cstring, size, NULL);
 }
 
-static inline bool khstring_compare(khstring* a, khstring* b) {
+static inline bool khstring_equal(khstring* a, khstring* b) {
     if (khstring_size(a) != khstring_size(b)) {
         return false;
     }
@@ -101,7 +101,7 @@ static inline bool khstring_compare(khstring* a, khstring* b) {
     return true;
 }
 
-static inline bool khstring_compareCstring(khstring* a, const char32_t* b) {
+static inline bool khstring_equalCstring(khstring* a, const char32_t* b) {
     size_t length = 0;
     for (; b[length] != '\0'; length++) {}
 
@@ -111,6 +111,68 @@ static inline bool khstring_compareCstring(khstring* a, const char32_t* b) {
 
     for (size_t i = 0; i < khstring_size(a); i++) {
         if ((*a)[i] != b[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static inline bool khstring_startswith(khstring* string, khstring* prefix) {
+    if (khstring_size(string) < khstring_size(prefix)) {
+        return false;
+    }
+
+    for (size_t i = 0; i < khstring_size(prefix); i++) {
+        if ((*string)[i] != (*prefix)[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static inline bool khstring_startswithCstring(khstring* string, const char32_t* prefix) {
+    size_t length = 0;
+    for (; prefix[length] != '\0'; length++) {}
+
+    if (khstring_size(string) < length) {
+        return false;
+    }
+
+    for (size_t i = 0; i < length; i++) {
+        if ((*string)[i] != prefix[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static inline bool khstring_endswith(khstring* string, khstring* suffix) {
+    if (khstring_size(string) < khstring_size(suffix)) {
+        return false;
+    }
+
+    for (size_t i = 0; i < khstring_size(suffix); i++) {
+        if ((*string)[khstring_size(string) - khstring_size(suffix) + i] != (*suffix)[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static inline bool khstring_endswithCstring(khstring* string, const char32_t* suffix) {
+    size_t length = 0;
+    for (; suffix[length] != '\0'; length++) {}
+
+    if (khstring_size(string) < length) {
+        return false;
+    }
+
+    for (size_t i = 0; i < length; i++) {
+        if ((*string)[khstring_size(string) - length + i] != suffix[i]) {
             return false;
         }
     }
@@ -338,16 +400,15 @@ static inline khstring kh_escapeChar(char32_t chr) {
 }
 
 static inline khstring khstring_quote(khstring* string) {
-    khstring quoted_string = khstring_new(U"");
+    khstring quoted_string = khstring_new(U"\"");
 
-    khstring_append(&quoted_string, U'\"');
     for (char32_t* chr = *string; chr < *string + khstring_size(string); chr++) {
         khstring escaped = kh_escapeChar(*chr);
         khstring_concatenate(&quoted_string, &escaped);
         khstring_delete(&escaped);
     }
-    khstring_append(&quoted_string, U'\"');
 
+    khstring_append(&quoted_string, U'\"');
     return quoted_string;
 }
 

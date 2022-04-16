@@ -9,10 +9,11 @@
             "program": "${workspaceFolder}/dist/GCC-Debug/kcr",
             "preLaunchTask": "Kithare Debug Build",
             "args": [
-                "--test"
+                "parse",
+                "./test.kh"
             ], // If we have any args to pass to kcr, set it here
             "stopAtEntry": false,
-            "cwd": "${fileDirname}",
+            "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",

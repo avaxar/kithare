@@ -51,7 +51,7 @@ jobs:
       run: sudo apt-get install ./dist/packaging/*.deb
 
     - name: Run tests
-      run: kcr --test
+      run: kcr  # CKithare currently doesn't have unittests
 
     - name: Upload installer
       uses: actions/upload-artifact@v2
