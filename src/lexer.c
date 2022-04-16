@@ -2,7 +2,7 @@
  * This file is a part of the Kithare programming language source code.
  * The source code for Kithare programming language is distributed under the MIT license,
  *     and it is available as a repository at https://github.com/Kithare/Kithare
- * Copyright (C) 2021 Kithare Organization at https://www.kithare.de
+ * Copyright (C) 2022 Kithare Organization at https://www.kithare.de
  */
 
 #include <math.h>
@@ -37,6 +37,7 @@ static inline uint8_t digitOf(char32_t chr) {
     }
 }
 
+
 kharray(khToken) kh_lexicate(khstring* string) {
     kharray(khToken) tokens = kharray_new(khToken, khToken_delete);
     char32_t* cursor = *string;
@@ -48,6 +49,7 @@ kharray(khToken) kh_lexicate(khstring* string) {
 
     return tokens;
 }
+
 
 khToken kh_lexToken(char32_t** cursor) {
     // Skips any whitespace
@@ -141,7 +143,7 @@ khToken kh_lexWord(char32_t** cursor) {
     kharray_memory(&identifier, begin, *cursor - begin, NULL);
 
 #define CASE_OPERATOR(STRING, OPERATOR)                        \
-    if (khstring_compareCstring(&identifier, STRING)) {        \
+    if (khstring_equalCstring(&identifier, STRING)) {          \
         khstring_delete(&identifier);                          \
         return khToken_fromOperator(OPERATOR, begin, *cursor); \
     }
@@ -152,7 +154,7 @@ khToken kh_lexWord(char32_t** cursor) {
     CASE_OPERATOR(U"xor", khOperatorToken_XOR);
 
 #define CASE_KEYWORD(STRING, KEYWORD)                        \
-    if (khstring_compareCstring(&identifier, STRING)) {      \
+    if (khstring_equalCstring(&identifier, STRING)) {        \
         khstring_delete(&identifier);                        \
         return khToken_fromKeyword(KEYWORD, begin, *cursor); \
     }
@@ -192,8 +194,9 @@ khToken kh_lexNumber(char32_t** cursor) {
     char32_t* begin = *cursor;
 
     if (digitOf(**cursor) > 9) {
+        (*cursor)++;
         raiseError(*cursor, U"expecting a decimal number, from 0 to 9");
-        return khToken_fromInvalid(*cursor, *cursor + 1);
+        return khToken_fromInvalid(*cursor, *cursor);
     }
 
     uint8_t base = 10;
@@ -281,8 +284,7 @@ khToken kh_lexNumber(char32_t** cursor) {
         }
     }
     else if (had_overflowed) {
-        (*cursor)--;
-        raiseError(*cursor, U"integer constant must not exceed 2^64");
+        raiseError(*cursor - 1, U"integer constant must not exceed 2^64");
         return khToken_fromInvalid(begin, *cursor);
     }
     else if (**cursor == U'u' || **cursor == U'U') {
@@ -494,9 +496,8 @@ khToken kh_lexSymbol(char32_t** cursor) {
             return khToken_fromEof(begin, *cursor);
 
         default:
-            (*cursor)--;
-            raiseError(*cursor, U"unknown character");
-            return khToken_fromInvalid(begin, *cursor + 1);
+            raiseError(*cursor - 1, U"unknown character");
+            return khToken_fromInvalid(begin, *cursor);
     }
 #undef CASE_DELIMITER
 }
@@ -570,9 +571,8 @@ char32_t kh_lexChar(char32_t** cursor, bool with_quotes, bool is_byte) {
             // \uAABB
             case U'u': {
                 if (is_byte) {
-                    (*cursor)--;
                     raiseError(
-                        *cursor,
+                        *cursor - 1,
                         U"only allowing one byte characters, 2 byte unicode escapes are not allowed");
                     break;
                 }
@@ -593,9 +593,8 @@ char32_t kh_lexChar(char32_t** cursor, bool with_quotes, bool is_byte) {
             // \UAABBCCDD
             case U'U': {
                 if (is_byte) {
-                    (*cursor)--;
                     raiseError(
-                        *cursor,
+                        *cursor - 1,
                         U"only allowing one byte characters, 4 byte unicode escapes are not allowed");
                     break;
                 }
@@ -621,12 +620,13 @@ char32_t kh_lexChar(char32_t** cursor, bool with_quotes, bool is_byte) {
 
             // Unrecognized escape character
             default:
-                (*cursor)--;
-                raiseError(*cursor, U"unknown backslash escape character");
+                raiseError(*cursor - 1, U"unknown backslash escape character");
                 break;
         }
     }
     else {
+        chr = **cursor;
+
         switch (**cursor) {
             // Encourage users to use U'\'' instead
             case U'\'':
@@ -646,17 +646,14 @@ char32_t kh_lexChar(char32_t** cursor, bool with_quotes, bool is_byte) {
                 return chr;
 
             default:
-                chr = **cursor;
                 if (is_byte && chr > 255) {
                     raiseError(*cursor,
                                U"only allowing one byte characters, unicode character is forbidden");
                 }
-                else {
-                    (*cursor)++;
-                }
-
                 break;
         }
+
+        (*cursor)++;
     }
 
     if (with_quotes) {
@@ -710,12 +707,12 @@ khstring kh_lexString(char32_t** cursor, bool is_buffer) {
 
             // Explicitly handle U'\n', separate from kh_lexChar
             case U'\n':
+                (*cursor)++;
                 if (multiline) {
-                    (*cursor)++;
                     khstring_append(&string, U'\n');
                 }
                 else {
-                    raiseError(*cursor,
+                    raiseError(*cursor - 1,
                                U"a newline instead of an inline character, use U'\\n' or a multiline "
                                U"string instead");
                 }

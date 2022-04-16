@@ -2,7 +2,7 @@
  * This file is a part of the Kithare programming language source code.
  * The source code for Kithare programming language is distributed under the MIT license,
  *     and it is available as a repository at https://github.com/Kithare/Kithare
- * Copyright (C) 2021 Kithare Organization at https://www.kithare.de
+ * Copyright (C) 2022 Kithare Organization at https://www.kithare.de
  */
 
 #include <kithare/core/token.h>
@@ -52,7 +52,7 @@ khstring khTokenType_string(khTokenType type) {
             return khstring_new(U"ifloat");
 
         default:
-            return khstring_new(U"[unknown]");
+            return khstring_new(U"unknown");
     }
 }
 
@@ -107,7 +107,7 @@ khstring khKeywordToken_string(khKeywordToken keyword) {
             return khstring_new(U"return");
 
         default:
-            return khstring_new(U"[unknown]");
+            return khstring_new(U"unknown");
     }
 }
 
@@ -144,7 +144,7 @@ khstring khDelimiterToken_string(khDelimiterToken delimiter) {
             return khstring_new(U"...");
 
         default:
-            return khstring_new(U"[unknown]");
+            return khstring_new(U"unknown");
     }
 }
 
@@ -234,7 +234,7 @@ khstring khOperatorToken_string(khOperatorToken operator_v) {
             return khstring_new(U">>=");
 
         default:
-            return khstring_new(U"[unknown]");
+            return khstring_new(U"unknown");
     }
 }
 
@@ -282,33 +282,43 @@ void khToken_delete(khToken* token) {
 }
 
 khstring khToken_string(khToken* token, char32_t* origin) {
-    khstring string = khTokenType_string(token->type);
-    khstring_append(&string, U'(');
+    khstring string = khstring_new(U"{\"type\": ");
 
-    khstring begin_str = kh_uintToString((token->begin - origin) / sizeof(char32_t), 10);
+    khstring type_str = khTokenType_string(token->type);
+    khstring quoted_type_str = khstring_quote(&type_str);
+    khstring_concatenate(&string, &quoted_type_str);
+
+    khstring_concatenateCstring(&string, U", \"begin\": ");
+    khstring begin_str = kh_uintToString(token->begin - origin, 10);
     khstring_concatenate(&string, &begin_str);
     khstring_delete(&begin_str);
-    khstring_concatenateCstring(&string, U", ");
 
-    khstring end_str = kh_uintToString((token->end - origin) / sizeof(char32_t), 10);
+    khstring_concatenateCstring(&string, U", \"end\": ");
+    khstring end_str = kh_uintToString(token->end - origin, 10);
     khstring_concatenate(&string, &end_str);
     khstring_delete(&end_str);
-    khstring_concatenateCstring(&string, U", ");
 
+    khstring_concatenateCstring(&string, U", \"value\": ");
     khstring value;
     switch (token->type) {
         case khTokenType_IDENTIFIER:
-            value = khstring_copy(&token->identifier);
+            value = khstring_quote(&token->identifier);
             break;
-        case khTokenType_KEYWORD:
-            value = khKeywordToken_string(token->keyword);
-            break;
-        case khTokenType_DELIMITER:
-            value = khDelimiterToken_string(token->delimiter);
-            break;
-        case khTokenType_OPERATOR:
-            value = khOperatorToken_string(token->operator_v);
-            break;
+        case khTokenType_KEYWORD: {
+            khstring keyword_str = khKeywordToken_string(token->keyword);
+            value = khstring_quote(&keyword_str);
+            khstring_delete(&keyword_str);
+        } break;
+        case khTokenType_DELIMITER: {
+            khstring delimiter_str = khDelimiterToken_string(token->delimiter);
+            value = khstring_quote(&delimiter_str);
+            khstring_delete(&delimiter_str);
+        } break;
+        case khTokenType_OPERATOR: {
+            khstring operator_str = khOperatorToken_string(token->operator_v);
+            value = khstring_quote(&operator_str);
+            khstring_delete(&operator_str);
+        } break;
 
         case khTokenType_CHAR:
             khstring_append(&string, U'\'');
@@ -334,27 +344,26 @@ khstring khToken_string(khToken* token, char32_t* origin) {
             value = kh_uintToString(token->uinteger, 10);
             break;
         case khTokenType_FLOAT:
-            value = kh_floatToString(token->float_v, 4, 10);
+            value = kh_floatToString(token->float_v, 8, 10);
             break;
         case khTokenType_DOUBLE:
-            value = kh_floatToString(token->double_v, 4, 10);
+            value = kh_floatToString(token->double_v, 16, 10);
             break;
         case khTokenType_IFLOAT:
-            value = kh_floatToString(token->ifloat, 4, 10);
+            value = kh_floatToString(token->ifloat, 8, 10);
             break;
         case khTokenType_IDOUBLE:
-            value = kh_floatToString(token->idouble, 4, 10);
+            value = kh_floatToString(token->idouble, 16, 10);
             break;
 
         default:
-            kharray_pop(&string, 3);
-            value = khstring_new(U"");
+            value = khstring_new(U"null");
             break;
     }
 
     khstring_concatenate(&string, &value);
     khstring_delete(&value);
-    khstring_append(&string, U')');
+    khstring_append(&string, U'}');
 
     return string;
 }

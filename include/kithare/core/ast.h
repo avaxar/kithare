@@ -2,7 +2,7 @@
  * This file is a part of the Kithare programming language source code.
  * The source code for Kithare programming language is distributed under the MIT license,
  *     and it is available as a repository at https://github.com/Kithare/Kithare
- * Copyright (C) 2021 Kithare Organization at https://www.kithare.de
+ * Copyright (C) 2022 Kithare Organization at https://www.kithare.de
  */
 
 #pragma once
@@ -90,7 +90,7 @@ typedef struct {
 
 khAstTuple khAstTuple_copy(khAstTuple* tuple);
 void khAstTuple_delete(khAstTuple* tuple);
-khstring khAstTuple_string(khAstTuple* tuple);
+khstring khAstTuple_string(khAstTuple* tuple, char32_t* origin);
 
 
 typedef struct {
@@ -99,7 +99,7 @@ typedef struct {
 
 khAstArray khAstArray_copy(khAstArray* array);
 void khAstArray_delete(khAstArray* array);
-khstring khAstArray_string(khAstArray* array);
+khstring khAstArray_string(khAstArray* array, char32_t* origin);
 
 
 typedef struct {
@@ -109,7 +109,7 @@ typedef struct {
 
 khAstDict khAstDict_copy(khAstDict* dict);
 void khAstDict_delete(khAstDict* dict);
-khstring khAstDict_string(khAstDict* dict);
+khstring khAstDict_string(khAstDict* dict, char32_t* origin);
 
 
 typedef enum {
@@ -135,7 +135,7 @@ typedef struct {
 
 khAstUnaryExpression khAstUnaryExpression_copy(khAstUnaryExpression* unary_exp);
 void khAstUnaryExpression_delete(khAstUnaryExpression* unary_exp);
-khstring khAstUnaryExpression_string(khAstUnaryExpression* unary_exp);
+khstring khAstUnaryExpression_string(khAstUnaryExpression* unary_exp, char32_t* origin);
 
 
 typedef enum {
@@ -185,7 +185,7 @@ typedef struct {
 
 khAstBinaryExpression khAstBinaryExpression_copy(khAstBinaryExpression* binary_exp);
 void khAstBinaryExpression_delete(khAstBinaryExpression* binary_exp);
-khstring khAstBinaryExpression_string(khAstBinaryExpression* binary_exp);
+khstring khAstBinaryExpression_string(khAstBinaryExpression* binary_exp, char32_t* origin);
 
 
 typedef struct {
@@ -196,7 +196,7 @@ typedef struct {
 
 khAstTernaryExpression khAstTernaryExpression_copy(khAstTernaryExpression* ternary_exp);
 void khAstTernaryExpression_delete(khAstTernaryExpression* ternary_exp);
-khstring khAstTernaryExpression_string(khAstTernaryExpression* ternary_exp);
+khstring khAstTernaryExpression_string(khAstTernaryExpression* ternary_exp, char32_t* origin);
 
 
 typedef enum {
@@ -218,7 +218,7 @@ typedef struct {
 
 khAstComparisonExpression khAstComparisonExpression_copy(khAstComparisonExpression* comparison_exp);
 void khAstComparisonExpression_delete(khAstComparisonExpression* comparison_exp);
-khstring khAstComparisonExpression_string(khAstComparisonExpression* comparison_exp);
+khstring khAstComparisonExpression_string(khAstComparisonExpression* comparison_exp, char32_t* origin);
 
 
 typedef struct {
@@ -228,7 +228,7 @@ typedef struct {
 
 khAstCallExpression khAstCallExpression_copy(khAstCallExpression* call_exp);
 void khAstCallExpression_delete(khAstCallExpression* call_exp);
-khstring khAstCallExpression_string(khAstCallExpression* call_exp);
+khstring khAstCallExpression_string(khAstCallExpression* call_exp, char32_t* origin);
 
 
 typedef struct {
@@ -238,7 +238,7 @@ typedef struct {
 
 khAstIndexExpression khAstIndexExpression_copy(khAstIndexExpression* index_exp);
 void khAstIndexExpression_delete(khAstIndexExpression* index_exp);
-khstring khAstIndexExpression_string(khAstIndexExpression* index_exp);
+khstring khAstIndexExpression_string(khAstIndexExpression* index_exp, char32_t* origin);
 
 
 typedef struct {
@@ -252,7 +252,7 @@ typedef struct {
 
 khAstVariableDeclaration khAstVariableDeclaration_copy(khAstVariableDeclaration* declaration);
 void khAstVariableDeclaration_delete(khAstVariableDeclaration* declaration);
-khstring khAstVariableDeclaration_string(khAstVariableDeclaration* declaration);
+khstring khAstVariableDeclaration_string(khAstVariableDeclaration* declaration, char32_t* origin);
 
 
 typedef struct {
@@ -265,7 +265,7 @@ typedef struct {
 
 khAstLambdaExpression khAstLambdaExpression_copy(khAstLambdaExpression* lambda);
 void khAstLambdaExpression_delete(khAstLambdaExpression* lambda);
-khstring khAstLambdaExpression_string(khAstLambdaExpression* lambda);
+khstring khAstLambdaExpression_string(khAstLambdaExpression* lambda, char32_t* origin);
 
 
 typedef struct {
@@ -275,7 +275,7 @@ typedef struct {
 
 khAstScopeExpression khAstScopeExpression_copy(khAstScopeExpression* scope_exp);
 void khAstScopeExpression_delete(khAstScopeExpression* scope_exp);
-khstring khAstScopeExpression_string(khAstScopeExpression* scope_exp);
+khstring khAstScopeExpression_string(khAstScopeExpression* scope_exp, char32_t* origin);
 
 
 typedef struct {
@@ -288,7 +288,8 @@ khAstFunctionTypeExpression
 khAstFunctionTypeExpression_copy(khAstFunctionTypeExpression* function_type);
 
 void khAstFunctionTypeExpression_delete(khAstFunctionTypeExpression* function_type);
-khstring khAstFunctionTypeExpression_string(khAstFunctionTypeExpression* function_type);
+khstring khAstFunctionTypeExpression_string(khAstFunctionTypeExpression* function_type,
+                                            char32_t* origin);
 
 
 typedef struct {
@@ -298,7 +299,7 @@ typedef struct {
 
 khAstTemplatizeExpression khAstTemplatizeExpression_copy(khAstTemplatizeExpression* templatize_exp);
 void khAstTemplatizeExpression_delete(khAstTemplatizeExpression* templatize_exp);
-khstring khAstTemplatizeExpression_string(khAstTemplatizeExpression* templatize_exp);
+khstring khAstTemplatizeExpression_string(khAstTemplatizeExpression* templatize_exp, char32_t* origin);
 
 
 struct _khAstExpression {
@@ -340,7 +341,7 @@ struct _khAstExpression {
 
 khAstExpression khAstExpression_copy(khAstExpression* expression);
 void khAstExpression_delete(khAstExpression* expression);
-khstring khAstExpression_string(khAstExpression* expression);
+khstring khAstExpression_string(khAstExpression* expression, char32_t* origin);
 
 
 typedef struct {
@@ -351,7 +352,7 @@ typedef struct {
 
 khAstImport khAstImport_copy(khAstImport* import_v);
 void khAstImport_delete(khAstImport* import_v);
-khstring khAstImport_string(khAstImport* import_v);
+khstring khAstImport_string(khAstImport* import_v, char32_t* origin);
 
 
 typedef struct {
@@ -361,7 +362,7 @@ typedef struct {
 
 khAstInclude khAstInclude_copy(khAstInclude* include);
 void khAstInclude_delete(khAstInclude* include);
-khstring khAstInclude_string(khAstInclude* include);
+khstring khAstInclude_string(khAstInclude* include, char32_t* origin);
 
 
 typedef struct {
@@ -377,7 +378,7 @@ typedef struct {
 
 khAstFunction khAstFunction_copy(khAstFunction* function);
 void khAstFunction_delete(khAstFunction* function);
-khstring khAstFunction_string(khAstFunction* function);
+khstring khAstFunction_string(khAstFunction* function, char32_t* origin);
 
 
 typedef struct {
@@ -390,7 +391,7 @@ typedef struct {
 
 khAstClass khAstClass_copy(khAstClass* class_v);
 void khAstClass_delete(khAstClass* class_v);
-khstring khAstClass_string(khAstClass* class_v);
+khstring khAstClass_string(khAstClass* class_v, char32_t* origin);
 
 
 typedef struct {
@@ -403,7 +404,7 @@ typedef struct {
 
 khAstStruct khAstStruct_copy(khAstStruct* struct_v);
 void khAstStruct_delete(khAstStruct* struct_v);
-khstring khAstStruct_string(khAstStruct* struct_v);
+khstring khAstStruct_string(khAstStruct* struct_v, char32_t* origin);
 
 
 typedef struct {
@@ -413,7 +414,7 @@ typedef struct {
 
 khAstEnum khAstEnum_copy(khAstEnum* enum_v);
 void khAstEnum_delete(khAstEnum* enum_v);
-khstring khAstEnum_string(khAstEnum* enum_v);
+khstring khAstEnum_string(khAstEnum* enum_v, char32_t* origin);
 
 
 typedef struct {
@@ -424,7 +425,7 @@ typedef struct {
 
 khAstAlias khAstAlias_copy(khAstAlias* alias);
 void khAstAlias_delete(khAstAlias* alias);
-khstring khAstAlias_string(khAstAlias* alias);
+khstring khAstAlias_string(khAstAlias* alias, char32_t* origin);
 
 
 typedef struct {
@@ -435,7 +436,7 @@ typedef struct {
 
 khAstIfBranch khAstIfBranch_copy(khAstIfBranch* if_branch);
 void khAstIfBranch_delete(khAstIfBranch* if_branch);
-khstring khAstIfBranch_string(khAstIfBranch* if_branch);
+khstring khAstIfBranch_string(khAstIfBranch* if_branch, char32_t* origin);
 
 
 typedef struct {
@@ -445,7 +446,7 @@ typedef struct {
 
 khAstWhileLoop khAstWhileLoop_copy(khAstWhileLoop* while_loop);
 void khAstWhileLoop_delete(khAstWhileLoop* while_loop);
-khstring khAstWhileLoop_string(khAstWhileLoop* while_loop);
+khstring khAstWhileLoop_string(khAstWhileLoop* while_loop, char32_t* origin);
 
 
 typedef struct {
@@ -455,7 +456,7 @@ typedef struct {
 
 khAstDoWhileLoop khAstDoWhileLoop_copy(khAstDoWhileLoop* do_while_loop);
 void khAstDoWhileLoop_delete(khAstDoWhileLoop* do_while_loop);
-khstring khAstDoWhileLoop_string(khAstDoWhileLoop* do_while_loop);
+khstring khAstDoWhileLoop_string(khAstDoWhileLoop* do_while_loop, char32_t* origin);
 
 
 typedef struct {
@@ -467,7 +468,7 @@ typedef struct {
 
 khAstForLoop khAstForLoop_copy(khAstForLoop* for_loop);
 void khAstForLoop_delete(khAstForLoop* for_loop);
-khstring khAstForLoop_string(khAstForLoop* for_loop);
+khstring khAstForLoop_string(khAstForLoop* for_loop, char32_t* origin);
 
 
 typedef struct {
@@ -478,7 +479,7 @@ typedef struct {
 
 khAstForEachLoop khAstForEachLoop_copy(khAstForEachLoop* for_each_loop);
 void khAstForEachLoop_delete(khAstForEachLoop* for_each_loop);
-khstring khAstForEachLoop_string(khAstForEachLoop* for_each_loop);
+khstring khAstForEachLoop_string(khAstForEachLoop* for_each_loop, char32_t* origin);
 
 
 typedef struct {
@@ -487,7 +488,7 @@ typedef struct {
 
 khAstReturn khAstReturn_copy(khAstReturn* return_v);
 void khAstReturn_delete(khAstReturn* return_v);
-khstring khAstReturn_string(khAstReturn* return_v);
+khstring khAstReturn_string(khAstReturn* return_v, char32_t* origin);
 
 
 struct _khAst {
@@ -517,7 +518,7 @@ struct _khAst {
 
 khAst khAst_copy(khAst* ast);
 void khAst_delete(khAst* ast);
-khstring khAst_string(khAst* ast);
+khstring khAst_string(khAst* ast, char32_t* origin);
 
 
 #ifdef __cplusplus

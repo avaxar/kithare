@@ -2,7 +2,7 @@
  * This file is a part of the Kithare programming language source code.
  * The source code for Kithare programming language is distributed under the MIT license,
  *     and it is available as a repository at https://github.com/Kithare/Kithare
- * Copyright (C) 2021 Kithare Organization at https://www.kithare.de
+ * Copyright (C) 2022 Kithare Organization at https://www.kithare.de
  */
 
 #include <kithare/core/error.h>
@@ -47,6 +47,38 @@ static inline void skipToken(char32_t** cursor, bool ignore_newline) {
     if (origin == *cursor && **cursor != U'\0') {
         (*cursor)++;
     }
+}
+
+static inline bool isEnd(char32_t** cursor) {
+    char32_t* cursor_copy = *cursor;
+    khToken token = kh_lexToken(&cursor_copy);
+
+    // Ignoring newlines and comments
+    while (token.type == khTokenType_COMMENT || token.type == khTokenType_NEWLINE) {
+        khToken_delete(&token);
+        token = kh_lexToken(&cursor_copy);
+    }
+
+    if (token.type == khTokenType_EOF) {
+        khToken_delete(&token);
+        return true;
+    }
+    else {
+        khToken_delete(&token);
+        return false;
+    }
+}
+
+
+kharray(khAst) kh_parse(khstring* string) {
+    kharray(khAst) asts = kharray_new(khAst, khAst_delete);
+    char32_t* cursor = *string;
+
+    while (!isEnd(&cursor)) {
+        kharray_append(&asts, kh_parseAst(&cursor));
+    }
+
+    return asts;
 }
 
 
@@ -1967,6 +1999,7 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
 
                 default:
                     raiseError(token.begin, U"unexpected delimiter in an expression");
+                    skipToken(cursor, ignore_newline);
                     break;
             }
             break;
@@ -2005,7 +2038,8 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
                     break;
 
                 default:
-                    raiseError(token.begin, U"expecting a type, not a lambda");
+                    raiseError(token.begin, U"unexpected token in an expression");
+                    skipToken(cursor, ignore_newline);
                     break;
             }
             break;
@@ -2138,6 +2172,7 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
 
         default:
             raiseError(token.begin, U"unexpected token in an expression");
+            skipToken(cursor, ignore_newline);
             break;
     }
 
