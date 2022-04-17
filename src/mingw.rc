@@ -1,5 +1,5 @@
 #include <windows.h>
-#include "../include/kithare/lib/info.h"
+#include "../include/kithare/core/info.h"
 
 0 ICON "../misc/icon.ico"
 
