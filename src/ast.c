@@ -757,23 +757,41 @@ khstring khAstScopeExpression_string(khAstScopeExpression* scope_exp, char32_t* 
 
 khAstFunctionTypeExpression
 khAstFunctionTypeExpression_copy(khAstFunctionTypeExpression* function_type) {
-    khAstExpression* return_type = (khAstExpression*)malloc(sizeof(khAstExpression));
-    *return_type = khAstExpression_copy(function_type->return_type);
+    khAstExpression* optional_return_type = NULL;
+    if (function_type->optional_return_type != NULL) {
+        optional_return_type = (khAstExpression*)malloc(sizeof(khAstExpression));
+        *optional_return_type = khAstExpression_copy(function_type->optional_return_type);
+    }
 
     return (khAstFunctionTypeExpression){
+        .are_arguments_refs = kharray_copy(&function_type->are_arguments_refs, NULL),
         .argument_types = kharray_copy(&function_type->argument_types, khAstExpression_copy),
-        .return_type = return_type};
+        .is_return_type_ref = function_type->is_return_type_ref,
+        .optional_return_type = optional_return_type};
 }
 
 void khAstFunctionTypeExpression_delete(khAstFunctionTypeExpression* function_type) {
+    kharray_delete(&function_type->are_arguments_refs);
     kharray_delete(&function_type->argument_types);
-    khAstExpression_delete(function_type->return_type);
-    free(function_type->return_type);
+
+    if (function_type->optional_return_type != NULL) {
+        khAstExpression_delete(function_type->optional_return_type);
+        free(function_type->optional_return_type);
+    }
 }
 
 khstring khAstFunctionTypeExpression_string(khAstFunctionTypeExpression* function_type,
                                             char32_t* origin) {
-    khstring string = khstring_new(U"{\"argument_types\": [");
+    khstring string = khstring_new(U"{\"are_arguments_refs\": [");
+    for (size_t i = 0; i < kharray_size(&function_type->are_arguments_refs); i++) {
+        khstring_concatenateCstring(&string, function_type->are_arguments_refs[i] ? U"true" : U"false");
+
+        if (i < kharray_size(&function_type->are_arguments_refs) - 1) {
+            khstring_concatenateCstring(&string, U", ");
+        }
+    }
+
+    khstring_concatenateCstring(&string, U"], \"argument_types\": [");
     for (size_t i = 0; i < kharray_size(&function_type->argument_types); i++) {
         khstring argument_type_str = khAstExpression_string(&function_type->argument_types[i], origin);
         khstring_concatenate(&string, &argument_type_str);
@@ -784,8 +802,11 @@ khstring khAstFunctionTypeExpression_string(khAstFunctionTypeExpression* functio
         }
     }
 
-    khstring_concatenateCstring(&string, U"], \"return_type\": ");
-    khstring return_type_str = khAstExpression_string(function_type->return_type, origin);
+    khstring_concatenateCstring(&string, U"], \"is_return_type_ref\": ");
+    khstring_concatenateCstring(&string, function_type->is_return_type_ref ? U"true" : U"false");
+
+    khstring_concatenateCstring(&string, U", \"optional_return_type\": ");
+    khstring return_type_str = khAstExpression_string(function_type->optional_return_type, origin);
     khstring_concatenate(&string, &return_type_str);
     khstring_delete(&return_type_str);
 
@@ -1162,13 +1183,13 @@ khstring khAstImport_string(khAstImport* import_v, char32_t* origin) {
     khstring_concatenateCstring(&string, import_v->relative ? U"true" : U"false");
 
     khstring_concatenateCstring(&string, U", \"optional_alias\": ");
-    if (import_v->optional_alias == NULL) {
-        khstring_concatenateCstring(&string, U"null");
-    }
-    else {
+    if (import_v->optional_alias != NULL) {
         khstring quoted_alias = khstring_quote(import_v->optional_alias);
         khstring_concatenate(&string, &quoted_alias);
         khstring_delete(&quoted_alias);
+    }
+    else {
+        khstring_concatenateCstring(&string, U"null");
     }
 
     khstring_concatenateCstring(&string, U"}");
@@ -1270,26 +1291,26 @@ khstring khAstFunction_string(khAstFunction* function, char32_t* origin) {
     }
 
     khstring_concatenateCstring(&string, U"], \"optional_variadic_argument\": ");
-    if (function->optional_variadic_argument == NULL) {
-        khstring_concatenateCstring(&string, U"null");
-    }
-    else {
+    if (function->optional_variadic_argument != NULL) {
         khstring argument_str = khAstExpression_string(function->optional_variadic_argument, origin);
         khstring_concatenate(&string, &argument_str);
         khstring_delete(&argument_str);
+    }
+    else {
+        khstring_concatenateCstring(&string, U"null");
     }
 
     khstring_concatenateCstring(&string, U", \"is_return_type_ref\": ");
     khstring_concatenateCstring(&string, function->is_return_type_ref ? U"true" : U"false");
 
     khstring_concatenateCstring(&string, U", \"optional_return_type\": ");
-    if (function->optional_return_type == NULL) {
-        khstring_concatenateCstring(&string, U"null");
-    }
-    else {
+    if (function->optional_return_type != NULL) {
         khstring argument_str = khAstExpression_string(function->optional_return_type, origin);
         khstring_concatenate(&string, &argument_str);
         khstring_delete(&argument_str);
+    }
+    else {
+        khstring_concatenateCstring(&string, U"null");
     }
 
     khstring_concatenateCstring(&string, U", \"content\": [");
@@ -1358,13 +1379,13 @@ khstring khAstClass_string(khAstClass* class_v, char32_t* origin) {
     }
 
     khstring_concatenateCstring(&string, U"], \"optional_base_type\": ");
-    if (class_v->optional_base_type == NULL) {
-        khstring_concatenateCstring(&string, U"null");
-    }
-    else {
+    if (class_v->optional_base_type != NULL) {
         khstring base_type_str = khAstExpression_string(class_v->optional_base_type, origin);
         khstring_concatenate(&string, &base_type_str);
         khstring_delete(&base_type_str);
+    }
+    else {
+        khstring_concatenateCstring(&string, U"null");
     }
 
     khstring_concatenateCstring(&string, U", \"content\": [");
@@ -1433,13 +1454,13 @@ khstring khAstStruct_string(khAstStruct* struct_v, char32_t* origin) {
     }
 
     khstring_concatenateCstring(&string, U"], \"optional_base_type\": ");
-    if (struct_v->optional_base_type == NULL) {
-        khstring_concatenateCstring(&string, U"null");
-    }
-    else {
+    if (struct_v->optional_base_type != NULL) {
         khstring base_type_str = khAstExpression_string(struct_v->optional_base_type, origin);
         khstring_concatenate(&string, &base_type_str);
         khstring_delete(&base_type_str);
+    }
+    else {
+        khstring_concatenateCstring(&string, U"null");
     }
 
     khstring_concatenateCstring(&string, U", \"content\": [");
