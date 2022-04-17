@@ -279,8 +279,10 @@ khstring khAstScopeExpression_string(khAstScopeExpression* scope_exp, char32_t* 
 
 
 typedef struct {
+    kharray(bool) are_arguments_refs;
     kharray(khAstExpression) argument_types;
-    khAstExpression* return_type;
+    bool is_return_type_ref;
+    khAstExpression* optional_return_type;
 } khAstFunctionTypeExpression;
 
 // I swear, I hate clang-format for this

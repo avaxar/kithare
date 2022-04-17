@@ -123,7 +123,9 @@ static khAstExpression exparseReverseUnary(char32_t** cursor, EXPARSE_ARGS);
 static khAstExpression exparseScopeTemplatization(char32_t** cursor, EXPARSE_ARGS);
 static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS);
 static khAstExpression exparseVariableDeclaration(char32_t** cursor, bool ignore_newline);
+static khAstExpression exparseFunctionType(char32_t** cursor, bool ignore_newline);
 static khAstExpression exparseLambda(char32_t** cursor, bool ignore_newline);
+static khAstExpression exparseDict(char32_t** cursor, bool ignore_newline);
 static kharray(khAstExpression) exparseList(char32_t** cursor, khDelimiterToken opening_delimiter,
                                             khDelimiterToken closing_delimiter, EXPARSE_ARGS);
 
@@ -481,7 +483,7 @@ static khAstImport sparseImport(char32_t** cursor) {
         raiseError(token.begin, U"expecting an `import` keyword");
     }
 
-    // For relative imports, `import .a_script_file_in_the_same_folder;`
+    // For relative imports, `import .a_script_file_in_the_same_folder`
     if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_DOT) {
         import_v.relative = true;
         khToken_delete(&token);
@@ -517,7 +519,7 @@ static khAstImport sparseImport(char32_t** cursor) {
         }
     }
 
-    // `import something as another;`
+    // `import something as another`
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_AS) {
         khToken_delete(&token);
         skipToken(cursor, false);
@@ -566,7 +568,7 @@ static khAstInclude sparseInclude(char32_t** cursor) {
         raiseError(token.begin, U"expecting an `include` keyword");
     }
 
-    // For relative includes, `include .a_script_file_in_the_same_folder;`
+    // For relative includes, `include .a_script_file_in_the_same_folder`
     if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_DOT) {
         include.relative = true;
         khToken_delete(&token);
@@ -1954,7 +1956,6 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
     switch (token.type) {
         case khTokenType_IDENTIFIER: {
             char32_t* initial = *cursor;
-
             skipToken(cursor, ignore_newline);
             khToken next_token = currentToken(cursor, ignore_newline);
 
@@ -1977,14 +1978,28 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
 
         case khTokenType_KEYWORD:
             switch (token.keyword) {
-                // Lambdas
-                case khKeywordToken_DEF:
-                    if (filter_type) {
-                        raiseError(token.begin, U"expecting a type, not a lambda");
+                // 2 cases
+                case khKeywordToken_DEF: {
+                    char32_t* initial = *cursor;
+                    skipToken(&initial, ignore_newline);
+                    khToken next_token = currentToken(&initial, ignore_newline);
+
+                    // A function type
+                    if (next_token.type == khTokenType_DELIMITER &&
+                        next_token.delimiter == khDelimiterToken_EXCLAMATION) {
+                        expression = exparseFunctionType(cursor, ignore_newline);
+                    }
+                    // A lambda
+                    else {
+                        if (filter_type) {
+                            raiseError(token.begin, U"expecting a type, not a lambda");
+                        }
+
+                        expression = exparseLambda(cursor, ignore_newline);
                     }
 
-                    expression = exparseLambda(cursor, ignore_newline);
-                    break;
+                    khToken_delete(&next_token);
+                } break;
 
                 // Variable declarations with specifiers
                 case khKeywordToken_STATIC:
@@ -2035,6 +2050,15 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
                         .array = {.values = exparseList(cursor, khDelimiterToken_SQUARE_BRACKET_OPEN,
                                                         khDelimiterToken_SQUARE_BRACKET_CLOSE,
                                                         ignore_newline, filter_type)}};
+                    break;
+
+                // Dicts
+                case khDelimiterToken_CURLY_BRACKET_OPEN:
+                    if (filter_type) {
+                        raiseError(token.begin, U"expecting a type, not a dict");
+                    }
+
+                    expression = exparseDict(cursor, ignore_newline);
                     break;
 
                 default:
@@ -2257,6 +2281,112 @@ static khAstExpression exparseVariableDeclaration(char32_t** cursor, bool ignore
                              .variable_declaration = declaration};
 }
 
+static khAstExpression exparseFunctionType(char32_t** cursor, bool ignore_newline) {
+    khToken token = currentToken(cursor, ignore_newline);
+    char32_t* origin = *cursor;
+    khAstFunctionTypeExpression function_type = {
+        .are_arguments_refs = kharray_new(bool, NULL),
+        .argument_types = kharray_new(khAstExpression, khAstExpression_delete),
+        .is_return_type_ref = false,
+        .optional_return_type = NULL};
+
+    // Ensures `def` keyword
+    if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_DEF) {
+        khToken_delete(&token);
+        skipToken(cursor, ignore_newline);
+        token = currentToken(cursor, ignore_newline);
+    }
+    else {
+        raiseError(token.begin, U"expecting a `def` keyword");
+    }
+
+    // Ensures an exclamation mark
+    if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_EXCLAMATION) {
+        khToken_delete(&token);
+        skipToken(cursor, ignore_newline);
+        token = currentToken(cursor, ignore_newline);
+    }
+    else {
+        raiseError(token.begin, U"expecting an exclamation mark");
+    }
+
+    // Ensures an opening parenthesis
+    if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_PARENTHESIS_OPEN) {
+        khToken_delete(&token);
+        skipToken(cursor, true);
+        token = currentToken(cursor, true);
+    }
+    else {
+        raiseError(token.begin, U"expecting an opening parenthesis");
+    }
+
+    // Instant close
+    if (token.type == khTokenType_DELIMITER &&
+        token.delimiter == khDelimiterToken_CURLY_BRACKET_CLOSE) {
+        skipToken(cursor, true);
+    }
+    else {
+        while (true) {
+            // Handles `ref` arguments
+            if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_REF) {
+                kharray_append(&function_type.are_arguments_refs, true);
+                skipToken(cursor, true);
+            }
+            else {
+                kharray_append(&function_type.are_arguments_refs, false);
+            }
+
+            // Argument type
+            kharray_append(&function_type.argument_types, kh_parseExpression(cursor, true, true));
+            khToken_delete(&token);
+            token = currentToken(cursor, true);
+
+            // Do nothing after a comma
+            if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_COMMA) {
+                khToken_delete(&token);
+                skipToken(cursor, true);
+                token = currentToken(cursor, true);
+            }
+            // Breaks out of the loop after closing the arglist
+            else if (token.type == khTokenType_DELIMITER &&
+                     token.delimiter == khDelimiterToken_PARENTHESIS_CLOSE) {
+                skipToken(cursor, true);
+                break;
+            }
+            else {
+                raiseError(token.begin,
+                           U"expecting a comma or another argument type after an argument type");
+                break;
+            }
+        }
+    }
+
+    // Optional return type
+    khToken_delete(&token);
+    token = currentToken(cursor, ignore_newline);
+    if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_ARROW) {
+        khToken_delete(&token);
+        skipToken(cursor, ignore_newline);
+        token = currentToken(cursor, ignore_newline);
+
+        // Handles `ref` return type
+        if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_REF) {
+            function_type.is_return_type_ref = true;
+            skipToken(cursor, ignore_newline);
+        }
+
+        // Return type itself
+        function_type.optional_return_type = malloc(sizeof(khAstExpression));
+        *function_type.optional_return_type = kh_parseExpression(cursor, ignore_newline, true);
+    }
+
+    khToken_delete(&token);
+    return (khAstExpression){.begin = origin,
+                             .end = *cursor,
+                             .type = khAstExpressionType_FUNCTION_TYPE,
+                             .function_type = function_type};
+}
+
 static khAstExpression exparseLambda(char32_t** cursor, bool ignore_newline) {
     khToken token = currentToken(cursor, ignore_newline);
     char32_t* origin = *cursor;
@@ -2267,7 +2397,9 @@ static khAstExpression exparseLambda(char32_t** cursor, bool ignore_newline) {
 
     // Ensures `def` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_DEF) {
+        khToken_delete(&token);
         skipToken(cursor, ignore_newline);
+        token = currentToken(cursor, ignore_newline);
     }
     else {
         raiseError(token.begin, U"expecting a `def` keyword");
@@ -2279,6 +2411,75 @@ static khAstExpression exparseLambda(char32_t** cursor, bool ignore_newline) {
     khToken_delete(&token);
     return (khAstExpression){
         .begin = origin, .end = *cursor, .type = khAstExpressionType_LAMBDA, .lambda = lambda};
+}
+
+static khAstExpression exparseDict(char32_t** cursor, bool ignore_newline) {
+    khToken token = currentToken(cursor, ignore_newline);
+    char32_t* origin = *cursor;
+    khAstDict dict = {.keys = kharray_new(khAstExpression, khAstExpression_delete),
+                      .values = kharray_new(khAstExpression, khAstExpression_delete)};
+
+    // Ensures an opening curly bracket
+    if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_CURLY_BRACKET_OPEN) {
+        khToken_delete(&token);
+        skipToken(cursor, true);
+        token = currentToken(cursor, true);
+    }
+    else {
+        raiseError(token.begin, U"expecting an opening curly bracket");
+    }
+
+    // Instant close
+    if (token.type == khTokenType_DELIMITER &&
+        token.delimiter == khDelimiterToken_CURLY_BRACKET_CLOSE) {
+        skipToken(cursor, true);
+    }
+    else {
+        while (true) {
+            // Key
+            kharray_append(&dict.keys, kh_parseExpression(cursor, true, false));
+            khToken_delete(&token);
+            token = currentToken(cursor, true);
+
+            // Ensures a colon
+            if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_COLON) {
+                khToken_delete(&token);
+                skipToken(cursor, true);
+                token = currentToken(cursor, true);
+            }
+            else {
+                raiseError(token.begin, U"expecting a colon after the key for its value pair");
+            }
+
+            // Value
+            kharray_append(&dict.values, kh_parseExpression(cursor, true, false));
+            khToken_delete(&token);
+            token = currentToken(cursor, true);
+
+            // Do nothing after a comma
+            if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_COMMA) {
+                khToken_delete(&token);
+                skipToken(cursor, true);
+                token = currentToken(cursor, true);
+            }
+            // Breaks out of the loop after dict close
+            else if (token.type == khTokenType_DELIMITER &&
+                     token.delimiter == khDelimiterToken_CURLY_BRACKET_CLOSE) {
+                skipToken(cursor, true);
+                break;
+            }
+            else {
+                raiseError(
+                    token.begin,
+                    U"expecting a comma with another pair of key and value or a closing delimiter");
+                break;
+            }
+        }
+    }
+
+    khToken_delete(&token);
+    return (khAstExpression){
+        .begin = origin, .end = *cursor, .type = khAstExpressionType_DICT, .dict = dict};
 }
 
 static kharray(khAstExpression) exparseList(char32_t** cursor, khDelimiterToken opening_delimiter,
@@ -2302,19 +2503,16 @@ static kharray(khAstExpression) exparseList(char32_t** cursor, khDelimiterToken 
     }
     else {
         while (true) {
-            // Avoid infinite loop
-            if (token.type == khTokenType_EOF) {
-                break;
-            }
-
+            // Expression
             kharray_append(&expressions, kh_parseExpression(cursor, true, filter_type));
-
             khToken_delete(&token);
             token = currentToken(cursor, true);
 
             // Do nothing after a comma
             if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_COMMA) {
+                khToken_delete(&token);
                 skipToken(cursor, true);
+                token = currentToken(cursor, true);
             }
             // Breaks out of the loop after list close
             else if (token.type == khTokenType_DELIMITER && token.delimiter == closing_delimiter) {
@@ -2324,7 +2522,7 @@ static kharray(khAstExpression) exparseList(char32_t** cursor, khDelimiterToken 
             else {
                 raiseError(token.begin,
                            U"expecting a comma with another element or a closing delimiter");
-                skipToken(cursor, true);
+                break;
             }
         }
     }
