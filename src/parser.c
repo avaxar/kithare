@@ -1909,8 +1909,12 @@ static khAstExpression exparseScopeTemplatization(char32_t** cursor, EXPARSE_ARG
                         kharray_new(khAstExpression, khAstExpression_delete);
 
                     kharray_append(&template_arguments,
-                                   ((khAstExpression){.type = khAstExpressionType_IDENTIFIER,
+                                   ((khAstExpression){.begin = token.begin,
+                                                      .end = token.end,
+                                                      .type = khAstExpressionType_IDENTIFIER,
                                                       .identifier = khstring_copy(&token.identifier)}));
+
+                    skipToken(cursor, ignore_newline);
 
                     expression = (khAstExpression){
                         .begin = origin,
