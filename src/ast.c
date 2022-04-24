@@ -990,14 +990,24 @@ khstring khAstExpression_string(khAstExpression* expression, char32_t* origin) {
     khstring_delete(&quoted_type);
 
     khstring_concatenateCstring(&string, U", \"begin\": ");
-    khstring begin_str = kh_uintToString(expression->begin - origin, 10);
-    khstring_concatenate(&string, &begin_str);
-    khstring_delete(&begin_str);
+    if (expression->begin != NULL) {
+        khstring begin_str = kh_uintToString(expression->begin - origin, 10);
+        khstring_concatenate(&string, &begin_str);
+        khstring_delete(&begin_str);
+    }
+    else {
+        khstring_concatenateCstring(&string, U"null");
+    }
 
     khstring_concatenateCstring(&string, U", \"end\": ");
-    khstring end_str = kh_uintToString(expression->end - origin, 10);
-    khstring_concatenate(&string, &end_str);
-    khstring_delete(&end_str);
+    if (expression->end != NULL) {
+        khstring end_str = kh_uintToString(expression->end - origin, 10);
+        khstring_concatenate(&string, &end_str);
+        khstring_delete(&end_str);
+    }
+    else {
+        khstring_concatenateCstring(&string, U"null");
+    }
 
     khstring_concatenateCstring(&string, U", \"value\": ");
     switch (expression->type) {
@@ -1909,14 +1919,24 @@ khstring khAst_string(khAst* ast, char32_t* origin) {
     khstring_delete(&quoted_type);
 
     khstring_concatenateCstring(&string, U", \"begin\": ");
-    khstring begin_str = kh_uintToString(ast->begin - origin, 10);
-    khstring_concatenate(&string, &begin_str);
-    khstring_delete(&begin_str);
+    if (ast->begin != NULL) {
+        khstring begin_str = kh_uintToString(ast->begin - origin, 10);
+        khstring_concatenate(&string, &begin_str);
+        khstring_delete(&begin_str);
+    }
+    else {
+        khstring_concatenateCstring(&string, U"null");
+    }
 
     khstring_concatenateCstring(&string, U", \"end\": ");
-    khstring end_str = kh_uintToString(ast->end - origin, 10);
-    khstring_concatenate(&string, &end_str);
-    khstring_delete(&end_str);
+    if (ast->end != NULL) {
+        khstring end_str = kh_uintToString(ast->end - origin, 10);
+        khstring_concatenate(&string, &end_str);
+        khstring_delete(&end_str);
+    }
+    else {
+        khstring_concatenateCstring(&string, U"null");
+    }
 
     khstring_concatenateCstring(&string, U", \"value\": ");
     switch (ast->type) {

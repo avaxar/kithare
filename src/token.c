@@ -289,14 +289,24 @@ khstring khToken_string(khToken* token, char32_t* origin) {
     khstring_concatenate(&string, &quoted_type_str);
 
     khstring_concatenateCstring(&string, U", \"begin\": ");
-    khstring begin_str = kh_uintToString(token->begin - origin, 10);
-    khstring_concatenate(&string, &begin_str);
-    khstring_delete(&begin_str);
+    if (token->begin != NULL) {
+        khstring begin_str = kh_uintToString(token->begin - origin, 10);
+        khstring_concatenate(&string, &begin_str);
+        khstring_delete(&begin_str);
+    }
+    else {
+        khstring_concatenateCstring(&string, U"null");
+    }
 
     khstring_concatenateCstring(&string, U", \"end\": ");
-    khstring end_str = kh_uintToString(token->end - origin, 10);
-    khstring_concatenate(&string, &end_str);
-    khstring_delete(&end_str);
+    if (token->end != NULL) {
+        khstring end_str = kh_uintToString(token->end - origin, 10);
+        khstring_concatenate(&string, &end_str);
+        khstring_delete(&end_str);
+    }
+    else {
+        khstring_concatenateCstring(&string, U"null");
+    }
 
     khstring_concatenateCstring(&string, U", \"value\": ");
     khstring value;
