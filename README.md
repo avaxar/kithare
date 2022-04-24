@@ -1,20 +1,10 @@
-# Kithare
-
 ![Kithare](misc/banner.png)
 
-## About
+# Kithare
 
- Kithare is a statically typed programming language based on [Python](https://www.python.org) and C++. Its syntax is heavily influnced by Python, but the prime programming flow resembles C++. The language itself is designed to be a multi-paradigm, anti-verbose, clean, easily run-able, and easy-to-learn programming language.
+ A statically typed semi-safe programmming language which is inspired by [Python](https://www.python.org) and C++. Its syntax is designed to be easily-learnable by intermeddiate programmers and non-verbose. It offers functional style programming and object-oriented programming with polymorphism, function/method overloading, operator overloading, and templates. Join the [Discord](https://discord.com/invite/hXvY8CzS7A) server to keep track of the development or to ask for help.
 
-## Links and Contact
-
-- [Website](https://kithare.de)
-- [Contributing guidelines](https://kithare.de/rules/contribution)
-- [Code of conduct](https://kithare.de/rules/conduct)
-- [Discord server](https://discord.gg/hXvY8CzS7A)
-- [Channel on the /r/ProgrammingLanguages Discord server](https://discord.gg/sggx9T9xsz)
-
-## Supported OSes/distros
+## Supported OSes
 
 - **Windows** is well supported by Kithare; both Windows 10 and Windows 11. Although not tested, Kithare should work well on Windows 7 and above too. Both 32-bit and 64-bit variants are supported on Windows, however, Windows on ARM architecture is not supported yet
 - **GNU/Linux** is also well supported by Kithare; primarily Debian and Ubuntu based modern sufficient Linux distros. Kithare supports a range of architectures (x86, x64, armv6, armv7, arm64, s390x and ppc64le).
@@ -34,7 +24,7 @@
 
 ## Building
 
-- Kithare uses a python helper script to make building easier. So in order to build Kithare, you need Python v3.6 or above installed.
+- Kithare uses a Python helper script to make building easier. So in order to build Kithare, you need Python v3.6 or above installed.
 - For advanced usage, you may checkout the `build.py` file, which contains instructions on how to use the build script to achieve more things.
 - A basic HOWTO to building Kithare is given below.
 
@@ -53,4 +43,4 @@
 
 ### Build
 
-- Run `python3 build.py` to build the project. If you are a `make` user, there is a stub `makefile` that calls the python builder.
+- Run `python3 build.py` to build the project. If you are a `make` user, there is a stub `makefile` that calls the Python builder.
