@@ -331,9 +331,9 @@ khstring khToken_string(khToken* token, char32_t* origin) {
         } break;
 
         case khTokenType_CHAR:
-            khstring_append(&string, U'\'');
+            khstring_append(&string, U'\"');
             value = kh_escapeChar(token->char_v);
-            khstring_append(&value, U'\'');
+            khstring_append(&value, U'\"');
             break;
         case khTokenType_STRING:
             value = khstring_quote(&token->string);
@@ -343,9 +343,9 @@ khstring khToken_string(khToken* token, char32_t* origin) {
             break;
 
         case khTokenType_BYTE:
-            khstring_concatenateCstring(&string, U"\'");
+            khstring_append(&string, U'\"');
             value = kh_escapeChar(token->byte);
-            khstring_append(&value, U'\'');
+            khstring_append(&value, U'\"');
             break;
         case khTokenType_INTEGER:
             value = kh_intToString(token->integer, 10);

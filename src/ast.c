@@ -1034,9 +1034,11 @@ khstring khAstExpression_string(khAstExpression* expression, char32_t* origin) {
             khstring_delete(&quoted_buffer);
         } break;
         case khAstExpressionType_BYTE: {
-            khstring byte_str = kh_uintToString(expression->byte, 10);
-            khstring_concatenate(&string, &byte_str);
-            khstring_delete(&byte_str);
+            khstring_append(&string, U'\"');
+            khstring escaped_byte = kh_escapeChar(expression->byte);
+            khstring_concatenate(&string, &escaped_byte);
+            khstring_delete(&escaped_byte);
+            khstring_append(&string, U'\"');
         } break;
         case khAstExpressionType_INTEGER: {
             khstring integer_str = kh_intToString(expression->integer, 10);
