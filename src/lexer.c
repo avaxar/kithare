@@ -66,7 +66,7 @@ khToken kh_lexToken(char32_t** cursor) {
 
     char32_t* begin = *cursor;
 
-    if (iswalpha(**cursor)) {
+    if (iswalpha(**cursor) || **cursor == U'_') {
         if (**cursor == U'b' || **cursor == U'B') {
             (*cursor)++;
 
@@ -134,8 +134,8 @@ khToken kh_lexToken(char32_t** cursor) {
 khToken kh_lexWord(char32_t** cursor) {
     char32_t* begin = *cursor;
 
-    // Passes through alphanumeric characters in a row
-    while (iswalnum(**cursor)) {
+    // Passes through alphanumeric or underscore characters in a row
+    while (iswalnum(**cursor) || **cursor == U'_') {
         (*cursor)++;
     }
 
