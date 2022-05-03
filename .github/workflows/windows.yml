@@ -21,6 +21,7 @@ on:
 
 jobs:
   build:
+    name: ${{ matrix.arch }}
     runs-on: windows-latest
 
     strategy:
@@ -31,20 +32,15 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
-
     - name: Build sources, tests and make installer
       run: python3 build.py --make installer --arch ${{ matrix.arch }}
-    
+
     - name: Run tests
       run: python3 build.py --make test --arch ${{ matrix.arch }}
-    
+
     # TODO: Test with installed kcr as well
-    - name: Upload installer
-      uses: actions/upload-artifact@v2
+    - name: Upload Binaries
+      uses: actions/upload-artifact@v3.0.0
       with:
-        name: kithare-windows-installers
+        name: kithare-windows-${{ matrix.arch }}-installers
         path: dist/packaging/

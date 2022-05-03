@@ -1,0 +1,139 @@
+name: Linux
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+    - 'docs/**'
+    - '.gitattributes'
+    - '.gitignore'
+    - 'LICENSE'
+    - 'README.md'
+
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+    - 'docs/**'
+    - '.gitattributes'
+    - '.gitignore'
+    - 'LICENSE'
+    - 'README.md'
+
+jobs:
+  build:
+    # some x86 deps have issues on 20.04, use Ubuntu 18.04
+    name: Ubuntu (Bionic - 18.04) [${{ matrix.arch }}]
+    runs-on: ubuntu-18.04
+
+    strategy:
+      fail-fast: false  # if a particular matrix build fails, don't skip the rest
+      matrix:
+        arch: ['x64', 'x86']
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: sudo bash ./builder/packaging/apt_install_deps.sh ${{ matrix.arch }}
+
+    - name: Build sources, tests and make installer
+      run: sudo python3 build.py --make installer --use-alien --arch ${{ matrix.arch }}
+
+    - name: Install from .deb installer and test
+      run: sudo apt-get install ./dist/packaging/*.deb
+
+    - name: Run tests
+      run: kcr  # CKithare currently doesn't have unittests
+
+    - name: Upload Binaries
+      uses: actions/upload-artifact@v3.0.0
+      with:
+        name: kithare-linux-${{ matrix.arch }}-installers
+        path: dist/packaging/
+
+  build-multiarch:
+    name: ${{ matrix.os }} [${{ matrix.arch }}]
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false  # if a particular matrix build fails, don't skip the rest
+      matrix:
+        # TODO: Add fedora_latest, alpine_latest, archarm_latest
+        include:
+          - { arch: armv6, arch-alias: armv6, distro: buster, os: "Debian (Buster - 10)" }
+          - { arch: armv7, arch-alias: armv7, distro: buster, os: "Debian (Buster - 10)" }
+          - { arch: s390x, arch-alias: s390x, distro: buster, os: "Debian (Buster - 10)" }
+          - { arch: arm64, arch-alias: aarch64, distro: buster, os: "Debian (Buster - 10)" }
+          - { arch: ppc64le, arch-alias: ppc64le, distro: buster, os: "Debian (Buster - 10)" }
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Build sources, tests and make installer
+      uses: uraimo/run-on-arch-action@v2.0.5
+      id: build
+      with:
+        arch: ${{ matrix.arch-alias }}
+        distro: ${{ matrix.distro }}
+
+        # Not required, but speeds up builds
+        githubToken: ${{ github.token }}
+
+        # Create an artifacts directory
+        setup: mkdir -p ~/artifacts
+
+        # Mount the artifacts directory as /artifacts in the container
+        dockerRunArgs: --volume ~/artifacts:/artifacts
+
+        # The shell to run commands with in the container
+        shell: /bin/sh
+
+        # Install some dependencies in the container. This speeds up builds if
+        # you are also using githubToken. Any dependencies installed here will
+        # be part of the container image that gets cached, so subsequent
+        # builds don't have to re-install them. The image layer is cached
+        # publicly in your project's package repository, so it is vital that
+        # no secrets are present in the container state or logs.
+        # remember to keep this updated from apt_install_deps, because that
+        # cannot be called directly here
+        install: |
+          case "${{ matrix.distro }}" in
+            ubuntu*|jessie|stretch|buster|bullseye)
+              deps="alien build-essential"
+              for dep in sdl2 sdl2-image sdl2-mixer sdl2-ttf sdl2-net; do
+                  deps="$deps lib${dep}-dev"
+              done
+              apt-get update --fix-missing
+              apt-get upgrade -y
+              apt-get install $deps -y
+              ;;
+            fedora*)
+              # TODO
+              dnf -y update
+              ;;
+            alpine*)
+              # TODO
+              apk update
+              ;;
+          esac
+
+        # Produce a binary artifact, test it and place it in the mounted volume
+        # Note: CKithare currently doesn't have unittests
+        run: |
+          echo "\nBuilding Kithare\n"
+          python3 build.py --make installer --use-alien
+          echo "\nInstalling from installer\n"
+          apt-get install ./dist/packaging/*.deb
+          echo "\nRunning tests\n"
+          kcr
+          cp ./dist/packaging/* /artifacts
+
+    - name: Clean unneeded armv6 files
+      if: matrix.arch == 'armv6'
+      run: rm ~/artifacts/*.deb
+
+    - name: Upload Binaries
+      uses: actions/upload-artifact@v3.0.0
+      with:
+        name: kithare-linux-${{ matrix.arch }}-installers
+        path: ~/artifacts
