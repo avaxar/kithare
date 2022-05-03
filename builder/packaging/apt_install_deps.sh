@@ -5,7 +5,7 @@ if [[ "$1" == "x86" ]]; then
     apt_suffix=":i386"
 fi
 
-deps="alien build-essential${apt_suffix}" # alien does not need ${apt_suffix}
+deps="alien" # alien does not need ${apt_suffix}
 for dep in sdl2 sdl2-image sdl2-mixer sdl2-ttf sdl2-net; do
     deps="$deps lib${dep}-dev${apt_suffix}"
 done
