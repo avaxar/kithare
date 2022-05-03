@@ -160,9 +160,14 @@ static inline khstring khbuffer_quote(khbuffer* buffer) {
     khstring quoted_buffer = khstring_new(U"\"");
 
     for (uint8_t* byte = *buffer; byte < *buffer + khbuffer_size(buffer); byte++) {
-        khstring escaped = kh_escapeChar(*byte);
-        khstring_concatenate(&quoted_buffer, &escaped);
-        khstring_delete(&escaped);
+        if (*byte == '\'') {
+            khstring_append(&quoted_buffer, U'\'');
+        }
+        else {
+            khstring escaped = kh_escapeChar(*byte);
+            khstring_concatenate(&quoted_buffer, &escaped);
+            khstring_delete(&escaped);
+        }
     }
 
     khstring_append(&quoted_buffer, U'\"');

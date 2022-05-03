@@ -403,9 +403,14 @@ static inline khstring khstring_quote(khstring* string) {
     khstring quoted_string = khstring_new(U"\"");
 
     for (char32_t* chr = *string; chr < *string + khstring_size(string); chr++) {
-        khstring escaped = kh_escapeChar(*chr);
-        khstring_concatenate(&quoted_string, &escaped);
-        khstring_delete(&escaped);
+        if (*chr == U'\'') {
+            khstring_append(&quoted_string, U'\'');
+        }
+        else {
+            khstring escaped = kh_escapeChar(*chr);
+            khstring_concatenate(&quoted_string, &escaped);
+            khstring_delete(&escaped);
+        }
     }
 
     khstring_append(&quoted_string, U'\"');
