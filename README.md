@@ -16,10 +16,31 @@
 - Kithare follows semantic versioning system for its releases.
 - All releases will be live on the [GitHub releases tab](https://github.com/Kithare/Kithare/releases)
 - For people who like to live on the edge, Kithare provides nighly builds, here are some direct download links
-    1. [Windows builds (x86/x64)](https://nightly.link/Kithare/Kithare/workflows/windows/main/kithare-windows-installers.zip)
-    2. [Linux builds (x86/x64)](https://nightly.link/Kithare/Kithare/workflows/linux/main/kithare-linux-installers.zip)
-    3. [Linux multiarch builds (armv6/armv7/arm64/s390x/ppc64le)](https://nightly.link/Kithare/Kithare/workflows/linux-multiarch/main/kithare-linux-multiarch-installers.zip)
-    4. [MacOS (Darwin) builds (x64/arm64/universal)](https://nightly.link/Kithare/Kithare/workflows/darwin/main/kithare-darwin-installers.zip)
+
+1. **Windows builds:**
+
+    Each of these contain a portable ZIP-file based install, and an exe installer
+    - [32-bit](https://nightly.link/Kithare/Kithare/workflows/windows/main/kithare-windows-x86-installers.zip)
+    - [64-bit](https://nightly.link/Kithare/Kithare/workflows/windows/main/kithare-windows-x64-installers.zip)
+
+2. **MacOS (Darwin) builds:**
+
+    Each of these contain a portable ZIP-file based install (more installers are WIP)
+    - [x86_64 (Intel)](https://nightly.link/Kithare/Kithare/workflows/darwin/main/kithare-darwin-x64-installers.zip)
+    - [arm64 (Apple Silicon - not implemented yet)](https://nightly.link/Kithare/Kithare/workflows/darwin/main/kithare-darwin-arm64-installers.zip)
+    - [universal2 (not implemented yet)](https://nightly.link/Kithare/Kithare/workflows/darwin/main/kithare-darwin-universal2-installers.zip)
+
+3. **Linux builds:**
+
+    Each of these contain a portable ZIP-file based install, a `deb` apt package, an `rpm` package and an `AppImage` installer.
+    - [x86_64 (64 bit Intel/AMD)](https://nightly.link/Kithare/Kithare/workflows/linux/main/kithare-linux-x64-installers.zip)
+    - [x86 (32 bit Intel/AMD)](https://nightly.link/Kithare/Kithare/workflows/linux/main/kithare-linux-x86-installers.zip)
+    - [armv6 (armhf - Common in older Raspberry Pis)](https://nightly.link/Kithare/Kithare/workflows/linux/main/kithare-linux-armv6-installers.zip)
+    - [armv7 (armhf - Common in newer Raspberry Pis)](https://nightly.link/Kithare/Kithare/workflows/linux/main/kithare-linux-armv7-installers.zip)
+    - [arm64 (aarch64)](https://nightly.link/Kithare/Kithare/workflows/linux/main/kithare-linux-arm64-installers.zip)
+    - [s390x (not well supported/tested)](https://nightly.link/Kithare/Kithare/workflows/linux/main/kithare-linux-s390x-installers.zip)
+    - [ppc64le (not well supported/tested)](https://nightly.link/Kithare/Kithare/workflows/linux/main/kithare-linux-ppc64le-installers.zip)
+
 - For these builds, the version in the installer packages is usually given by `YYYY.MM.DD.HHmm-nightly`. So if the date during the build is 22nd August 2021 and the time is 09:10:36 UTC, then the nightly build version will look like `2021.08.22.0910-nightly`.
 
 ## Building
@@ -39,7 +60,7 @@
 - On other platforms, you would need the GCC compiler installed (On Mac, GCC is just a shim for clang).
 - Install the development libraries for these: `SDL2`, `SDL2_mixer`, `SDL2_image`, `SDL2_ttf`, `SDL2_net`. You may use your distro's package manager to do this.
 - A recommended way to do this on Mac is to use Homebrew. Just run `brew install sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf`.
-- On Ubuntu and other debian based systems, you can do `sudo apt-get install libsdl2-dev libjpeg-dev libwebp-dev libtiff5-dev libsdl2-image-dev libmikmod-dev libfishsound1-dev libsmpeg-dev liboggz2-dev libflac-dev libfluidsynth-dev libsdl2-mixer-dev libfreetype6-dev libsdl2-ttf-dev libsdl2-net-dev -y` (These are mostly SDL dependencies).
+- On Ubuntu and other debian based systems, you can do `sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libsdl2-net-dev -y`
 
 ### Build
 
