@@ -21,32 +21,28 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.arch }}
+    runs-on: macos-latest
+
     strategy:
       fail-fast: false  # if a particular matrix build fails, don't skip the rest
       matrix:
-        # os: [macos-10.15, macos-11.0]  # TODO: when GitHub actions supports M1 Mac
-        os: [macos-10.15]
+        arch: [x64]  # TODO: arm64 and universal2
 
     steps:
     - uses: actions/checkout@v2
-    
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
 
-    - name: Install GCC (g++) and SDL deps
+    - name: Install dependencies
       run: brew install sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf
 
     - name: Build source and tests
       run: python3 build.py --make installer
-    
+
     - name: Run tests
       run: python3 build.py --make test
-    
-    - name: Upload dist
-      uses: actions/upload-artifact@v2
+
+    - name: Upload Binaries
+      uses: actions/upload-artifact@v3.0.0
       with:
-        name: kithare-darwin-installers
+        name: kithare-darwin-${{ matrix.arch }}-installers
         path: dist/packaging/

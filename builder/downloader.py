@@ -30,14 +30,14 @@ DOWNLOAD_TIMEOUT = 600
 TIMEOUT_PER_LOOP = 0.05
 
 LINKS_AND_HASHES = {
-    "SDL2": "2bfe48628aa9635c12eac7d421907e291525de1d0b04b3bca4a5bd6e6c881a6f",
+    "SDL2": "0e91e35973366aa1e6f81ee368924d9b4f93f9da4d2f2a89ec80b06eadcf23d1",
     "SDL2_image": "41d9e5ff98aa84cf66e6c63c78e7c346746982fa53d3f36633423cc9177f986c",
     "SDL2_mixer": "14250b2ade20866c7b17cf1a5a5e2c6f3920c443fa3744f45658c8af405c09f1",
-    "SDL2_ttf": "78009f19c1145b1adf86816f0cc12c407ada2b77cf06ee7042d55d231b726d3b",
+    "SDL2_ttf": "c35aebf74448090e6413802cc55c461098a62ccdb6d74c0f77f6cf3569b72f3c",
     "SDL2_net": "fe0652ab1bdbeae277d7550f2ed686a37a5752f7a624f54f19cf1bd6ba5cb9ff",
-    "MinGW32": "56159f3752d31c28e0a7ed480d5e6b6860ce21ce2e640eba6c4a847504626bef",
-    "MinGW64": "695dbea4159066b7b02d22a8e7ac241e397ed5665171546526f5818c4b8b3a19",
-    "INNO Setup Installer": "2459da3c0a67346bc43a9732d96929877d04f53b1d4c56e61be64e3b5f34d5cf",
+    "MinGW32": "41fe7cde5f9dc470feed65dcbc46b4d9f8eb5ef1a9e204e2b5513359cee18b00",
+    "MinGW64": "7e9f65a754fa5780a1bf0a4c26c42a63320a1f15376ba097b9da5463c9cfef77",
+    "INNO Setup Installer": "50d21aab83579245f88e2632a61b943ad47557e42b0f02e6ce2afef4cdd8deb1",
     "AppImageTool": {
         "x86_64": "df3baf5ca5facbecfc2f3fa6713c29ab9cefa8fd8c1eac5d283b79cab33e4acb",
         "i686": "104978205c888cb2ad42d1799e03d4621cb9a6027cfb375d069b394a82ff15d1",
@@ -59,11 +59,12 @@ LINKS_AND_HASHES = {
 }
 
 MINGW_DOWNLOAD_DIR = (
-    "https://github.com/brechtsanders/winlibs_mingw/releases/download/9.4.0-9.0.0-r1/"
+    "https://github.com/brechtsanders/winlibs_mingw/releases/"
+    "download/11.3.0-14.0.3-10.0.0-ucrt-r3/"
 )
 MINGW_ZIP = (
-    "winlibs-x86_64-posix-seh-gcc-9.4.0-mingw-w64-9.0.0-r1.zip",
-    "winlibs-i686-posix-dwarf-gcc-9.4.0-mingw-w64-9.0.0-r1.zip",
+    "winlibs-x86_64-posix-seh-gcc-11.3.0-mingw-w64ucrt-10.0.0-r3.zip",
+    "winlibs-i686-posix-dwarf-gcc-11.3.0-mingw-w64ucrt-10.0.0-r3.zip",
 )
 
 

@@ -157,7 +157,11 @@ class KithareBuilder:
         print(INIT_TEXT)
         if shutil.which(self.cflags.get_compiler()) is None:
             # Compiler is not installed and/or not on PATH
-            retpath = install_mingw(self.basepath, is_32_bit)
+            if COMPILER == "MinGW":
+                retpath = install_mingw(self.basepath, is_32_bit)
+            else:
+                raise BuildError(f"'{self.cflags.get_compiler()}' compiler missing!")
+
             self.cflags.cc = retpath / self.cflags.cc
             self.cflags.cxx = retpath / self.cflags.cxx
             self.cflags.windres = retpath / "windres.exe"

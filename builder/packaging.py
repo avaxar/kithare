@@ -18,7 +18,7 @@ from .downloader import ThreadedDownloader
 from .utils import BuildError, ConvertType, convert_machine, copy, rmtree, run_cmd
 
 # Windows INNO installer related constants, remember to keep updated
-INNO_SETUP_DOWNLOAD = "https://files.jrsoftware.org/is/6/innosetup-6.2.0.exe"
+INNO_SETUP_DOWNLOAD = "https://files.jrsoftware.org/is/6/innosetup-6.2.1.exe"
 INNO_FLAGS = "/SP- /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /NOCANCEL".split()
 
 INNO_COMPILER_PATH = Path("C:\\", "Program Files (x86)", "Inno Setup 6", "ISCC.exe")

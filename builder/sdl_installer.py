@@ -20,10 +20,10 @@ from .utils import BuildError, ConvertType, convert_machine, copy, rmtree
 
 # SDL project-version pairs, remember to keep updated
 SDL_DEPS = {
-    "SDL2": "2.0.16",
+    "SDL2": "2.0.22",
     "SDL2_image": "2.0.5",
     "SDL2_mixer": "2.0.4",
-    "SDL2_ttf": "2.0.15",
+    "SDL2_ttf": "2.0.18",
     "SDL2_net": "2.0.1",
 }
 
