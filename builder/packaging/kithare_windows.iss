@@ -72,7 +72,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}
 ChangesAssociations=yes
 DisableProgramGroupPage=yes
-LicenseFile={#BasePath}\LICENSE
+LicenseFile={#BasePath}\LICENSE.md
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
@@ -102,7 +102,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 Source: "{#BasePath}\dist\MinGW-{#MyAppArch}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#BasePath}\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#BasePath}\LICENSE.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#BasePath}\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#BasePath}\dist\MinGW-{#MyAppArch}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files

@@ -352,8 +352,8 @@ class KithareBuilder:
                 strict=True,
             )
 
-        # copy LICENSE and readme to dist
-        for filename in ("LICENSE", "README.md"):
+        # copy LICENSE.md and readme to dist
+        for filename in ("LICENSE.md", "README.md"):
             copy(self.basepath / filename, self.exepath.parent)
 
         for dfile in self.exepath.parent.rglob("*"):

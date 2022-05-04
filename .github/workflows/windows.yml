@@ -7,7 +7,7 @@ on:
     - 'docs/**'
     - '.gitattributes'
     - '.gitignore'
-    - 'LICENSE'
+    - 'LICENSE.md'
     - 'README.md'
 
   pull_request:
@@ -16,7 +16,7 @@ on:
     - 'docs/**'
     - '.gitattributes'
     - '.gitignore'
-    - 'LICENSE'
+    - 'LICENSE.md'
     - 'README.md'
 
 jobs:
