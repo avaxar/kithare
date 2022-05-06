@@ -50,6 +50,7 @@ typedef enum {
     khKeywordToken_AS,
     khKeywordToken_DEF,
     khKeywordToken_CLASS,
+    khKeywordToken_INHERITS,
     khKeywordToken_STRUCT,
     khKeywordToken_ENUM,
     khKeywordToken_ALIAS,

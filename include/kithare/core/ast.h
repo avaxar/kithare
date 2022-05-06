@@ -400,7 +400,6 @@ typedef struct {
     bool is_incase;
     khstring name;
     kharray(khstring) template_arguments;
-    khAstExpression* optional_base_type;
     kharray(khAst) content;
 } khAstStruct;
 

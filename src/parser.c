@@ -816,22 +816,15 @@ static inline void sparseClassOrStruct(char32_t** cursor, khstring* name,
         }
     }
 
-    // If it's inheriting something: `class Name(Base)`
-    if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_PARENTHESIS_OPEN) {
+    // If a class is inheriting something: `class Name inherits Base`
+    if (optional_base_type != NULL && token.type == khTokenType_KEYWORD &&
+        token.keyword == khKeywordToken_INHERITS) {
         skipToken(cursor, true);
         *optional_base_type = malloc(sizeof(khAstExpression));
         **optional_base_type = kh_parseExpression(cursor, true, true);
 
         khToken_delete(&token);
         token = currentToken(cursor, true);
-
-        if (token.type == khTokenType_DELIMITER &&
-            token.delimiter == khDelimiterToken_PARENTHESIS_CLOSE) {
-            skipToken(cursor, true);
-        }
-        else {
-            raiseError(token.begin, U"expecting a closing parenthesis");
-        }
     }
 
     // Parses its content
@@ -887,8 +880,7 @@ static khAstStruct sparseStruct(char32_t** cursor) {
         raiseError(token.begin, U"expecting a `struct` keyword");
     }
 
-    sparseClassOrStruct(cursor, &struct_v.name, &struct_v.template_arguments,
-                        &struct_v.optional_base_type, &struct_v.content);
+    sparseClassOrStruct(cursor, &struct_v.name, &struct_v.template_arguments, NULL, &struct_v.content);
 
     khToken_delete(&token);
 

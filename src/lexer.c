@@ -164,6 +164,7 @@ khToken kh_lexWord(char32_t** cursor) {
     CASE_KEYWORD(U"as", khKeywordToken_AS);
     CASE_KEYWORD(U"def", khKeywordToken_DEF);
     CASE_KEYWORD(U"class", khKeywordToken_CLASS);
+    CASE_KEYWORD(U"inherits", khKeywordToken_INHERITS);
     CASE_KEYWORD(U"struct", khKeywordToken_STRUCT);
     CASE_KEYWORD(U"enum", khKeywordToken_ENUM);
     CASE_KEYWORD(U"alias", khKeywordToken_ALIAS);

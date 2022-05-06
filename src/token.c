@@ -69,6 +69,8 @@ khstring khKeywordToken_string(khKeywordToken keyword) {
             return khstring_new(U"def");
         case khKeywordToken_CLASS:
             return khstring_new(U"class");
+        case khKeywordToken_INHERITS:
+            return khstring_new(U"inherits");
         case khKeywordToken_STRUCT:
             return khstring_new(U"struct");
         case khKeywordToken_ENUM:

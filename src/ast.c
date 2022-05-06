@@ -1422,26 +1422,15 @@ khAstStruct khAstStruct_copy(khAstStruct* struct_v) {
         kharray_append(&template_arguments, khstring_copy(&struct_v->template_arguments[i]));
     }
 
-    khAstExpression* optional_base_type = NULL;
-    if (struct_v->optional_base_type != NULL) {
-        optional_base_type = (khAstExpression*)malloc(sizeof(khAstExpression));
-        *optional_base_type = khAstExpression_copy(struct_v->optional_base_type);
-    }
-
     return (khAstStruct){.is_incase = struct_v->is_incase,
                          .name = khstring_copy(&struct_v->name),
                          .template_arguments = template_arguments,
-                         .optional_base_type = optional_base_type,
                          .content = kharray_copy(&struct_v->content, khAst_copy)};
 }
 
 void khAstStruct_delete(khAstStruct* struct_v) {
     khstring_delete(&struct_v->name);
     kharray_delete(&struct_v->template_arguments);
-    if (struct_v->optional_base_type != NULL) {
-        khAstExpression_delete(struct_v->optional_base_type);
-        free(struct_v->optional_base_type);
-    }
     kharray_delete(&struct_v->content);
 }
 
@@ -1463,16 +1452,6 @@ khstring khAstStruct_string(khAstStruct* struct_v, char32_t* origin) {
         if (i < kharray_size(&struct_v->template_arguments) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
-    }
-
-    khstring_concatenateCstring(&string, U"], \"optional_base_type\": ");
-    if (struct_v->optional_base_type != NULL) {
-        khstring base_type_str = khAstExpression_string(struct_v->optional_base_type, origin);
-        khstring_concatenate(&string, &base_type_str);
-        khstring_delete(&base_type_str);
-    }
-    else {
-        khstring_concatenateCstring(&string, U"null");
     }
 
     khstring_concatenateCstring(&string, U", \"content\": [");
