@@ -164,6 +164,7 @@ static khAst sparseStatement(char32_t** cursor) {
 
             case khKeywordToken_AS:
                 raiseError(token.begin, U"unexpected keyword");
+                skipToken(cursor, true);
                 khToken_delete(&token);
                 goto end;
 
@@ -291,11 +292,13 @@ static khAst sparseStatement(char32_t** cursor) {
 
             case khKeywordToken_ELIF:
                 raiseError(token.begin, U"no following if statement to have an elif statement");
+                skipToken(cursor, true);
                 khToken_delete(&token);
                 goto end;
 
             case khKeywordToken_ELSE:
                 raiseError(token.begin, U"no following if statement to have an else statement");
+                skipToken(cursor, true);
                 khToken_delete(&token);
                 goto end;
 
@@ -499,6 +502,10 @@ static khAstImport sparseImport(char32_t** cursor) {
         skipToken(cursor, false);
         token = currentToken(cursor, false);
     }
+    // Directory import, `import .`
+    else if (import_v.relative) {
+        goto finish;
+    }
     else {
         raiseError(token.begin, U"expecting something to import");
     }
@@ -520,6 +527,7 @@ static khAstImport sparseImport(char32_t** cursor) {
         }
     }
 
+finish:
     // `import something as another`
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_AS) {
         khToken_delete(&token);
@@ -584,6 +592,10 @@ static khAstInclude sparseInclude(char32_t** cursor) {
         skipToken(cursor, false);
         token = currentToken(cursor, false);
     }
+    // Directory include, `include .`
+    else if (include.relative) {
+        goto finish;
+    }
     else {
         raiseError(token.begin, U"expecting something to include");
     }
@@ -605,6 +617,7 @@ static khAstInclude sparseInclude(char32_t** cursor) {
         }
     }
 
+finish:
     if (token.type == khTokenType_NEWLINE || token.type == khTokenType_EOF ||
         (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_SEMICOLON)) {
         skipToken(cursor, false);
