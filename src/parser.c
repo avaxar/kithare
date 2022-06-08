@@ -120,7 +120,6 @@ static khAstExpression exparseMulDivMod(char32_t** cursor, EXPARSE_ARGS);
 static khAstExpression exparsePow(char32_t** cursor, EXPARSE_ARGS);
 static khAstExpression exparseUnary(char32_t** cursor, EXPARSE_ARGS);
 static khAstExpression exparseReverseUnary(char32_t** cursor, EXPARSE_ARGS);
-static khAstExpression exparseScopeTemplatization(char32_t** cursor, EXPARSE_ARGS);
 static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS);
 static khAstExpression exparseVariableDeclaration(char32_t** cursor, bool no_static,
                                                   bool ignore_newline);
@@ -1759,7 +1758,7 @@ static khAstExpression exparseReverseUnary(char32_t** cursor, EXPARSE_ARGS) {
     char32_t* origin = token.begin;
     khToken_delete(&token);
 
-    khAstExpression expression = exparseScopeTemplatization(cursor, ignore_newline, filter_type);
+    khAstExpression expression = exparseOther(cursor, ignore_newline, filter_type);
     token = currentToken(cursor, ignore_newline);
 
     while (token.type == khTokenType_DELIMITER || token.type == khTokenType_OPERATOR) {
@@ -1804,6 +1803,92 @@ static khAstExpression exparseReverseUnary(char32_t** cursor, EXPARSE_ARGS) {
 
                         khToken_delete(&token);
                         token = currentToken(cursor, ignore_newline);
+                    } break;
+
+                    case khDelimiterToken_DOT: {
+                        kharray(khstring) scope_names = kharray_new(khstring, khstring_delete);
+
+                        // `(expression).parses.these.scope.things`
+                        while (token.type == khTokenType_DELIMITER &&
+                               token.delimiter == khDelimiterToken_DOT) {
+                            khToken_delete(&token);
+                            skipToken(cursor);
+                            token = currentToken(cursor, ignore_newline);
+
+                            if (token.type == khTokenType_IDENTIFIER) {
+                                kharray_append(&scope_names, khstring_copy(&token.identifier));
+
+                                khToken_delete(&token);
+                                skipToken(cursor);
+                                token = currentToken(cursor, ignore_newline);
+                            }
+                            else {
+                                raiseError(token.begin, U"expecting an identifier to scope into");
+                            }
+                        }
+
+                        khAstExpression* value = malloc(sizeof(khAstExpression));
+                        *value = expression;
+
+                        expression =
+                            (khAstExpression){.begin = origin,
+                                              .end = *cursor,
+                                              .type = khAstExpressionType_SCOPE,
+                                              .scope = {.value = value, .scope_names = scope_names}};
+                    } break;
+
+                    case khDelimiterToken_EXCLAMATION: {
+                        khToken_delete(&token);
+                        skipToken(cursor);
+                        token = currentToken(cursor, ignore_newline);
+
+                        khAstExpression* value = malloc(sizeof(khAstExpression));
+                        *value = expression;
+
+                        // Single identifier template argument: `Type!int`
+                        if (token.type == khTokenType_IDENTIFIER) {
+                            kharray(khAstExpression) template_arguments =
+                                kharray_new(khAstExpression, khAstExpression_delete);
+
+                            kharray_append(
+                                &template_arguments,
+                                ((khAstExpression){.begin = token.begin,
+                                                   .end = token.end,
+                                                   .type = khAstExpressionType_IDENTIFIER,
+                                                   .identifier = khstring_copy(&token.identifier)}));
+
+                            expression = (khAstExpression){
+                                .begin = origin,
+                                .end = *cursor,
+                                .type = khAstExpressionType_TEMPLATIZE,
+                                .templatize = {.value = value,
+                                               .template_arguments = template_arguments}};
+
+                            khToken_delete(&token);
+                            skipToken(cursor);
+                            token = currentToken(cursor, ignore_newline);
+                        }
+                        // Multiple template arguments: `Type!(int, float)`
+                        else if (token.type == khTokenType_DELIMITER &&
+                                 token.delimiter == khDelimiterToken_PARENTHESIS_OPEN) {
+                            kharray(khAstExpression) template_arguments =
+                                exparseList(cursor, khDelimiterToken_PARENTHESIS_OPEN,
+                                            khDelimiterToken_PARENTHESIS_CLOSE, ignore_newline, true);
+
+                            expression = (khAstExpression){
+                                .begin = origin,
+                                .end = *cursor,
+                                .type = khAstExpressionType_TEMPLATIZE,
+                                .templatize = {.value = value,
+                                               .template_arguments = template_arguments}};
+
+                            khToken_delete(&token);
+                            token = currentToken(cursor, ignore_newline);
+                        }
+                        else {
+                            free(value);
+                            raiseError(token.begin, U"expecting a type argument for templatizing");
+                        }
                     } break;
 
                     default:
@@ -1856,103 +1941,6 @@ static khAstExpression exparseReverseUnary(char32_t** cursor, EXPARSE_ARGS) {
                     default:
                         goto out;
                 }
-
-            default:
-                goto out;
-        }
-    }
-out:
-
-    khToken_delete(&token);
-
-    return expression;
-}
-
-static khAstExpression exparseScopeTemplatization(char32_t** cursor, EXPARSE_ARGS) {
-    khToken token = currentToken(cursor, ignore_newline);
-    char32_t* origin = token.begin;
-    khToken_delete(&token);
-
-    khAstExpression expression = exparseOther(cursor, ignore_newline, filter_type);
-    token = currentToken(cursor, ignore_newline);
-
-    while (token.type == khTokenType_DELIMITER) {
-        switch (token.delimiter) {
-            case khDelimiterToken_DOT: {
-                kharray(khstring) scope_names = kharray_new(khstring, khstring_delete);
-
-                // `(expression).parses.these.scope.things`
-                while (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_DOT) {
-                    khToken_delete(&token);
-                    skipToken(cursor);
-                    token = currentToken(cursor, ignore_newline);
-
-                    if (token.type == khTokenType_IDENTIFIER) {
-                        kharray_append(&scope_names, khstring_copy(&token.identifier));
-
-                        khToken_delete(&token);
-                        skipToken(cursor);
-                        token = currentToken(cursor, ignore_newline);
-                    }
-                    else {
-                        raiseError(token.begin, U"expecting an identifier to scope into");
-                    }
-                }
-
-                khAstExpression* value = malloc(sizeof(khAstExpression));
-                *value = expression;
-
-                expression = (khAstExpression){.begin = origin,
-                                               .end = *cursor,
-                                               .type = khAstExpressionType_SCOPE,
-                                               .scope = {.value = value, .scope_names = scope_names}};
-            } break;
-
-            case khDelimiterToken_EXCLAMATION: {
-                khToken_delete(&token);
-                skipToken(cursor);
-                token = currentToken(cursor, ignore_newline);
-
-                khAstExpression* value = malloc(sizeof(khAstExpression));
-                *value = expression;
-
-                // Single identifier template argument: `Type!int`
-                if (token.type == khTokenType_IDENTIFIER) {
-                    kharray(khAstExpression) template_arguments =
-                        kharray_new(khAstExpression, khAstExpression_delete);
-
-                    kharray_append(&template_arguments,
-                                   ((khAstExpression){.begin = token.begin,
-                                                      .end = token.end,
-                                                      .type = khAstExpressionType_IDENTIFIER,
-                                                      .identifier = khstring_copy(&token.identifier)}));
-
-                    skipToken(cursor);
-
-                    expression = (khAstExpression){
-                        .begin = origin,
-                        .end = *cursor,
-                        .type = khAstExpressionType_TEMPLATIZE,
-                        .templatize = {.value = value, .template_arguments = template_arguments}};
-                }
-                // Multiple template arguments: `Type!(int, float)`
-                else if (token.type == khTokenType_DELIMITER &&
-                         token.delimiter == khDelimiterToken_PARENTHESIS_OPEN) {
-                    kharray(khAstExpression) template_arguments =
-                        exparseList(cursor, khDelimiterToken_PARENTHESIS_OPEN,
-                                    khDelimiterToken_PARENTHESIS_CLOSE, ignore_newline, true);
-
-                    expression = (khAstExpression){
-                        .begin = origin,
-                        .end = *cursor,
-                        .type = khAstExpressionType_TEMPLATIZE,
-                        .templatize = {.value = value, .template_arguments = template_arguments}};
-                }
-                else {
-                    free(value);
-                    raiseError(token.begin, U"expecting a type argument for templatizing");
-                }
-            } break;
 
             default:
                 goto out;
