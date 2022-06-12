@@ -116,11 +116,6 @@ typedef enum {
     khAstUnaryExpressionType_POSITIVE,
     khAstUnaryExpressionType_NEGATIVE,
 
-    khAstUnaryExpressionType_PRE_INCREMENT,
-    khAstUnaryExpressionType_PRE_DECREMENT,
-    khAstUnaryExpressionType_POST_INCREMENT,
-    khAstUnaryExpressionType_POST_DECREMENT,
-
     khAstUnaryExpressionType_NOT,
     khAstUnaryExpressionType_BIT_NOT
 } khAstUnaryExpressionType;

@@ -219,15 +219,6 @@ khstring khAstUnaryExpressionType_string(khAstUnaryExpressionType type) {
         case khAstUnaryExpressionType_NEGATIVE:
             return khstring_new(U"negative");
 
-        case khAstUnaryExpressionType_PRE_INCREMENT:
-            return khstring_new(U"pre_increment");
-        case khAstUnaryExpressionType_PRE_DECREMENT:
-            return khstring_new(U"pre_decrement");
-        case khAstUnaryExpressionType_POST_INCREMENT:
-            return khstring_new(U"post_increment");
-        case khAstUnaryExpressionType_POST_DECREMENT:
-            return khstring_new(U"post_decrement");
-
         case khAstUnaryExpressionType_NOT:
             return khstring_new(U"not");
         case khAstUnaryExpressionType_BIT_NOT:

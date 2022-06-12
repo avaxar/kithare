@@ -113,9 +113,6 @@ typedef enum {
     khOperatorToken_IPOW,
     khOperatorToken_IDOT,
 
-    khOperatorToken_INCREMENT,
-    khOperatorToken_DECREMENT,
-
     khOperatorToken_ASSIGN,
 
     khOperatorToken_EQUAL,

@@ -138,6 +138,7 @@ khAstExpression kh_parseExpression(char32_t** cursor, EXPARSE_ARGS) {
     return exparseInplaceOperators(cursor, ignore_newline, filter_type);
 }
 
+
 static khAst sparseStatement(char32_t** cursor) {
     khToken token = currentToken(cursor, true);
     char32_t* origin = token.begin;
@@ -1732,11 +1733,6 @@ static khAstExpression exparseUnary(char32_t** cursor, EXPARSE_ARGS) {
             case khOperatorToken_SUB:
                 RCD_UNARY_CASE(exparseReverseUnary, khAstUnaryExpressionType_NEGATIVE);
 
-            case khOperatorToken_INCREMENT:
-                RCD_UNARY_CASE(exparseReverseUnary, khAstUnaryExpressionType_PRE_INCREMENT);
-            case khOperatorToken_DECREMENT:
-                RCD_UNARY_CASE(exparseReverseUnary, khAstUnaryExpressionType_PRE_DECREMENT);
-
             case khOperatorToken_NOT:
                 RCD_UNARY_CASE(exparseReverseUnary, khAstUnaryExpressionType_NOT);
             case khOperatorToken_BIT_NOT:
@@ -1895,52 +1891,6 @@ static khAstExpression exparseReverseUnary(char32_t** cursor, EXPARSE_ARGS) {
                         goto out;
                 }
                 break;
-
-            case khTokenType_OPERATOR:
-                switch (token.operator_v) {
-                    case khOperatorToken_INCREMENT: {
-                        if (filter_type) {
-                            goto out;
-                        }
-
-                        khAstExpression* operand = malloc(sizeof(khAstExpression));
-                        *operand = expression;
-
-                        expression =
-                            (khAstExpression){.begin = origin,
-                                              .end = *cursor,
-                                              .type = khAstExpressionType_UNARY,
-                                              .unary = {.type = khAstUnaryExpressionType_POST_INCREMENT,
-                                                        .operand = operand}};
-
-                        khToken_delete(&token);
-                        skipToken(cursor);
-                        token = currentToken(cursor, ignore_newline);
-                    } break;
-
-                    case khOperatorToken_DECREMENT: {
-                        if (filter_type) {
-                            goto out;
-                        }
-
-                        khAstExpression* operand = malloc(sizeof(khAstExpression));
-                        *operand = expression;
-
-                        expression =
-                            (khAstExpression){.begin = origin,
-                                              .end = *cursor,
-                                              .type = khAstExpressionType_UNARY,
-                                              .unary = {.type = khAstUnaryExpressionType_POST_INCREMENT,
-                                                        .operand = operand}};
-
-                        khToken_delete(&token);
-                        skipToken(cursor);
-                        token = currentToken(cursor, ignore_newline);
-                    } break;
-
-                    default:
-                        goto out;
-                }
 
             default:
                 goto out;

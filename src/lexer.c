@@ -334,23 +334,16 @@ khToken kh_lexSymbol(char32_t** cursor) {
 
         // Down here are where many multiple-character-operators are handled
         case U'+':
-            switch (*(*cursor)++) {
-                case U'+':
-                    return khToken_fromOperator(khOperatorToken_INCREMENT, begin, *cursor);
-
-                case U'=':
-                    return khToken_fromOperator(khOperatorToken_IADD, begin, *cursor);
-
-                default:
-                    (*cursor)--;
-                    return khToken_fromOperator(khOperatorToken_ADD, begin, *cursor);
+            if (**cursor == U'=') {
+                (*cursor)++;
+                return khToken_fromOperator(khOperatorToken_IADD, begin, *cursor);
+            }
+            else {
+                return khToken_fromOperator(khOperatorToken_ADD, begin, *cursor);
             }
 
         case U'-':
             switch (*(*cursor)++) {
-                case U'-':
-                    return khToken_fromOperator(khOperatorToken_DECREMENT, begin, *cursor);
-
                 case U'=':
                     return khToken_fromOperator(khOperatorToken_ISUB, begin, *cursor);
 

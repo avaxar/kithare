@@ -183,11 +183,6 @@ khstring khOperatorToken_string(khOperatorToken operator_v) {
         case khOperatorToken_IDOT:
             return khstring_new(U"@=");
 
-        case khOperatorToken_INCREMENT:
-            return khstring_new(U"++");
-        case khOperatorToken_DECREMENT:
-            return khstring_new(U"--");
-
         case khOperatorToken_ASSIGN:
             return khstring_new(U"=");
 
