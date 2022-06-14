@@ -25,6 +25,7 @@ typedef struct _khAstExpression khAstExpression;
 typedef enum {
     khAstType_INVALID,
 
+    khAstType_VARIABLE,
     khAstType_EXPRESSION,
 
     khAstType_IMPORT,
@@ -46,6 +47,21 @@ typedef enum {
 } khAstType;
 
 khstring khAstType_string(khAstType type);
+
+
+// This variable declaration AST struct is declared up here, as it is used by khAstLambdaExpression.
+typedef struct {
+    bool is_static;
+    bool is_wild;
+    bool is_ref;
+    khstring name;
+    khAstExpression* optional_type;
+    khAstExpression* optional_initializer;
+} khAstVariable;
+
+khAstVariable khAstVariable_copy(khAstVariable* variable);
+void khAstVariable_delete(khAstVariable* variable);
+khstring khAstVariable_string(khAstVariable* variable, char32_t* origin);
 
 
 typedef enum {
@@ -74,7 +90,6 @@ typedef enum {
     khAstExpressionType_CALL,
     khAstExpressionType_INDEX,
 
-    khAstExpressionType_VARIABLE_DECLARATION,
     khAstExpressionType_LAMBDA,
     khAstExpressionType_SCOPE,
     khAstExpressionType_FUNCTION_TYPE,
@@ -237,22 +252,8 @@ khstring khAstIndexExpression_string(khAstIndexExpression* index_exp, char32_t* 
 
 
 typedef struct {
-    bool is_static;
-    bool is_wild;
-    bool is_ref;
-    khstring name;
-    khAstExpression* optional_type;
-    khAstExpression* optional_initializer;
-} khAstVariableDeclaration;
-
-khAstVariableDeclaration khAstVariableDeclaration_copy(khAstVariableDeclaration* declaration);
-void khAstVariableDeclaration_delete(khAstVariableDeclaration* declaration);
-khstring khAstVariableDeclaration_string(khAstVariableDeclaration* declaration, char32_t* origin);
-
-
-typedef struct {
-    kharray(khAstExpression) arguments;
-    khAstExpression* optional_variadic_argument;
+    kharray(khAstVariable) arguments;
+    khAstVariable* optional_variadic_argument;
     bool is_return_type_ref;
     khAstExpression* optional_return_type;
     kharray(khAst) content;
@@ -328,7 +329,6 @@ struct _khAstExpression {
         khAstCallExpression call;
         khAstIndexExpression index;
 
-        khAstVariableDeclaration variable_declaration;
         khAstLambdaExpression lambda;
         khAstScopeExpression scope;
         khAstFunctionTypeExpression function_type;
@@ -366,8 +366,8 @@ typedef struct {
     bool is_incase;
     bool is_static;
     khAstExpression name_point;
-    kharray(khAstExpression) arguments;
-    khAstExpression* optional_variadic_argument;
+    kharray(khAstVariable) arguments;
+    khAstVariable* optional_variadic_argument;
     bool is_return_type_ref;
     khAstExpression* optional_return_type;
     kharray(khAst) content;
@@ -493,6 +493,7 @@ struct _khAst {
 
     khAstType type;
     union {
+        khAstVariable variable;
         khAstExpression expression;
 
         khAstImport import_v;

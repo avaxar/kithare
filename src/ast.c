@@ -16,6 +16,8 @@ khstring khAstType_string(khAstType type) {
         case khAstType_INVALID:
             return khstring_new(U"invalid");
 
+        case khAstType_VARIABLE:
+            return khstring_new(U"variable");
         case khAstType_EXPRESSION:
             return khstring_new(U"expression");
 
@@ -54,6 +56,80 @@ khstring khAstType_string(khAstType type) {
         default:
             return khstring_new(U"unknown");
     }
+}
+
+
+khAstVariable khAstVariable_copy(khAstVariable* variable) {
+    khAstExpression* optional_type = NULL;
+    if (variable->optional_type != NULL) {
+        optional_type = (khAstExpression*)malloc(sizeof(khAstExpression));
+        *optional_type = khAstExpression_copy(variable->optional_type);
+    }
+
+    khAstExpression* optional_initializer = NULL;
+    if (variable->optional_initializer != NULL) {
+        optional_initializer = (khAstExpression*)malloc(sizeof(khAstExpression));
+        *optional_initializer = khAstExpression_copy(variable->optional_initializer);
+    }
+
+    return (khAstVariable){.is_static = variable->is_static,
+                           .is_wild = variable->is_wild,
+                           .is_ref = variable->is_ref,
+                           .name = khstring_copy(&variable->name),
+                           .optional_type = optional_type,
+                           .optional_initializer = optional_initializer};
+}
+
+void khAstVariable_delete(khAstVariable* variable) {
+    khstring_delete(&variable->name);
+    if (variable->optional_type != NULL) {
+        khAstExpression_delete(variable->optional_type);
+        free(variable->optional_type);
+    }
+    if (variable->optional_initializer != NULL) {
+        khAstExpression_delete(variable->optional_initializer);
+        free(variable->optional_initializer);
+    }
+}
+
+khstring khAstVariable_string(khAstVariable* variable, char32_t* origin) {
+    khstring string = khstring_new(U"{\"is_static\": ");
+    khstring_concatenateCstring(&string, variable->is_static ? U"true" : U"false");
+
+    khstring_concatenateCstring(&string, U", \"is_wild\": ");
+    khstring_concatenateCstring(&string, variable->is_wild ? U"true" : U"false");
+
+    khstring_concatenateCstring(&string, U", \"is_ref\": ");
+    khstring_concatenateCstring(&string, variable->is_ref ? U"true" : U"false");
+
+    khstring_concatenateCstring(&string, U", \"name\": ");
+    khstring quoted_name = khstring_quote(&variable->name);
+    khstring_concatenate(&string, &quoted_name);
+    khstring_delete(&quoted_name);
+
+    khstring_concatenateCstring(&string, U", \"optional_type\": ");
+    if (variable->optional_type != NULL) {
+        khstring optional_type_str = khAstExpression_string(variable->optional_type, origin);
+        khstring_concatenate(&string, &optional_type_str);
+        khstring_delete(&optional_type_str);
+    }
+    else {
+        khstring_concatenateCstring(&string, U"null");
+    }
+
+    khstring_concatenateCstring(&string, U", \"optional_initializer\": ");
+    if (variable->optional_initializer != NULL) {
+        khstring optional_initializer_str =
+            khAstExpression_string(variable->optional_initializer, origin);
+        khstring_concatenate(&string, &optional_initializer_str);
+        khstring_delete(&optional_initializer_str);
+    }
+    else {
+        khstring_concatenateCstring(&string, U"null");
+    }
+
+    khstring_concatenateCstring(&string, U"}");
+    return string;
 }
 
 
@@ -105,8 +181,6 @@ khstring khAstExpressionType_string(khAstExpressionType type) {
         case khAstExpressionType_INDEX:
             return khstring_new(U"index");
 
-        case khAstExpressionType_VARIABLE_DECLARATION:
-            return khstring_new(U"variable_declaration");
         case khAstExpressionType_LAMBDA:
             return khstring_new(U"lambda");
         case khAstExpressionType_SCOPE:
@@ -546,85 +620,11 @@ khstring khAstIndexExpression_string(khAstIndexExpression* index_exp, char32_t* 
 }
 
 
-khAstVariableDeclaration khAstVariableDeclaration_copy(khAstVariableDeclaration* declaration) {
-    khAstExpression* optional_type = NULL;
-    if (declaration->optional_type != NULL) {
-        optional_type = (khAstExpression*)malloc(sizeof(khAstExpression));
-        *optional_type = khAstExpression_copy(declaration->optional_type);
-    }
-
-    khAstExpression* optional_initializer = NULL;
-    if (declaration->optional_initializer != NULL) {
-        optional_initializer = (khAstExpression*)malloc(sizeof(khAstExpression));
-        *optional_initializer = khAstExpression_copy(declaration->optional_initializer);
-    }
-
-    return (khAstVariableDeclaration){.is_static = declaration->is_static,
-                                      .is_wild = declaration->is_wild,
-                                      .is_ref = declaration->is_ref,
-                                      .name = khstring_copy(&declaration->name),
-                                      .optional_type = optional_type,
-                                      .optional_initializer = optional_initializer};
-}
-
-void khAstVariableDeclaration_delete(khAstVariableDeclaration* declaration) {
-    khstring_delete(&declaration->name);
-    if (declaration->optional_type != NULL) {
-        khAstExpression_delete(declaration->optional_type);
-        free(declaration->optional_type);
-    }
-    if (declaration->optional_initializer != NULL) {
-        khAstExpression_delete(declaration->optional_initializer);
-        free(declaration->optional_initializer);
-    }
-}
-
-khstring khAstVariableDeclaration_string(khAstVariableDeclaration* declaration, char32_t* origin) {
-    khstring string = khstring_new(U"{\"is_static\": ");
-    khstring_concatenateCstring(&string, declaration->is_static ? U"true" : U"false");
-
-    khstring_concatenateCstring(&string, U", \"is_wild\": ");
-    khstring_concatenateCstring(&string, declaration->is_wild ? U"true" : U"false");
-
-    khstring_concatenateCstring(&string, U", \"is_ref\": ");
-    khstring_concatenateCstring(&string, declaration->is_ref ? U"true" : U"false");
-
-    khstring_concatenateCstring(&string, U", \"name\": ");
-    khstring quoted_name = khstring_quote(&declaration->name);
-    khstring_concatenate(&string, &quoted_name);
-    khstring_delete(&quoted_name);
-
-    khstring_concatenateCstring(&string, U", \"optional_type\": ");
-    if (declaration->optional_type != NULL) {
-        khstring optional_type_str = khAstExpression_string(declaration->optional_type, origin);
-        khstring_concatenate(&string, &optional_type_str);
-        khstring_delete(&optional_type_str);
-    }
-    else {
-        khstring_concatenateCstring(&string, U"null");
-    }
-
-    khstring_concatenateCstring(&string, U", \"optional_initializer\": ");
-    if (declaration->optional_initializer != NULL) {
-        khstring optional_initializer_str =
-            khAstExpression_string(declaration->optional_initializer, origin);
-        khstring_concatenate(&string, &optional_initializer_str);
-        khstring_delete(&optional_initializer_str);
-    }
-    else {
-        khstring_concatenateCstring(&string, U"null");
-    }
-
-    khstring_concatenateCstring(&string, U"}");
-    return string;
-}
-
-
 khAstLambdaExpression khAstLambdaExpression_copy(khAstLambdaExpression* lambda) {
-    khAstExpression* optional_variadic_argument = NULL;
+    khAstVariable* optional_variadic_argument = NULL;
     if (lambda->optional_variadic_argument != NULL) {
-        optional_variadic_argument = (khAstExpression*)malloc(sizeof(khAstExpression));
-        *optional_variadic_argument = khAstExpression_copy(lambda->optional_variadic_argument);
+        optional_variadic_argument = (khAstVariable*)malloc(sizeof(khAstExpression));
+        *optional_variadic_argument = khAstVariable_copy(lambda->optional_variadic_argument);
     }
 
     khAstExpression* optional_return_type = NULL;
@@ -633,7 +633,7 @@ khAstLambdaExpression khAstLambdaExpression_copy(khAstLambdaExpression* lambda) 
         *optional_return_type = khAstExpression_copy(lambda->optional_return_type);
     }
 
-    return (khAstLambdaExpression){.arguments = kharray_copy(&lambda->arguments, khAstExpression_copy),
+    return (khAstLambdaExpression){.arguments = kharray_copy(&lambda->arguments, khAstVariable_copy),
                                    .optional_variadic_argument = optional_variadic_argument,
                                    .is_return_type_ref = lambda->is_return_type_ref,
                                    .optional_return_type = optional_return_type,
@@ -643,7 +643,7 @@ khAstLambdaExpression khAstLambdaExpression_copy(khAstLambdaExpression* lambda) 
 void khAstLambdaExpression_delete(khAstLambdaExpression* lambda) {
     kharray_delete(&lambda->arguments);
     if (lambda->optional_variadic_argument != NULL) {
-        khAstExpression_delete(lambda->optional_variadic_argument);
+        khAstVariable_delete(lambda->optional_variadic_argument);
         free(lambda->optional_variadic_argument);
     }
     if (lambda->optional_return_type != NULL) {
@@ -656,7 +656,7 @@ void khAstLambdaExpression_delete(khAstLambdaExpression* lambda) {
 khstring khAstLambdaExpression_string(khAstLambdaExpression* lambda, char32_t* origin) {
     khstring string = khstring_new(U"{\"arguments\": [");
     for (size_t i = 0; i < kharray_size(&lambda->arguments); i++) {
-        khstring argument_str = khAstExpression_string(&lambda->arguments[i], origin);
+        khstring argument_str = khAstVariable_string(&lambda->arguments[i], origin);
         khstring_concatenate(&string, &argument_str);
         khstring_delete(&argument_str);
 
@@ -668,7 +668,7 @@ khstring khAstLambdaExpression_string(khAstLambdaExpression* lambda, char32_t* o
     khstring_concatenateCstring(&string, U"], \"optional_variadic_argument\": ");
     if (lambda->optional_variadic_argument != NULL) {
         khstring optional_variadic_argument_str =
-            khAstExpression_string(lambda->optional_variadic_argument, origin);
+            khAstVariable_string(lambda->optional_variadic_argument, origin);
         khstring_concatenate(&string, &optional_variadic_argument_str);
         khstring_delete(&optional_variadic_argument_str);
     }
@@ -887,10 +887,6 @@ khAstExpression khAstExpression_copy(khAstExpression* expression) {
             copy.index = khAstIndexExpression_copy(&expression->index);
             break;
 
-        case khAstExpressionType_VARIABLE_DECLARATION:
-            copy.variable_declaration =
-                khAstVariableDeclaration_copy(&expression->variable_declaration);
-            break;
         case khAstExpressionType_LAMBDA:
             copy.lambda = khAstLambdaExpression_copy(&expression->lambda);
             break;
@@ -952,9 +948,6 @@ void khAstExpression_delete(khAstExpression* expression) {
             khAstIndexExpression_delete(&expression->index);
             break;
 
-        case khAstExpressionType_VARIABLE_DECLARATION:
-            khAstVariableDeclaration_delete(&expression->variable_declaration);
-            break;
         case khAstExpressionType_LAMBDA:
             khAstLambdaExpression_delete(&expression->lambda);
             break;
@@ -1109,12 +1102,6 @@ khstring khAstExpression_string(khAstExpression* expression, char32_t* origin) {
             khstring_delete(&index_str);
         } break;
 
-        case khAstExpressionType_VARIABLE_DECLARATION: {
-            khstring declaration_str =
-                khAstVariableDeclaration_string(&expression->variable_declaration, origin);
-            khstring_concatenate(&string, &declaration_str);
-            khstring_delete(&declaration_str);
-        } break;
         case khAstExpressionType_LAMBDA: {
             khstring lambda_str = khAstLambdaExpression_string(&expression->lambda, origin);
             khstring_concatenate(&string, &lambda_str);
@@ -1234,10 +1221,10 @@ khstring khAstInclude_string(khAstInclude* include, char32_t* origin) {
 
 
 khAstFunction khAstFunction_copy(khAstFunction* function) {
-    khAstExpression* optional_variadic_argument = NULL;
+    khAstVariable* optional_variadic_argument = NULL;
     if (function->optional_variadic_argument != NULL) {
-        optional_variadic_argument = (khAstExpression*)malloc(sizeof(khAstExpression));
-        *optional_variadic_argument = khAstExpression_copy(function->optional_variadic_argument);
+        optional_variadic_argument = (khAstVariable*)malloc(sizeof(khAstExpression));
+        *optional_variadic_argument = khAstVariable_copy(function->optional_variadic_argument);
     }
 
     khAstExpression* optional_return_type = NULL;
@@ -1249,7 +1236,7 @@ khAstFunction khAstFunction_copy(khAstFunction* function) {
     return (khAstFunction){.is_incase = function->is_incase,
                            .is_static = function->is_static,
                            .name_point = khAstExpression_copy(&function->name_point),
-                           .arguments = kharray_copy(&function->arguments, khAstExpression_copy),
+                           .arguments = kharray_copy(&function->arguments, khAstVariable_copy),
                            .optional_variadic_argument = optional_variadic_argument,
                            .is_return_type_ref = function->is_return_type_ref,
                            .optional_return_type = optional_return_type,
@@ -1260,7 +1247,7 @@ void khAstFunction_delete(khAstFunction* function) {
     khAstExpression_delete(&function->name_point);
     kharray_delete(&function->arguments);
     if (function->optional_variadic_argument != NULL) {
-        khAstExpression_delete(function->optional_variadic_argument);
+        khAstVariable_delete(function->optional_variadic_argument);
         free(function->optional_variadic_argument);
     }
     if (function->optional_return_type != NULL) {
@@ -1284,7 +1271,7 @@ khstring khAstFunction_string(khAstFunction* function, char32_t* origin) {
 
     khstring_concatenateCstring(&string, U", \"arguments\": [");
     for (size_t i = 0; i < kharray_size(&function->arguments); i++) {
-        khstring argument_str = khAstExpression_string(&function->arguments[i], origin);
+        khstring argument_str = khAstVariable_string(&function->arguments[i], origin);
         khstring_concatenate(&string, &argument_str);
         khstring_delete(&argument_str);
 
@@ -1295,7 +1282,7 @@ khstring khAstFunction_string(khAstFunction* function, char32_t* origin) {
 
     khstring_concatenateCstring(&string, U"], \"optional_variadic_argument\": ");
     if (function->optional_variadic_argument != NULL) {
-        khstring argument_str = khAstExpression_string(function->optional_variadic_argument, origin);
+        khstring argument_str = khAstVariable_string(function->optional_variadic_argument, origin);
         khstring_concatenate(&string, &argument_str);
         khstring_delete(&argument_str);
     }
@@ -1778,6 +1765,9 @@ khAst khAst_copy(khAst* ast) {
     khAst copy = *ast;
 
     switch (ast->type) {
+        case khAstType_VARIABLE:
+            copy.variable = khAstVariable_copy(&ast->variable);
+            break;
         case khAstType_EXPRESSION:
             copy.expression = khAstExpression_copy(&ast->expression);
             break;
@@ -1832,6 +1822,9 @@ khAst khAst_copy(khAst* ast) {
 
 void khAst_delete(khAst* ast) {
     switch (ast->type) {
+        case khAstType_VARIABLE:
+            khAstVariable_delete(&ast->variable);
+            break;
         case khAstType_EXPRESSION:
             khAstExpression_delete(&ast->expression);
             break;
@@ -1912,6 +1905,12 @@ khstring khAst_string(khAst* ast, char32_t* origin) {
 
     khstring_concatenateCstring(&string, U", \"value\": ");
     switch (ast->type) {
+        case khAstType_VARIABLE: {
+            khstring variable_str = khAstVariable_string(&ast->variable, origin);
+            khstring_concatenate(&string, &variable_str);
+            khstring_delete(&variable_str);
+        } break;
+
         case khAstType_EXPRESSION: {
             khstring expression_str = khAstExpression_string(&ast->expression, origin);
             khstring_concatenate(&string, &expression_str);
