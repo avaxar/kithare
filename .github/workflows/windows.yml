@@ -32,6 +32,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Test py launcher
+      run: py --list-paths
+
     - name: Build sources, tests and make installer
       run: python3 build.py --make installer --arch ${{ matrix.arch }}
 
