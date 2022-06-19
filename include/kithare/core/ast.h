@@ -40,7 +40,6 @@ typedef enum {
     khAstType_WHILE_LOOP,
     khAstType_DO_WHILE_LOOP,
     khAstType_FOR_LOOP,
-    khAstType_FOR_EACH_LOOP,
     khAstType_BREAK,
     khAstType_CONTINUE,
     khAstType_RETURN
@@ -456,26 +455,14 @@ khstring khAstDoWhileLoop_string(khAstDoWhileLoop* do_while_loop, char32_t* orig
 
 
 typedef struct {
-    khAstExpression initial_expression;
-    khAstExpression loop_condition;
-    khAstExpression update_expression;
+    kharray(khstring) iterators;
+    khAstExpression iteratee;
     kharray(khAst) content;
 } khAstForLoop;
 
 khAstForLoop khAstForLoop_copy(khAstForLoop* for_loop);
 void khAstForLoop_delete(khAstForLoop* for_loop);
 khstring khAstForLoop_string(khAstForLoop* for_loop, char32_t* origin);
-
-
-typedef struct {
-    kharray(khAstExpression) iterators;
-    khAstExpression iteratee;
-    kharray(khAst) content;
-} khAstForEachLoop;
-
-khAstForEachLoop khAstForEachLoop_copy(khAstForEachLoop* for_each_loop);
-void khAstForEachLoop_delete(khAstForEachLoop* for_each_loop);
-khstring khAstForEachLoop_string(khAstForEachLoop* for_each_loop, char32_t* origin);
 
 
 typedef struct {
@@ -508,7 +495,6 @@ struct _khAst {
         khAstWhileLoop while_loop;
         khAstDoWhileLoop do_while_loop;
         khAstForLoop for_loop;
-        khAstForEachLoop for_each_loop;
         khAstReturn return_v;
     };
 };

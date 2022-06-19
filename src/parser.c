@@ -98,7 +98,7 @@ static khAstAlias sparseAlias(char32_t** cursor);
 static khAstIfBranch sparseIfBranch(char32_t** cursor);
 static khAstWhileLoop sparseWhileLoop(char32_t** cursor);
 static khAstDoWhileLoop sparseDoWhileLoop(char32_t** cursor);
-static khAst sparseForLoop(char32_t** cursor);
+static khAstForLoop sparseForLoop(char32_t** cursor);
 static void sparseBreak(char32_t** cursor);
 static void sparseContinue(char32_t** cursor);
 static khAstReturn sparseReturn(char32_t** cursor);
@@ -304,10 +304,13 @@ static khAst sparseStatement(char32_t** cursor) {
                 khToken_delete(&token);
                 goto end;
 
-            case khKeywordToken_FOR:
-                ast = sparseForLoop(cursor);
+            case khKeywordToken_FOR: {
+                khAstForLoop for_loop = sparseForLoop(cursor);
                 khToken_delete(&token);
+                ast = (khAst){
+                    .begin = origin, .end = *cursor, .type = khAstType_FOR_LOOP, .for_loop = for_loop};
                 goto end;
+            }
 
             case khKeywordToken_WHILE: {
                 khAstWhileLoop while_loop = sparseWhileLoop(cursor);
@@ -433,8 +436,8 @@ static kharray(khAst) sparseBlock(char32_t** cursor) {
 
     // Ensures opening bracket
     if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_CURLY_BRACKET_OPEN) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, true);
     }
     else {
@@ -451,8 +454,8 @@ static kharray(khAst) sparseBlock(char32_t** cursor) {
             goto end;
         }
 
-        khToken_delete(&token);
         kharray_append(&block, sparseStatement(cursor));
+        khToken_delete(&token);
         token = currentToken(cursor, true);
     }
 
@@ -484,8 +487,8 @@ static void sparseSpecifiers(char32_t** cursor, bool allow_incase, bool* is_inca
                     *is_incase = true;
                 }
 
-                khToken_delete(&token);
                 skipToken(cursor);
+                khToken_delete(&token);
                 token = currentToken(cursor, ignore_newline);
                 break;
 
@@ -497,8 +500,8 @@ static void sparseSpecifiers(char32_t** cursor, bool allow_incase, bool* is_inca
                     *is_static = true;
                 }
 
-                khToken_delete(&token);
                 skipToken(cursor);
+                khToken_delete(&token);
                 token = currentToken(cursor, ignore_newline);
                 break;
 
@@ -531,24 +534,24 @@ static khAstVariable sparseVariable(char32_t** cursor, bool no_static, bool igno
     // `wild` specifier
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_WILD) {
         variable.is_wild = true;
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, ignore_newline);
     }
 
     // `ref` specifier
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_REF) {
         variable.is_ref = true;
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, ignore_newline);
     }
 
     // Its name
     if (token.type == khTokenType_IDENTIFIER) {
         variable.name = khstring_copy(&token.identifier);
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, ignore_newline);
     }
     else {
@@ -558,8 +561,8 @@ static khAstVariable sparseVariable(char32_t** cursor, bool no_static, bool igno
 
     // Passes through the colon
     if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_COLON) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, ignore_newline);
     }
     else {
@@ -570,6 +573,7 @@ static khAstVariable sparseVariable(char32_t** cursor, bool no_static, bool igno
     if (!(token.type == khTokenType_OPERATOR && token.operator_v == khOperatorToken_ASSIGN)) {
         variable.optional_type = malloc(sizeof(khAstExpression));
         *variable.optional_type = kh_parseExpression(cursor, ignore_newline, true);
+
         khToken_delete(&token);
         token = currentToken(cursor, ignore_newline);
     }
@@ -592,8 +596,8 @@ static khAstImport sparseImport(char32_t** cursor) {
 
     // Ensures `import` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_IMPORT) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, false);
     }
     else {
@@ -602,17 +606,17 @@ static khAstImport sparseImport(char32_t** cursor) {
 
     // For relative imports, `import .a_script_file_in_the_same_folder`
     if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_DOT) {
+        skipToken(cursor);
         import_v.relative = true;
         khToken_delete(&token);
-        skipToken(cursor);
         token = currentToken(cursor, false);
     }
 
     // Minimum one identifier
     if (token.type == khTokenType_IDENTIFIER) {
         kharray_append(&import_v.path, khstring_copy(&token.identifier));
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, false);
     }
     // Directory import, `import .`
@@ -625,14 +629,14 @@ static khAstImport sparseImport(char32_t** cursor) {
 
     // Continues on
     while (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_DOT) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, false);
 
         if (token.type == khTokenType_IDENTIFIER) {
             kharray_append(&import_v.path, khstring_copy(&token.identifier));
-            khToken_delete(&token);
             skipToken(cursor);
+            khToken_delete(&token);
             token = currentToken(cursor, false);
         }
         else {
@@ -643,15 +647,15 @@ static khAstImport sparseImport(char32_t** cursor) {
 finish:
     // `import something as another`
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_AS) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, false);
 
         if (token.type == khTokenType_IDENTIFIER) {
             import_v.optional_alias = malloc(sizeof(kharray(char)*));
             *import_v.optional_alias = khstring_copy(&token.identifier);
-            khToken_delete(&token);
             skipToken(cursor);
+            khToken_delete(&token);
             token = currentToken(cursor, false);
         }
         else {
@@ -672,7 +676,6 @@ finish:
     }
 
     khToken_delete(&token);
-
     return import_v;
 }
 
@@ -682,8 +685,8 @@ static khAstInclude sparseInclude(char32_t** cursor) {
 
     // Ensures `include` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_INCLUDE) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, false);
     }
     else {
@@ -693,16 +696,16 @@ static khAstInclude sparseInclude(char32_t** cursor) {
     // For relative includes, `include .a_script_file_in_the_same_folder`
     if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_DOT) {
         include.relative = true;
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, false);
     }
 
     // Minimum one identifier
     if (token.type == khTokenType_IDENTIFIER) {
         kharray_append(&include.path, khstring_copy(&token.identifier));
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, false);
     }
     // Directory include, `include .`
@@ -715,14 +718,14 @@ static khAstInclude sparseInclude(char32_t** cursor) {
 
     // Continues on
     while (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_DOT) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, false);
 
         if (token.type == khTokenType_IDENTIFIER) {
             kharray_append(&include.path, khstring_copy(&token.identifier));
-            khToken_delete(&token);
             skipToken(cursor);
+            khToken_delete(&token);
             token = currentToken(cursor, false);
         }
         else {
@@ -744,7 +747,6 @@ finish:
     }
 
     khToken_delete(&token);
-
     return include;
 }
 
@@ -757,8 +759,8 @@ static inline void sparseFunctionOrLambda(char32_t** cursor, kharray(khAstVariab
 
     // Starts out by parsing the argument
     if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_PARENTHESIS_OPEN) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, true);
     }
     else {
@@ -791,8 +793,8 @@ static inline void sparseFunctionOrLambda(char32_t** cursor, kharray(khAstVariab
         token = currentToken(cursor, true);
 
         if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_COMMA) {
-            khToken_delete(&token);
             skipToken(cursor);
+            khToken_delete(&token);
             token = currentToken(cursor, true);
         }
         else if (token.type == khTokenType_DELIMITER &&
@@ -808,20 +810,20 @@ static inline void sparseFunctionOrLambda(char32_t** cursor, kharray(khAstVariab
         else {
             raiseError(token.begin,
                        U"expecting a comma with another argument or a closing parenthesis");
-            khToken_delete(&token);
             skipToken(cursor);
+            khToken_delete(&token);
             token = currentToken(cursor, true);
         }
     }
 
-    khToken_delete(&token);
     skipToken(cursor);
+    khToken_delete(&token);
     token = currentToken(cursor, true);
 
     // Optional return type
     if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_ARROW) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, true);
 
         if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_REF) {
@@ -874,7 +876,6 @@ static khAstFunction sparseFunction(char32_t** cursor) {
                            &function.content);
 
     khToken_delete(&token);
-
     return function;
 }
 
@@ -886,8 +887,8 @@ static inline void sparseClassOrStruct(char32_t** cursor, khstring* name,
     // Ensures the name identifier of the class or struct
     if (token.type == khTokenType_IDENTIFIER) {
         *name = khstring_copy(&token.identifier);
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, false);
     }
     else {
@@ -897,23 +898,23 @@ static inline void sparseClassOrStruct(char32_t** cursor, khstring* name,
 
     // Any template args
     if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_EXCLAMATION) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, false);
 
         // Single template argument: `class Name!T`
         if (token.type == khTokenType_IDENTIFIER) {
             kharray_append(template_arguments, khstring_copy(&token.identifier));
-            khToken_delete(&token);
             skipToken(cursor);
+            khToken_delete(&token);
             token = currentToken(cursor, false);
         }
         // Multiple template arguments in parentheses: `class Name!(T, U)`
         else if (token.type == khTokenType_DELIMITER &&
                  token.delimiter == khDelimiterToken_PARENTHESIS_OPEN) {
             do {
-                khToken_delete(&token);
                 skipToken(cursor);
+                khToken_delete(&token);
                 token = currentToken(cursor, true);
 
                 if (token.type == khTokenType_IDENTIFIER) {
@@ -923,15 +924,15 @@ static inline void sparseClassOrStruct(char32_t** cursor, khstring* name,
                     raiseError(token.begin, U"expecting the name for a template argument");
                 }
 
-                khToken_delete(&token);
                 skipToken(cursor);
+                khToken_delete(&token);
                 token = currentToken(cursor, true);
             } while (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_COMMA);
 
             if (token.type == khTokenType_DELIMITER &&
                 token.delimiter == khDelimiterToken_PARENTHESIS_CLOSE) {
-                khToken_delete(&token);
                 skipToken(cursor);
+                khToken_delete(&token);
                 token = currentToken(cursor, false);
             }
             else {
@@ -984,7 +985,6 @@ static khAstClass sparseClass(char32_t** cursor) {
                         &class_v.content);
 
     khToken_delete(&token);
-
     return class_v;
 }
 
@@ -1010,7 +1010,6 @@ static khAstStruct sparseStruct(char32_t** cursor) {
     sparseClassOrStruct(cursor, &struct_v.name, &struct_v.template_arguments, NULL, &struct_v.content);
 
     khToken_delete(&token);
-
     return struct_v;
 }
 
@@ -1023,8 +1022,8 @@ static khAstEnum sparseEnum(char32_t** cursor) {
 
     // Ensures `enum` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_ENUM) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, false);
     }
     else {
@@ -1034,8 +1033,8 @@ static khAstEnum sparseEnum(char32_t** cursor) {
     // Its name
     if (token.type == khTokenType_IDENTIFIER) {
         enum_v.name = khstring_copy(&token.identifier);
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, false);
     }
     else {
@@ -1045,8 +1044,8 @@ static khAstEnum sparseEnum(char32_t** cursor) {
 
     // Its members
     if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_CURLY_BRACKET_OPEN) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, true);
 
         do {
@@ -1057,8 +1056,8 @@ static khAstEnum sparseEnum(char32_t** cursor) {
                 raiseError(token.begin, U"expecting a member name");
             }
 
-            khToken_delete(&token);
             skipToken(cursor);
+            khToken_delete(&token);
             token = currentToken(cursor, true);
         } while (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_COMMA);
 
@@ -1077,7 +1076,6 @@ static khAstEnum sparseEnum(char32_t** cursor) {
     }
 
     khToken_delete(&token);
-
     return enum_v;
 }
 
@@ -1094,8 +1092,8 @@ static khAstAlias sparseAlias(char32_t** cursor) {
 
     // Ensures `alias` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_ALIAS) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, false);
     }
     else {
@@ -1105,8 +1103,8 @@ static khAstAlias sparseAlias(char32_t** cursor) {
     // Its name
     if (token.type == khTokenType_IDENTIFIER) {
         alias.name = khstring_copy(&token.identifier);
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, true);
     }
     else {
@@ -1132,7 +1130,6 @@ static khAstAlias sparseAlias(char32_t** cursor) {
     }
 
     khToken_delete(&token);
-
     return alias;
 }
 
@@ -1146,8 +1143,8 @@ static khAstIfBranch sparseIfBranch(char32_t** cursor) {
 
     // Ensures initial `if` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_IF) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, false);
     }
     else {
@@ -1155,7 +1152,7 @@ static khAstIfBranch sparseIfBranch(char32_t** cursor) {
     }
 
     goto in;
-    do {
+    while (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_ELIF) {
         skipToken(cursor);
     in:
         kharray_append(&if_branch.branch_conditions, kh_parseExpression(cursor, false, false));
@@ -1165,7 +1162,7 @@ static khAstIfBranch sparseIfBranch(char32_t** cursor) {
         token = currentToken(cursor, true);
 
         // Loop back again if there are any `elif` keywords
-    } while (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_ELIF);
+    }
 
     // End optional `else` content
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_ELSE) {
@@ -1174,7 +1171,6 @@ static khAstIfBranch sparseIfBranch(char32_t** cursor) {
     }
 
     khToken_delete(&token);
-
     return if_branch;
 }
 
@@ -1197,7 +1193,6 @@ static khAstWhileLoop sparseWhileLoop(char32_t** cursor) {
     while_loop.content = sparseBlock(cursor);
 
     khToken_delete(&token);
-
     return while_loop;
 }
 
@@ -1249,66 +1244,58 @@ static khAstDoWhileLoop sparseDoWhileLoop(char32_t** cursor) {
     }
 
     khToken_delete(&token);
-
     return do_while_loop;
 }
 
-static khAst sparseForLoop(char32_t** cursor) {
+static khAstForLoop sparseForLoop(char32_t** cursor) {
     khToken token = currentToken(cursor, true);
-    char32_t* origin = token.begin;
+    khAstForLoop for_loop = {
+        .iterators = kharray_new(khstring, khstring_delete),
+        .iteratee = (khAstExpression){.begin = NULL, .end = NULL, .type = khAstExpressionType_INVALID},
+        .content = NULL};
 
     // Ensures `for` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_FOR) {
         skipToken(cursor);
+        khToken_delete(&token);
+        token = currentToken(cursor, false);
     }
     else {
         raiseError(token.begin, U"expecting a `for` keyword");
     }
 
-    kharray(khAstExpression) expressions = kharray_new(khAstExpression, khAstExpression_delete);
-
-    // Its iterator/initialization/condition/update expressions
-    goto skip;
+    // Iterator variables
+    goto in;
     while (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_COMMA) {
         skipToken(cursor);
-    skip:
-        kharray_append(&expressions, kh_parseExpression(cursor, false, false));
         khToken_delete(&token);
         token = currentToken(cursor, true);
-    };
+    in:
+        if (token.type == khTokenType_IDENTIFIER) {
+            kharray_append(&for_loop.iterators, khstring_copy(&token.identifier));
+            skipToken(cursor);
+            khToken_delete(&token);
+            token = currentToken(cursor, false);
+        }
+        else {
+            raiseError(token.begin, U"expecting an iterator variable name");
+        }
+    }
 
-    // Hints that it's a for each loop
+    // Ensures `in` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_IN) {
         skipToken(cursor);
-        khToken_delete(&token);
-
-        khAstExpression iteratee = kh_parseExpression(cursor, false, false);
-        kharray(khAst) content = sparseBlock(cursor);
-        return (khAst){
-            .begin = origin,
-            .end = *cursor,
-            .type = khAstType_FOR_EACH_LOOP,
-            .for_each_loop = {.iterators = expressions, .iteratee = iteratee, .content = content}};
-    }
-    // Hints that it's just a normal C style for loop
-    else if (kharray_size(&expressions) == 3) {
-        khToken_delete(&token);
-
-        kharray(khAst) content = sparseBlock(cursor);
-        return (khAst){.begin = origin,
-                       .end = *cursor,
-                       .type = khAstType_FOR_LOOP,
-                       .for_loop = {.initial_expression = expressions[0],
-                                    .loop_condition = expressions[1],
-                                    .update_expression = expressions[2],
-                                    .content = content}};
     }
     else {
-        khToken_delete(&token);
-        kharray_delete(&expressions);
-        raiseError(token.begin, U"too many arguments for a non-for-each for loop");
-        return (khAst){.begin = origin, .end = *cursor, .type = khAstType_INVALID};
+        raiseError(token.begin, U"expecting an `in` keyword");
     }
+
+    // Iteratee expression and block content
+    for_loop.iteratee = kh_parseExpression(cursor, false, false);
+    for_loop.content = sparseBlock(cursor);
+
+    khToken_delete(&token);
+    return for_loop;
 }
 
 static void sparseBreak(char32_t** cursor) {
@@ -1316,8 +1303,8 @@ static void sparseBreak(char32_t** cursor) {
 
     // Ensures `break` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_BREAK) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, false);
     }
     else {
@@ -1345,8 +1332,8 @@ static void sparseContinue(char32_t** cursor) {
 
     // Ensures `continue` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_CONTINUE) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, false);
     }
     else {
@@ -1374,8 +1361,8 @@ static khAstReturn sparseReturn(char32_t** cursor) {
 
     // Ensures `return` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_RETURN) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, false);
     }
     else {
@@ -1385,9 +1372,9 @@ static khAstReturn sparseReturn(char32_t** cursor) {
     // Instant return in a non-returning function
     if (token.type == khTokenType_NEWLINE || token.type == khTokenType_EOF ||
         (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_SEMICOLON)) {
-        khToken_delete(&token);
         skipToken(cursor);
 
+        khToken_delete(&token);
         return (khAstReturn){.values = kharray_new(khAstExpression, khAstExpression_delete)};
     }
 
@@ -1417,7 +1404,6 @@ static khAstReturn sparseReturn(char32_t** cursor) {
     }
 
     khToken_delete(&token);
-
     return (khAstReturn){.values = values};
 }
 
@@ -1455,7 +1441,6 @@ static khAstReturn sparseReturn(char32_t** cursor) {
     }                                                                                               \
                                                                                                     \
     khToken_delete(&token);                                                                         \
-                                                                                                    \
     return expression;
 
 
@@ -1533,7 +1518,6 @@ static khAstExpression exparseInplaceOperators(char32_t** cursor, EXPARSE_ARGS) 
 out:
 
     khToken_delete(&token);
-
     return expression;
 }
 
@@ -1587,7 +1571,6 @@ static khAstExpression exparseTernary(char32_t** cursor, EXPARSE_ARGS) {
     }
 
     khToken_delete(&token);
-
     return expression;
 }
 
@@ -1614,11 +1597,11 @@ static khAstExpression exparseLogicalNot(char32_t** cursor, EXPARSE_ARGS) {
     // Self-explanatory
     if (token.type == khTokenType_OPERATOR && token.operator_v == khOperatorToken_NOT) {
         skipToken(cursor);
-        khToken_delete(&token);
 
         khAstExpression* expression = malloc(sizeof(khAstExpression));
         *expression = exparseLogicalNot(cursor, ignore_newline, filter_type);
 
+        khToken_delete(&token);
         return (khAstExpression){
             .begin = origin,
             .end = *cursor,
@@ -1696,7 +1679,6 @@ static khAstExpression exparseComparisonOperators(char32_t** cursor, EXPARSE_ARG
 
 
     khToken_delete(&token);
-
     return expression;
 }
 
@@ -1740,7 +1722,6 @@ static khAstExpression exparseBitwiseShifts(char32_t** cursor, EXPARSE_ARGS) {
 out:
 
     khToken_delete(&token);
-
     return expression;
 }
 
@@ -1772,7 +1753,6 @@ static khAstExpression exparseAddSub(char32_t** cursor, EXPARSE_ARGS) {
 out:
 
     khToken_delete(&token);
-
     return expression;
 }
 
@@ -1806,7 +1786,6 @@ static khAstExpression exparseMulDivMod(char32_t** cursor, EXPARSE_ARGS) {
 out:
 
     khToken_delete(&token);
-
     return expression;
 }
 
@@ -1819,10 +1798,11 @@ static khAstExpression exparsePow(char32_t** cursor, EXPARSE_ARGS) {
 #define RCD_UNARY_CASE(FUNCTION, OPERATOR)                                           \
     {                                                                                \
         skipToken(cursor);                                                           \
-        khToken_delete(&token);                                                      \
                                                                                      \
         khAstExpression* expression = malloc(sizeof(khAstExpression));               \
         *expression = exparseUnary(cursor, ignore_newline, filter_type);             \
+                                                                                     \
+        khToken_delete(&token);                                                      \
         return (khAstExpression){                                                    \
             .begin = origin,                                                         \
             .end = *cursor,                                                          \
@@ -1921,15 +1901,15 @@ static khAstExpression exparseReverseUnary(char32_t** cursor, EXPARSE_ARGS) {
                         // `(expression).parses.these.scope.things`
                         while (token.type == khTokenType_DELIMITER &&
                                token.delimiter == khDelimiterToken_DOT) {
-                            khToken_delete(&token);
                             skipToken(cursor);
+                            khToken_delete(&token);
                             token = currentToken(cursor, ignore_newline);
 
                             if (token.type == khTokenType_IDENTIFIER) {
                                 kharray_append(&scope_names, khstring_copy(&token.identifier));
 
-                                khToken_delete(&token);
                                 skipToken(cursor);
+                                khToken_delete(&token);
                                 token = currentToken(cursor, ignore_newline);
                             }
                             else {
@@ -1948,8 +1928,8 @@ static khAstExpression exparseReverseUnary(char32_t** cursor, EXPARSE_ARGS) {
                     } break;
 
                     case khDelimiterToken_EXCLAMATION: {
-                        khToken_delete(&token);
                         skipToken(cursor);
+                        khToken_delete(&token);
                         token = currentToken(cursor, ignore_newline);
 
                         khAstExpression* value = malloc(sizeof(khAstExpression));
@@ -1974,8 +1954,8 @@ static khAstExpression exparseReverseUnary(char32_t** cursor, EXPARSE_ARGS) {
                                 .templatize = {.value = value,
                                                .template_arguments = template_arguments}};
 
-                            khToken_delete(&token);
                             skipToken(cursor);
+                            khToken_delete(&token);
                             token = currentToken(cursor, ignore_newline);
                         }
                         // Multiple template arguments: `Type!(int, float)`
@@ -2013,7 +1993,6 @@ static khAstExpression exparseReverseUnary(char32_t** cursor, EXPARSE_ARGS) {
 out:
 
     khToken_delete(&token);
-
     return expression;
 }
 
@@ -2253,7 +2232,6 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
     }
 
     khToken_delete(&token);
-
     return expression;
 }
 
@@ -2268,8 +2246,8 @@ static khAstExpression exparseFunctionType(char32_t** cursor, bool ignore_newlin
 
     // Ensures `def` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_DEF) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, ignore_newline);
     }
     else {
@@ -2278,8 +2256,8 @@ static khAstExpression exparseFunctionType(char32_t** cursor, bool ignore_newlin
 
     // Ensures an exclamation mark
     if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_EXCLAMATION) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, ignore_newline);
     }
     else {
@@ -2288,8 +2266,8 @@ static khAstExpression exparseFunctionType(char32_t** cursor, bool ignore_newlin
 
     // Ensures an opening parenthesis
     if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_PARENTHESIS_OPEN) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, true);
     }
     else {
@@ -2319,8 +2297,8 @@ static khAstExpression exparseFunctionType(char32_t** cursor, bool ignore_newlin
 
             // Do nothing after a comma
             if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_COMMA) {
-                khToken_delete(&token);
                 skipToken(cursor);
+                khToken_delete(&token);
                 token = currentToken(cursor, true);
             }
             // Breaks out of the loop after closing the arglist
@@ -2341,8 +2319,8 @@ static khAstExpression exparseFunctionType(char32_t** cursor, bool ignore_newlin
     khToken_delete(&token);
     token = currentToken(cursor, ignore_newline);
     if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_ARROW) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, ignore_newline);
 
         // Handles `ref` return type
@@ -2374,8 +2352,8 @@ static khAstExpression exparseLambda(char32_t** cursor, bool ignore_newline) {
 
     // Ensures `def` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_DEF) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, ignore_newline);
     }
     else {
@@ -2398,8 +2376,8 @@ static khAstExpression exparseDict(char32_t** cursor, bool ignore_newline) {
 
     // Ensures an opening curly bracket
     if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_CURLY_BRACKET_OPEN) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, true);
     }
     else {
@@ -2420,8 +2398,8 @@ static khAstExpression exparseDict(char32_t** cursor, bool ignore_newline) {
 
             // Ensures a colon
             if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_COLON) {
-                khToken_delete(&token);
                 skipToken(cursor);
+                khToken_delete(&token);
                 token = currentToken(cursor, true);
             }
             else {
@@ -2435,8 +2413,8 @@ static khAstExpression exparseDict(char32_t** cursor, bool ignore_newline) {
 
             // Do nothing after a comma
             if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_COMMA) {
-                khToken_delete(&token);
                 skipToken(cursor);
+                khToken_delete(&token);
                 token = currentToken(cursor, true);
             }
             // Breaks out of the loop after dict close
@@ -2466,8 +2444,8 @@ static kharray(khAstExpression) exparseList(char32_t** cursor, khDelimiterToken 
 
     // Ensures the opening delimiter
     if (token.type == khTokenType_DELIMITER && token.delimiter == opening_delimiter) {
-        khToken_delete(&token);
         skipToken(cursor);
+        khToken_delete(&token);
         token = currentToken(cursor, true);
     }
     else {
@@ -2487,8 +2465,8 @@ static kharray(khAstExpression) exparseList(char32_t** cursor, khDelimiterToken 
 
             // Do nothing after a comma
             if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_COMMA) {
-                khToken_delete(&token);
                 skipToken(cursor);
+                khToken_delete(&token);
                 token = currentToken(cursor, true);
             }
             // Breaks out of the loop after list close
