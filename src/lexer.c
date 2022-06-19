@@ -258,7 +258,7 @@ khToken kh_lexNumber(char32_t** cursor) {
     // If it was a floating point
     else if (**cursor == U'e' || **cursor == U'E' || **cursor == U'p' || **cursor == U'P' ||
              **cursor == U'f' || **cursor == U'F' || **cursor == 'j' || **cursor == 'J' ||
-             **cursor == 'i' || **cursor == 'I' || **cursor == U'.') {
+             **cursor == 'i' || **cursor == 'I' || ((*cursor)[0] == U'.' && (*cursor)[1] != U'.')) {
         *cursor = origin;
         double floating = kh_lexFloat(cursor, base);
 
@@ -328,6 +328,10 @@ khToken kh_lexSymbol(char32_t** cursor) {
                 *cursor += 2;
                 return khToken_fromDelimiter(khDelimiterToken_ELLIPSIS, begin, *cursor);
             }
+            else if (**cursor == U'.') {
+                (*cursor)++;
+                return khToken_fromOperator(khOperatorToken_RANGE, begin, *cursor);
+            }
             else {
                 return khToken_fromDelimiter(khDelimiterToken_DOT, begin, *cursor);
             }
@@ -382,15 +386,6 @@ khToken kh_lexSymbol(char32_t** cursor) {
                 return khToken_fromOperator(khOperatorToken_MOD, begin, *cursor);
             }
 
-        case U'^':
-            if (**cursor == U'=') {
-                (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_IPOW, begin, *cursor);
-            }
-            else {
-                return khToken_fromOperator(khOperatorToken_POW, begin, *cursor);
-            }
-
         case U'@':
             if (**cursor == U'=') {
                 (*cursor)++;
@@ -398,6 +393,15 @@ khToken kh_lexSymbol(char32_t** cursor) {
             }
             else {
                 return khToken_fromOperator(khOperatorToken_DOT, begin, *cursor);
+            }
+
+        case U'^':
+            if (**cursor == U'=') {
+                (*cursor)++;
+                return khToken_fromOperator(khOperatorToken_IPOW, begin, *cursor);
+            }
+            else {
+                return khToken_fromOperator(khOperatorToken_POW, begin, *cursor);
             }
 
         case U'=':

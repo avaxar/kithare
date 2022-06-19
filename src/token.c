@@ -153,6 +153,11 @@ khstring khDelimiterToken_string(khDelimiterToken delimiter) {
 
 khstring khOperatorToken_string(khOperatorToken operator_v) {
     switch (operator_v) {
+        case khOperatorToken_ASSIGN:
+            return khstring_new(U"=");
+        case khOperatorToken_RANGE:
+            return khstring_new(U"..");
+
         case khOperatorToken_ADD:
             return khstring_new(U"+");
         case khOperatorToken_SUB:
@@ -163,10 +168,10 @@ khstring khOperatorToken_string(khOperatorToken operator_v) {
             return khstring_new(U"/");
         case khOperatorToken_MOD:
             return khstring_new(U"%");
-        case khOperatorToken_POW:
-            return khstring_new(U"^");
         case khOperatorToken_DOT:
             return khstring_new(U"@");
+        case khOperatorToken_POW:
+            return khstring_new(U"^");
 
         case khOperatorToken_IADD:
             return khstring_new(U"+=");
@@ -178,13 +183,10 @@ khstring khOperatorToken_string(khOperatorToken operator_v) {
             return khstring_new(U"/=");
         case khOperatorToken_IMOD:
             return khstring_new(U"%=");
-        case khOperatorToken_IPOW:
-            return khstring_new(U"^=");
         case khOperatorToken_IDOT:
             return khstring_new(U"@=");
-
-        case khOperatorToken_ASSIGN:
-            return khstring_new(U"=");
+        case khOperatorToken_IPOW:
+            return khstring_new(U"^=");
 
         case khOperatorToken_EQUAL:
             return khstring_new(U"==");

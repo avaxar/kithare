@@ -148,23 +148,24 @@ khstring khAstUnaryExpression_string(khAstUnaryExpression* unary_exp, char32_t* 
 
 
 typedef enum {
+    khAstBinaryExpressionType_ASSIGN,
+    khAstBinaryExpressionType_RANGE,
+
     khAstBinaryExpressionType_ADD,
     khAstBinaryExpressionType_SUB,
     khAstBinaryExpressionType_MUL,
     khAstBinaryExpressionType_DIV,
     khAstBinaryExpressionType_MOD,
-    khAstBinaryExpressionType_POW,
     khAstBinaryExpressionType_DOT,
+    khAstBinaryExpressionType_POW,
 
     khAstBinaryExpressionType_IADD,
     khAstBinaryExpressionType_ISUB,
     khAstBinaryExpressionType_IMUL,
     khAstBinaryExpressionType_IDIV,
     khAstBinaryExpressionType_IMOD,
-    khAstBinaryExpressionType_IPOW,
     khAstBinaryExpressionType_IDOT,
-
-    khAstBinaryExpressionType_ASSIGN,
+    khAstBinaryExpressionType_IPOW,
 
     khAstBinaryExpressionType_AND,
     khAstBinaryExpressionType_OR,

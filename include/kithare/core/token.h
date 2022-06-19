@@ -97,23 +97,24 @@ khstring khDelimiterToken_string(khDelimiterToken delimiter);
 
 
 typedef enum {
+    khOperatorToken_ASSIGN,
+    khOperatorToken_RANGE,
+
     khOperatorToken_ADD,
     khOperatorToken_SUB,
     khOperatorToken_MUL,
     khOperatorToken_DIV,
     khOperatorToken_MOD,
-    khOperatorToken_POW,
     khOperatorToken_DOT,
+    khOperatorToken_POW,
 
     khOperatorToken_IADD,
     khOperatorToken_ISUB,
     khOperatorToken_IMUL,
     khOperatorToken_IDIV,
     khOperatorToken_IMOD,
-    khOperatorToken_IPOW,
     khOperatorToken_IDOT,
-
-    khOperatorToken_ASSIGN,
+    khOperatorToken_IPOW,
 
     khOperatorToken_EQUAL,
     khOperatorToken_NOT_EQUAL,

@@ -334,6 +334,11 @@ khstring khAstUnaryExpression_string(khAstUnaryExpression* unary_exp, char32_t* 
 
 khstring khAstBinaryExpressionType_string(khAstBinaryExpressionType type) {
     switch (type) {
+        case khAstBinaryExpressionType_ASSIGN:
+            return khstring_new(U"assign");
+        case khAstBinaryExpressionType_RANGE:
+            return khstring_new(U"range");
+
         case khAstBinaryExpressionType_ADD:
             return khstring_new(U"add");
         case khAstBinaryExpressionType_SUB:
@@ -344,10 +349,10 @@ khstring khAstBinaryExpressionType_string(khAstBinaryExpressionType type) {
             return khstring_new(U"div");
         case khAstBinaryExpressionType_MOD:
             return khstring_new(U"mod");
-        case khAstBinaryExpressionType_POW:
-            return khstring_new(U"pow");
         case khAstBinaryExpressionType_DOT:
             return khstring_new(U"dot");
+        case khAstBinaryExpressionType_POW:
+            return khstring_new(U"pow");
 
         case khAstBinaryExpressionType_IADD:
             return khstring_new(U"iadd");
@@ -359,13 +364,10 @@ khstring khAstBinaryExpressionType_string(khAstBinaryExpressionType type) {
             return khstring_new(U"idiv");
         case khAstBinaryExpressionType_IMOD:
             return khstring_new(U"imod");
-        case khAstBinaryExpressionType_IPOW:
-            return khstring_new(U"ipow");
         case khAstBinaryExpressionType_IDOT:
             return khstring_new(U"idot");
-
-        case khAstBinaryExpressionType_ASSIGN:
-            return khstring_new(U"assign");
+        case khAstBinaryExpressionType_IPOW:
+            return khstring_new(U"ipow");
 
         case khAstBinaryExpressionType_AND:
             return khstring_new(U"and");
