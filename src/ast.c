@@ -1235,7 +1235,9 @@ khAstFunction khAstFunction_copy(khAstFunction* function) {
 
     return (khAstFunction){.is_incase = function->is_incase,
                            .is_static = function->is_static,
-                           .name_point = khAstExpression_copy(&function->name_point),
+                           .identifiers = kharray_copy(&function->identifiers, khstring_copy),
+                           .template_arguments =
+                               kharray_copy(&function->template_arguments, khstring_copy),
                            .arguments = kharray_copy(&function->arguments, khAstVariable_copy),
                            .optional_variadic_argument = optional_variadic_argument,
                            .is_return_type_ref = function->is_return_type_ref,
@@ -1244,7 +1246,8 @@ khAstFunction khAstFunction_copy(khAstFunction* function) {
 }
 
 void khAstFunction_delete(khAstFunction* function) {
-    khAstExpression_delete(&function->name_point);
+    kharray_delete(&function->identifiers);
+    kharray_delete(&function->template_arguments);
     kharray_delete(&function->arguments);
     if (function->optional_variadic_argument != NULL) {
         khAstVariable_delete(function->optional_variadic_argument);
@@ -1264,12 +1267,29 @@ khstring khAstFunction_string(khAstFunction* function, char32_t* origin) {
     khstring_concatenateCstring(&string, U", \"is_static\": ");
     khstring_concatenateCstring(&string, function->is_static ? U"true" : U"false");
 
-    khstring_concatenateCstring(&string, U", \"name_point\": ");
-    khstring name_point_str = khAstExpression_string(&function->name_point, origin);
-    khstring_concatenate(&string, &name_point_str);
-    khstring_delete(&name_point_str);
+    khstring_concatenateCstring(&string, U", \"identifiers\": [");
+    for (size_t i = 0; i < kharray_size(&function->identifiers); i++) {
+        khstring quoted_identifier = khstring_quote(&function->identifiers[i]);
+        khstring_concatenate(&string, &quoted_identifier);
+        khstring_delete(&quoted_identifier);
 
-    khstring_concatenateCstring(&string, U", \"arguments\": [");
+        if (i < kharray_size(&function->identifiers) - 1) {
+            khstring_concatenateCstring(&string, U", ");
+        }
+    }
+
+    khstring_concatenateCstring(&string, U"], \"template_arguments\": [");
+    for (size_t i = 0; i < kharray_size(&function->template_arguments); i++) {
+        khstring quoted_argument = khstring_quote(&function->template_arguments[i]);
+        khstring_concatenate(&string, &quoted_argument);
+        khstring_delete(&quoted_argument);
+
+        if (i < kharray_size(&function->template_arguments) - 1) {
+            khstring_concatenateCstring(&string, U", ");
+        }
+    }
+
+    khstring_concatenateCstring(&string, U"], \"arguments\": [");
     for (size_t i = 0; i < kharray_size(&function->arguments); i++) {
         khstring argument_str = khAstVariable_string(&function->arguments[i], origin);
         khstring_concatenate(&string, &argument_str);

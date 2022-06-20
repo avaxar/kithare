@@ -851,6 +851,8 @@ static inline void sparseFunctionOrLambda(char32_t** cursor, kharray(khAstVariab
 static khAstFunction sparseFunction(char32_t** cursor) {
     khAstFunction function = {.is_incase = false,
                               .is_static = false,
+                              .identifiers = kharray_new(khstring, khstring_delete),
+                              .template_arguments = kharray_new(khstring, khstring_delete),
                               .arguments = kharray_new(khAstVariable, khAstVariable_delete),
                               .optional_variadic_argument = NULL,
                               .is_return_type_ref = false,
@@ -865,13 +867,80 @@ static khAstFunction sparseFunction(char32_t** cursor) {
     // Ensures `def` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_DEF) {
         skipToken(cursor);
+        khToken_delete(&token);
+        token = currentToken(cursor, false);
     }
     else {
         raiseError(token.begin, U"expecting a `def` keyword");
     }
 
-    function.name_point = kh_parseExpression(cursor, false, true);
+    // Identifiers
+    goto in;
+    while (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_DOT) {
+        skipToken(cursor);
+        khToken_delete(&token);
+        token = currentToken(cursor, true);
+    in:
+        if (token.type == khTokenType_IDENTIFIER) {
+            kharray_append(&function.identifiers, khstring_copy(&token.identifier));
+            skipToken(cursor);
+            khToken_delete(&token);
+            token = currentToken(cursor, false);
+        }
+        else {
+            raiseError(token.begin, U"expecting an identifier or name of the function");
+        }
+    }
 
+    // Any template args
+    if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_EXCLAMATION) {
+        skipToken(cursor);
+        khToken_delete(&token);
+        token = currentToken(cursor, false);
+
+        // Single template argument: `def name!T`
+        if (token.type == khTokenType_IDENTIFIER) {
+            kharray_append(&function.template_arguments, khstring_copy(&token.identifier));
+            skipToken(cursor);
+            khToken_delete(&token);
+            token = currentToken(cursor, false);
+        }
+        // Multiple template arguments in parentheses: `def name!(T, U)`
+        else if (token.type == khTokenType_DELIMITER &&
+                 token.delimiter == khDelimiterToken_PARENTHESIS_OPEN) {
+            do {
+                skipToken(cursor);
+                khToken_delete(&token);
+                token = currentToken(cursor, true);
+
+                if (token.type == khTokenType_IDENTIFIER) {
+                    kharray_append(&function.template_arguments, khstring_copy(&token.identifier));
+                }
+                else {
+                    raiseError(token.begin, U"expecting the name for a template argument");
+                }
+
+                skipToken(cursor);
+                khToken_delete(&token);
+                token = currentToken(cursor, true);
+            } while (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_COMMA);
+
+            if (token.type == khTokenType_DELIMITER &&
+                token.delimiter == khDelimiterToken_PARENTHESIS_CLOSE) {
+                skipToken(cursor);
+                khToken_delete(&token);
+                token = currentToken(cursor, false);
+            }
+            else {
+                raiseError(token.begin, U"expecting a closing parenthesis");
+            }
+        }
+        else {
+            raiseError(token.begin, U"expecting template argument(s)");
+        }
+    }
+
+    // This will take care of the rest, including arguments and body
     sparseFunctionOrLambda(cursor, &function.arguments, &function.optional_variadic_argument,
                            &function.is_return_type_ref, &function.optional_return_type,
                            &function.content);

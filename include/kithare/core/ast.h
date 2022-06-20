@@ -365,7 +365,8 @@ khstring khAstInclude_string(khAstInclude* include, char32_t* origin);
 typedef struct {
     bool is_incase;
     bool is_static;
-    khAstExpression name_point;
+    kharray(khstring) identifiers;
+    kharray(khstring) template_arguments;
     kharray(khAstVariable) arguments;
     khAstVariable* optional_variadic_argument;
     bool is_return_type_ref;
