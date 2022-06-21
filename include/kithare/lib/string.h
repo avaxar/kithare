@@ -180,10 +180,10 @@ static inline bool khstring_endswithCstring(khstring* string, const char32_t* su
     return true;
 }
 
-static inline khstring kh_uintToString(uint64_t uint_v, uint8_t base) {
+static inline khstring kh_uintToString(__uint128_t uint_v, uint8_t base) {
     khstring string = khstring_new(U"");
 
-    uint64_t value = uint_v;
+    __uint128_t value = uint_v;
     while (value > 0) {
         uint8_t digit = value % base;
         khstring_append(&string, (digit < 10 ? U'0' + digit : U'A' + digit - 10));
@@ -198,7 +198,7 @@ static inline khstring kh_uintToString(uint64_t uint_v, uint8_t base) {
     return string;
 }
 
-static inline khstring kh_intToString(int64_t int_v, uint8_t base) {
+static inline khstring kh_intToString(__int128_t int_v, uint8_t base) {
     khstring string = khstring_new(U"");
 
     if (int_v < 0) {

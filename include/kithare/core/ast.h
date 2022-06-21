@@ -311,8 +311,8 @@ struct _khAstExpression {
         khstring string;
         khbuffer buffer;
         uint8_t byte;
-        int64_t integer;
-        uint64_t uinteger;
+        __int128_t integer;
+        __uint128_t uinteger;
         float float_v;
         double double_v;
         float ifloat;

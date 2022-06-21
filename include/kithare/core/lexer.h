@@ -29,7 +29,7 @@ khToken kh_lexSymbol(char32_t** cursor);
 char32_t kh_lexChar(char32_t** cursor, bool with_quotes, bool is_byte);
 khstring kh_lexString(char32_t** cursor, bool is_buffer);
 
-uint64_t kh_lexInt(char32_t** cursor, uint8_t base, size_t max_length, bool* had_overflowed);
+__uint128_t kh_lexInt(char32_t** cursor, uint8_t base, size_t max_length, bool* had_overflowed);
 double kh_lexFloat(char32_t** cursor, uint8_t base);
 
 
