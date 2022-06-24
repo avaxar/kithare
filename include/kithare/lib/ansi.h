@@ -30,7 +30,7 @@ extern "C" {
 #define kh_ANSI_BG_WHITE "\033[47m"
 
 #define kh_ANSI_FG_RGB(R, G, B) "\033[38;2;" #R ";" #G ";" #B "m"
-#define kh_ANSI_BG_RGB(R, G, B) "\033[48;2;" #R ";" #B ";" #B "m"
+#define kh_ANSI_BG_RGB(R, G, B) "\033[48;2;" #R ";" #G ";" #B "m"
 
 #define kh_ANSI_RESET "\033[0m"
 #define kh_ANSI_BOLD "\033[1m"
