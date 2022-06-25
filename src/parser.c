@@ -1867,19 +1867,18 @@ out:
 
 
 // Like RCD_BINARY_CASE, but for unary operators
-#define RCD_UNARY_CASE(FUNCTION, OPERATOR)                                           \
-    {                                                                                \
-        skipToken(cursor);                                                           \
-                                                                                     \
-        khAstExpression* expression = malloc(sizeof(khAstExpression));               \
-        *expression = exparseUnary(cursor, ignore_newline, filter_type);             \
-                                                                                     \
-        khToken_delete(&token);                                                      \
-        return (khAstExpression){                                                    \
-            .begin = origin,                                                         \
-            .end = *cursor,                                                          \
-            .type = khAstExpressionType_UNARY,                                       \
-            .unary = {.type = khAstUnaryExpressionType_NOT, .operand = expression}}; \
+#define RCD_UNARY_CASE(FUNCTION, OPERATOR)                                            \
+    {                                                                                 \
+        skipToken(cursor);                                                            \
+                                                                                      \
+        khAstExpression* expression = malloc(sizeof(khAstExpression));                \
+        *expression = exparseUnary(cursor, ignore_newline, filter_type);              \
+                                                                                      \
+        khToken_delete(&token);                                                       \
+        return (khAstExpression){.begin = origin,                                     \
+                                 .end = *cursor,                                      \
+                                 .type = khAstExpressionType_UNARY,                   \
+                                 .unary = {.type = OPERATOR, .operand = expression}}; \
     }
 
 
