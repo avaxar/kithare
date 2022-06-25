@@ -119,8 +119,8 @@ static khAstExpression exparseBitwiseAnd(char32_t** cursor, EXPARSE_ARGS);
 static khAstExpression exparseBitwiseShifts(char32_t** cursor, EXPARSE_ARGS);
 static khAstExpression exparseAddSub(char32_t** cursor, EXPARSE_ARGS);
 static khAstExpression exparseMulDivModDot(char32_t** cursor, EXPARSE_ARGS);
-static khAstExpression exparsePow(char32_t** cursor, EXPARSE_ARGS);
 static khAstExpression exparseUnary(char32_t** cursor, EXPARSE_ARGS);
+static khAstExpression exparsePow(char32_t** cursor, EXPARSE_ARGS);
 static khAstExpression exparseReverseUnary(char32_t** cursor, EXPARSE_ARGS);
 static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS);
 
@@ -1835,7 +1835,7 @@ static khAstExpression exparseMulDivModDot(char32_t** cursor, EXPARSE_ARGS) {
     char32_t* origin = token.begin;
     khToken_delete(&token);
 
-    khAstExpression expression = exparsePow(cursor, ignore_newline, filter_type);
+    khAstExpression expression = exparseUnary(cursor, ignore_newline, filter_type);
 
     if (filter_type) {
         return expression;
@@ -1847,13 +1847,13 @@ static khAstExpression exparseMulDivModDot(char32_t** cursor, EXPARSE_ARGS) {
     while (token.type == khTokenType_OPERATOR) {
         switch (token.operator_v) {
             case khOperatorToken_MUL:
-                RCD_BINARY_CASE(exparsePow, khAstBinaryExpressionType_MUL);
+                RCD_BINARY_CASE(exparseUnary, khAstBinaryExpressionType_MUL);
             case khOperatorToken_DIV:
-                RCD_BINARY_CASE(exparsePow, khAstBinaryExpressionType_DIV);
+                RCD_BINARY_CASE(exparseUnary, khAstBinaryExpressionType_DIV);
             case khOperatorToken_MOD:
-                RCD_BINARY_CASE(exparsePow, khAstBinaryExpressionType_MOD);
+                RCD_BINARY_CASE(exparseUnary, khAstBinaryExpressionType_MOD);
             case khOperatorToken_DOT:
-                RCD_BINARY_CASE(exparsePow, khAstBinaryExpressionType_DOT);
+                RCD_BINARY_CASE(exparseUnary, khAstBinaryExpressionType_DOT);
 
             default:
                 goto out;
@@ -1863,10 +1863,6 @@ out:
 
     khToken_delete(&token);
     return expression;
-}
-
-static khAstExpression exparsePow(char32_t** cursor, EXPARSE_ARGS) {
-    RCD_BINARY(exparseUnary, khOperatorToken_POW, khAstBinaryExpressionType_POW);
 }
 
 
@@ -1889,7 +1885,7 @@ static khAstExpression exparsePow(char32_t** cursor, EXPARSE_ARGS) {
 
 static khAstExpression exparseUnary(char32_t** cursor, EXPARSE_ARGS) {
     if (filter_type) {
-        return exparseReverseUnary(cursor, ignore_newline, filter_type);
+        return exparsePow(cursor, ignore_newline, filter_type);
     }
 
     khToken token = currentToken(cursor, ignore_newline);
@@ -1899,24 +1895,28 @@ static khAstExpression exparseUnary(char32_t** cursor, EXPARSE_ARGS) {
     if (token.type == khTokenType_OPERATOR) {
         switch (token.operator_v) {
             case khOperatorToken_ADD:
-                RCD_UNARY_CASE(exparseReverseUnary, khAstUnaryExpressionType_POSITIVE);
+                RCD_UNARY_CASE(exparsePow, khAstUnaryExpressionType_POSITIVE);
             case khOperatorToken_SUB:
-                RCD_UNARY_CASE(exparseReverseUnary, khAstUnaryExpressionType_NEGATIVE);
+                RCD_UNARY_CASE(exparsePow, khAstUnaryExpressionType_NEGATIVE);
 
             case khOperatorToken_NOT:
-                RCD_UNARY_CASE(exparseReverseUnary, khAstUnaryExpressionType_NOT);
+                RCD_UNARY_CASE(exparsePow, khAstUnaryExpressionType_NOT);
             case khOperatorToken_BIT_NOT:
-                RCD_UNARY_CASE(exparseReverseUnary, khAstUnaryExpressionType_BIT_NOT);
+                RCD_UNARY_CASE(exparsePow, khAstUnaryExpressionType_BIT_NOT);
 
             default:
                 khToken_delete(&token);
-                return exparseReverseUnary(cursor, ignore_newline, filter_type);
+                return exparsePow(cursor, ignore_newline, filter_type);
         }
     }
     else {
         khToken_delete(&token);
-        return exparseReverseUnary(cursor, ignore_newline, filter_type);
+        return exparsePow(cursor, ignore_newline, filter_type);
     }
+}
+
+static khAstExpression exparsePow(char32_t** cursor, EXPARSE_ARGS) {
+    RCD_BINARY(exparseReverseUnary, khOperatorToken_POW, khAstBinaryExpressionType_POW);
 }
 
 static khAstExpression exparseReverseUnary(char32_t** cursor, EXPARSE_ARGS) {
