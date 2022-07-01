@@ -185,16 +185,16 @@ static int parse(void) {
     }
 
     puts("{");
-    puts("\"asts\": [");
+    puts("\"ast\": [");
 
-    // Print ASTs
-    kharray(khAst) asts = kh_parse(&content);
-    for (size_t i = 0; i < kharray_size(&asts); i++) {
-        khstring ast_str = khAst_string(&asts[i], content);
-        kh_put(&ast_str, stdout);
-        khstring_delete(&ast_str);
+    // Print statements
+    kharray(khAstStatement) ast = kh_parse(&content);
+    for (size_t i = 0; i < kharray_size(&ast); i++) {
+        khstring statement_str = khAstStatement_string(&ast[i], content);
+        kh_put(&statement_str, stdout);
+        khstring_delete(&statement_str);
 
-        if (i < kharray_size(&asts) - 1) {
+        if (i < kharray_size(&ast) - 1) {
             printf(",\n");
         }
         else {
@@ -230,7 +230,7 @@ static int parse(void) {
     puts("}");
 
     khstring_delete(&content);
-    kharray_delete(&asts);
+    kharray_delete(&ast);
 
     return errors;
 }

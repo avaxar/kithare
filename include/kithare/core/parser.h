@@ -15,9 +15,9 @@ extern "C" {
 #include <kithare/lib/array.h>
 
 
-kharray(khAst) kh_parse(khstring* string);
+kharray(khAstStatement) kh_parse(khstring* string);
 
-khAst kh_parseAst(char32_t** cursor);
+khAstStatement kh_parseStatement(char32_t** cursor);
 khAstExpression kh_parseExpression(char32_t** cursor, bool ignore_newline, bool filter_type);
 
 

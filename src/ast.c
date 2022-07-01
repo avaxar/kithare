@@ -11,44 +11,44 @@
 #include <kithare/lib/string.h>
 
 
-khstring khAstType_string(khAstType type) {
+khstring khAstStatementType_string(khAstStatementType type) {
     switch (type) {
-        case khAstType_INVALID:
+        case khAstStatementType_INVALID:
             return khstring_new(U"invalid");
 
-        case khAstType_VARIABLE:
+        case khAstStatementType_VARIABLE:
             return khstring_new(U"variable");
-        case khAstType_EXPRESSION:
+        case khAstStatementType_EXPRESSION:
             return khstring_new(U"expression");
 
-        case khAstType_IMPORT:
+        case khAstStatementType_IMPORT:
             return khstring_new(U"import");
-        case khAstType_INCLUDE:
+        case khAstStatementType_INCLUDE:
             return khstring_new(U"include");
-        case khAstType_FUNCTION:
+        case khAstStatementType_FUNCTION:
             return khstring_new(U"function");
-        case khAstType_CLASS:
+        case khAstStatementType_CLASS:
             return khstring_new(U"class");
-        case khAstType_STRUCT:
+        case khAstStatementType_STRUCT:
             return khstring_new(U"struct");
-        case khAstType_ENUM:
+        case khAstStatementType_ENUM:
             return khstring_new(U"enum");
-        case khAstType_ALIAS:
+        case khAstStatementType_ALIAS:
             return khstring_new(U"alias");
 
-        case khAstType_IF_BRANCH:
+        case khAstStatementType_IF_BRANCH:
             return khstring_new(U"if_branch");
-        case khAstType_WHILE_LOOP:
+        case khAstStatementType_WHILE_LOOP:
             return khstring_new(U"while_loop");
-        case khAstType_DO_WHILE_LOOP:
+        case khAstStatementType_DO_WHILE_LOOP:
             return khstring_new(U"do_while_loop");
-        case khAstType_FOR_LOOP:
+        case khAstStatementType_FOR_LOOP:
             return khstring_new(U"for_loop");
-        case khAstType_BREAK:
+        case khAstStatementType_BREAK:
             return khstring_new(U"break");
-        case khAstType_CONTINUE:
+        case khAstStatementType_CONTINUE:
             return khstring_new(U"continue");
-        case khAstType_RETURN:
+        case khAstStatementType_RETURN:
             return khstring_new(U"return");
 
         default:
@@ -637,7 +637,7 @@ khAstLambdaExpression khAstLambdaExpression_copy(khAstLambdaExpression* lambda) 
                                    .optional_variadic_argument = optional_variadic_argument,
                                    .is_return_type_ref = lambda->is_return_type_ref,
                                    .optional_return_type = optional_return_type,
-                                   .content = kharray_copy(&lambda->content, khAst_copy)};
+                                   .block = kharray_copy(&lambda->block, khAstStatement_copy)};
 }
 
 void khAstLambdaExpression_delete(khAstLambdaExpression* lambda) {
@@ -650,7 +650,7 @@ void khAstLambdaExpression_delete(khAstLambdaExpression* lambda) {
         khAstExpression_delete(lambda->optional_return_type);
         free(lambda->optional_return_type);
     }
-    kharray_delete(&lambda->content);
+    kharray_delete(&lambda->block);
 }
 
 khstring khAstLambdaExpression_string(khAstLambdaExpression* lambda, char32_t* origin) {
@@ -690,13 +690,13 @@ khstring khAstLambdaExpression_string(khAstLambdaExpression* lambda, char32_t* o
         khstring_concatenateCstring(&string, U"null");
     }
 
-    khstring_concatenateCstring(&string, U", \"content\": [");
-    for (size_t i = 0; i < kharray_size(&lambda->content); i++) {
-        khstring statement_str = khAst_string(&lambda->content[i], origin);
+    khstring_concatenateCstring(&string, U", \"block\": [");
+    for (size_t i = 0; i < kharray_size(&lambda->block); i++) {
+        khstring statement_str = khAstStatement_string(&lambda->block[i], origin);
         khstring_concatenate(&string, &statement_str);
         khstring_delete(&statement_str);
 
-        if (i < kharray_size(&lambda->content) - 1) {
+        if (i < kharray_size(&lambda->block) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1242,7 +1242,7 @@ khAstFunction khAstFunction_copy(khAstFunction* function) {
                            .optional_variadic_argument = optional_variadic_argument,
                            .is_return_type_ref = function->is_return_type_ref,
                            .optional_return_type = optional_return_type,
-                           .content = kharray_copy(&function->content, khAst_copy)};
+                           .block = kharray_copy(&function->block, khAstStatement_copy)};
 }
 
 void khAstFunction_delete(khAstFunction* function) {
@@ -1257,7 +1257,7 @@ void khAstFunction_delete(khAstFunction* function) {
         khAstExpression_delete(function->optional_return_type);
         free(function->optional_return_type);
     }
-    kharray_delete(&function->content);
+    kharray_delete(&function->block);
 }
 
 khstring khAstFunction_string(khAstFunction* function, char32_t* origin) {
@@ -1323,13 +1323,13 @@ khstring khAstFunction_string(khAstFunction* function, char32_t* origin) {
         khstring_concatenateCstring(&string, U"null");
     }
 
-    khstring_concatenateCstring(&string, U", \"content\": [");
-    for (size_t i = 0; i < kharray_size(&function->content); i++) {
-        khstring content_str = khAst_string(&function->content[i], origin);
-        khstring_concatenate(&string, &content_str);
-        khstring_delete(&content_str);
+    khstring_concatenateCstring(&string, U", \"block\": [");
+    for (size_t i = 0; i < kharray_size(&function->block); i++) {
+        khstring statement_str = khAstStatement_string(&function->block[i], origin);
+        khstring_concatenate(&string, &statement_str);
+        khstring_delete(&statement_str);
 
-        if (i < kharray_size(&function->content) - 1) {
+        if (i < kharray_size(&function->block) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1355,7 +1355,7 @@ khAstClass khAstClass_copy(khAstClass* class_v) {
                         .name = khstring_copy(&class_v->name),
                         .template_arguments = template_arguments,
                         .optional_base_type = optional_base_type,
-                        .content = kharray_copy(&class_v->content, khAst_copy)};
+                        .block = kharray_copy(&class_v->block, khAstStatement_copy)};
 }
 
 void khAstClass_delete(khAstClass* class_v) {
@@ -1365,7 +1365,7 @@ void khAstClass_delete(khAstClass* class_v) {
         khAstExpression_delete(class_v->optional_base_type);
         free(class_v->optional_base_type);
     }
-    kharray_delete(&class_v->content);
+    kharray_delete(&class_v->block);
 }
 
 khstring khAstClass_string(khAstClass* class_v, char32_t* origin) {
@@ -1398,13 +1398,13 @@ khstring khAstClass_string(khAstClass* class_v, char32_t* origin) {
         khstring_concatenateCstring(&string, U"null");
     }
 
-    khstring_concatenateCstring(&string, U", \"content\": [");
-    for (size_t i = 0; i < kharray_size(&class_v->content); i++) {
-        khstring content_str = khAst_string(&class_v->content[i], origin);
-        khstring_concatenate(&string, &content_str);
-        khstring_delete(&content_str);
+    khstring_concatenateCstring(&string, U", \"block\": [");
+    for (size_t i = 0; i < kharray_size(&class_v->block); i++) {
+        khstring statement_str = khAstStatement_string(&class_v->block[i], origin);
+        khstring_concatenate(&string, &statement_str);
+        khstring_delete(&statement_str);
 
-        if (i < kharray_size(&class_v->content) - 1) {
+        if (i < kharray_size(&class_v->block) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1423,13 +1423,13 @@ khAstStruct khAstStruct_copy(khAstStruct* struct_v) {
     return (khAstStruct){.is_incase = struct_v->is_incase,
                          .name = khstring_copy(&struct_v->name),
                          .template_arguments = template_arguments,
-                         .content = kharray_copy(&struct_v->content, khAst_copy)};
+                         .block = kharray_copy(&struct_v->block, khAstStatement_copy)};
 }
 
 void khAstStruct_delete(khAstStruct* struct_v) {
     khstring_delete(&struct_v->name);
     kharray_delete(&struct_v->template_arguments);
-    kharray_delete(&struct_v->content);
+    kharray_delete(&struct_v->block);
 }
 
 khstring khAstStruct_string(khAstStruct* struct_v, char32_t* origin) {
@@ -1452,13 +1452,13 @@ khstring khAstStruct_string(khAstStruct* struct_v, char32_t* origin) {
         }
     }
 
-    khstring_concatenateCstring(&string, U", \"content\": [");
-    for (size_t i = 0; i < kharray_size(&struct_v->content); i++) {
-        khstring content_str = khAst_string(&struct_v->content[i], origin);
-        khstring_concatenate(&string, &content_str);
-        khstring_delete(&content_str);
+    khstring_concatenateCstring(&string, U", \"block\": [");
+    for (size_t i = 0; i < kharray_size(&struct_v->block); i++) {
+        khstring statement_str = khAstStatement_string(&struct_v->block[i], origin);
+        khstring_concatenate(&string, &statement_str);
+        khstring_delete(&statement_str);
 
-        if (i < kharray_size(&struct_v->content) - 1) {
+        if (i < kharray_size(&struct_v->block) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1535,21 +1535,22 @@ khstring khAstAlias_string(khAstAlias* alias, char32_t* origin) {
 
 
 khAstIfBranch khAstIfBranch_copy(khAstIfBranch* if_branch) {
-    kharray(kharray(khAst)) branch_contents = kharray_new(kharray(khAst), khstring_delete);
-    for (size_t i = 0; i < kharray_size(&if_branch->branch_contents); i++) {
-        kharray_append(&branch_contents, kharray_copy(&if_branch->branch_contents[i], khAst_copy));
+    kharray(kharray(khAstStatement)) branch_blocks =
+        kharray_new(kharray(khAstStatement), kharray_arrayDeleter(khAstStatement));
+    for (size_t i = 0; i < kharray_size(&if_branch->branch_blocks); i++) {
+        kharray_append(&branch_blocks, kharray_copy(&if_branch->branch_blocks[i], khAstStatement_copy));
     }
 
     return (khAstIfBranch){.branch_conditions =
                                kharray_copy(&if_branch->branch_conditions, khAstExpression_copy),
-                           .branch_contents = branch_contents,
-                           .else_content = kharray_copy(&if_branch->else_content, khAst_copy)};
+                           .branch_blocks = branch_blocks,
+                           .else_block = kharray_copy(&if_branch->else_block, khAstStatement_copy)};
 }
 
 void khAstIfBranch_delete(khAstIfBranch* if_branch) {
     kharray_delete(&if_branch->branch_conditions);
-    kharray_delete(&if_branch->branch_contents);
-    kharray_delete(&if_branch->else_content);
+    kharray_delete(&if_branch->branch_blocks);
+    kharray_delete(&if_branch->else_block);
 }
 
 khstring khAstIfBranch_string(khAstIfBranch* if_branch, char32_t* origin) {
@@ -1565,32 +1566,32 @@ khstring khAstIfBranch_string(khAstIfBranch* if_branch, char32_t* origin) {
         }
     }
 
-    khstring_concatenateCstring(&string, U"], \"branch_contents\": [");
-    for (size_t i = 0; i < kharray_size(&if_branch->branch_contents); i++) {
+    khstring_concatenateCstring(&string, U"], \"branch_blocks\": [");
+    for (size_t i = 0; i < kharray_size(&if_branch->branch_blocks); i++) {
         khstring_append(&string, U'[');
-        for (size_t j = 0; j < kharray_size(&if_branch->branch_contents[i]); j++) {
-            khstring branch_content_str = khAst_string(&if_branch->branch_contents[i][j], origin);
-            khstring_concatenate(&string, &branch_content_str);
-            khstring_delete(&branch_content_str);
+        for (size_t j = 0; j < kharray_size(&if_branch->branch_blocks[i]); j++) {
+            khstring statement_str = khAstStatement_string(&if_branch->branch_blocks[i][j], origin);
+            khstring_concatenate(&string, &statement_str);
+            khstring_delete(&statement_str);
 
-            if (j < kharray_size(&if_branch->branch_contents[i]) - 1) {
+            if (j < kharray_size(&if_branch->branch_blocks[i]) - 1) {
                 khstring_concatenateCstring(&string, U", ");
             }
         }
         khstring_append(&string, U']');
 
-        if (i < kharray_size(&if_branch->branch_contents) - 1) {
+        if (i < kharray_size(&if_branch->branch_blocks) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
 
-    khstring_concatenateCstring(&string, U"], \"else_content\": [");
-    for (size_t i = 0; i < kharray_size(&if_branch->else_content); i++) {
-        khstring else_content_str = khAst_string(&if_branch->else_content[i], origin);
-        khstring_concatenate(&string, &else_content_str);
-        khstring_delete(&else_content_str);
+    khstring_concatenateCstring(&string, U"], \"else_block\": [");
+    for (size_t i = 0; i < kharray_size(&if_branch->else_block); i++) {
+        khstring statement_str = khAstStatement_string(&if_branch->else_block[i], origin);
+        khstring_concatenate(&string, &statement_str);
+        khstring_delete(&statement_str);
 
-        if (i < kharray_size(&if_branch->else_content) - 1) {
+        if (i < kharray_size(&if_branch->else_block) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1602,12 +1603,12 @@ khstring khAstIfBranch_string(khAstIfBranch* if_branch, char32_t* origin) {
 
 khAstWhileLoop khAstWhileLoop_copy(khAstWhileLoop* while_loop) {
     return (khAstWhileLoop){.condition = khAstExpression_copy(&while_loop->condition),
-                            .content = kharray_copy(&while_loop->content, khAst_copy)};
+                            .block = kharray_copy(&while_loop->block, khAstStatement_copy)};
 }
 
 void khAstWhileLoop_delete(khAstWhileLoop* while_loop) {
     khAstExpression_delete(&while_loop->condition);
-    kharray_delete(&while_loop->content);
+    kharray_delete(&while_loop->block);
 }
 
 khstring khAstWhileLoop_string(khAstWhileLoop* while_loop, char32_t* origin) {
@@ -1616,13 +1617,13 @@ khstring khAstWhileLoop_string(khAstWhileLoop* while_loop, char32_t* origin) {
     khstring_concatenate(&string, &condition_str);
     khstring_delete(&condition_str);
 
-    khstring_concatenateCstring(&string, U", \"content\": [");
-    for (size_t i = 0; i < kharray_size(&while_loop->content); i++) {
-        khstring content_str = khAst_string(&while_loop->content[i], origin);
-        khstring_concatenate(&string, &content_str);
-        khstring_delete(&content_str);
+    khstring_concatenateCstring(&string, U", \"block\": [");
+    for (size_t i = 0; i < kharray_size(&while_loop->block); i++) {
+        khstring statement_str = khAstStatement_string(&while_loop->block[i], origin);
+        khstring_concatenate(&string, &statement_str);
+        khstring_delete(&statement_str);
 
-        if (i < kharray_size(&while_loop->content) - 1) {
+        if (i < kharray_size(&while_loop->block) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1634,12 +1635,12 @@ khstring khAstWhileLoop_string(khAstWhileLoop* while_loop, char32_t* origin) {
 
 khAstDoWhileLoop khAstDoWhileLoop_copy(khAstDoWhileLoop* do_while_loop) {
     return (khAstDoWhileLoop){.condition = khAstExpression_copy(&do_while_loop->condition),
-                              .content = kharray_copy(&do_while_loop->content, khAst_copy)};
+                              .block = kharray_copy(&do_while_loop->block, khAstStatement_copy)};
 }
 
 void khAstDoWhileLoop_delete(khAstDoWhileLoop* do_while_loop) {
     khAstExpression_delete(&do_while_loop->condition);
-    kharray_delete(&do_while_loop->content);
+    kharray_delete(&do_while_loop->block);
 }
 
 khstring khAstDoWhileLoop_string(khAstDoWhileLoop* do_while_loop, char32_t* origin) {
@@ -1648,13 +1649,13 @@ khstring khAstDoWhileLoop_string(khAstDoWhileLoop* do_while_loop, char32_t* orig
     khstring_concatenate(&string, &condition_str);
     khstring_delete(&condition_str);
 
-    khstring_concatenateCstring(&string, U", \"content\": [");
-    for (size_t i = 0; i < kharray_size(&do_while_loop->content); i++) {
-        khstring content_str = khAst_string(&do_while_loop->content[i], origin);
-        khstring_concatenate(&string, &content_str);
-        khstring_delete(&content_str);
+    khstring_concatenateCstring(&string, U", \"block\": [");
+    for (size_t i = 0; i < kharray_size(&do_while_loop->block); i++) {
+        khstring statement_str = khAstStatement_string(&do_while_loop->block[i], origin);
+        khstring_concatenate(&string, &statement_str);
+        khstring_delete(&statement_str);
 
-        if (i < kharray_size(&do_while_loop->content) - 1) {
+        if (i < kharray_size(&do_while_loop->block) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1667,13 +1668,13 @@ khstring khAstDoWhileLoop_string(khAstDoWhileLoop* do_while_loop, char32_t* orig
 khAstForLoop khAstForLoop_copy(khAstForLoop* for_loop) {
     return (khAstForLoop){.iterators = kharray_copy(&for_loop->iterators, khstring_copy),
                           .iteratee = khAstExpression_copy(&for_loop->iteratee),
-                          .content = kharray_copy(&for_loop->content, khAst_copy)};
+                          .block = kharray_copy(&for_loop->block, khAstStatement_copy)};
 }
 
 void khAstForLoop_delete(khAstForLoop* for_loop) {
     kharray_delete(&for_loop->iterators);
     khAstExpression_delete(&for_loop->iteratee);
-    kharray_delete(&for_loop->content);
+    kharray_delete(&for_loop->block);
 }
 
 khstring khAstForLoop_string(khAstForLoop* for_loop, char32_t* origin) {
@@ -1693,13 +1694,13 @@ khstring khAstForLoop_string(khAstForLoop* for_loop, char32_t* origin) {
     khstring_concatenate(&string, &iteratee_str);
     khstring_delete(&iteratee_str);
 
-    khstring_concatenateCstring(&string, U", \"content\": [");
-    for (size_t i = 0; i < kharray_size(&for_loop->content); i++) {
-        khstring content_str = khAst_string(&for_loop->content[i], origin);
-        khstring_concatenate(&string, &content_str);
-        khstring_delete(&content_str);
+    khstring_concatenateCstring(&string, U", \"block\": [");
+    for (size_t i = 0; i < kharray_size(&for_loop->block); i++) {
+        khstring statement_str = khAstStatement_string(&for_loop->block[i], origin);
+        khstring_concatenate(&string, &statement_str);
+        khstring_delete(&statement_str);
 
-        if (i < kharray_size(&for_loop->content) - 1) {
+        if (i < kharray_size(&for_loop->block) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1734,53 +1735,53 @@ khstring khAstReturn_string(khAstReturn* return_v, char32_t* origin) {
 }
 
 
-khAst khAst_copy(khAst* ast) {
-    khAst copy = *ast;
+khAstStatement khAstStatement_copy(khAstStatement* statement) {
+    khAstStatement copy = *statement;
 
-    switch (ast->type) {
-        case khAstType_VARIABLE:
-            copy.variable = khAstVariable_copy(&ast->variable);
+    switch (statement->type) {
+        case khAstStatementType_VARIABLE:
+            copy.variable = khAstVariable_copy(&statement->variable);
             break;
-        case khAstType_EXPRESSION:
-            copy.expression = khAstExpression_copy(&ast->expression);
-            break;
-
-        case khAstType_IMPORT:
-            copy.import_v = khAstImport_copy(&ast->import_v);
-            break;
-        case khAstType_INCLUDE:
-            copy.include = khAstInclude_copy(&ast->include);
-            break;
-        case khAstType_FUNCTION:
-            copy.function = khAstFunction_copy(&ast->function);
-            break;
-        case khAstType_CLASS:
-            copy.class_v = khAstClass_copy(&ast->class_v);
-            break;
-        case khAstType_STRUCT:
-            copy.struct_v = khAstStruct_copy(&ast->struct_v);
-            break;
-        case khAstType_ENUM:
-            copy.enum_v = khAstEnum_copy(&ast->enum_v);
-            break;
-        case khAstType_ALIAS:
-            copy.alias = khAstAlias_copy(&ast->alias);
+        case khAstStatementType_EXPRESSION:
+            copy.expression = khAstExpression_copy(&statement->expression);
             break;
 
-        case khAstType_IF_BRANCH:
-            copy.if_branch = khAstIfBranch_copy(&ast->if_branch);
+        case khAstStatementType_IMPORT:
+            copy.import_v = khAstImport_copy(&statement->import_v);
             break;
-        case khAstType_WHILE_LOOP:
-            copy.while_loop = khAstWhileLoop_copy(&ast->while_loop);
+        case khAstStatementType_INCLUDE:
+            copy.include = khAstInclude_copy(&statement->include);
             break;
-        case khAstType_DO_WHILE_LOOP:
-            copy.do_while_loop = khAstDoWhileLoop_copy(&ast->do_while_loop);
+        case khAstStatementType_FUNCTION:
+            copy.function = khAstFunction_copy(&statement->function);
             break;
-        case khAstType_FOR_LOOP:
-            copy.for_loop = khAstForLoop_copy(&ast->for_loop);
+        case khAstStatementType_CLASS:
+            copy.class_v = khAstClass_copy(&statement->class_v);
             break;
-        case khAstType_RETURN:
-            copy.return_v = khAstReturn_copy(&ast->return_v);
+        case khAstStatementType_STRUCT:
+            copy.struct_v = khAstStruct_copy(&statement->struct_v);
+            break;
+        case khAstStatementType_ENUM:
+            copy.enum_v = khAstEnum_copy(&statement->enum_v);
+            break;
+        case khAstStatementType_ALIAS:
+            copy.alias = khAstAlias_copy(&statement->alias);
+            break;
+
+        case khAstStatementType_IF_BRANCH:
+            copy.if_branch = khAstIfBranch_copy(&statement->if_branch);
+            break;
+        case khAstStatementType_WHILE_LOOP:
+            copy.while_loop = khAstWhileLoop_copy(&statement->while_loop);
+            break;
+        case khAstStatementType_DO_WHILE_LOOP:
+            copy.do_while_loop = khAstDoWhileLoop_copy(&statement->do_while_loop);
+            break;
+        case khAstStatementType_FOR_LOOP:
+            copy.for_loop = khAstForLoop_copy(&statement->for_loop);
+            break;
+        case khAstStatementType_RETURN:
+            copy.return_v = khAstReturn_copy(&statement->return_v);
             break;
 
         default:
@@ -1790,51 +1791,51 @@ khAst khAst_copy(khAst* ast) {
     return copy;
 }
 
-void khAst_delete(khAst* ast) {
-    switch (ast->type) {
-        case khAstType_VARIABLE:
-            khAstVariable_delete(&ast->variable);
+void khAstStatement_delete(khAstStatement* statement) {
+    switch (statement->type) {
+        case khAstStatementType_VARIABLE:
+            khAstVariable_delete(&statement->variable);
             break;
-        case khAstType_EXPRESSION:
-            khAstExpression_delete(&ast->expression);
-            break;
-
-        case khAstType_IMPORT:
-            khAstImport_delete(&ast->import_v);
-            break;
-        case khAstType_INCLUDE:
-            khAstInclude_delete(&ast->include);
-            break;
-        case khAstType_FUNCTION:
-            khAstFunction_delete(&ast->function);
-            break;
-        case khAstType_CLASS:
-            khAstClass_delete(&ast->class_v);
-            break;
-        case khAstType_STRUCT:
-            khAstStruct_delete(&ast->struct_v);
-            break;
-        case khAstType_ENUM:
-            khAstEnum_delete(&ast->enum_v);
-            break;
-        case khAstType_ALIAS:
-            khAstAlias_delete(&ast->alias);
+        case khAstStatementType_EXPRESSION:
+            khAstExpression_delete(&statement->expression);
             break;
 
-        case khAstType_IF_BRANCH:
-            khAstIfBranch_delete(&ast->if_branch);
+        case khAstStatementType_IMPORT:
+            khAstImport_delete(&statement->import_v);
             break;
-        case khAstType_WHILE_LOOP:
-            khAstWhileLoop_delete(&ast->while_loop);
+        case khAstStatementType_INCLUDE:
+            khAstInclude_delete(&statement->include);
             break;
-        case khAstType_DO_WHILE_LOOP:
-            khAstDoWhileLoop_delete(&ast->do_while_loop);
+        case khAstStatementType_FUNCTION:
+            khAstFunction_delete(&statement->function);
             break;
-        case khAstType_FOR_LOOP:
-            khAstForLoop_delete(&ast->for_loop);
+        case khAstStatementType_CLASS:
+            khAstClass_delete(&statement->class_v);
             break;
-        case khAstType_RETURN:
-            khAstReturn_delete(&ast->return_v);
+        case khAstStatementType_STRUCT:
+            khAstStruct_delete(&statement->struct_v);
+            break;
+        case khAstStatementType_ENUM:
+            khAstEnum_delete(&statement->enum_v);
+            break;
+        case khAstStatementType_ALIAS:
+            khAstAlias_delete(&statement->alias);
+            break;
+
+        case khAstStatementType_IF_BRANCH:
+            khAstIfBranch_delete(&statement->if_branch);
+            break;
+        case khAstStatementType_WHILE_LOOP:
+            khAstWhileLoop_delete(&statement->while_loop);
+            break;
+        case khAstStatementType_DO_WHILE_LOOP:
+            khAstDoWhileLoop_delete(&statement->do_while_loop);
+            break;
+        case khAstStatementType_FOR_LOOP:
+            khAstForLoop_delete(&statement->for_loop);
+            break;
+        case khAstStatementType_RETURN:
+            khAstReturn_delete(&statement->return_v);
             break;
 
         default:
@@ -1842,17 +1843,17 @@ void khAst_delete(khAst* ast) {
     }
 }
 
-khstring khAst_string(khAst* ast, char32_t* origin) {
+khstring khAstStatement_string(khAstStatement* statement, char32_t* origin) {
     khstring string = khstring_new(U"{\"type\": ");
-    khstring type_str = khAstType_string(ast->type);
+    khstring type_str = khAstStatementType_string(statement->type);
     khstring quoted_type = khstring_quote(&type_str);
     khstring_concatenate(&string, &quoted_type);
     khstring_delete(&type_str);
     khstring_delete(&quoted_type);
 
     khstring_concatenateCstring(&string, U", \"begin\": ");
-    if (ast->begin != NULL) {
-        khstring begin_str = kh_uintToString(ast->begin - origin, 10);
+    if (statement->begin != NULL) {
+        khstring begin_str = kh_uintToString(statement->begin - origin, 10);
         khstring_concatenate(&string, &begin_str);
         khstring_delete(&begin_str);
     }
@@ -1861,8 +1862,8 @@ khstring khAst_string(khAst* ast, char32_t* origin) {
     }
 
     khstring_concatenateCstring(&string, U", \"end\": ");
-    if (ast->end != NULL) {
-        khstring end_str = kh_uintToString(ast->end - origin, 10);
+    if (statement->end != NULL) {
+        khstring end_str = kh_uintToString(statement->end - origin, 10);
         khstring_concatenate(&string, &end_str);
         khstring_delete(&end_str);
     }
@@ -1871,77 +1872,77 @@ khstring khAst_string(khAst* ast, char32_t* origin) {
     }
 
     khstring_concatenateCstring(&string, U", \"value\": ");
-    switch (ast->type) {
-        case khAstType_VARIABLE: {
-            khstring variable_str = khAstVariable_string(&ast->variable, origin);
+    switch (statement->type) {
+        case khAstStatementType_VARIABLE: {
+            khstring variable_str = khAstVariable_string(&statement->variable, origin);
             khstring_concatenate(&string, &variable_str);
             khstring_delete(&variable_str);
         } break;
 
-        case khAstType_EXPRESSION: {
-            khstring expression_str = khAstExpression_string(&ast->expression, origin);
+        case khAstStatementType_EXPRESSION: {
+            khstring expression_str = khAstExpression_string(&statement->expression, origin);
             khstring_concatenate(&string, &expression_str);
             khstring_delete(&expression_str);
         } break;
 
-        case khAstType_IMPORT: {
-            khstring import_str = khAstImport_string(&ast->import_v, origin);
+        case khAstStatementType_IMPORT: {
+            khstring import_str = khAstImport_string(&statement->import_v, origin);
             khstring_concatenate(&string, &import_str);
             khstring_delete(&import_str);
         } break;
-        case khAstType_INCLUDE: {
-            khstring include_str = khAstInclude_string(&ast->include, origin);
+        case khAstStatementType_INCLUDE: {
+            khstring include_str = khAstInclude_string(&statement->include, origin);
             khstring_concatenate(&string, &include_str);
             khstring_delete(&include_str);
         } break;
-        case khAstType_FUNCTION: {
-            khstring function_str = khAstFunction_string(&ast->function, origin);
+        case khAstStatementType_FUNCTION: {
+            khstring function_str = khAstFunction_string(&statement->function, origin);
             khstring_concatenate(&string, &function_str);
             khstring_delete(&function_str);
         } break;
-        case khAstType_CLASS: {
-            khstring class_str = khAstClass_string(&ast->class_v, origin);
+        case khAstStatementType_CLASS: {
+            khstring class_str = khAstClass_string(&statement->class_v, origin);
             khstring_concatenate(&string, &class_str);
             khstring_delete(&class_str);
         } break;
-        case khAstType_STRUCT: {
-            khstring struct_str = khAstStruct_string(&ast->struct_v, origin);
+        case khAstStatementType_STRUCT: {
+            khstring struct_str = khAstStruct_string(&statement->struct_v, origin);
             khstring_concatenate(&string, &struct_str);
             khstring_delete(&struct_str);
         } break;
-        case khAstType_ENUM: {
-            khstring enum_str = khAstEnum_string(&ast->enum_v, origin);
+        case khAstStatementType_ENUM: {
+            khstring enum_str = khAstEnum_string(&statement->enum_v, origin);
             khstring_concatenate(&string, &enum_str);
             khstring_delete(&enum_str);
         } break;
-        case khAstType_ALIAS: {
-            khstring alias_str = khAstAlias_string(&ast->alias, origin);
+        case khAstStatementType_ALIAS: {
+            khstring alias_str = khAstAlias_string(&statement->alias, origin);
             khstring_concatenate(&string, &alias_str);
             khstring_delete(&alias_str);
         } break;
 
-        case khAstType_IF_BRANCH: {
-            khstring if_branch_str = khAstIfBranch_string(&ast->if_branch, origin);
+        case khAstStatementType_IF_BRANCH: {
+            khstring if_branch_str = khAstIfBranch_string(&statement->if_branch, origin);
             khstring_concatenate(&string, &if_branch_str);
             khstring_delete(&if_branch_str);
         } break;
-        case khAstType_WHILE_LOOP: {
-            khstring while_loop_str = khAstWhileLoop_string(&ast->while_loop, origin);
+        case khAstStatementType_WHILE_LOOP: {
+            khstring while_loop_str = khAstWhileLoop_string(&statement->while_loop, origin);
             khstring_concatenate(&string, &while_loop_str);
             khstring_delete(&while_loop_str);
         } break;
-        case khAstType_DO_WHILE_LOOP: {
-            khstring do_while_loop_str = khAstDoWhileLoop_string(&ast->do_while_loop, origin);
+        case khAstStatementType_DO_WHILE_LOOP: {
+            khstring do_while_loop_str = khAstDoWhileLoop_string(&statement->do_while_loop, origin);
             khstring_concatenate(&string, &do_while_loop_str);
             khstring_delete(&do_while_loop_str);
         } break;
-        case khAstType_FOR_LOOP: {
-            khstring for_loop_str = khAstForLoop_string(&ast->for_loop, origin);
+        case khAstStatementType_FOR_LOOP: {
+            khstring for_loop_str = khAstForLoop_string(&statement->for_loop, origin);
             khstring_concatenate(&string, &for_loop_str);
             khstring_delete(&for_loop_str);
         } break;
-        case khAstType_RETURN: {
-            khstring return_str = khAstReturn_string(&ast->return_v, origin);
+        case khAstStatementType_RETURN: {
+            khstring return_str = khAstReturn_string(&statement->return_v, origin);
             khstring_concatenate(&string, &return_str);
             khstring_delete(&return_str);
         } break;

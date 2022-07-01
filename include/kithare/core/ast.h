@@ -18,34 +18,34 @@ extern "C" {
 #include <kithare/lib/string.h>
 
 
-typedef struct _khAst khAst;
+typedef struct _khAstStatement khAstStatement;
 typedef struct _khAstExpression khAstExpression;
 
 
 typedef enum {
-    khAstType_INVALID,
+    khAstStatementType_INVALID,
 
-    khAstType_VARIABLE,
-    khAstType_EXPRESSION,
+    khAstStatementType_VARIABLE,
+    khAstStatementType_EXPRESSION,
 
-    khAstType_IMPORT,
-    khAstType_INCLUDE,
-    khAstType_FUNCTION,
-    khAstType_CLASS,
-    khAstType_STRUCT,
-    khAstType_ENUM,
-    khAstType_ALIAS,
+    khAstStatementType_IMPORT,
+    khAstStatementType_INCLUDE,
+    khAstStatementType_FUNCTION,
+    khAstStatementType_CLASS,
+    khAstStatementType_STRUCT,
+    khAstStatementType_ENUM,
+    khAstStatementType_ALIAS,
 
-    khAstType_IF_BRANCH,
-    khAstType_WHILE_LOOP,
-    khAstType_DO_WHILE_LOOP,
-    khAstType_FOR_LOOP,
-    khAstType_BREAK,
-    khAstType_CONTINUE,
-    khAstType_RETURN
-} khAstType;
+    khAstStatementType_IF_BRANCH,
+    khAstStatementType_WHILE_LOOP,
+    khAstStatementType_DO_WHILE_LOOP,
+    khAstStatementType_FOR_LOOP,
+    khAstStatementType_BREAK,
+    khAstStatementType_CONTINUE,
+    khAstStatementType_RETURN
+} khAstStatementType;
 
-khstring khAstType_string(khAstType type);
+khstring khAstStatementType_string(khAstStatementType type);
 
 
 // This variable declaration AST struct is declared up here, as it is used by khAstLambdaExpression.
@@ -256,7 +256,7 @@ typedef struct {
     khAstVariable* optional_variadic_argument;
     bool is_return_type_ref;
     khAstExpression* optional_return_type;
-    kharray(khAst) content;
+    kharray(khAstStatement) block;
 } khAstLambdaExpression;
 
 khAstLambdaExpression khAstLambdaExpression_copy(khAstLambdaExpression* lambda);
@@ -371,7 +371,7 @@ typedef struct {
     khAstVariable* optional_variadic_argument;
     bool is_return_type_ref;
     khAstExpression* optional_return_type;
-    kharray(khAst) content;
+    kharray(khAstStatement) block;
 } khAstFunction;
 
 khAstFunction khAstFunction_copy(khAstFunction* function);
@@ -384,7 +384,7 @@ typedef struct {
     khstring name;
     kharray(khstring) template_arguments;
     khAstExpression* optional_base_type;
-    kharray(khAst) content;
+    kharray(khAstStatement) block;
 } khAstClass;
 
 khAstClass khAstClass_copy(khAstClass* class_v);
@@ -396,7 +396,7 @@ typedef struct {
     bool is_incase;
     khstring name;
     kharray(khstring) template_arguments;
-    kharray(khAst) content;
+    kharray(khAstStatement) block;
 } khAstStruct;
 
 khAstStruct khAstStruct_copy(khAstStruct* struct_v);
@@ -427,8 +427,8 @@ khstring khAstAlias_string(khAstAlias* alias, char32_t* origin);
 
 typedef struct {
     kharray(khAstExpression) branch_conditions;
-    kharray(kharray(khAst)) branch_contents;
-    kharray(khAst) else_content;
+    kharray(kharray(khAstStatement)) branch_blocks;
+    kharray(khAstStatement) else_block;
 } khAstIfBranch;
 
 khAstIfBranch khAstIfBranch_copy(khAstIfBranch* if_branch);
@@ -438,7 +438,7 @@ khstring khAstIfBranch_string(khAstIfBranch* if_branch, char32_t* origin);
 
 typedef struct {
     khAstExpression condition;
-    kharray(khAst) content;
+    kharray(khAstStatement) block;
 } khAstWhileLoop;
 
 khAstWhileLoop khAstWhileLoop_copy(khAstWhileLoop* while_loop);
@@ -448,7 +448,7 @@ khstring khAstWhileLoop_string(khAstWhileLoop* while_loop, char32_t* origin);
 
 typedef struct {
     khAstExpression condition;
-    kharray(khAst) content;
+    kharray(khAstStatement) block;
 } khAstDoWhileLoop;
 
 khAstDoWhileLoop khAstDoWhileLoop_copy(khAstDoWhileLoop* do_while_loop);
@@ -459,7 +459,7 @@ khstring khAstDoWhileLoop_string(khAstDoWhileLoop* do_while_loop, char32_t* orig
 typedef struct {
     kharray(khstring) iterators;
     khAstExpression iteratee;
-    kharray(khAst) content;
+    kharray(khAstStatement) block;
 } khAstForLoop;
 
 khAstForLoop khAstForLoop_copy(khAstForLoop* for_loop);
@@ -476,11 +476,11 @@ void khAstReturn_delete(khAstReturn* return_v);
 khstring khAstReturn_string(khAstReturn* return_v, char32_t* origin);
 
 
-struct _khAst {
+struct _khAstStatement {
     char32_t* begin;
     char32_t* end;
 
-    khAstType type;
+    khAstStatementType type;
     union {
         khAstVariable variable;
         khAstExpression expression;
@@ -501,9 +501,9 @@ struct _khAst {
     };
 };
 
-khAst khAst_copy(khAst* ast);
-void khAst_delete(khAst* ast);
-khstring khAst_string(khAst* ast, char32_t* origin);
+khAstStatement khAstStatement_copy(khAstStatement* ast);
+void khAstStatement_delete(khAstStatement* ast);
+khstring khAstStatement_string(khAstStatement* ast, char32_t* origin);
 
 
 #ifdef __cplusplus
