@@ -39,18 +39,18 @@ static int help(void) {
 
     puts("    " kh_ANSI_BOLD "kcr [help]" kh_ANSI_RESET " : shows this help page.");
     puts("    " kh_ANSI_BOLD "kcr version" kh_ANSI_RESET " : shows the used Kithare version.");
-    puts("    " kh_ANSI_BOLD "kcr [run] <file.kr> [... arguments]" kh_ANSI_RESET
+    puts("    " kh_ANSI_BOLD "kcr [run] <file.kh> [... arguments]" kh_ANSI_RESET
          " : builds and runs source file.");
-    puts("    " kh_ANSI_BOLD "kcr debug <file.kr> [... arguments]" kh_ANSI_RESET
+    puts("    " kh_ANSI_BOLD "kcr debug <file.kh> [... arguments]" kh_ANSI_RESET
          " : builds and runs source file on debug mode for debugging.");
-    puts("    " kh_ANSI_BOLD "kcr build <file.kr> [executable.exe]" kh_ANSI_RESET
+    puts("    " kh_ANSI_BOLD "kcr build <file.kh> [executable.exe]" kh_ANSI_RESET
          " : builds source file.");
-    puts("    " kh_ANSI_BOLD "kcr lexicate <file.kr>" kh_ANSI_RESET
+    puts("    " kh_ANSI_BOLD "kcr lexicate <file.kh>" kh_ANSI_RESET
          " : lexicates source file into tokens.");
-    puts("    " kh_ANSI_BOLD "kcr parse <file.kr>" kh_ANSI_RESET
+    puts("    " kh_ANSI_BOLD "kcr parse <file.kh>" kh_ANSI_RESET
          " : parses source file into an AST tree.");
-    puts("    " kh_ANSI_BOLD "kcr semantic <file.kr>" kh_ANSI_RESET
-         " : semantically analyze source file into a semantic tree.");
+    puts("    " kh_ANSI_BOLD "kcr semantic <file.kh>" kh_ANSI_RESET
+         " : semantically analyze source file into a semantic graph.");
 
     puts("\n`" kh_ANSI_BOLD "[...]" kh_ANSI_RESET "` arguments are optional. `" kh_ANSI_BOLD
          "<...>" kh_ANSI_RESET "` arguments are required input arguments.");
@@ -311,7 +311,7 @@ int main(int argc, char* argv[])
         argi++;
         code = semantic();
     }
-    else if (khstring_endswithCstring(&args[1], U".kh")) {
+    else if (khstring_endsWithCstring(&args[1], U".kh")) {
         code = run();
     }
     else {

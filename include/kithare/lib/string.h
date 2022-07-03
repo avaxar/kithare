@@ -118,7 +118,7 @@ static inline bool khstring_equalCstring(khstring* a, const char32_t* b) {
     return true;
 }
 
-static inline bool khstring_startswith(khstring* string, khstring* prefix) {
+static inline bool khstring_startsWith(khstring* string, khstring* prefix) {
     if (khstring_size(string) < khstring_size(prefix)) {
         return false;
     }
@@ -132,7 +132,7 @@ static inline bool khstring_startswith(khstring* string, khstring* prefix) {
     return true;
 }
 
-static inline bool khstring_startswithCstring(khstring* string, const char32_t* prefix) {
+static inline bool khstring_startsWithCstring(khstring* string, const char32_t* prefix) {
     size_t length = 0;
     for (; prefix[length] != '\0'; length++) {}
 
@@ -149,7 +149,7 @@ static inline bool khstring_startswithCstring(khstring* string, const char32_t* 
     return true;
 }
 
-static inline bool khstring_endswith(khstring* string, khstring* suffix) {
+static inline bool khstring_endsWith(khstring* string, khstring* suffix) {
     if (khstring_size(string) < khstring_size(suffix)) {
         return false;
     }
@@ -163,7 +163,7 @@ static inline bool khstring_endswith(khstring* string, khstring* suffix) {
     return true;
 }
 
-static inline bool khstring_endswithCstring(khstring* string, const char32_t* suffix) {
+static inline bool khstring_endsWithCstring(khstring* string, const char32_t* suffix) {
     size_t length = 0;
     for (; suffix[length] != '\0'; length++) {}
 

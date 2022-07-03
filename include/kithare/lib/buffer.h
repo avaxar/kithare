@@ -98,7 +98,7 @@ static inline bool khbuffer_equalCstring(khbuffer* buffer, const char* cstring) 
     return true;
 }
 
-static inline bool khbuffer_startswith(khbuffer* buffer, khbuffer* prefix) {
+static inline bool khbuffer_startsWith(khbuffer* buffer, khbuffer* prefix) {
     if (khbuffer_size(buffer) < khbuffer_size(prefix)) {
         return false;
     }
@@ -112,7 +112,7 @@ static inline bool khbuffer_startswith(khbuffer* buffer, khbuffer* prefix) {
     return true;
 }
 
-static inline bool khbuffer_startswithCstring(khbuffer* buffer, const char* cstring) {
+static inline bool khbuffer_startsWithCstring(khbuffer* buffer, const char* cstring) {
     size_t length = strlen(cstring);
     if (khbuffer_size(buffer) < length) {
         return false;
@@ -127,7 +127,7 @@ static inline bool khbuffer_startswithCstring(khbuffer* buffer, const char* cstr
     return true;
 }
 
-static inline bool khbuffer_endswith(khbuffer* buffer, khbuffer* suffix) {
+static inline bool khbuffer_endsWith(khbuffer* buffer, khbuffer* suffix) {
     if (khbuffer_size(buffer) < khbuffer_size(suffix)) {
         return false;
     }
@@ -141,7 +141,7 @@ static inline bool khbuffer_endswith(khbuffer* buffer, khbuffer* suffix) {
     return true;
 }
 
-static inline bool khbuffer_endswithCstring(khbuffer* buffer, const char* cstring) {
+static inline bool khbuffer_endsWithCstring(khbuffer* buffer, const char* cstring) {
     size_t length = strlen(cstring);
     if (khbuffer_size(buffer) < length) {
         return false;
