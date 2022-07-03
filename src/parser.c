@@ -123,7 +123,7 @@ static khAstExpression exparsePow(char32_t** cursor, EXPARSE_ARGS);
 static khAstExpression exparseReverseUnary(char32_t** cursor, EXPARSE_ARGS);
 static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS);
 
-static khAstExpression exparseFunctionType(char32_t** cursor, bool ignore_newline);
+static khAstExpression exparseSignature(char32_t** cursor, bool ignore_newline);
 static khAstExpression exparseLambda(char32_t** cursor, bool ignore_newline);
 static khAstExpression exparseDict(char32_t** cursor, bool ignore_newline);
 static kharray(khAstExpression) exparseList(char32_t** cursor, khDelimiterToken opening_delimiter,
@@ -2111,10 +2111,10 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
                 skipToken(&initial);
                 khToken next_token = currentToken(&initial, ignore_newline);
 
-                // A function type
+                // A function signature
                 if (next_token.type == khTokenType_DELIMITER &&
                     next_token.delimiter == khDelimiterToken_EXCLAMATION) {
-                    expression = exparseFunctionType(cursor, ignore_newline);
+                    expression = exparseSignature(cursor, ignore_newline);
                 }
                 // A lambda
                 else {
@@ -2327,14 +2327,13 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
     return expression;
 }
 
-static khAstExpression exparseFunctionType(char32_t** cursor, bool ignore_newline) {
+static khAstExpression exparseSignature(char32_t** cursor, bool ignore_newline) {
     khToken token = currentToken(cursor, ignore_newline);
     char32_t* origin = *cursor;
-    khAstFunctionType function_type = {.are_arguments_refs = kharray_new(bool, NULL),
-                                       .argument_types =
-                                           kharray_new(khAstExpression, khAstExpression_delete),
-                                       .is_return_type_ref = false,
-                                       .optional_return_type = NULL};
+    khAstSignature signature = {.are_arguments_refs = kharray_new(bool, NULL),
+                                .argument_types = kharray_new(khAstExpression, khAstExpression_delete),
+                                .is_return_type_ref = false,
+                                .optional_return_type = NULL};
 
     // Ensures `def` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_DEF) {
@@ -2375,15 +2374,15 @@ static khAstExpression exparseFunctionType(char32_t** cursor, bool ignore_newlin
         while (true) {
             // Handles `ref` arguments
             if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_REF) {
-                kharray_append(&function_type.are_arguments_refs, true);
+                kharray_append(&signature.are_arguments_refs, true);
                 skipToken(cursor);
             }
             else {
-                kharray_append(&function_type.are_arguments_refs, false);
+                kharray_append(&signature.are_arguments_refs, false);
             }
 
             // Argument type
-            kharray_append(&function_type.argument_types, kh_parseExpression(cursor, true, true));
+            kharray_append(&signature.argument_types, kh_parseExpression(cursor, true, true));
             khToken_delete(&token);
             token = currentToken(cursor, true);
 
@@ -2417,20 +2416,18 @@ static khAstExpression exparseFunctionType(char32_t** cursor, bool ignore_newlin
 
         // Handles `ref` return type
         if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_REF) {
-            function_type.is_return_type_ref = true;
+            signature.is_return_type_ref = true;
             skipToken(cursor);
         }
 
         // Return type itself
-        function_type.optional_return_type = malloc(sizeof(khAstExpression));
-        *function_type.optional_return_type = kh_parseExpression(cursor, ignore_newline, true);
+        signature.optional_return_type = malloc(sizeof(khAstExpression));
+        *signature.optional_return_type = kh_parseExpression(cursor, ignore_newline, true);
     }
 
     khToken_delete(&token);
-    return (khAstExpression){.begin = origin,
-                             .end = *cursor,
-                             .type = khAstExpressionType_FUNCTION_TYPE,
-                             .function_type = function_type};
+    return (khAstExpression){
+        .begin = origin, .end = *cursor, .type = khAstExpressionType_SIGNATURE, .signature = signature};
 }
 
 static khAstExpression exparseLambda(char32_t** cursor, bool ignore_newline) {

@@ -82,7 +82,7 @@ typedef enum {
     khAstExpressionType_ARRAY,
     khAstExpressionType_DICT,
 
-    khAstExpressionType_FUNCTION_TYPE,
+    khAstExpressionType_SIGNATURE,
     khAstExpressionType_LAMBDA,
 
     khAstExpressionType_UNARY,
@@ -132,12 +132,12 @@ typedef struct {
     kharray(khAstExpression) argument_types;
     bool is_return_type_ref;
     khAstExpression* optional_return_type;
-} khAstFunctionType;
+} khAstSignature;
 
-khAstFunctionType khAstFunctionType_copy(khAstFunctionType* function_type);
+khAstSignature khAstSignature_copy(khAstSignature* signature);
 
-void khAstFunctionType_delete(khAstFunctionType* function_type);
-khstring khAstFunctionType_string(khAstFunctionType* function_type, char32_t* origin);
+void khAstSignature_delete(khAstSignature* signature);
+khstring khAstSignature_string(khAstSignature* signature, char32_t* origin);
 
 
 typedef struct {
@@ -320,7 +320,7 @@ struct _khAstExpression {
         khAstArray array;
         khAstDict dict;
 
-        khAstFunctionType function_type;
+        khAstSignature signature;
         khAstLambda lambda;
 
         khAstUnaryExpression unary;

@@ -166,8 +166,8 @@ khstring khAstExpressionType_string(khAstExpressionType type) {
         case khAstExpressionType_DICT:
             return khstring_new(U"dict");
 
-        case khAstExpressionType_FUNCTION_TYPE:
-            return khstring_new(U"function_type");
+        case khAstExpressionType_SIGNATURE:
+            return khstring_new(U"signature");
         case khAstExpressionType_LAMBDA:
             return khstring_new(U"lambda");
 
@@ -287,56 +287,56 @@ khstring khAstDict_string(khAstDict* dict, char32_t* origin) {
 }
 
 
-khAstFunctionType khAstFunctionType_copy(khAstFunctionType* function_type) {
+khAstSignature khAstSignature_copy(khAstSignature* signature) {
     khAstExpression* optional_return_type = NULL;
-    if (function_type->optional_return_type != NULL) {
+    if (signature->optional_return_type != NULL) {
         optional_return_type = (khAstExpression*)malloc(sizeof(khAstExpression));
-        *optional_return_type = khAstExpression_copy(function_type->optional_return_type);
+        *optional_return_type = khAstExpression_copy(signature->optional_return_type);
     }
 
-    return (khAstFunctionType){
-        .are_arguments_refs = kharray_copy(&function_type->are_arguments_refs, NULL),
-        .argument_types = kharray_copy(&function_type->argument_types, khAstExpression_copy),
-        .is_return_type_ref = function_type->is_return_type_ref,
-        .optional_return_type = optional_return_type};
+    return (khAstSignature){.are_arguments_refs = kharray_copy(&signature->are_arguments_refs, NULL),
+                            .argument_types =
+                                kharray_copy(&signature->argument_types, khAstExpression_copy),
+                            .is_return_type_ref = signature->is_return_type_ref,
+                            .optional_return_type = optional_return_type};
 }
 
-void khAstFunctionType_delete(khAstFunctionType* function_type) {
-    kharray_delete(&function_type->are_arguments_refs);
-    kharray_delete(&function_type->argument_types);
+void khAstSignature_delete(khAstSignature* signature) {
+    kharray_delete(&signature->are_arguments_refs);
+    kharray_delete(&signature->argument_types);
 
-    if (function_type->optional_return_type != NULL) {
-        khAstExpression_delete(function_type->optional_return_type);
-        free(function_type->optional_return_type);
+    if (signature->optional_return_type != NULL) {
+        khAstExpression_delete(signature->optional_return_type);
+        free(signature->optional_return_type);
     }
 }
 
-khstring khAstFunctionType_string(khAstFunctionType* function_type, char32_t* origin) {
+khstring khAstSignature_string(khAstSignature* signature, char32_t* origin) {
     khstring string = khstring_new(U"{\"are_arguments_refs\": [");
-    for (size_t i = 0; i < kharray_size(&function_type->are_arguments_refs); i++) {
-        khstring_concatenateCstring(&string, function_type->are_arguments_refs[i] ? U"true" : U"false");
+    for (size_t i = 0; i < kharray_size(&signature->are_arguments_refs); i++) {
+        khstring_concatenateCstring(&string, signature->are_arguments_refs[i] ? U"true" : U"false");
 
-        if (i < kharray_size(&function_type->are_arguments_refs) - 1) {
+        if (i < kharray_size(&signature->are_arguments_refs) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
 
     khstring_concatenateCstring(&string, U"], \"argument_types\": [");
-    for (size_t i = 0; i < kharray_size(&function_type->argument_types); i++) {
-        khstring argument_type_str = khAstExpression_string(&function_type->argument_types[i], origin);
+    for (size_t i = 0; i < kharray_size(&signature->argument_types); i++) {
+        khstring argument_type_str = khAstExpression_string(&signature->argument_types[i], origin);
         khstring_concatenate(&string, &argument_type_str);
         khstring_delete(&argument_type_str);
 
-        if (i < kharray_size(&function_type->argument_types) - 1) {
+        if (i < kharray_size(&signature->argument_types) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
 
     khstring_concatenateCstring(&string, U"], \"is_return_type_ref\": ");
-    khstring_concatenateCstring(&string, function_type->is_return_type_ref ? U"true" : U"false");
+    khstring_concatenateCstring(&string, signature->is_return_type_ref ? U"true" : U"false");
 
     khstring_concatenateCstring(&string, U", \"optional_return_type\": ");
-    khstring return_type_str = khAstExpression_string(function_type->optional_return_type, origin);
+    khstring return_type_str = khAstExpression_string(signature->optional_return_type, origin);
     khstring_concatenate(&string, &return_type_str);
     khstring_delete(&return_type_str);
 
@@ -869,8 +869,8 @@ khAstExpression khAstExpression_copy(khAstExpression* expression) {
             copy.dict = khAstDict_copy(&expression->dict);
             break;
 
-        case khAstExpressionType_FUNCTION_TYPE:
-            copy.function_type = khAstFunctionType_copy(&expression->function_type);
+        case khAstExpressionType_SIGNATURE:
+            copy.signature = khAstSignature_copy(&expression->signature);
             break;
         case khAstExpressionType_LAMBDA:
             copy.lambda = khAstLambda_copy(&expression->lambda);
@@ -931,8 +931,8 @@ void khAstExpression_delete(khAstExpression* expression) {
             khAstDict_delete(&expression->dict);
             break;
 
-        case khAstExpressionType_FUNCTION_TYPE:
-            khAstFunctionType_delete(&expression->function_type);
+        case khAstExpressionType_SIGNATURE:
+            khAstSignature_delete(&expression->signature);
             break;
         case khAstExpressionType_LAMBDA:
             khAstLambda_delete(&expression->lambda);
@@ -1074,10 +1074,10 @@ khstring khAstExpression_string(khAstExpression* expression, char32_t* origin) {
             khstring_delete(&dict_str);
         } break;
 
-        case khAstExpressionType_FUNCTION_TYPE: {
-            khstring function_type_str = khAstFunctionType_string(&expression->function_type, origin);
-            khstring_concatenate(&string, &function_type_str);
-            khstring_delete(&function_type_str);
+        case khAstExpressionType_SIGNATURE: {
+            khstring signature_str = khAstSignature_string(&expression->signature, origin);
+            khstring_concatenate(&string, &signature_str);
+            khstring_delete(&signature_str);
         } break;
         case khAstExpressionType_LAMBDA: {
             khstring lambda_str = khAstLambda_string(&expression->lambda, origin);
