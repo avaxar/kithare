@@ -166,6 +166,11 @@ khstring khAstExpressionType_string(khAstExpressionType type) {
         case khAstExpressionType_DICT:
             return khstring_new(U"dict");
 
+        case khAstExpressionType_FUNCTION_TYPE:
+            return khstring_new(U"function_type");
+        case khAstExpressionType_LAMBDA:
+            return khstring_new(U"lambda");
+
         case khAstExpressionType_UNARY:
             return khstring_new(U"unary");
         case khAstExpressionType_BINARY:
@@ -179,8 +184,6 @@ khstring khAstExpressionType_string(khAstExpressionType type) {
         case khAstExpressionType_INDEX:
             return khstring_new(U"index");
 
-        case khAstExpressionType_LAMBDA:
-            return khstring_new(U"lambda");
         case khAstExpressionType_SCOPE:
             return khstring_new(U"scope");
         case khAstExpressionType_TEMPLATIZE:
@@ -275,6 +278,150 @@ khstring khAstDict_string(khAstDict* dict, char32_t* origin) {
         khstring_delete(&expression_str);
 
         if (i < kharray_size(&dict->values) - 1) {
+            khstring_concatenateCstring(&string, U", ");
+        }
+    }
+
+    khstring_concatenateCstring(&string, U"]}");
+    return string;
+}
+
+
+khAstFunctionType khAstFunctionType_copy(khAstFunctionType* function_type) {
+    khAstExpression* optional_return_type = NULL;
+    if (function_type->optional_return_type != NULL) {
+        optional_return_type = (khAstExpression*)malloc(sizeof(khAstExpression));
+        *optional_return_type = khAstExpression_copy(function_type->optional_return_type);
+    }
+
+    return (khAstFunctionType){
+        .are_arguments_refs = kharray_copy(&function_type->are_arguments_refs, NULL),
+        .argument_types = kharray_copy(&function_type->argument_types, khAstExpression_copy),
+        .is_return_type_ref = function_type->is_return_type_ref,
+        .optional_return_type = optional_return_type};
+}
+
+void khAstFunctionType_delete(khAstFunctionType* function_type) {
+    kharray_delete(&function_type->are_arguments_refs);
+    kharray_delete(&function_type->argument_types);
+
+    if (function_type->optional_return_type != NULL) {
+        khAstExpression_delete(function_type->optional_return_type);
+        free(function_type->optional_return_type);
+    }
+}
+
+khstring khAstFunctionType_string(khAstFunctionType* function_type, char32_t* origin) {
+    khstring string = khstring_new(U"{\"are_arguments_refs\": [");
+    for (size_t i = 0; i < kharray_size(&function_type->are_arguments_refs); i++) {
+        khstring_concatenateCstring(&string, function_type->are_arguments_refs[i] ? U"true" : U"false");
+
+        if (i < kharray_size(&function_type->are_arguments_refs) - 1) {
+            khstring_concatenateCstring(&string, U", ");
+        }
+    }
+
+    khstring_concatenateCstring(&string, U"], \"argument_types\": [");
+    for (size_t i = 0; i < kharray_size(&function_type->argument_types); i++) {
+        khstring argument_type_str = khAstExpression_string(&function_type->argument_types[i], origin);
+        khstring_concatenate(&string, &argument_type_str);
+        khstring_delete(&argument_type_str);
+
+        if (i < kharray_size(&function_type->argument_types) - 1) {
+            khstring_concatenateCstring(&string, U", ");
+        }
+    }
+
+    khstring_concatenateCstring(&string, U"], \"is_return_type_ref\": ");
+    khstring_concatenateCstring(&string, function_type->is_return_type_ref ? U"true" : U"false");
+
+    khstring_concatenateCstring(&string, U", \"optional_return_type\": ");
+    khstring return_type_str = khAstExpression_string(function_type->optional_return_type, origin);
+    khstring_concatenate(&string, &return_type_str);
+    khstring_delete(&return_type_str);
+
+    khstring_concatenateCstring(&string, U"}");
+    return string;
+}
+
+
+khAstLambda khAstLambda_copy(khAstLambda* lambda) {
+    khAstVariable* optional_variadic_argument = NULL;
+    if (lambda->optional_variadic_argument != NULL) {
+        optional_variadic_argument = (khAstVariable*)malloc(sizeof(khAstExpression));
+        *optional_variadic_argument = khAstVariable_copy(lambda->optional_variadic_argument);
+    }
+
+    khAstExpression* optional_return_type = NULL;
+    if (lambda->optional_return_type != NULL) {
+        optional_return_type = (khAstExpression*)malloc(sizeof(khAstExpression));
+        *optional_return_type = khAstExpression_copy(lambda->optional_return_type);
+    }
+
+    return (khAstLambda){.arguments = kharray_copy(&lambda->arguments, khAstVariable_copy),
+                         .optional_variadic_argument = optional_variadic_argument,
+                         .is_return_type_ref = lambda->is_return_type_ref,
+                         .optional_return_type = optional_return_type,
+                         .block = kharray_copy(&lambda->block, khAstStatement_copy)};
+}
+
+void khAstLambda_delete(khAstLambda* lambda) {
+    kharray_delete(&lambda->arguments);
+    if (lambda->optional_variadic_argument != NULL) {
+        khAstVariable_delete(lambda->optional_variadic_argument);
+        free(lambda->optional_variadic_argument);
+    }
+    if (lambda->optional_return_type != NULL) {
+        khAstExpression_delete(lambda->optional_return_type);
+        free(lambda->optional_return_type);
+    }
+    kharray_delete(&lambda->block);
+}
+
+khstring khAstLambda_string(khAstLambda* lambda, char32_t* origin) {
+    khstring string = khstring_new(U"{\"arguments\": [");
+    for (size_t i = 0; i < kharray_size(&lambda->arguments); i++) {
+        khstring argument_str = khAstVariable_string(&lambda->arguments[i], origin);
+        khstring_concatenate(&string, &argument_str);
+        khstring_delete(&argument_str);
+
+        if (i < kharray_size(&lambda->arguments) - 1) {
+            khstring_concatenateCstring(&string, U", ");
+        }
+    }
+
+    khstring_concatenateCstring(&string, U"], \"optional_variadic_argument\": ");
+    if (lambda->optional_variadic_argument != NULL) {
+        khstring optional_variadic_argument_str =
+            khAstVariable_string(lambda->optional_variadic_argument, origin);
+        khstring_concatenate(&string, &optional_variadic_argument_str);
+        khstring_delete(&optional_variadic_argument_str);
+    }
+    else {
+        khstring_concatenateCstring(&string, U"null");
+    }
+
+    khstring_concatenateCstring(&string, U", \"is_return_type_ref\": ");
+    khstring_concatenateCstring(&string, lambda->is_return_type_ref ? U"true" : U"false");
+
+    khstring_concatenateCstring(&string, U", \"optional_return_type\": ");
+    if (lambda->optional_return_type != NULL) {
+        khstring optional_return_type_str =
+            khAstExpression_string(lambda->optional_return_type, origin);
+        khstring_concatenate(&string, &optional_return_type_str);
+        khstring_delete(&optional_return_type_str);
+    }
+    else {
+        khstring_concatenateCstring(&string, U"null");
+    }
+
+    khstring_concatenateCstring(&string, U", \"block\": [");
+    for (size_t i = 0; i < kharray_size(&lambda->block); i++) {
+        khstring statement_str = khAstStatement_string(&lambda->block[i], origin);
+        khstring_concatenate(&string, &statement_str);
+        khstring_delete(&statement_str);
+
+        if (i < kharray_size(&lambda->block) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -620,92 +767,6 @@ khstring khAstIndexExpression_string(khAstIndexExpression* index_exp, char32_t* 
 }
 
 
-khAstLambdaExpression khAstLambdaExpression_copy(khAstLambdaExpression* lambda) {
-    khAstVariable* optional_variadic_argument = NULL;
-    if (lambda->optional_variadic_argument != NULL) {
-        optional_variadic_argument = (khAstVariable*)malloc(sizeof(khAstExpression));
-        *optional_variadic_argument = khAstVariable_copy(lambda->optional_variadic_argument);
-    }
-
-    khAstExpression* optional_return_type = NULL;
-    if (lambda->optional_return_type != NULL) {
-        optional_return_type = (khAstExpression*)malloc(sizeof(khAstExpression));
-        *optional_return_type = khAstExpression_copy(lambda->optional_return_type);
-    }
-
-    return (khAstLambdaExpression){.arguments = kharray_copy(&lambda->arguments, khAstVariable_copy),
-                                   .optional_variadic_argument = optional_variadic_argument,
-                                   .is_return_type_ref = lambda->is_return_type_ref,
-                                   .optional_return_type = optional_return_type,
-                                   .block = kharray_copy(&lambda->block, khAstStatement_copy)};
-}
-
-void khAstLambdaExpression_delete(khAstLambdaExpression* lambda) {
-    kharray_delete(&lambda->arguments);
-    if (lambda->optional_variadic_argument != NULL) {
-        khAstVariable_delete(lambda->optional_variadic_argument);
-        free(lambda->optional_variadic_argument);
-    }
-    if (lambda->optional_return_type != NULL) {
-        khAstExpression_delete(lambda->optional_return_type);
-        free(lambda->optional_return_type);
-    }
-    kharray_delete(&lambda->block);
-}
-
-khstring khAstLambdaExpression_string(khAstLambdaExpression* lambda, char32_t* origin) {
-    khstring string = khstring_new(U"{\"arguments\": [");
-    for (size_t i = 0; i < kharray_size(&lambda->arguments); i++) {
-        khstring argument_str = khAstVariable_string(&lambda->arguments[i], origin);
-        khstring_concatenate(&string, &argument_str);
-        khstring_delete(&argument_str);
-
-        if (i < kharray_size(&lambda->arguments) - 1) {
-            khstring_concatenateCstring(&string, U", ");
-        }
-    }
-
-    khstring_concatenateCstring(&string, U"], \"optional_variadic_argument\": ");
-    if (lambda->optional_variadic_argument != NULL) {
-        khstring optional_variadic_argument_str =
-            khAstVariable_string(lambda->optional_variadic_argument, origin);
-        khstring_concatenate(&string, &optional_variadic_argument_str);
-        khstring_delete(&optional_variadic_argument_str);
-    }
-    else {
-        khstring_concatenateCstring(&string, U"null");
-    }
-
-    khstring_concatenateCstring(&string, U", \"is_return_type_ref\": ");
-    khstring_concatenateCstring(&string, lambda->is_return_type_ref ? U"true" : U"false");
-
-    khstring_concatenateCstring(&string, U", \"optional_return_type\": ");
-    if (lambda->optional_return_type != NULL) {
-        khstring optional_return_type_str =
-            khAstExpression_string(lambda->optional_return_type, origin);
-        khstring_concatenate(&string, &optional_return_type_str);
-        khstring_delete(&optional_return_type_str);
-    }
-    else {
-        khstring_concatenateCstring(&string, U"null");
-    }
-
-    khstring_concatenateCstring(&string, U", \"block\": [");
-    for (size_t i = 0; i < kharray_size(&lambda->block); i++) {
-        khstring statement_str = khAstStatement_string(&lambda->block[i], origin);
-        khstring_concatenate(&string, &statement_str);
-        khstring_delete(&statement_str);
-
-        if (i < kharray_size(&lambda->block) - 1) {
-            khstring_concatenateCstring(&string, U", ");
-        }
-    }
-
-    khstring_concatenateCstring(&string, U"]}");
-    return string;
-}
-
-
 khAstScopeExpression khAstScopeExpression_copy(khAstScopeExpression* scope_exp) {
     khAstExpression* value = (khAstExpression*)malloc(sizeof(khAstExpression));
     *value = khAstExpression_copy(scope_exp->value);
@@ -742,66 +803,6 @@ khstring khAstScopeExpression_string(khAstScopeExpression* scope_exp, char32_t* 
     }
 
     khstring_concatenateCstring(&string, U"]}");
-    return string;
-}
-
-
-khAstFunctionTypeExpression
-khAstFunctionTypeExpression_copy(khAstFunctionTypeExpression* function_type) {
-    khAstExpression* optional_return_type = NULL;
-    if (function_type->optional_return_type != NULL) {
-        optional_return_type = (khAstExpression*)malloc(sizeof(khAstExpression));
-        *optional_return_type = khAstExpression_copy(function_type->optional_return_type);
-    }
-
-    return (khAstFunctionTypeExpression){
-        .are_arguments_refs = kharray_copy(&function_type->are_arguments_refs, NULL),
-        .argument_types = kharray_copy(&function_type->argument_types, khAstExpression_copy),
-        .is_return_type_ref = function_type->is_return_type_ref,
-        .optional_return_type = optional_return_type};
-}
-
-void khAstFunctionTypeExpression_delete(khAstFunctionTypeExpression* function_type) {
-    kharray_delete(&function_type->are_arguments_refs);
-    kharray_delete(&function_type->argument_types);
-
-    if (function_type->optional_return_type != NULL) {
-        khAstExpression_delete(function_type->optional_return_type);
-        free(function_type->optional_return_type);
-    }
-}
-
-khstring khAstFunctionTypeExpression_string(khAstFunctionTypeExpression* function_type,
-                                            char32_t* origin) {
-    khstring string = khstring_new(U"{\"are_arguments_refs\": [");
-    for (size_t i = 0; i < kharray_size(&function_type->are_arguments_refs); i++) {
-        khstring_concatenateCstring(&string, function_type->are_arguments_refs[i] ? U"true" : U"false");
-
-        if (i < kharray_size(&function_type->are_arguments_refs) - 1) {
-            khstring_concatenateCstring(&string, U", ");
-        }
-    }
-
-    khstring_concatenateCstring(&string, U"], \"argument_types\": [");
-    for (size_t i = 0; i < kharray_size(&function_type->argument_types); i++) {
-        khstring argument_type_str = khAstExpression_string(&function_type->argument_types[i], origin);
-        khstring_concatenate(&string, &argument_type_str);
-        khstring_delete(&argument_type_str);
-
-        if (i < kharray_size(&function_type->argument_types) - 1) {
-            khstring_concatenateCstring(&string, U", ");
-        }
-    }
-
-    khstring_concatenateCstring(&string, U"], \"is_return_type_ref\": ");
-    khstring_concatenateCstring(&string, function_type->is_return_type_ref ? U"true" : U"false");
-
-    khstring_concatenateCstring(&string, U", \"optional_return_type\": ");
-    khstring return_type_str = khAstExpression_string(function_type->optional_return_type, origin);
-    khstring_concatenate(&string, &return_type_str);
-    khstring_delete(&return_type_str);
-
-    khstring_concatenateCstring(&string, U"}");
     return string;
 }
 
@@ -868,6 +869,13 @@ khAstExpression khAstExpression_copy(khAstExpression* expression) {
             copy.dict = khAstDict_copy(&expression->dict);
             break;
 
+        case khAstExpressionType_FUNCTION_TYPE:
+            copy.function_type = khAstFunctionType_copy(&expression->function_type);
+            break;
+        case khAstExpressionType_LAMBDA:
+            copy.lambda = khAstLambda_copy(&expression->lambda);
+            break;
+
         case khAstExpressionType_UNARY:
             copy.unary = khAstUnaryExpression_copy(&expression->unary);
             break;
@@ -887,14 +895,8 @@ khAstExpression khAstExpression_copy(khAstExpression* expression) {
             copy.index = khAstIndexExpression_copy(&expression->index);
             break;
 
-        case khAstExpressionType_LAMBDA:
-            copy.lambda = khAstLambdaExpression_copy(&expression->lambda);
-            break;
         case khAstExpressionType_SCOPE:
             copy.scope = khAstScopeExpression_copy(&expression->scope);
-            break;
-        case khAstExpressionType_FUNCTION_TYPE:
-            copy.function_type = khAstFunctionTypeExpression_copy(&expression->function_type);
             break;
         case khAstExpressionType_TEMPLATIZE:
             copy.templatize = khAstTemplatizeExpression_copy(&expression->templatize);
@@ -929,6 +931,13 @@ void khAstExpression_delete(khAstExpression* expression) {
             khAstDict_delete(&expression->dict);
             break;
 
+        case khAstExpressionType_FUNCTION_TYPE:
+            khAstFunctionType_delete(&expression->function_type);
+            break;
+        case khAstExpressionType_LAMBDA:
+            khAstLambda_delete(&expression->lambda);
+            break;
+
         case khAstExpressionType_UNARY:
             khAstUnaryExpression_delete(&expression->unary);
             break;
@@ -948,14 +957,8 @@ void khAstExpression_delete(khAstExpression* expression) {
             khAstIndexExpression_delete(&expression->index);
             break;
 
-        case khAstExpressionType_LAMBDA:
-            khAstLambdaExpression_delete(&expression->lambda);
-            break;
         case khAstExpressionType_SCOPE:
             khAstScopeExpression_delete(&expression->scope);
-            break;
-        case khAstExpressionType_FUNCTION_TYPE:
-            khAstFunctionTypeExpression_delete(&expression->function_type);
             break;
         case khAstExpressionType_TEMPLATIZE:
             khAstTemplatizeExpression_delete(&expression->templatize);
@@ -1071,6 +1074,17 @@ khstring khAstExpression_string(khAstExpression* expression, char32_t* origin) {
             khstring_delete(&dict_str);
         } break;
 
+        case khAstExpressionType_FUNCTION_TYPE: {
+            khstring function_type_str = khAstFunctionType_string(&expression->function_type, origin);
+            khstring_concatenate(&string, &function_type_str);
+            khstring_delete(&function_type_str);
+        } break;
+        case khAstExpressionType_LAMBDA: {
+            khstring lambda_str = khAstLambda_string(&expression->lambda, origin);
+            khstring_concatenate(&string, &lambda_str);
+            khstring_delete(&lambda_str);
+        } break;
+
         case khAstExpressionType_UNARY: {
             khstring unary_str = khAstUnaryExpression_string(&expression->unary, origin);
             khstring_concatenate(&string, &unary_str);
@@ -1102,21 +1116,10 @@ khstring khAstExpression_string(khAstExpression* expression, char32_t* origin) {
             khstring_delete(&index_str);
         } break;
 
-        case khAstExpressionType_LAMBDA: {
-            khstring lambda_str = khAstLambdaExpression_string(&expression->lambda, origin);
-            khstring_concatenate(&string, &lambda_str);
-            khstring_delete(&lambda_str);
-        } break;
         case khAstExpressionType_SCOPE: {
             khstring scope_str = khAstScopeExpression_string(&expression->scope, origin);
             khstring_concatenate(&string, &scope_str);
             khstring_delete(&scope_str);
-        } break;
-        case khAstExpressionType_FUNCTION_TYPE: {
-            khstring function_type_str =
-                khAstFunctionTypeExpression_string(&expression->function_type, origin);
-            khstring_concatenate(&string, &function_type_str);
-            khstring_delete(&function_type_str);
         } break;
         case khAstExpressionType_TEMPLATIZE: {
             khstring templatize_str = khAstTemplatizeExpression_string(&expression->templatize, origin);

@@ -2330,11 +2330,11 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
 static khAstExpression exparseFunctionType(char32_t** cursor, bool ignore_newline) {
     khToken token = currentToken(cursor, ignore_newline);
     char32_t* origin = *cursor;
-    khAstFunctionTypeExpression function_type = {
-        .are_arguments_refs = kharray_new(bool, NULL),
-        .argument_types = kharray_new(khAstExpression, khAstExpression_delete),
-        .is_return_type_ref = false,
-        .optional_return_type = NULL};
+    khAstFunctionType function_type = {.are_arguments_refs = kharray_new(bool, NULL),
+                                       .argument_types =
+                                           kharray_new(khAstExpression, khAstExpression_delete),
+                                       .is_return_type_ref = false,
+                                       .optional_return_type = NULL};
 
     // Ensures `def` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_DEF) {
@@ -2436,11 +2436,11 @@ static khAstExpression exparseFunctionType(char32_t** cursor, bool ignore_newlin
 static khAstExpression exparseLambda(char32_t** cursor, bool ignore_newline) {
     khToken token = currentToken(cursor, ignore_newline);
     char32_t* origin = *cursor;
-    khAstLambdaExpression lambda = {.arguments = kharray_new(khAstVariable, khAstVariable_delete),
-                                    .optional_variadic_argument = NULL,
-                                    .is_return_type_ref = false,
-                                    .optional_return_type = NULL,
-                                    .block = NULL};
+    khAstLambda lambda = {.arguments = kharray_new(khAstVariable, khAstVariable_delete),
+                          .optional_variadic_argument = NULL,
+                          .is_return_type_ref = false,
+                          .optional_return_type = NULL,
+                          .block = NULL};
 
     // Ensures `def` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_DEF) {

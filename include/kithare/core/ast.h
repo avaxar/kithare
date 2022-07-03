@@ -48,7 +48,7 @@ typedef enum {
 khstring khAstStatementType_string(khAstStatementType type);
 
 
-// This variable declaration AST struct is declared up here, as it is used by khAstLambdaExpression.
+// This variable declaration AST struct is declared up here, as it is used by khAstLambda.
 typedef struct {
     bool is_static;
     bool is_wild;
@@ -82,6 +82,9 @@ typedef enum {
     khAstExpressionType_ARRAY,
     khAstExpressionType_DICT,
 
+    khAstExpressionType_FUNCTION_TYPE,
+    khAstExpressionType_LAMBDA,
+
     khAstExpressionType_UNARY,
     khAstExpressionType_BINARY,
     khAstExpressionType_TERNARY,
@@ -89,9 +92,7 @@ typedef enum {
     khAstExpressionType_CALL,
     khAstExpressionType_INDEX,
 
-    khAstExpressionType_LAMBDA,
     khAstExpressionType_SCOPE,
-    khAstExpressionType_FUNCTION_TYPE,
     khAstExpressionType_TEMPLATIZE
 } khAstExpressionType;
 
@@ -124,6 +125,32 @@ typedef struct {
 khAstDict khAstDict_copy(khAstDict* dict);
 void khAstDict_delete(khAstDict* dict);
 khstring khAstDict_string(khAstDict* dict, char32_t* origin);
+
+
+typedef struct {
+    kharray(bool) are_arguments_refs;
+    kharray(khAstExpression) argument_types;
+    bool is_return_type_ref;
+    khAstExpression* optional_return_type;
+} khAstFunctionType;
+
+khAstFunctionType khAstFunctionType_copy(khAstFunctionType* function_type);
+
+void khAstFunctionType_delete(khAstFunctionType* function_type);
+khstring khAstFunctionType_string(khAstFunctionType* function_type, char32_t* origin);
+
+
+typedef struct {
+    kharray(khAstVariable) arguments;
+    khAstVariable* optional_variadic_argument;
+    bool is_return_type_ref;
+    khAstExpression* optional_return_type;
+    kharray(khAstStatement) block;
+} khAstLambda;
+
+khAstLambda khAstLambda_copy(khAstLambda* lambda);
+void khAstLambda_delete(khAstLambda* lambda);
+khstring khAstLambda_string(khAstLambda* lambda, char32_t* origin);
 
 
 typedef enum {
@@ -252,19 +279,6 @@ khstring khAstIndexExpression_string(khAstIndexExpression* index_exp, char32_t* 
 
 
 typedef struct {
-    kharray(khAstVariable) arguments;
-    khAstVariable* optional_variadic_argument;
-    bool is_return_type_ref;
-    khAstExpression* optional_return_type;
-    kharray(khAstStatement) block;
-} khAstLambdaExpression;
-
-khAstLambdaExpression khAstLambdaExpression_copy(khAstLambdaExpression* lambda);
-void khAstLambdaExpression_delete(khAstLambdaExpression* lambda);
-khstring khAstLambdaExpression_string(khAstLambdaExpression* lambda, char32_t* origin);
-
-
-typedef struct {
     khAstExpression* value;
     kharray(khstring) scope_names;
 } khAstScopeExpression;
@@ -272,22 +286,6 @@ typedef struct {
 khAstScopeExpression khAstScopeExpression_copy(khAstScopeExpression* scope_exp);
 void khAstScopeExpression_delete(khAstScopeExpression* scope_exp);
 khstring khAstScopeExpression_string(khAstScopeExpression* scope_exp, char32_t* origin);
-
-
-typedef struct {
-    kharray(bool) are_arguments_refs;
-    kharray(khAstExpression) argument_types;
-    bool is_return_type_ref;
-    khAstExpression* optional_return_type;
-} khAstFunctionTypeExpression;
-
-// I swear, I hate clang-format for this
-khAstFunctionTypeExpression
-khAstFunctionTypeExpression_copy(khAstFunctionTypeExpression* function_type);
-
-void khAstFunctionTypeExpression_delete(khAstFunctionTypeExpression* function_type);
-khstring khAstFunctionTypeExpression_string(khAstFunctionTypeExpression* function_type,
-                                            char32_t* origin);
 
 
 typedef struct {
@@ -322,6 +320,9 @@ struct _khAstExpression {
         khAstArray array;
         khAstDict dict;
 
+        khAstFunctionType function_type;
+        khAstLambda lambda;
+
         khAstUnaryExpression unary;
         khAstBinaryExpression binary;
         khAstTernaryExpression ternary;
@@ -329,9 +330,7 @@ struct _khAstExpression {
         khAstCallExpression call;
         khAstIndexExpression index;
 
-        khAstLambdaExpression lambda;
         khAstScopeExpression scope;
-        khAstFunctionTypeExpression function_type;
         khAstTemplatizeExpression templatize;
     };
 };
