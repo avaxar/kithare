@@ -2366,8 +2366,7 @@ static khAstExpression exparseSignature(char32_t** cursor, bool ignore_newline) 
     }
 
     // Instant close
-    if (token.type == khTokenType_DELIMITER &&
-        token.delimiter == khDelimiterToken_CURLY_BRACKET_CLOSE) {
+    if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_PARENTHESIS_CLOSE) {
         skipToken(cursor);
     }
     else {
