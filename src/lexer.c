@@ -340,7 +340,7 @@ khToken kh_lexSymbol(char32_t** cursor) {
         case U'+':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_IADD, begin, *cursor);
+                return khToken_fromOperator(khOperatorToken_IP_ADD, begin, *cursor);
             }
             else {
                 return khToken_fromOperator(khOperatorToken_ADD, begin, *cursor);
@@ -349,7 +349,7 @@ khToken kh_lexSymbol(char32_t** cursor) {
         case U'-':
             switch (*(*cursor)++) {
                 case U'=':
-                    return khToken_fromOperator(khOperatorToken_ISUB, begin, *cursor);
+                    return khToken_fromOperator(khOperatorToken_IP_SUB, begin, *cursor);
 
                 case U'>':
                     return khToken_fromDelimiter(khDelimiterToken_ARROW, begin, *cursor);
@@ -362,7 +362,7 @@ khToken kh_lexSymbol(char32_t** cursor) {
         case U'*':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_IMUL, begin, *cursor);
+                return khToken_fromOperator(khOperatorToken_IP_MUL, begin, *cursor);
             }
             else {
                 return khToken_fromOperator(khOperatorToken_MUL, begin, *cursor);
@@ -371,7 +371,7 @@ khToken kh_lexSymbol(char32_t** cursor) {
         case U'/':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_IDIV, begin, *cursor);
+                return khToken_fromOperator(khOperatorToken_IP_DIV, begin, *cursor);
             }
             else {
                 return khToken_fromOperator(khOperatorToken_DIV, begin, *cursor);
@@ -380,7 +380,7 @@ khToken kh_lexSymbol(char32_t** cursor) {
         case U'%':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_IMOD, begin, *cursor);
+                return khToken_fromOperator(khOperatorToken_IP_MOD, begin, *cursor);
             }
             else {
                 return khToken_fromOperator(khOperatorToken_MOD, begin, *cursor);
@@ -389,7 +389,7 @@ khToken kh_lexSymbol(char32_t** cursor) {
         case U'@':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_IDOT, begin, *cursor);
+                return khToken_fromOperator(khOperatorToken_IP_DOT, begin, *cursor);
             }
             else {
                 return khToken_fromOperator(khOperatorToken_DOT, begin, *cursor);
@@ -398,7 +398,7 @@ khToken kh_lexSymbol(char32_t** cursor) {
         case U'^':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_IPOW, begin, *cursor);
+                return khToken_fromOperator(khOperatorToken_IP_POW, begin, *cursor);
             }
             else {
                 return khToken_fromOperator(khOperatorToken_POW, begin, *cursor);
@@ -416,7 +416,7 @@ khToken kh_lexSymbol(char32_t** cursor) {
         case U'!':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_NOT_EQUAL, begin, *cursor);
+                return khToken_fromOperator(khOperatorToken_UNEQUAL, begin, *cursor);
             }
             else {
                 return khToken_fromDelimiter(khDelimiterToken_EXCLAMATION, begin, *cursor);
@@ -425,12 +425,12 @@ khToken kh_lexSymbol(char32_t** cursor) {
         case U'<':
             switch (*(*cursor)++) {
                 case U'=':
-                    return khToken_fromOperator(khOperatorToken_ELESS, begin, *cursor);
+                    return khToken_fromOperator(khOperatorToken_LESS_EQUAL, begin, *cursor);
 
                 case U'<':
                     if (**cursor == U'=') {
                         (*cursor)++;
-                        return khToken_fromOperator(khOperatorToken_IBIT_LSHIFT, begin, *cursor);
+                        return khToken_fromOperator(khOperatorToken_IP_BIT_LSHIFT, begin, *cursor);
                     }
                     else {
                         return khToken_fromOperator(khOperatorToken_BIT_LSHIFT, begin, *cursor);
@@ -444,12 +444,12 @@ khToken kh_lexSymbol(char32_t** cursor) {
         case U'>':
             switch (*(*cursor)++) {
                 case U'=':
-                    return khToken_fromOperator(khOperatorToken_EMORE, begin, *cursor);
+                    return khToken_fromOperator(khOperatorToken_GREATER_EQUAL, begin, *cursor);
 
                 case U'<':
                     if (**cursor == U'=') {
                         (*cursor)++;
-                        return khToken_fromOperator(khOperatorToken_IBIT_RSHIFT, begin, *cursor);
+                        return khToken_fromOperator(khOperatorToken_IP_BIT_RSHIFT, begin, *cursor);
                     }
                     else {
                         return khToken_fromOperator(khOperatorToken_BIT_RSHIFT, begin, *cursor);
@@ -457,13 +457,13 @@ khToken kh_lexSymbol(char32_t** cursor) {
 
                 default:
                     (*cursor)--;
-                    return khToken_fromOperator(khOperatorToken_MORE, begin, *cursor);
+                    return khToken_fromOperator(khOperatorToken_GREATER, begin, *cursor);
             }
 
         case U'~':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_IBIT_XOR, begin, *cursor);
+                return khToken_fromOperator(khOperatorToken_IP_BIT_XOR, begin, *cursor);
             }
             else {
                 // It's also khOperatorToken_BIT_XOR
@@ -473,7 +473,7 @@ khToken kh_lexSymbol(char32_t** cursor) {
         case U'&':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_IBIT_AND, begin, *cursor);
+                return khToken_fromOperator(khOperatorToken_IP_BIT_AND, begin, *cursor);
             }
             else {
                 return khToken_fromOperator(khOperatorToken_BIT_AND, begin, *cursor);
@@ -482,7 +482,7 @@ khToken kh_lexSymbol(char32_t** cursor) {
         case U'|':
             if (**cursor == U'=') {
                 (*cursor)++;
-                return khToken_fromOperator(khOperatorToken_IBIT_OR, begin, *cursor);
+                return khToken_fromOperator(khOperatorToken_IP_BIT_OR, begin, *cursor);
             }
             else {
                 return khToken_fromOperator(khOperatorToken_BIT_OR, begin, *cursor);

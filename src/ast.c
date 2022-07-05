@@ -501,20 +501,20 @@ khstring khAstBinaryExpressionType_string(khAstBinaryExpressionType type) {
         case khAstBinaryExpressionType_POW:
             return khstring_new(U"pow");
 
-        case khAstBinaryExpressionType_IADD:
-            return khstring_new(U"iadd");
-        case khAstBinaryExpressionType_ISUB:
-            return khstring_new(U"isub");
-        case khAstBinaryExpressionType_IMUL:
-            return khstring_new(U"imul");
-        case khAstBinaryExpressionType_IDIV:
-            return khstring_new(U"idiv");
-        case khAstBinaryExpressionType_IMOD:
-            return khstring_new(U"imod");
-        case khAstBinaryExpressionType_IDOT:
-            return khstring_new(U"idot");
-        case khAstBinaryExpressionType_IPOW:
-            return khstring_new(U"ipow");
+        case khAstBinaryExpressionType_IP_ADD:
+            return khstring_new(U"ip_add");
+        case khAstBinaryExpressionType_IP_SUB:
+            return khstring_new(U"ip_sub");
+        case khAstBinaryExpressionType_IP_MUL:
+            return khstring_new(U"ip_mul");
+        case khAstBinaryExpressionType_IP_DIV:
+            return khstring_new(U"ip_div");
+        case khAstBinaryExpressionType_IP_MOD:
+            return khstring_new(U"ip_mod");
+        case khAstBinaryExpressionType_IP_DOT:
+            return khstring_new(U"ip_dot");
+        case khAstBinaryExpressionType_IP_POW:
+            return khstring_new(U"ip_pow");
 
         case khAstBinaryExpressionType_AND:
             return khstring_new(U"and");
@@ -534,16 +534,16 @@ khstring khAstBinaryExpressionType_string(khAstBinaryExpressionType type) {
         case khAstBinaryExpressionType_BIT_RSHIFT:
             return khstring_new(U"bit_rshift");
 
-        case khAstBinaryExpressionType_IBIT_AND:
-            return khstring_new(U"ibit_and");
-        case khAstBinaryExpressionType_IBIT_OR:
-            return khstring_new(U"ibit_or");
-        case khAstBinaryExpressionType_IBIT_XOR:
-            return khstring_new(U"ibit_xor");
-        case khAstBinaryExpressionType_IBIT_LSHIFT:
-            return khstring_new(U"ibit_lshift");
-        case khAstBinaryExpressionType_IBIT_RSHIFT:
-            return khstring_new(U"ibit_rshift");
+        case khAstBinaryExpressionType_IP_BIT_AND:
+            return khstring_new(U"ip_bit_and");
+        case khAstBinaryExpressionType_IP_BIT_OR:
+            return khstring_new(U"ip_bit_or");
+        case khAstBinaryExpressionType_IP_BIT_XOR:
+            return khstring_new(U"ip_bit_xor");
+        case khAstBinaryExpressionType_IP_BIT_LSHIFT:
+            return khstring_new(U"ip_bit_lshift");
+        case khAstBinaryExpressionType_IP_BIT_RSHIFT:
+            return khstring_new(U"ip_bit_rshift");
 
         default:
             return khstring_new(U"unknown");
@@ -637,16 +637,16 @@ khstring khAstComparisonExpressionType_string(khAstComparisonExpressionType type
     switch (type) {
         case khAstComparisonExpressionType_EQUAL:
             return khstring_new(U"equal");
-        case khAstComparisonExpressionType_NOT_EQUAL:
-            return khstring_new(U"not_equal");
+        case khAstComparisonExpressionType_UNEQUAL:
+            return khstring_new(U"unequal");
         case khAstComparisonExpressionType_LESS:
             return khstring_new(U"less");
-        case khAstComparisonExpressionType_MORE:
-            return khstring_new(U"more");
-        case khAstComparisonExpressionType_ELESS:
-            return khstring_new(U"eless");
-        case khAstComparisonExpressionType_EMORE:
-            return khstring_new(U"emore");
+        case khAstComparisonExpressionType_GREATER:
+            return khstring_new(U"greater");
+        case khAstComparisonExpressionType_LESS_EQUAL:
+            return khstring_new(U"less_equal");
+        case khAstComparisonExpressionType_GREATER_EQUAL:
+            return khstring_new(U"greater_equal");
 
         default:
             return khstring_new(U"unknown");

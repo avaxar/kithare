@@ -108,20 +108,20 @@ typedef enum {
     khOperatorToken_DOT,
     khOperatorToken_POW,
 
-    khOperatorToken_IADD,
-    khOperatorToken_ISUB,
-    khOperatorToken_IMUL,
-    khOperatorToken_IDIV,
-    khOperatorToken_IMOD,
-    khOperatorToken_IDOT,
-    khOperatorToken_IPOW,
+    khOperatorToken_IP_ADD,
+    khOperatorToken_IP_SUB,
+    khOperatorToken_IP_MUL,
+    khOperatorToken_IP_DIV,
+    khOperatorToken_IP_MOD,
+    khOperatorToken_IP_DOT,
+    khOperatorToken_IP_POW,
 
     khOperatorToken_EQUAL,
-    khOperatorToken_NOT_EQUAL,
+    khOperatorToken_UNEQUAL,
     khOperatorToken_LESS,
-    khOperatorToken_MORE,
-    khOperatorToken_ELESS,
-    khOperatorToken_EMORE,
+    khOperatorToken_GREATER,
+    khOperatorToken_LESS_EQUAL,
+    khOperatorToken_GREATER_EQUAL,
 
     khOperatorToken_NOT,
     khOperatorToken_AND,
@@ -135,11 +135,11 @@ typedef enum {
     khOperatorToken_BIT_LSHIFT = khOperatorToken_BIT_OR + 1,
     khOperatorToken_BIT_RSHIFT,
 
-    khOperatorToken_IBIT_AND,
-    khOperatorToken_IBIT_OR,
-    khOperatorToken_IBIT_XOR,
-    khOperatorToken_IBIT_LSHIFT,
-    khOperatorToken_IBIT_RSHIFT
+    khOperatorToken_IP_BIT_AND,
+    khOperatorToken_IP_BIT_OR,
+    khOperatorToken_IP_BIT_XOR,
+    khOperatorToken_IP_BIT_LSHIFT,
+    khOperatorToken_IP_BIT_RSHIFT
 } khOperatorToken;
 
 khstring khOperatorToken_string(khOperatorToken operator_v);

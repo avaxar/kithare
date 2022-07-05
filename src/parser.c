@@ -104,7 +104,7 @@ static khAstReturn sparseReturn(char32_t** cursor);
 
 // Sub-level expression parsing levels, by lowest to highest precedence
 #define EXPARSE_ARGS bool ignore_newline, bool filter_type
-static khAstExpression exparseInplaceOperators(char32_t** cursor, EXPARSE_ARGS);
+static khAstExpression exparseIpAssignmentOperators(char32_t** cursor, EXPARSE_ARGS);
 static khAstExpression exparseTernary(char32_t** cursor, EXPARSE_ARGS);
 static khAstExpression exparseLogicalOr(char32_t** cursor, EXPARSE_ARGS);
 static khAstExpression exparseLogicalXor(char32_t** cursor, EXPARSE_ARGS);
@@ -1491,7 +1491,7 @@ static khAstReturn sparseReturn(char32_t** cursor) {
 }
 
 
-// Macro to do recursive descent for binary operators in a switch statement
+// Macro to do recursive descent for a single binary operator as the whole function block
 #define RCD_BINARY(LOWER, TOKEN_OPERATOR, OPERATOR)                                                 \
     khToken token = currentToken(cursor, ignore_newline);                                           \
     char32_t* origin = token.begin;                                                                 \
@@ -1527,7 +1527,7 @@ static khAstReturn sparseReturn(char32_t** cursor) {
     return expression;
 
 
-// Macro to do recursive descent for a single binary operator as the whole function block
+// Macro to do recursive descent for binary operators in a switch statement
 #define RCD_BINARY_CASE(LOWER, OPERATOR)                                                            \
     {                                                                                               \
         skipToken(cursor);                                                                          \
@@ -1550,10 +1550,10 @@ static khAstReturn sparseReturn(char32_t** cursor) {
 
 
 khAstExpression kh_parseExpression(char32_t** cursor, EXPARSE_ARGS) {
-    return exparseInplaceOperators(cursor, ignore_newline, filter_type);
+    return exparseIpAssignmentOperators(cursor, ignore_newline, filter_type);
 }
 
-static khAstExpression exparseInplaceOperators(char32_t** cursor, EXPARSE_ARGS) {
+static khAstExpression exparseIpAssignmentOperators(char32_t** cursor, EXPARSE_ARGS) {
     khToken token = currentToken(cursor, ignore_newline);
     char32_t* origin = token.begin;
     khToken_delete(&token);
@@ -1569,34 +1569,36 @@ static khAstExpression exparseInplaceOperators(char32_t** cursor, EXPARSE_ARGS) 
     // All inplace operators
     while (token.type == khTokenType_OPERATOR) {
         switch (token.operator_v) {
+            // These LOWER macro arguments are set to this very function itself,
+            // in order to parse inplace/assignment operators from right to left.
             case khOperatorToken_ASSIGN:
-                RCD_BINARY_CASE(exparseTernary, khAstBinaryExpressionType_ASSIGN);
+                RCD_BINARY_CASE(exparseIpAssignmentOperators, khAstBinaryExpressionType_ASSIGN);
 
-            case khOperatorToken_IADD:
-                RCD_BINARY_CASE(exparseTernary, khAstBinaryExpressionType_IADD);
-            case khOperatorToken_ISUB:
-                RCD_BINARY_CASE(exparseTernary, khAstBinaryExpressionType_ISUB);
-            case khOperatorToken_IMUL:
-                RCD_BINARY_CASE(exparseTernary, khAstBinaryExpressionType_IMUL);
-            case khOperatorToken_IDIV:
-                RCD_BINARY_CASE(exparseTernary, khAstBinaryExpressionType_IDIV);
-            case khOperatorToken_IMOD:
-                RCD_BINARY_CASE(exparseTernary, khAstBinaryExpressionType_IMOD);
-            case khOperatorToken_IPOW:
-                RCD_BINARY_CASE(exparseTernary, khAstBinaryExpressionType_IPOW);
-            case khOperatorToken_IDOT:
-                RCD_BINARY_CASE(exparseTernary, khAstBinaryExpressionType_IDOT);
+            case khOperatorToken_IP_ADD:
+                RCD_BINARY_CASE(exparseIpAssignmentOperators, khAstBinaryExpressionType_IP_ADD);
+            case khOperatorToken_IP_SUB:
+                RCD_BINARY_CASE(exparseIpAssignmentOperators, khAstBinaryExpressionType_IP_SUB);
+            case khOperatorToken_IP_MUL:
+                RCD_BINARY_CASE(exparseIpAssignmentOperators, khAstBinaryExpressionType_IP_MUL);
+            case khOperatorToken_IP_DIV:
+                RCD_BINARY_CASE(exparseIpAssignmentOperators, khAstBinaryExpressionType_IP_DIV);
+            case khOperatorToken_IP_MOD:
+                RCD_BINARY_CASE(exparseIpAssignmentOperators, khAstBinaryExpressionType_IP_MOD);
+            case khOperatorToken_IP_POW:
+                RCD_BINARY_CASE(exparseIpAssignmentOperators, khAstBinaryExpressionType_IP_POW);
+            case khOperatorToken_IP_DOT:
+                RCD_BINARY_CASE(exparseIpAssignmentOperators, khAstBinaryExpressionType_IP_DOT);
 
-            case khOperatorToken_IBIT_AND:
-                RCD_BINARY_CASE(exparseTernary, khAstBinaryExpressionType_IBIT_AND);
-            case khOperatorToken_IBIT_OR:
-                RCD_BINARY_CASE(exparseTernary, khAstBinaryExpressionType_IBIT_OR);
-            case khOperatorToken_IBIT_XOR:
-                RCD_BINARY_CASE(exparseTernary, khAstBinaryExpressionType_IBIT_XOR);
-            case khOperatorToken_IBIT_LSHIFT:
-                RCD_BINARY_CASE(exparseTernary, khAstBinaryExpressionType_IBIT_LSHIFT);
-            case khOperatorToken_IBIT_RSHIFT:
-                RCD_BINARY_CASE(exparseTernary, khAstBinaryExpressionType_IBIT_RSHIFT);
+            case khOperatorToken_IP_BIT_AND:
+                RCD_BINARY_CASE(exparseIpAssignmentOperators, khAstBinaryExpressionType_IP_BIT_AND);
+            case khOperatorToken_IP_BIT_OR:
+                RCD_BINARY_CASE(exparseIpAssignmentOperators, khAstBinaryExpressionType_IP_BIT_OR);
+            case khOperatorToken_IP_BIT_XOR:
+                RCD_BINARY_CASE(exparseIpAssignmentOperators, khAstBinaryExpressionType_IP_BIT_XOR);
+            case khOperatorToken_IP_BIT_LSHIFT:
+                RCD_BINARY_CASE(exparseIpAssignmentOperators, khAstBinaryExpressionType_IP_BIT_LSHIFT);
+            case khOperatorToken_IP_BIT_RSHIFT:
+                RCD_BINARY_CASE(exparseIpAssignmentOperators, khAstBinaryExpressionType_IP_BIT_RSHIFT);
 
             default:
                 goto out;
@@ -1714,11 +1716,12 @@ static khAstExpression exparseComparisonOperators(char32_t** cursor, EXPARSE_ARG
 
     token = currentToken(cursor, ignore_newline);
 
-    // If any comparison operators found, start these mess
+    // If any comparison operators found, start this mess
     if (token.type == khTokenType_OPERATOR &&
-        (token.operator_v == khOperatorToken_EQUAL || token.operator_v == khOperatorToken_NOT_EQUAL ||
-         token.operator_v == khOperatorToken_LESS || token.operator_v == khOperatorToken_MORE ||
-         token.operator_v == khOperatorToken_ELESS || token.operator_v == khOperatorToken_EMORE)) {
+        (token.operator_v == khOperatorToken_EQUAL || token.operator_v == khOperatorToken_UNEQUAL ||
+         token.operator_v == khOperatorToken_LESS || token.operator_v == khOperatorToken_GREATER ||
+         token.operator_v == khOperatorToken_LESS_EQUAL ||
+         token.operator_v == khOperatorToken_GREATER_EQUAL)) {
         kharray(khAstComparisonExpressionType) operations =
             kharray_new(khAstComparisonExpressionType, NULL);
         kharray(khAstExpression) operands = kharray_new(khAstExpression, khAstExpression_delete);
@@ -1730,20 +1733,20 @@ static khAstExpression exparseComparisonOperators(char32_t** cursor, EXPARSE_ARG
                 case khOperatorToken_EQUAL:
                     kharray_append(&operations, khAstComparisonExpressionType_EQUAL);
                     break;
-                case khOperatorToken_NOT_EQUAL:
-                    kharray_append(&operations, khAstComparisonExpressionType_NOT_EQUAL);
+                case khOperatorToken_UNEQUAL:
+                    kharray_append(&operations, khAstComparisonExpressionType_UNEQUAL);
                     break;
                 case khOperatorToken_LESS:
                     kharray_append(&operations, khAstComparisonExpressionType_LESS);
                     break;
-                case khOperatorToken_MORE:
-                    kharray_append(&operations, khAstComparisonExpressionType_MORE);
+                case khOperatorToken_GREATER:
+                    kharray_append(&operations, khAstComparisonExpressionType_GREATER);
                     break;
-                case khOperatorToken_ELESS:
-                    kharray_append(&operations, khAstComparisonExpressionType_ELESS);
+                case khOperatorToken_LESS_EQUAL:
+                    kharray_append(&operations, khAstComparisonExpressionType_LESS_EQUAL);
                     break;
-                case khOperatorToken_EMORE:
-                    kharray_append(&operations, khAstComparisonExpressionType_EMORE);
+                case khOperatorToken_GREATER_EQUAL:
+                    kharray_append(&operations, khAstComparisonExpressionType_GREATER_EQUAL);
                     break;
 
                 default:

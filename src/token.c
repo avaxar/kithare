@@ -173,32 +173,32 @@ khstring khOperatorToken_string(khOperatorToken operator_v) {
         case khOperatorToken_POW:
             return khstring_new(U"^");
 
-        case khOperatorToken_IADD:
+        case khOperatorToken_IP_ADD:
             return khstring_new(U"+=");
-        case khOperatorToken_ISUB:
+        case khOperatorToken_IP_SUB:
             return khstring_new(U"-=");
-        case khOperatorToken_IMUL:
+        case khOperatorToken_IP_MUL:
             return khstring_new(U"*=");
-        case khOperatorToken_IDIV:
+        case khOperatorToken_IP_DIV:
             return khstring_new(U"/=");
-        case khOperatorToken_IMOD:
+        case khOperatorToken_IP_MOD:
             return khstring_new(U"%=");
-        case khOperatorToken_IDOT:
+        case khOperatorToken_IP_DOT:
             return khstring_new(U"@=");
-        case khOperatorToken_IPOW:
+        case khOperatorToken_IP_POW:
             return khstring_new(U"^=");
 
         case khOperatorToken_EQUAL:
             return khstring_new(U"==");
-        case khOperatorToken_NOT_EQUAL:
+        case khOperatorToken_UNEQUAL:
             return khstring_new(U"!=");
         case khOperatorToken_LESS:
             return khstring_new(U"<");
-        case khOperatorToken_MORE:
+        case khOperatorToken_GREATER:
             return khstring_new(U">");
-        case khOperatorToken_ELESS:
+        case khOperatorToken_LESS_EQUAL:
             return khstring_new(U"<=");
-        case khOperatorToken_EMORE:
+        case khOperatorToken_GREATER_EQUAL:
             return khstring_new(U">=");
 
         case khOperatorToken_NOT:
@@ -221,15 +221,15 @@ khstring khOperatorToken_string(khOperatorToken operator_v) {
         case khOperatorToken_BIT_RSHIFT:
             return khstring_new(U">>");
 
-        case khOperatorToken_IBIT_AND:
+        case khOperatorToken_IP_BIT_AND:
             return khstring_new(U"&=");
-        case khOperatorToken_IBIT_OR:
+        case khOperatorToken_IP_BIT_OR:
             return khstring_new(U"|=");
-        case khOperatorToken_IBIT_XOR:
+        case khOperatorToken_IP_BIT_XOR:
             return khstring_new(U"~=");
-        case khOperatorToken_IBIT_LSHIFT:
+        case khOperatorToken_IP_BIT_LSHIFT:
             return khstring_new(U"<<=");
-        case khOperatorToken_IBIT_RSHIFT:
+        case khOperatorToken_IP_BIT_RSHIFT:
             return khstring_new(U">>=");
 
         default:

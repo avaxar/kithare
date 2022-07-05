@@ -18,8 +18,8 @@ extern "C" {
 #include <kithare/lib/string.h>
 
 
-typedef struct _khAstStatement khAstStatement;
-typedef struct _khAstExpression khAstExpression;
+typedef struct khAstStatement khAstStatement;
+typedef struct khAstExpression khAstExpression;
 
 
 typedef enum {
@@ -186,13 +186,13 @@ typedef enum {
     khAstBinaryExpressionType_DOT,
     khAstBinaryExpressionType_POW,
 
-    khAstBinaryExpressionType_IADD,
-    khAstBinaryExpressionType_ISUB,
-    khAstBinaryExpressionType_IMUL,
-    khAstBinaryExpressionType_IDIV,
-    khAstBinaryExpressionType_IMOD,
-    khAstBinaryExpressionType_IDOT,
-    khAstBinaryExpressionType_IPOW,
+    khAstBinaryExpressionType_IP_ADD,
+    khAstBinaryExpressionType_IP_SUB,
+    khAstBinaryExpressionType_IP_MUL,
+    khAstBinaryExpressionType_IP_DIV,
+    khAstBinaryExpressionType_IP_MOD,
+    khAstBinaryExpressionType_IP_DOT,
+    khAstBinaryExpressionType_IP_POW,
 
     khAstBinaryExpressionType_AND,
     khAstBinaryExpressionType_OR,
@@ -204,11 +204,11 @@ typedef enum {
     khAstBinaryExpressionType_BIT_LSHIFT,
     khAstBinaryExpressionType_BIT_RSHIFT,
 
-    khAstBinaryExpressionType_IBIT_AND,
-    khAstBinaryExpressionType_IBIT_OR,
-    khAstBinaryExpressionType_IBIT_XOR,
-    khAstBinaryExpressionType_IBIT_LSHIFT,
-    khAstBinaryExpressionType_IBIT_RSHIFT
+    khAstBinaryExpressionType_IP_BIT_AND,
+    khAstBinaryExpressionType_IP_BIT_OR,
+    khAstBinaryExpressionType_IP_BIT_XOR,
+    khAstBinaryExpressionType_IP_BIT_LSHIFT,
+    khAstBinaryExpressionType_IP_BIT_RSHIFT
 } khAstBinaryExpressionType;
 
 khstring khAstBinaryExpressionType_string(khAstBinaryExpressionType type);
@@ -238,11 +238,11 @@ khstring khAstTernaryExpression_string(khAstTernaryExpression* ternary_exp, char
 
 typedef enum {
     khAstComparisonExpressionType_EQUAL,
-    khAstComparisonExpressionType_NOT_EQUAL,
+    khAstComparisonExpressionType_UNEQUAL,
     khAstComparisonExpressionType_LESS,
-    khAstComparisonExpressionType_MORE,
-    khAstComparisonExpressionType_ELESS,
-    khAstComparisonExpressionType_EMORE
+    khAstComparisonExpressionType_GREATER,
+    khAstComparisonExpressionType_LESS_EQUAL,
+    khAstComparisonExpressionType_GREATER_EQUAL
 } khAstComparisonExpressionType;
 
 khstring khAstComparisonExpressionType_string(khAstComparisonExpressionType type);
@@ -298,7 +298,7 @@ void khAstTemplatizeExpression_delete(khAstTemplatizeExpression* templatize_exp)
 khstring khAstTemplatizeExpression_string(khAstTemplatizeExpression* templatize_exp, char32_t* origin);
 
 
-struct _khAstExpression {
+struct khAstExpression {
     char32_t* begin;
     char32_t* end;
 
@@ -475,7 +475,7 @@ void khAstReturn_delete(khAstReturn* return_v);
 khstring khAstReturn_string(khAstReturn* return_v, char32_t* origin);
 
 
-struct _khAstStatement {
+struct khAstStatement {
     char32_t* begin;
     char32_t* end;
 
