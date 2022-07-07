@@ -1455,7 +1455,7 @@ khstring khAstStruct_string(khAstStruct* struct_v, char32_t* origin) {
         }
     }
 
-    khstring_concatenateCstring(&string, U", \"block\": [");
+    khstring_concatenateCstring(&string, U"], \"block\": [");
     for (size_t i = 0; i < kharray_size(&struct_v->block); i++) {
         khstring statement_str = khAstStatement_string(&struct_v->block[i], origin);
         khstring_concatenate(&string, &statement_str);
