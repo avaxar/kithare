@@ -73,13 +73,13 @@ khAstVariable khAstVariable_copy(khAstVariable* variable) {
     return (khAstVariable){.is_static = variable->is_static,
                            .is_wild = variable->is_wild,
                            .is_ref = variable->is_ref,
-                           .name = khstring_copy(&variable->name),
+                           .names = kharray_copy(&variable->names, khstring_copy),
                            .opt_type = opt_type,
                            .opt_initializer = opt_initializer};
 }
 
 void khAstVariable_delete(khAstVariable* variable) {
-    khstring_delete(&variable->name);
+    kharray_delete(&variable->names);
     if (variable->opt_type != NULL) {
         khAstExpression_delete(variable->opt_type);
         free(variable->opt_type);
@@ -100,12 +100,18 @@ khstring khAstVariable_string(khAstVariable* variable, char32_t* origin) {
     khstring_concatenateCstring(&string, U", \"is_ref\": ");
     khstring_concatenateCstring(&string, variable->is_ref ? U"true" : U"false");
 
-    khstring_concatenateCstring(&string, U", \"name\": ");
-    khstring quoted_name = khstring_quote(&variable->name);
-    khstring_concatenate(&string, &quoted_name);
-    khstring_delete(&quoted_name);
+    khstring_concatenateCstring(&string, U", \"names\": [");
+    for (size_t i = 0; i < kharray_size(&variable->names); i++) {
+        khstring quoted_name = khstring_quote(&variable->names[i]);
+        khstring_concatenate(&string, &quoted_name);
+        khstring_delete(&quoted_name);
 
-    khstring_concatenateCstring(&string, U", \"opt_type\": ");
+        if (i != kharray_size(&variable->names) - 1) {
+            khstring_concatenateCstring(&string, U", ");
+        }
+    }
+
+    khstring_concatenateCstring(&string, U"], \"opt_type\": ");
     if (variable->opt_type != NULL) {
         khstring opt_type_str = khAstExpression_string(variable->opt_type, origin);
         khstring_concatenate(&string, &opt_type_str);
@@ -212,7 +218,7 @@ khstring khAstTuple_string(khAstTuple* tuple, char32_t* origin) {
         khstring_concatenate(&string, &expression_str);
         khstring_delete(&expression_str);
 
-        if (i < kharray_size(&tuple->values) - 1) {
+        if (i != kharray_size(&tuple->values) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -238,7 +244,7 @@ khstring khAstArray_string(khAstArray* array, char32_t* origin) {
         khstring_concatenate(&string, &expression_str);
         khstring_delete(&expression_str);
 
-        if (i < kharray_size(&array->values) - 1) {
+        if (i != kharray_size(&array->values) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -266,7 +272,7 @@ khstring khAstDict_string(khAstDict* dict, char32_t* origin) {
         khstring_concatenate(&string, &expression_str);
         khstring_delete(&expression_str);
 
-        if (i < kharray_size(&dict->keys) - 1) {
+        if (i != kharray_size(&dict->keys) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -278,7 +284,7 @@ khstring khAstDict_string(khAstDict* dict, char32_t* origin) {
         khstring_concatenate(&string, &expression_str);
         khstring_delete(&expression_str);
 
-        if (i < kharray_size(&dict->values) - 1) {
+        if (i != kharray_size(&dict->values) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -317,7 +323,7 @@ khstring khAstSignature_string(khAstSignature* signature, char32_t* origin) {
     for (size_t i = 0; i < kharray_size(&signature->are_arguments_refs); i++) {
         khstring_concatenateCstring(&string, signature->are_arguments_refs[i] ? U"true" : U"false");
 
-        if (i < kharray_size(&signature->are_arguments_refs) - 1) {
+        if (i != kharray_size(&signature->are_arguments_refs) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -328,7 +334,7 @@ khstring khAstSignature_string(khAstSignature* signature, char32_t* origin) {
         khstring_concatenate(&string, &argument_type_str);
         khstring_delete(&argument_type_str);
 
-        if (i < kharray_size(&signature->argument_types) - 1) {
+        if (i != kharray_size(&signature->argument_types) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -386,7 +392,7 @@ khstring khAstLambda_string(khAstLambda* lambda, char32_t* origin) {
         khstring_concatenate(&string, &argument_str);
         khstring_delete(&argument_str);
 
-        if (i < kharray_size(&lambda->arguments) - 1) {
+        if (i != kharray_size(&lambda->arguments) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -421,7 +427,7 @@ khstring khAstLambda_string(khAstLambda* lambda, char32_t* origin) {
         khstring_concatenate(&string, &statement_str);
         khstring_delete(&statement_str);
 
-        if (i < kharray_size(&lambda->block) - 1) {
+        if (i != kharray_size(&lambda->block) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -674,7 +680,7 @@ khstring khAstComparisonExpression_string(khAstComparisonExpression* comparison_
         khstring_delete(&operation_str);
         khstring_delete(&quoted_operation);
 
-        if (i < kharray_size(&comparison_exp->operations) - 1) {
+        if (i != kharray_size(&comparison_exp->operations) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -685,7 +691,7 @@ khstring khAstComparisonExpression_string(khAstComparisonExpression* comparison_
         khstring_concatenate(&string, &operand_str);
         khstring_delete(&operand_str);
 
-        if (i < kharray_size(&comparison_exp->operands) - 1) {
+        if (i != kharray_size(&comparison_exp->operands) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -721,7 +727,7 @@ khstring khAstCallExpression_string(khAstCallExpression* call_exp, char32_t* ori
         khstring_concatenate(&string, &argument_str);
         khstring_delete(&argument_str);
 
-        if (i < kharray_size(&call_exp->arguments) - 1) {
+        if (i != kharray_size(&call_exp->arguments) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -757,7 +763,7 @@ khstring khAstIndexExpression_string(khAstIndexExpression* index_exp, char32_t* 
         khstring_concatenate(&string, &argument_str);
         khstring_delete(&argument_str);
 
-        if (i < kharray_size(&index_exp->arguments) - 1) {
+        if (i != kharray_size(&index_exp->arguments) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -797,7 +803,7 @@ khstring khAstScopeExpression_string(khAstScopeExpression* scope_exp, char32_t* 
         khstring_concatenate(&string, &quoted_scope_name);
         khstring_delete(&quoted_scope_name);
 
-        if (i < kharray_size(&scope_exp->scope_names) - 1) {
+        if (i != kharray_size(&scope_exp->scope_names) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -835,7 +841,7 @@ khstring khAstTemplatizeExpression_string(khAstTemplatizeExpression* templatize_
         khstring_concatenate(&string, &template_argument_str);
         khstring_delete(&template_argument_str);
 
-        if (i < kharray_size(&templatize_exp->template_arguments) - 1) {
+        if (i != kharray_size(&templatize_exp->template_arguments) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1174,7 +1180,7 @@ khstring khAstImport_string(khAstImport* import_v, char32_t* origin) {
         khstring_concatenate(&string, &quoted_path);
         khstring_delete(&quoted_path);
 
-        if (i < kharray_size(&import_v->path) - 1) {
+        if (i != kharray_size(&import_v->path) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1217,7 +1223,7 @@ khstring khAstInclude_string(khAstInclude* include, char32_t* origin) {
         khstring_concatenate(&string, &quoted_path);
         khstring_delete(&quoted_path);
 
-        if (i < kharray_size(&include->path) - 1) {
+        if (i != kharray_size(&include->path) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1283,7 +1289,7 @@ khstring khAstFunction_string(khAstFunction* function, char32_t* origin) {
         khstring_concatenate(&string, &quoted_identifier);
         khstring_delete(&quoted_identifier);
 
-        if (i < kharray_size(&function->identifiers) - 1) {
+        if (i != kharray_size(&function->identifiers) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1294,7 +1300,7 @@ khstring khAstFunction_string(khAstFunction* function, char32_t* origin) {
         khstring_concatenate(&string, &quoted_argument);
         khstring_delete(&quoted_argument);
 
-        if (i < kharray_size(&function->template_arguments) - 1) {
+        if (i != kharray_size(&function->template_arguments) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1305,7 +1311,7 @@ khstring khAstFunction_string(khAstFunction* function, char32_t* origin) {
         khstring_concatenate(&string, &argument_str);
         khstring_delete(&argument_str);
 
-        if (i < kharray_size(&function->arguments) - 1) {
+        if (i != kharray_size(&function->arguments) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1339,7 +1345,7 @@ khstring khAstFunction_string(khAstFunction* function, char32_t* origin) {
         khstring_concatenate(&string, &statement_str);
         khstring_delete(&statement_str);
 
-        if (i < kharray_size(&function->block) - 1) {
+        if (i != kharray_size(&function->block) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1393,7 +1399,7 @@ khstring khAstClass_string(khAstClass* class_v, char32_t* origin) {
         khstring_concatenate(&string, &quoted_argument);
         khstring_delete(&quoted_argument);
 
-        if (i < kharray_size(&class_v->template_arguments) - 1) {
+        if (i != kharray_size(&class_v->template_arguments) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1414,7 +1420,7 @@ khstring khAstClass_string(khAstClass* class_v, char32_t* origin) {
         khstring_concatenate(&string, &statement_str);
         khstring_delete(&statement_str);
 
-        if (i < kharray_size(&class_v->block) - 1) {
+        if (i != kharray_size(&class_v->block) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1457,7 +1463,7 @@ khstring khAstStruct_string(khAstStruct* struct_v, char32_t* origin) {
         khstring_concatenate(&string, &quoted_argument);
         khstring_delete(&quoted_argument);
 
-        if (i < kharray_size(&struct_v->template_arguments) - 1) {
+        if (i != kharray_size(&struct_v->template_arguments) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1468,7 +1474,7 @@ khstring khAstStruct_string(khAstStruct* struct_v, char32_t* origin) {
         khstring_concatenate(&string, &statement_str);
         khstring_delete(&statement_str);
 
-        if (i < kharray_size(&struct_v->block) - 1) {
+        if (i != kharray_size(&struct_v->block) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1504,7 +1510,7 @@ khstring khAstEnum_string(khAstEnum* enum_v, char32_t* origin) {
         khstring_concatenate(&string, &quoted_member);
         khstring_delete(&quoted_member);
 
-        if (i < kharray_size(&enum_v->members) - 1) {
+        if (i != kharray_size(&enum_v->members) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1571,7 +1577,7 @@ khstring khAstIfBranch_string(khAstIfBranch* if_branch, char32_t* origin) {
         khstring_concatenate(&string, &branch_condition_str);
         khstring_delete(&branch_condition_str);
 
-        if (i < kharray_size(&if_branch->branch_conditions) - 1) {
+        if (i != kharray_size(&if_branch->branch_conditions) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1590,7 +1596,7 @@ khstring khAstIfBranch_string(khAstIfBranch* if_branch, char32_t* origin) {
         }
         khstring_append(&string, U']');
 
-        if (i < kharray_size(&if_branch->branch_blocks) - 1) {
+        if (i != kharray_size(&if_branch->branch_blocks) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1601,7 +1607,7 @@ khstring khAstIfBranch_string(khAstIfBranch* if_branch, char32_t* origin) {
         khstring_concatenate(&string, &statement_str);
         khstring_delete(&statement_str);
 
-        if (i < kharray_size(&if_branch->else_block) - 1) {
+        if (i != kharray_size(&if_branch->else_block) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1633,7 +1639,7 @@ khstring khAstWhileLoop_string(khAstWhileLoop* while_loop, char32_t* origin) {
         khstring_concatenate(&string, &statement_str);
         khstring_delete(&statement_str);
 
-        if (i < kharray_size(&while_loop->block) - 1) {
+        if (i != kharray_size(&while_loop->block) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1665,7 +1671,7 @@ khstring khAstDoWhileLoop_string(khAstDoWhileLoop* do_while_loop, char32_t* orig
         khstring_concatenate(&string, &statement_str);
         khstring_delete(&statement_str);
 
-        if (i < kharray_size(&do_while_loop->block) - 1) {
+        if (i != kharray_size(&do_while_loop->block) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1694,7 +1700,7 @@ khstring khAstForLoop_string(khAstForLoop* for_loop, char32_t* origin) {
         khstring_concatenate(&string, &quoted_iterator);
         khstring_delete(&quoted_iterator);
 
-        if (i < kharray_size(&for_loop->iterators) - 1) {
+        if (i != kharray_size(&for_loop->iterators) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1710,7 +1716,7 @@ khstring khAstForLoop_string(khAstForLoop* for_loop, char32_t* origin) {
         khstring_concatenate(&string, &statement_str);
         khstring_delete(&statement_str);
 
-        if (i < kharray_size(&for_loop->block) - 1) {
+        if (i != kharray_size(&for_loop->block) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }
@@ -1735,7 +1741,7 @@ khstring khAstReturn_string(khAstReturn* return_v, char32_t* origin) {
         khstring_concatenate(&string, &value_str);
         khstring_delete(&value_str);
 
-        if (i < kharray_size(&return_v->values) - 1) {
+        if (i != kharray_size(&return_v->values) - 1) {
             khstring_concatenateCstring(&string, U", ");
         }
     }

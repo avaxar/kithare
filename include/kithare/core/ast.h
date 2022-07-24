@@ -53,7 +53,7 @@ typedef struct {
     bool is_static;
     bool is_wild;
     bool is_ref;
-    khstring name;
+    kharray(khstring) names;
     khAstExpression* opt_type;
     khAstExpression* opt_initializer;
 } khAstVariable;
