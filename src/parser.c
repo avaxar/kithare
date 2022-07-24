@@ -533,8 +533,8 @@ static khAstVariable sparseVariable(char32_t** cursor, bool no_static, bool igno
                               .is_wild = false,
                               .is_ref = false,
                               .name = NULL,
-                              .optional_type = NULL,
-                              .optional_initializer = NULL};
+                              .opt_type = NULL,
+                              .opt_initializer = NULL};
 
 
     if (!no_static) {
@@ -584,8 +584,8 @@ static khAstVariable sparseVariable(char32_t** cursor, bool no_static, bool igno
 
     // If there's no assign op at first, it's a type: `name: Type`
     if (!(token.type == khTokenType_OPERATOR && token.operator_v == khOperatorToken_ASSIGN)) {
-        variable.optional_type = malloc(sizeof(khAstExpression));
-        *variable.optional_type = kh_parseExpression(cursor, ignore_newline, true);
+        variable.opt_type = malloc(sizeof(khAstExpression));
+        *variable.opt_type = kh_parseExpression(cursor, ignore_newline, true);
 
         khToken_delete(&token);
         token = currentToken(cursor, ignore_newline);
@@ -594,8 +594,8 @@ static khAstVariable sparseVariable(char32_t** cursor, bool no_static, bool igno
     // Optional initializer
     if (token.type == khTokenType_OPERATOR && token.operator_v == khOperatorToken_ASSIGN) {
         skipToken(cursor);
-        variable.optional_initializer = malloc(sizeof(khAstExpression));
-        *variable.optional_initializer = kh_parseExpression(cursor, ignore_newline, false);
+        variable.opt_initializer = malloc(sizeof(khAstExpression));
+        *variable.opt_initializer = kh_parseExpression(cursor, ignore_newline, false);
     }
 
     khToken_delete(&token);
@@ -605,7 +605,7 @@ static khAstVariable sparseVariable(char32_t** cursor, bool no_static, bool igno
 static khAstImport sparseImport(char32_t** cursor) {
     khToken token = currentToken(cursor, true);
     khAstImport import_v = {
-        .path = kharray_new(khstring, khstring_delete), .relative = false, .optional_alias = NULL};
+        .path = kharray_new(khstring, khstring_delete), .relative = false, .opt_alias = NULL};
 
     // Ensures `import` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_IMPORT) {
@@ -665,8 +665,8 @@ finish:
         token = currentToken(cursor, false);
 
         if (token.type == khTokenType_IDENTIFIER) {
-            import_v.optional_alias = malloc(sizeof(kharray(char)*));
-            *import_v.optional_alias = khstring_copy(&token.identifier);
+            import_v.opt_alias = malloc(sizeof(kharray(char)*));
+            *import_v.opt_alias = khstring_copy(&token.identifier);
             skipToken(cursor);
             khToken_delete(&token);
             token = currentToken(cursor, false);
@@ -764,9 +764,8 @@ finish:
 }
 
 static inline void sparseFunctionOrLambda(char32_t** cursor, kharray(khAstVariable) * arguments,
-                                          khAstVariable** optional_variadic_argument,
-                                          bool* is_return_type_ref,
-                                          khAstExpression** optional_return_type,
+                                          khAstVariable** opt_variadic_argument,
+                                          bool* is_return_type_ref, khAstExpression** opt_return_type,
                                           kharray(khAstStatement) * block) {
     khToken token = currentToken(cursor, false);
 
@@ -786,8 +785,8 @@ static inline void sparseFunctionOrLambda(char32_t** cursor, kharray(khAstVariab
         if (token.type == khTokenType_DELIMITER && token.delimiter == khDelimiterToken_ELLIPSIS) {
             skipToken(cursor);
 
-            *optional_variadic_argument = malloc(sizeof(khAstVariable));
-            **optional_variadic_argument = sparseVariable(cursor, true, true);
+            *opt_variadic_argument = malloc(sizeof(khAstVariable));
+            **opt_variadic_argument = sparseVariable(cursor, true, true);
 
             khToken_delete(&token);
             token = currentToken(cursor, true);
@@ -847,8 +846,8 @@ static inline void sparseFunctionOrLambda(char32_t** cursor, kharray(khAstVariab
             *is_return_type_ref = false;
         }
 
-        *optional_return_type = malloc(sizeof(khAstExpression));
-        **optional_return_type = kh_parseExpression(cursor, true, true);
+        *opt_return_type = malloc(sizeof(khAstExpression));
+        **opt_return_type = kh_parseExpression(cursor, true, true);
 
         khToken_delete(&token);
         token = currentToken(cursor, true);
@@ -866,9 +865,9 @@ static khAstFunction sparseFunction(char32_t** cursor) {
                               .identifiers = kharray_new(khstring, khstring_delete),
                               .template_arguments = kharray_new(khstring, khstring_delete),
                               .arguments = kharray_new(khAstVariable, khAstVariable_delete),
-                              .optional_variadic_argument = NULL,
+                              .opt_variadic_argument = NULL,
                               .is_return_type_ref = false,
-                              .optional_return_type = NULL,
+                              .opt_return_type = NULL,
                               .block = NULL};
 
     // Any specifiers: `incase static def function() { ... }`
@@ -953,9 +952,8 @@ static khAstFunction sparseFunction(char32_t** cursor) {
     }
 
     // This will take care of the rest, including arguments and body
-    sparseFunctionOrLambda(cursor, &function.arguments, &function.optional_variadic_argument,
-                           &function.is_return_type_ref, &function.optional_return_type,
-                           &function.block);
+    sparseFunctionOrLambda(cursor, &function.arguments, &function.opt_variadic_argument,
+                           &function.is_return_type_ref, &function.opt_return_type, &function.block);
 
     khToken_delete(&token);
     return function;
@@ -963,7 +961,7 @@ static khAstFunction sparseFunction(char32_t** cursor) {
 
 static inline void sparseClassOrStruct(char32_t** cursor, khstring* name,
                                        kharray(khstring) * template_arguments,
-                                       khAstExpression** optional_base_type,
+                                       khAstExpression** opt_base_type,
                                        kharray(khAstStatement) * block) {
     khToken token = currentToken(cursor, false);
 
@@ -1028,11 +1026,11 @@ static inline void sparseClassOrStruct(char32_t** cursor, khstring* name,
     }
 
     // If a class is inheriting something: `class Name inherits Base`
-    if (optional_base_type != NULL && token.type == khTokenType_KEYWORD &&
+    if (opt_base_type != NULL && token.type == khTokenType_KEYWORD &&
         token.keyword == khKeywordToken_INHERITS) {
         skipToken(cursor);
-        *optional_base_type = malloc(sizeof(khAstExpression));
-        **optional_base_type = kh_parseExpression(cursor, true, true);
+        *opt_base_type = malloc(sizeof(khAstExpression));
+        **opt_base_type = kh_parseExpression(cursor, true, true);
 
         khToken_delete(&token);
         token = currentToken(cursor, true);
@@ -1048,7 +1046,7 @@ static khAstClass sparseClass(char32_t** cursor) {
     khAstClass class_v = {.is_incase = false,
                           .name = NULL,
                           .template_arguments = kharray_new(khstring, khstring_delete),
-                          .optional_base_type = NULL,
+                          .opt_base_type = NULL,
                           .block = NULL};
 
     // Any specifiers: `incase class E { ... }`
@@ -1064,7 +1062,7 @@ static khAstClass sparseClass(char32_t** cursor) {
         raiseError(token.begin, U"expecting a `class` keyword");
     }
 
-    sparseClassOrStruct(cursor, &class_v.name, &class_v.template_arguments, &class_v.optional_base_type,
+    sparseClassOrStruct(cursor, &class_v.name, &class_v.template_arguments, &class_v.opt_base_type,
                         &class_v.block);
 
     khToken_delete(&token);
@@ -2163,6 +2161,8 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
                     }
 
                     expression = (khAstExpression){
+                        .begin = origin,
+                        .end = *cursor,
                         .type = khAstExpressionType_ARRAY,
                         .array = {.values = exparseList(cursor, khDelimiterToken_SQUARE_BRACKET_OPEN,
                                                         khDelimiterToken_SQUARE_BRACKET_CLOSE,
@@ -2178,6 +2178,15 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
                     expression = exparseDict(cursor, ignore_newline);
                     break;
 
+                // Ellipses
+                case khDelimiterToken_ELLIPSIS:
+                    // No type-filtering here as it is used for making the slice compound-type
+                    // slice: int[...] = expression
+                    skipToken(cursor);
+                    expression = (khAstExpression){
+                        .begin = origin, .end = *cursor, .type = khAstExpressionType_ELLIPSIS};
+                    break;
+
                 default:
                     raiseError(token.begin, U"unexpected token in an expression");
                     skipToken(cursor);
@@ -2185,8 +2194,7 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
             }
             break;
 
-            // The rest below are constants (v)
-
+        // The rest below are constants (v)
         case khTokenType_CHAR:
             if (filter_type) {
                 raiseError(token.begin, U"expecting a type, not a character");
@@ -2235,7 +2243,8 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
 
         case khTokenType_INTEGER:
             // Integers should be able to be parsed even with `filter_type`, in order for static array
-            // types to be parsed
+            // compound-types to be parsed
+            // vec: float[3] = expression
             /* if (filter_type) {
              *     raiseError(token.begin, U"expecting a type, not an integer");
              * }
@@ -2250,6 +2259,7 @@ static khAstExpression exparseOther(char32_t** cursor, EXPARSE_ARGS) {
 
         case khTokenType_UINTEGER:
             // Same for unsigned integers
+            // vec: float[3U] = expression
             /* if (filter_type) {
              *     raiseError(token.begin, U"expecting a type, not an unsigned integer");
              * }
@@ -2336,7 +2346,7 @@ static khAstExpression exparseSignature(char32_t** cursor, bool ignore_newline) 
     khAstSignature signature = {.are_arguments_refs = kharray_new(bool, NULL),
                                 .argument_types = kharray_new(khAstExpression, khAstExpression_delete),
                                 .is_return_type_ref = false,
-                                .optional_return_type = NULL};
+                                .opt_return_type = NULL};
 
     // Ensures `def` keyword
     if (token.type == khTokenType_KEYWORD && token.keyword == khKeywordToken_DEF) {
@@ -2423,8 +2433,8 @@ static khAstExpression exparseSignature(char32_t** cursor, bool ignore_newline) 
         }
 
         // Return type itself
-        signature.optional_return_type = malloc(sizeof(khAstExpression));
-        *signature.optional_return_type = kh_parseExpression(cursor, ignore_newline, true);
+        signature.opt_return_type = malloc(sizeof(khAstExpression));
+        *signature.opt_return_type = kh_parseExpression(cursor, ignore_newline, true);
     }
 
     khToken_delete(&token);
@@ -2436,9 +2446,9 @@ static khAstExpression exparseLambda(char32_t** cursor, bool ignore_newline) {
     khToken token = currentToken(cursor, ignore_newline);
     char32_t* origin = *cursor;
     khAstLambda lambda = {.arguments = kharray_new(khAstVariable, khAstVariable_delete),
-                          .optional_variadic_argument = NULL,
+                          .opt_variadic_argument = NULL,
                           .is_return_type_ref = false,
-                          .optional_return_type = NULL,
+                          .opt_return_type = NULL,
                           .block = NULL};
 
     // Ensures `def` keyword
@@ -2451,8 +2461,8 @@ static khAstExpression exparseLambda(char32_t** cursor, bool ignore_newline) {
         raiseError(token.begin, U"expecting a `def` keyword");
     }
 
-    sparseFunctionOrLambda(cursor, &lambda.arguments, &lambda.optional_variadic_argument,
-                           &lambda.is_return_type_ref, &lambda.optional_return_type, &lambda.block);
+    sparseFunctionOrLambda(cursor, &lambda.arguments, &lambda.opt_variadic_argument,
+                           &lambda.is_return_type_ref, &lambda.opt_return_type, &lambda.block);
 
     khToken_delete(&token);
     return (khAstExpression){

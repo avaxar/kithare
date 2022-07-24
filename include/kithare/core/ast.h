@@ -54,8 +54,8 @@ typedef struct {
     bool is_wild;
     bool is_ref;
     khstring name;
-    khAstExpression* optional_type;
-    khAstExpression* optional_initializer;
+    khAstExpression* opt_type;
+    khAstExpression* opt_initializer;
 } khAstVariable;
 
 khAstVariable khAstVariable_copy(khAstVariable* variable);
@@ -81,6 +81,7 @@ typedef enum {
     khAstExpressionType_TUPLE,
     khAstExpressionType_ARRAY,
     khAstExpressionType_DICT,
+    khAstExpressionType_ELLIPSIS,
 
     khAstExpressionType_SIGNATURE,
     khAstExpressionType_LAMBDA,
@@ -131,7 +132,7 @@ typedef struct {
     kharray(bool) are_arguments_refs;
     kharray(khAstExpression) argument_types;
     bool is_return_type_ref;
-    khAstExpression* optional_return_type;
+    khAstExpression* opt_return_type;
 } khAstSignature;
 
 khAstSignature khAstSignature_copy(khAstSignature* signature);
@@ -142,9 +143,9 @@ khstring khAstSignature_string(khAstSignature* signature, char32_t* origin);
 
 typedef struct {
     kharray(khAstVariable) arguments;
-    khAstVariable* optional_variadic_argument;
+    khAstVariable* opt_variadic_argument;
     bool is_return_type_ref;
-    khAstExpression* optional_return_type;
+    khAstExpression* opt_return_type;
     kharray(khAstStatement) block;
 } khAstLambda;
 
@@ -343,7 +344,7 @@ khstring khAstExpression_string(khAstExpression* expression, char32_t* origin);
 typedef struct {
     kharray(khstring) path;
     bool relative;
-    khstring* optional_alias;
+    khstring* opt_alias;
 } khAstImport;
 
 khAstImport khAstImport_copy(khAstImport* import_v);
@@ -367,9 +368,9 @@ typedef struct {
     kharray(khstring) identifiers;
     kharray(khstring) template_arguments;
     kharray(khAstVariable) arguments;
-    khAstVariable* optional_variadic_argument;
+    khAstVariable* opt_variadic_argument;
     bool is_return_type_ref;
-    khAstExpression* optional_return_type;
+    khAstExpression* opt_return_type;
     kharray(khAstStatement) block;
 } khAstFunction;
 
@@ -382,7 +383,7 @@ typedef struct {
     bool is_incase;
     khstring name;
     kharray(khstring) template_arguments;
-    khAstExpression* optional_base_type;
+    khAstExpression* opt_base_type;
     kharray(khAstStatement) block;
 } khAstClass;
 
