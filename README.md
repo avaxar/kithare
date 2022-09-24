@@ -1,3 +1,5 @@
+# THIS PROJECT HAS BEEN ABANDONED. SOME GITHUB WORKFLOW LINKS MIGHT NOT WORK
+
 ![Kithare](misc/banner.png)
 
 # Kithare
@@ -14,32 +16,32 @@
 
 - **Important note**: The language is still unfinished and there are no stable releases yet.
 - Kithare follows semantic versioning system for its releases.
-- All releases will be live on the [GitHub releases tab](https://github.com/Kithare/Kithare/releases).
+- All releases will be live on the [GitHub releases tab](https://github.com/avaxar/Kithare/releases).
 - For people who like to live on the edge, Kithare provides nightly builds. Here are some direct download links:
 
 1. **Windows builds:**
 
     Each of these contain a portable ZIP-file based install, and an exe installer.
-    - [32-bit](https://nightly.link/Kithare/Kithare/workflows/windows/main/kithare-windows-x86-installers.zip)
-    - [64-bit](https://nightly.link/Kithare/Kithare/workflows/windows/main/kithare-windows-x64-installers.zip)
+    - [32-bit](https://nightly.link/avaxar/Kithare/workflows/windows/main/kithare-windows-x86-installers.zip)
+    - [64-bit](https://nightly.link/avaxar/Kithare/workflows/windows/main/kithare-windows-x64-installers.zip)
 
 2. **MacOS (Darwin) builds:**
 
     Each of these contain a portable ZIP-file based install (more installers are WIP).
-    - [x86_64 (Intel)](https://nightly.link/Kithare/Kithare/workflows/darwin/main/kithare-darwin-x64-installers.zip)
-    - [arm64 (Apple Silicon - not implemented yet)](https://nightly.link/Kithare/Kithare/workflows/darwin/main/kithare-darwin-arm64-installers.zip)
-    - [universal2 (not implemented yet)](https://nightly.link/Kithare/Kithare/workflows/darwin/main/kithare-darwin-universal2-installers.zip)
+    - [x86_64 (Intel)](https://nightly.link/avaxar/Kithare/workflows/darwin/main/kithare-darwin-x64-installers.zip)
+    - [arm64 (Apple Silicon - not implemented yet)](https://nightly.link/avaxar/Kithare/workflows/darwin/main/kithare-darwin-arm64-installers.zip)
+    - [universal2 (not implemented yet)](https://nightly.link/avaxar/Kithare/workflows/darwin/main/kithare-darwin-universal2-installers.zip)
 
 3. **Linux builds:**
 
     Each of these contain a portable ZIP-file based install, a `deb` apt package, an `rpm` package and an `AppImage` installer.
-    - [x86_64 (64 bit Intel/AMD)](https://nightly.link/Kithare/Kithare/workflows/linux/main/kithare-linux-x64-installers.zip)
-    - [x86 (32 bit Intel/AMD)](https://nightly.link/Kithare/Kithare/workflows/linux/main/kithare-linux-x86-installers.zip)
-    - [armv6 (armhf - Common in older Raspberry Pis)](https://nightly.link/Kithare/Kithare/workflows/linux/main/kithare-linux-armv6-installers.zip)
-    - [armv7 (armhf - Common in newer Raspberry Pis)](https://nightly.link/Kithare/Kithare/workflows/linux/main/kithare-linux-armv7-installers.zip)
-    - [arm64 (aarch64)](https://nightly.link/Kithare/Kithare/workflows/linux/main/kithare-linux-arm64-installers.zip)
-    - [s390x (not well supported/tested)](https://nightly.link/Kithare/Kithare/workflows/linux/main/kithare-linux-s390x-installers.zip)
-    - [ppc64le (not well supported/tested)](https://nightly.link/Kithare/Kithare/workflows/linux/main/kithare-linux-ppc64le-installers.zip)
+    - [x86_64 (64 bit Intel/AMD)](https://nightly.link/avaxar/Kithare/workflows/linux/main/kithare-linux-x64-installers.zip)
+    - [x86 (32 bit Intel/AMD)](https://nightly.link/avaxar/Kithare/workflows/linux/main/kithare-linux-x86-installers.zip)
+    - [armv6 (armhf - Common in older Raspberry Pis)](https://nightly.link/avaxar/Kithare/workflows/linux/main/kithare-linux-armv6-installers.zip)
+    - [armv7 (armhf - Common in newer Raspberry Pis)](https://nightly.link/avaxar/Kithare/workflows/linux/main/kithare-linux-armv7-installers.zip)
+    - [arm64 (aarch64)](https://nightly.link/avaxar/Kithare/workflows/linux/main/kithare-linux-arm64-installers.zip)
+    - [s390x (not well supported/tested)](https://nightly.link/avaxar/Kithare/workflows/linux/main/kithare-linux-s390x-installers.zip)
+    - [ppc64le (not well supported/tested)](https://nightly.link/avaxar/Kithare/workflows/linux/main/kithare-linux-ppc64le-installers.zip)
 
 - For these builds, the version in the installer packages is usually given by `YYYY.MM.DD.HHmm-nightly`. So if the date during the build is 22nd August 2021 and the time is 09:10:36 UTC, then the nightly build version will look like `2021.08.22.0910-nightly`.
 

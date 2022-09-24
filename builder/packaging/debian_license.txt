@@ -1,7 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: kithare
 Upstream-Contact: Kithare Organization <neaxture@gmail.com>
-Source: https://github.com/Kithare/Kithare
+Source: https://github.com/avaxar/Kithare
 Comment:
  The Expat license here is equivalent to the MIT license, that Kithare
  upstream ships with

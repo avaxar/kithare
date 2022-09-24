@@ -39,11 +39,11 @@ The source code for Kithare programming language is distributed
 under the MIT license.
 Copyright (C) 2022 Kithare Organization
 
-GitHub: https://github.com/Kithare/Kithare
+GitHub: https://github.com/avaxar/Kithare
 Website: https://kithare.de/Kithare/
 """
 
 EPILOG = """
 For any bug reports or feature requests, check out the issue tracker on GitHub
-https://github.com/Kithare/Kithare/issues
+https://github.com/avaxar/Kithare/issues
 """
