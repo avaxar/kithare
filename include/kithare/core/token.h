@@ -161,8 +161,8 @@ typedef struct {
         khbuffer buffer;
 
         uint8_t byte;
-        int64_t integer;
-        uint64_t uinteger;
+        __int128_t integer;
+        __uint128_t uinteger;
         float float_v;
         double double_v;
         float ifloat;
@@ -225,11 +225,11 @@ static inline khToken khToken_fromByte(uint8_t byte, char32_t* begin, char32_t* 
     return (khToken){.begin = begin, .end = end, .type = khTokenType_BYTE, .byte = byte};
 }
 
-static inline khToken khToken_fromInteger(int64_t integer, char32_t* begin, char32_t* end) {
+static inline khToken khToken_fromInteger(__int128_t integer, char32_t* begin, char32_t* end) {
     return (khToken){.begin = begin, .end = end, .type = khTokenType_INTEGER, .integer = integer};
 }
 
-static inline khToken khToken_fromUinteger(uint64_t uinteger, char32_t* begin, char32_t* end) {
+static inline khToken khToken_fromUinteger(__uint128_t uinteger, char32_t* begin, char32_t* end) {
     return (khToken){.begin = begin, .end = end, .type = khTokenType_UINTEGER, .uinteger = uinteger};
 }
 

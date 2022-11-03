@@ -231,7 +231,7 @@ khToken kh_lexNumber(char32_t** cursor) {
 
     char32_t* origin = *cursor;
     bool had_overflowed;
-    uint64_t integer = kh_lexInt(cursor, base, -1, &had_overflowed);
+    __uint128_t integer = kh_lexInt(cursor, base, -1, &had_overflowed);
 
     // When it didn't lex any characters (presumably because it's out of base)
     if (*cursor == origin) {
@@ -284,17 +284,21 @@ khToken kh_lexNumber(char32_t** cursor) {
                 return khToken_fromDouble(floating, begin, *cursor);
         }
     }
-    else if (had_overflowed) {
-        raiseError(*cursor - 1, U"integer constant must not exceed 2^64");
-        return khToken_fromInvalid(begin, *cursor);
-    }
     else if (**cursor == U'u' || **cursor == U'U') {
         (*cursor)++;
-        return khToken_fromUinteger(integer, begin, *cursor);
+
+        if (had_overflowed) {
+            raiseError(*cursor - 2, U"unsigned integer literal must not exceed 2^128 - 1");
+            return khToken_fromInvalid(begin, *cursor);
+        }
+        else {
+            return khToken_fromUinteger(integer, begin, *cursor);
+        }
     }
     else {
-        if (integer > (1ull << 63ull) - 1ull) {
-            return khToken_fromUinteger(integer, begin, *cursor);
+        if (had_overflowed || integer >= (__uint128_t)1 << 127) {
+            raiseError(*cursor - 1, U"integer literal must not exceed 2^127 - 1");
+            return khToken_fromInvalid(begin, *cursor);
         }
         else {
             return khToken_fromInteger(integer, begin, *cursor);
@@ -731,15 +735,15 @@ khstring kh_lexString(char32_t** cursor, bool is_buffer) {
     return string;
 }
 
-uint64_t kh_lexInt(char32_t** cursor, uint8_t base, size_t max_length, bool* had_overflowed) {
-    uint64_t result = 0;
+__uint128_t kh_lexInt(char32_t** cursor, uint8_t base, size_t max_length, bool* had_overflowed) {
+    __uint128_t result = 0;
 
     if (had_overflowed != NULL) {
         *had_overflowed = false;
     }
 
     while (digitOf(**cursor) < base && max_length > 0) {
-        uint64_t previous = result;
+        __uint128_t previous = result;
         result *= base; // Shift left of the base: 123 -> 1230 (decimal)
         result += digitOf(**cursor);
 
